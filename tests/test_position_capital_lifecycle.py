@@ -394,6 +394,8 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             execution_assumption_id=self.execution_assumptions.identity_id,
             capital_assumption_id=self.capital_assumptions.identity_id,
             state_at=at(9, 4),
+            position_trading_day=DAY,
+            today_quantity=Decimal("1"),
         )
         with self.assertRaisesRegex(ValueError, "requires a valid fill"):
             self.run_case(initial_snapshot=fabricated_snapshot)

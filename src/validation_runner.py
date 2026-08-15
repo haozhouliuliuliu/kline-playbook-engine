@@ -4,13 +4,23 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from decimal import Decimal
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from hashlib import sha256
 import json
 from typing import Iterable
 
-from src.data_substrate import CompletedBar
+from src.contract_semantics import (
+    CloseOffset,
+    ContractMappingSchedule,
+    ContractMaster,
+    ContractResolution,
+    ContractResolver,
+    OffsetCostAssumptions,
+    OrderAction,
+    PriceLimitFact,
+)
+from src.data_substrate import CompletedBar, SessionMetadata
 from src.strategy_evidence import (
     DatasetClass,
     EvidenceLedger,
@@ -44,10 +54,16 @@ class FillStatus(str, Enum):
 class OrderSpecification:
     request_id: str
     quantity: Decimal
+    action: OrderAction = OrderAction.OPEN
+    close_offset: CloseOffset | None = None
 
     def __post_init__(self) -> None:
         if not self.request_id or type(self.quantity) is not Decimal or self.quantity <= 0:
             raise ValueError("order request_id and positive Decimal quantity are required")
+        if self.action is OrderAction.OPEN and self.close_offset is not None:
+            raise ValueError("open order cannot specify a close offset")
+        if self.action is OrderAction.CLOSE and self.close_offset is None:
+            raise ValueError("close order requires an explicit close offset")
 
 
 @dataclass(frozen=True)
@@ -105,6 +121,14 @@ class CapitalSnapshot:
     capital_assumption_id: str | None = None
     state_at: datetime | None = None
     latest_mark_reference: str | None = None
+    concrete_contract_id: str | None = None
+    contract_identity_id: str | None = None
+    contract_master_identity_id: str | None = None
+    mapping_schedule_identity_id: str | None = None
+    mapping_entry_identity_id: str | None = None
+    position_trading_day: date | None = None
+    today_quantity: Decimal = Decimal("0")
+    previous_quantity: Decimal = Decimal("0")
 
     def __post_init__(self) -> None:
         non_negative = (
@@ -113,6 +137,8 @@ class CapitalSnapshot:
             self.charged_costs,
             self.position_quantity,
             self.average_open_price,
+            self.today_quantity,
+            self.previous_quantity,
         )
         if any(type(value) is not Decimal or value < 0 for value in non_negative):
             raise ValueError("capital, position, and price values must be non-negative Decimals")
@@ -132,8 +158,30 @@ class CapitalSnapshot:
                 raise ValueError("a flat snapshot cannot retain price, margin, or unrealized PnL")
             if any(value is not None for value in active_bindings):
                 raise ValueError("a flat snapshot cannot retain active position bindings")
+            contract_bindings = (
+                self.concrete_contract_id,
+                self.contract_identity_id,
+                self.contract_master_identity_id,
+                self.mapping_schedule_identity_id,
+                self.mapping_entry_identity_id,
+                self.position_trading_day,
+            )
+            if self.today_quantity != 0 or self.previous_quantity != 0 or any(
+                value is not None for value in contract_bindings
+            ):
+                raise ValueError("a flat snapshot cannot retain contract or position-bucket bindings")
         elif self.average_open_price <= 0 or any(not value for value in active_bindings):
             raise ValueError("an open position requires price and complete identity bindings")
+        elif self.today_quantity + self.previous_quantity != self.position_quantity:
+            raise ValueError("today and previous position buckets must reconcile to total quantity")
+        elif self.concrete_contract_id is not None:
+            required_contract_bindings = (
+                self.contract_identity_id,
+                self.contract_master_identity_id,
+                self.position_trading_day,
+            )
+            if any(not value for value in required_contract_bindings):
+                raise ValueError("a contract-bound position requires complete contract identity and trading day")
 
     @property
     def available_capital(self) -> Decimal:
@@ -169,6 +217,14 @@ class CapitalSnapshot:
                 "capital_assumption_id": self.capital_assumption_id,
                 "state_at": self.state_at.isoformat() if self.state_at else None,
                 "latest_mark_reference": self.latest_mark_reference,
+                "concrete_contract_id": self.concrete_contract_id,
+                "contract_identity_id": self.contract_identity_id,
+                "contract_master_identity_id": self.contract_master_identity_id,
+                "mapping_schedule_identity_id": self.mapping_schedule_identity_id,
+                "mapping_entry_identity_id": self.mapping_entry_identity_id,
+                "position_trading_day": self.position_trading_day.isoformat() if self.position_trading_day else None,
+                "today_quantity": str(self.today_quantity),
+                "previous_quantity": str(self.previous_quantity),
             }
         )
 
@@ -184,6 +240,10 @@ class CapitalTransition:
     realized_pnl_change: Decimal = Decimal("0")
     released_margin: Decimal = Decimal("0")
     transition_type: str = "ORDER_EXECUTION"
+    aged_quantity: Decimal = Decimal("0")
+    resolved_close_offset: CloseOffset | None = None
+    contract_resolution_id: str | None = None
+    offset_cost_assumption_id: str | None = None
 
     def __post_init__(self) -> None:
         decimal_values = (
@@ -192,6 +252,7 @@ class CapitalTransition:
             self.quantity_change,
             self.realized_pnl_change,
             self.released_margin,
+            self.aged_quantity,
         )
         if not self.request_id or not self.transition_type or any(type(value) is not Decimal for value in decimal_values):
             raise ValueError("capital transition requires an identity and Decimal arithmetic")
@@ -211,6 +272,10 @@ class CapitalTransition:
                 "realized_pnl_change": str(self.realized_pnl_change),
                 "released_margin": str(self.released_margin),
                 "transition_type": self.transition_type,
+                "aged_quantity": str(self.aged_quantity),
+                "resolved_close_offset": self.resolved_close_offset.value if self.resolved_close_offset else None,
+                "contract_resolution_id": self.contract_resolution_id,
+                "offset_cost_assumption_id": self.offset_cost_assumption_id,
             }
         )
 
@@ -254,6 +319,7 @@ class ExecutionObservation:
     available_at: datetime
     price: Decimal
     tradable: bool = True
+    concrete_contract_id: str | None = None
 
     def __post_init__(self) -> None:
         if not self.request_id or self.observed_at.tzinfo is None or self.available_at.tzinfo is None:
@@ -274,6 +340,15 @@ class ExecutionOutcome:
     total_cost: Decimal | None
     reason: str
     capital_assumption_id: str | None = None
+    contract_resolution_id: str | None = None
+    concrete_contract_id: str | None = None
+    contract_identity_id: str | None = None
+    contract_master_identity_id: str | None = None
+    mapping_schedule_identity_id: str | None = None
+    mapping_entry_identity_id: str | None = None
+    price_limit_fact_id: str | None = None
+    resolved_close_offset: CloseOffset | None = None
+    offset_cost_assumption_id: str | None = None
 
     @property
     def reference_id(self) -> str:
@@ -287,6 +362,15 @@ class ExecutionOutcome:
                 "total_cost": str(self.total_cost) if self.total_cost is not None else None,
                 "reason": self.reason,
                 "capital_assumption_id": self.capital_assumption_id,
+                "contract_resolution_id": self.contract_resolution_id,
+                "concrete_contract_id": self.concrete_contract_id,
+                "contract_identity_id": self.contract_identity_id,
+                "contract_master_identity_id": self.contract_master_identity_id,
+                "mapping_schedule_identity_id": self.mapping_schedule_identity_id,
+                "mapping_entry_identity_id": self.mapping_entry_identity_id,
+                "price_limit_fact_id": self.price_limit_fact_id,
+                "resolved_close_offset": self.resolved_close_offset.value if self.resolved_close_offset else None,
+                "offset_cost_assumption_id": self.offset_cost_assumption_id,
             }
         )
 
@@ -356,6 +440,9 @@ class ForcedLiquidationRequirement:
     eligible_at: datetime
     mark_reference: str
     capital_assumption_id: str
+    contract_identity_id: str | None = None
+    contract_master_identity_id: str | None = None
+    mapping_entry_identity_id: str | None = None
 
     @property
     def reference_id(self) -> str:
@@ -369,6 +456,9 @@ class ForcedLiquidationRequirement:
                 "eligible_at": self.eligible_at.isoformat(),
                 "mark_reference": self.mark_reference,
                 "capital_assumption_id": self.capital_assumption_id,
+                "contract_identity_id": self.contract_identity_id,
+                "contract_master_identity_id": self.contract_master_identity_id,
+                "mapping_entry_identity_id": self.mapping_entry_identity_id,
             }
         )
 
@@ -422,6 +512,7 @@ class ValidationRunResult:
     liquidation_requirement: ForcedLiquidationRequirement | None = None
     liquidation_outcome: ForcedLiquidationOutcome | None = None
     final_capital_snapshot: CapitalSnapshot | None = None
+    contract_resolutions: tuple[ContractResolution, ...] = ()
 
 
 class ChronologicalValidationRunner:
@@ -430,17 +521,18 @@ class ChronologicalValidationRunner:
     _EVENT_ORDER = {
         "VISIBLE_MARKET_INPUT": 0,
         "STRATEGY_INTENT": 1,
-        "ORDER_CREATED": 2,
-        "FILL_ELIGIBLE": 3,
-        "FILLED": 4,
-        "NOT_FILLED": 4,
-        "POSITION_TRANSITION": 5,
-        "MARK_TO_MARKET": 6,
-        "MAINTENANCE_MARGIN_HEALTHY": 7,
-        "MAINTENANCE_MARGIN_BREACH": 7,
-        "FORCED_LIQUIDATION_REQUIRED": 8,
-        "FORCED_LIQUIDATION_FILLED": 9,
-        "FORCED_LIQUIDATION_NOT_FILLED": 9,
+        "CONTRACT_RESOLVED": 2,
+        "ORDER_CREATED": 3,
+        "FILL_ELIGIBLE": 4,
+        "FILLED": 5,
+        "NOT_FILLED": 5,
+        "POSITION_TRANSITION": 6,
+        "MARK_TO_MARKET": 7,
+        "MAINTENANCE_MARGIN_HEALTHY": 8,
+        "MAINTENANCE_MARGIN_BREACH": 8,
+        "FORCED_LIQUIDATION_REQUIRED": 9,
+        "FORCED_LIQUIDATION_FILLED": 10,
+        "FORCED_LIQUIDATION_NOT_FILLED": 10,
     }
 
     def __init__(self, ledger: EvidenceLedger, firewall: FinalUnseenFirewall) -> None:
@@ -501,41 +593,228 @@ class ChronologicalValidationRunner:
             by_request[observation.request_id] = observation
         return by_request
 
+    @staticmethod
+    def _resolve_contracts(
+        inputs: tuple[ValidationInput, ...],
+        strategy: StrategyIdentity,
+        master: ContractMaster,
+        schedule: ContractMappingSchedule,
+        sessions: SessionMetadata,
+        capital_assumptions: CapitalMarginAssumptions,
+    ) -> tuple[ContractResolution, ...]:
+        resolver = ContractResolver(master, schedule)
+        resolutions: list[ContractResolution] = []
+        for item in inputs:
+            if item.bar.instrument not in strategy.applicable_instruments:
+                raise ValueError("validation request symbol is not bound to the strategy identity")
+            resolution = resolver.resolve(item.request_id, item.bar.instrument, item.decision_at)
+            contract = master.get(resolution.concrete_instrument_id)
+            if contract is None or contract.contract_multiplier != capital_assumptions.contract_multiplier:
+                raise ValueError("contract multiplier is inconsistent with capital assumptions")
+            trading_day = sessions.trading_day_at(
+                contract.exchange,
+                contract.instrument_id,
+                item.decision_at,
+            )
+            if trading_day != item.bar.trading_day:
+                raise ValueError("completed-bar trading day is inconsistent with explicit contract session metadata")
+            resolutions.append(resolution)
+        return tuple(resolutions)
+
+    @staticmethod
+    def _visible_limit_fact(
+        facts: tuple[PriceLimitFact, ...],
+        contract_identity_id: str,
+        concrete_contract_id: str,
+        trading_day: date,
+        rule_identity: str,
+        available_at: datetime,
+    ) -> PriceLimitFact:
+        matches = [
+            fact
+            for fact in facts
+            if fact.concrete_instrument_id == concrete_contract_id
+            and fact.contract_identity_id == contract_identity_id
+            and fact.trading_day == trading_day
+            and fact.rule_identity == rule_identity
+            and fact.available_at <= available_at
+        ]
+        if len(matches) != 1:
+            raise ValueError("required price-limit metadata must resolve point-in-time to exactly one fact")
+        return matches[0]
+
     def _evaluate_execution(
         self,
         inputs: tuple[ValidationInput, ...],
         observations: Iterable[ExecutionObservation],
         cutoff_at: datetime,
         assumptions: ExecutionAssumptions,
+        specifications: tuple[OrderSpecification, ...],
+        resolutions: tuple[ContractResolution, ...],
+        contract_master: ContractMaster | None,
+        session_metadata: SessionMetadata | None,
+        price_limit_facts: tuple[PriceLimitFact, ...],
     ) -> tuple[ExecutionOutcome, ...]:
         if cutoff_at.tzinfo is None:
             raise ValueError("execution cutoff must be timezone-aware")
+        if tuple(spec.request_id for spec in specifications) != tuple(item.request_id for item in inputs):
+            raise ValueError("order specifications must bind exactly to validation requests in order")
+        if resolutions and tuple(item.request_id for item in resolutions) != tuple(item.request_id for item in inputs):
+            raise ValueError("contract resolutions must bind exactly to validation requests in order")
         observations_by_request = self._ordered_observations(observations)
+        resolutions_by_request = {item.request_id: item for item in resolutions}
+        specifications_by_request = {item.request_id: item for item in specifications}
         outcomes: list[ExecutionOutcome] = []
         for item in inputs:
             if cutoff_at < item.decision_at:
                 raise ChronologyError("execution cutoff cannot precede fill eligibility")
+            specification = specifications_by_request[item.request_id]
+            resolution = resolutions_by_request.get(item.request_id)
+            contract_fields = {
+                "contract_resolution_id": resolution.identity_id if resolution else None,
+                "concrete_contract_id": resolution.concrete_instrument_id if resolution else None,
+                "contract_identity_id": resolution.contract_identity_id if resolution else None,
+                "contract_master_identity_id": resolution.contract_master_identity_id if resolution else None,
+                "mapping_schedule_identity_id": resolution.mapping_schedule_identity_id if resolution else None,
+                "mapping_entry_identity_id": resolution.mapping_entry_identity_id if resolution else None,
+            }
             observation = observations_by_request.get(item.request_id)
             if observation is None:
-                outcomes.append(ExecutionOutcome(item.request_id, FillStatus.NOT_FILLED, cutoff_at, assumptions.identity_id, None, None, "NO_OBSERVATION"))
+                outcomes.append(
+                    ExecutionOutcome(
+                        item.request_id,
+                        FillStatus.NOT_FILLED,
+                        cutoff_at,
+                        assumptions.identity_id,
+                        None,
+                        None,
+                        "NO_OBSERVATION",
+                        **contract_fields,
+                    )
+                )
                 continue
             if observation.available_at <= item.decision_at:
                 raise ChronologyError("same-decision execution observation is not independently available")
             if observation.available_at > cutoff_at:
-                outcomes.append(ExecutionOutcome(item.request_id, FillStatus.NOT_FILLED, cutoff_at, assumptions.identity_id, None, None, "OBSERVATION_AFTER_CUTOFF"))
+                outcomes.append(
+                    ExecutionOutcome(
+                        item.request_id,
+                        FillStatus.NOT_FILLED,
+                        cutoff_at,
+                        assumptions.identity_id,
+                        None,
+                        None,
+                        "OBSERVATION_AFTER_CUTOFF",
+                        **contract_fields,
+                    )
+                )
                 continue
             if not observation.tradable:
-                outcomes.append(ExecutionOutcome(item.request_id, FillStatus.NOT_FILLED, observation.available_at, assumptions.identity_id, None, None, "NOT_TRADABLE"))
+                outcomes.append(
+                    ExecutionOutcome(
+                        item.request_id,
+                        FillStatus.NOT_FILLED,
+                        observation.available_at,
+                        assumptions.identity_id,
+                        None,
+                        None,
+                        "NOT_TRADABLE",
+                        **contract_fields,
+                    )
+                )
                 continue
+            fill_price = (
+                observation.price + assumptions.synthetic_slippage
+                if specification.action is OrderAction.OPEN
+                else observation.price - assumptions.synthetic_slippage
+            )
+            limit_fact = None
+            if resolution is not None:
+                if contract_master is None or session_metadata is None:
+                    raise ValueError("contract-bound execution requires master and session metadata")
+                contract = contract_master.get(resolution.concrete_instrument_id)
+                if contract is None or contract.identity_id != resolution.contract_identity_id:
+                    raise ValueError("resolved contract identity is inconsistent with the contract master")
+                if observation.concrete_contract_id != contract.instrument_id:
+                    raise ValueError("execution observation must bind the resolved concrete contract, not a pseudo-symbol")
+                if not contract.is_active_at(observation.available_at):
+                    raise ValueError("concrete contract is inactive at execution observation time")
+                trading_day = session_metadata.trading_day_at(
+                    contract.exchange,
+                    contract.instrument_id,
+                    observation.observed_at,
+                )
+                if trading_day != item.bar.trading_day:
+                    raise ValueError("execution observation is outside the bound contract trading day")
+                if not contract.is_on_tick(observation.price) or fill_price <= 0 or not contract.is_on_tick(fill_price):
+                    outcomes.append(
+                        ExecutionOutcome(
+                            item.request_id,
+                            FillStatus.NOT_FILLED,
+                            observation.available_at,
+                            assumptions.identity_id,
+                            None,
+                            None,
+                            "OFF_TICK_PRICE",
+                            **contract_fields,
+                        )
+                    )
+                    continue
+                if contract.price_limit_rule_identity is not None:
+                    limit_fact = self._visible_limit_fact(
+                        price_limit_facts,
+                        contract.identity_id,
+                        contract.instrument_id,
+                        trading_day,
+                        contract.price_limit_rule_identity,
+                        observation.available_at,
+                    )
+                    if not contract.is_on_tick(limit_fact.lower_price) or not contract.is_on_tick(limit_fact.upper_price):
+                        raise ValueError("price-limit bounds must conform to the contract minimum tick")
+                    if limit_fact.locked:
+                        outcomes.append(
+                            ExecutionOutcome(
+                                item.request_id,
+                                FillStatus.NOT_FILLED,
+                                observation.available_at,
+                                assumptions.identity_id,
+                                None,
+                                None,
+                                "LOCKED_PRICE_LIMIT",
+                                price_limit_fact_id=limit_fact.identity_id,
+                                **contract_fields,
+                            )
+                        )
+                        continue
+                    if not (
+                        limit_fact.lower_price <= observation.price <= limit_fact.upper_price
+                        and limit_fact.lower_price <= fill_price <= limit_fact.upper_price
+                    ):
+                        outcomes.append(
+                            ExecutionOutcome(
+                                item.request_id,
+                                FillStatus.NOT_FILLED,
+                                observation.available_at,
+                                assumptions.identity_id,
+                                None,
+                                None,
+                                "OUTSIDE_PRICE_LIMIT",
+                                price_limit_fact_id=limit_fact.identity_id,
+                                **contract_fields,
+                            )
+                        )
+                        continue
             outcomes.append(
                 ExecutionOutcome(
                     item.request_id,
                     FillStatus.FILLED,
                     observation.available_at,
                     assumptions.identity_id,
-                    observation.price + assumptions.synthetic_slippage,
+                    fill_price,
                     assumptions.synthetic_fee,
                     "TRADABLE_OBSERVATION",
+                    price_limit_fact_id=limit_fact.identity_id if limit_fact else None,
+                    **contract_fields,
                 )
             )
         return tuple(outcomes)
@@ -548,49 +827,194 @@ class ChronologicalValidationRunner:
         snapshot: CapitalSnapshot,
         capital_assumptions: CapitalMarginAssumptions,
         execution_assumptions: ExecutionAssumptions,
+        resolutions: tuple[ContractResolution, ...] = (),
+        offset_cost_assumptions: OffsetCostAssumptions | None = None,
+        contract_master: ContractMaster | None = None,
     ) -> tuple[tuple[ExecutionOutcome, ...], tuple[CapitalTransition, ...]]:
         specifications = tuple(specifications)
         if tuple(spec.request_id for spec in specifications) != tuple(outcome.request_id for outcome in outcomes):
             raise ValueError("order specifications must bind exactly to execution requests in order")
         if tuple(item.request_id for item in inputs) != tuple(outcome.request_id for outcome in outcomes):
             raise ValueError("validation inputs must bind exactly to execution requests in order")
+        if resolutions and tuple(item.request_id for item in resolutions) != tuple(outcome.request_id for outcome in outcomes):
+            raise ValueError("contract resolutions must bind exactly to execution requests in order")
+        resolutions_by_request = {item.request_id: item for item in resolutions}
         current = snapshot
         constrained: list[ExecutionOutcome] = []
         transitions: list[CapitalTransition] = []
         for outcome, specification, item in zip(outcomes, specifications, inputs):
+            transition_before = current
+            aged_quantity = Decimal("0")
+            if current.state_at is not None and item.decision_at <= current.state_at:
+                raise ChronologyError("order decision must follow the prior capital state")
+            if current.position_quantity > 0 and current.position_trading_day is not None:
+                if item.bar.trading_day < current.position_trading_day:
+                    raise ChronologyError("position trading day cannot move backwards")
+                if item.bar.trading_day > current.position_trading_day:
+                    aged_quantity = current.today_quantity
+                    current = replace(
+                        current,
+                        today_quantity=Decimal("0"),
+                        previous_quantity=current.previous_quantity + current.today_quantity,
+                        position_trading_day=item.bar.trading_day,
+                        state_at=item.decision_at,
+                    )
+            resolution = resolutions_by_request.get(specification.request_id)
             if outcome.status is not FillStatus.FILLED:
-                transitions.append(CapitalTransition(specification.request_id, current, current, Decimal("0"), Decimal("0")))
+                transitions.append(
+                    CapitalTransition(
+                        specification.request_id,
+                        transition_before,
+                        current,
+                        Decimal("0"),
+                        Decimal("0"),
+                        aged_quantity=aged_quantity,
+                        contract_resolution_id=outcome.contract_resolution_id,
+                    )
+                )
                 constrained.append(replace(outcome, capital_assumption_id=capital_assumptions.identity_id))
                 continue
             if outcome.fill_price is None or outcome.total_cost is None:
                 raise ValueError("filled execution outcome requires price and cost")
             if current.state_at is not None and outcome.evaluated_at <= current.state_at:
                 raise ChronologyError("position fill must follow the prior capital snapshot")
+            concrete_instrument = resolution.concrete_instrument_id if resolution else item.bar.instrument
             if current.position_quantity > 0:
-                if current.position_instrument != item.bar.instrument:
-                    raise ValueError("the minimum lifecycle supports one instrument position at a time")
                 if current.execution_assumption_id != execution_assumptions.identity_id:
                     raise ValueError("execution assumption identity changed inside an open position")
                 if current.capital_assumption_id != capital_assumptions.identity_id:
                     raise ValueError("capital assumption identity changed inside an open position")
                 if current.latest_mark_reference is not None:
                     raise ValueError("cannot add to a position after mark-to-market in the minimum lifecycle")
+                if current.position_instrument != concrete_instrument:
+                    raise ValueError("a mapping roll cannot silently change the concrete contract of an open position")
+
+            if specification.action is OrderAction.CLOSE:
+                if current.position_quantity <= 0:
+                    raise ValueError("close order requires an existing position")
+                if offset_cost_assumptions is None:
+                    raise ValueError("close order requires versioned synthetic offset-cost assumptions")
+                if resolution is not None and contract_master is not None:
+                    contract = contract_master.get(resolution.concrete_instrument_id)
+                    if contract is None or contract.offset_fee_metadata_identity != offset_cost_assumptions.identity_id:
+                        raise ValueError("offset-cost assumption identity is inconsistent with contract metadata")
+                resolved_offset = specification.close_offset
+                if resolved_offset is CloseOffset.CLOSE:
+                    if current.today_quantity >= specification.quantity:
+                        resolved_offset = CloseOffset.CLOSE_TODAY
+                    elif current.previous_quantity >= specification.quantity:
+                        resolved_offset = CloseOffset.CLOSE_PREVIOUS
+                    else:
+                        raise ValueError("generic close cannot deterministically resolve across position buckets")
+                if resolved_offset is CloseOffset.CLOSE_TODAY:
+                    if current.today_quantity < specification.quantity:
+                        raise ValueError("CLOSE_TODAY quantity exceeds today's position bucket")
+                    next_today = current.today_quantity - specification.quantity
+                    next_previous = current.previous_quantity
+                    offset_fee = offset_cost_assumptions.close_today_fee_per_unit * specification.quantity
+                elif resolved_offset is CloseOffset.CLOSE_PREVIOUS:
+                    if current.previous_quantity < specification.quantity:
+                        raise ValueError("CLOSE_PREVIOUS quantity exceeds the previous-day position bucket")
+                    next_today = current.today_quantity
+                    next_previous = current.previous_quantity - specification.quantity
+                    offset_fee = offset_cost_assumptions.close_previous_fee_per_unit * specification.quantity
+                else:
+                    raise ValueError("close order has an unsupported offset")
+                total_cost = outcome.total_cost + offset_fee
+                realized_pnl_change = (
+                    (outcome.fill_price - current.average_open_price)
+                    * specification.quantity
+                    * capital_assumptions.contract_multiplier
+                )
+                released_margin = (
+                    current.reserved_margin * specification.quantity / current.position_quantity
+                )
+                remaining_quantity = current.position_quantity - specification.quantity
+                if remaining_quantity == 0:
+                    next_snapshot = CapitalSnapshot(
+                        starting_capital=current.starting_capital,
+                        charged_costs=current.charged_costs + total_cost,
+                        realized_pnl=current.realized_pnl + realized_pnl_change,
+                        state_at=outcome.evaluated_at,
+                        latest_mark_reference=current.latest_mark_reference,
+                    )
+                else:
+                    next_snapshot = replace(
+                        current,
+                        reserved_margin=current.reserved_margin - released_margin,
+                        charged_costs=current.charged_costs + total_cost,
+                        realized_pnl=current.realized_pnl + realized_pnl_change,
+                        unrealized_pnl=Decimal("0"),
+                        position_quantity=remaining_quantity,
+                        position_request_id=specification.request_id,
+                        state_at=outcome.evaluated_at,
+                        today_quantity=next_today,
+                        previous_quantity=next_previous,
+                    )
+                constrained_outcome = replace(
+                    outcome,
+                    total_cost=total_cost,
+                    capital_assumption_id=capital_assumptions.identity_id,
+                    resolved_close_offset=resolved_offset,
+                    offset_cost_assumption_id=offset_cost_assumptions.identity_id,
+                )
+                constrained.append(constrained_outcome)
+                transitions.append(
+                    CapitalTransition(
+                        specification.request_id,
+                        transition_before,
+                        next_snapshot,
+                        Decimal("0"),
+                        total_cost,
+                        quantity_change=-specification.quantity,
+                        realized_pnl_change=realized_pnl_change,
+                        released_margin=released_margin,
+                        transition_type="POSITION_CLOSE",
+                        aged_quantity=aged_quantity,
+                        resolved_close_offset=resolved_offset,
+                        contract_resolution_id=outcome.contract_resolution_id,
+                        offset_cost_assumption_id=offset_cost_assumptions.identity_id,
+                    )
+                )
+                current = next_snapshot
+                continue
+
             required_margin = outcome.fill_price * specification.quantity * capital_assumptions.contract_multiplier * capital_assumptions.initial_margin_rate
             required_cost = outcome.total_cost
             if current.available_capital < required_margin + required_cost:
-                constrained.append(ExecutionOutcome(specification.request_id, FillStatus.NOT_FILLED, outcome.evaluated_at, outcome.execution_assumption_id, None, None, "INSUFFICIENT_MARGIN", capital_assumptions.identity_id))
-                transitions.append(CapitalTransition(specification.request_id, current, current, required_margin, required_cost))
+                constrained.append(
+                    replace(
+                        outcome,
+                        status=FillStatus.NOT_FILLED,
+                        fill_price=None,
+                        total_cost=None,
+                        reason="INSUFFICIENT_MARGIN",
+                        capital_assumption_id=capital_assumptions.identity_id,
+                    )
+                )
+                transitions.append(
+                    CapitalTransition(
+                        specification.request_id,
+                        transition_before,
+                        current,
+                        required_margin,
+                        required_cost,
+                        aged_quantity=aged_quantity,
+                        contract_resolution_id=outcome.contract_resolution_id,
+                    )
+                )
                 continue
             next_quantity = current.position_quantity + specification.quantity
             weighted_cost = current.average_open_price * current.position_quantity + outcome.fill_price * specification.quantity
             position_id = current.position_id or _execution_hash(
                 {
-                    "instrument": item.bar.instrument,
+                    "instrument": concrete_instrument,
                     "request_id": specification.request_id,
                     "quantity": str(specification.quantity),
                     "fill_price": str(outcome.fill_price),
                     "execution_assumption_id": execution_assumptions.identity_id,
                     "capital_assumption_id": capital_assumptions.identity_id,
+                    "contract_resolution_id": resolution.identity_id if resolution else None,
                 }
             )
             next_snapshot = CapitalSnapshot(
@@ -601,12 +1025,28 @@ class ChronologicalValidationRunner:
                 unrealized_pnl=Decimal("0"),
                 position_quantity=next_quantity,
                 average_open_price=weighted_cost / next_quantity,
-                position_instrument=item.bar.instrument,
+                position_instrument=concrete_instrument,
                 position_id=position_id,
                 position_request_id=specification.request_id,
                 execution_assumption_id=execution_assumptions.identity_id,
                 capital_assumption_id=capital_assumptions.identity_id,
                 state_at=outcome.evaluated_at,
+                concrete_contract_id=resolution.concrete_instrument_id if resolution else None,
+                contract_identity_id=resolution.contract_identity_id if resolution else None,
+                contract_master_identity_id=resolution.contract_master_identity_id if resolution else None,
+                mapping_schedule_identity_id=(
+                    current.mapping_schedule_identity_id
+                    if current.position_quantity > 0
+                    else resolution.mapping_schedule_identity_id if resolution else None
+                ),
+                mapping_entry_identity_id=(
+                    current.mapping_entry_identity_id
+                    if current.position_quantity > 0
+                    else resolution.mapping_entry_identity_id if resolution else None
+                ),
+                position_trading_day=item.bar.trading_day,
+                today_quantity=current.today_quantity + specification.quantity,
+                previous_quantity=current.previous_quantity,
             )
             constrained.append(replace(outcome, capital_assumption_id=capital_assumptions.identity_id))
             transitions.append(
@@ -617,6 +1057,8 @@ class ChronologicalValidationRunner:
                     required_margin,
                     required_cost,
                     quantity_change=specification.quantity,
+                    aged_quantity=aged_quantity,
+                    contract_resolution_id=outcome.contract_resolution_id,
                 )
             )
             current = next_snapshot
@@ -700,6 +1142,9 @@ class ChronologicalValidationRunner:
                     mark.available_at,
                     mark.reference_id,
                     assumptions.identity_id,
+                    current.contract_identity_id,
+                    current.contract_master_identity_id,
+                    current.mapping_entry_identity_id,
                 )
         return tuple(transitions), requirement
 
@@ -711,6 +1156,9 @@ class ChronologicalValidationRunner:
         cutoff_at: datetime,
         execution_assumptions: ExecutionAssumptions,
         capital_assumptions: CapitalMarginAssumptions,
+        contract_master: ContractMaster | None = None,
+        session_metadata: SessionMetadata | None = None,
+        price_limit_facts: tuple[PriceLimitFact, ...] = (),
     ) -> ForcedLiquidationOutcome:
         observations = tuple(observations)
         if len(observations) > 1:
@@ -721,6 +1169,15 @@ class ChronologicalValidationRunner:
             raise ValueError("forced-liquidation execution assumption identity does not match the position")
         if snapshot.capital_assumption_id != capital_assumptions.identity_id:
             raise ValueError("forced-liquidation capital assumption identity does not match the position")
+        if requirement.contract_identity_id != snapshot.contract_identity_id:
+            raise ValueError("forced-liquidation requirement contract identity does not match the position")
+        contract_fields = {
+            "concrete_contract_id": snapshot.concrete_contract_id,
+            "contract_identity_id": snapshot.contract_identity_id,
+            "contract_master_identity_id": snapshot.contract_master_identity_id,
+            "mapping_schedule_identity_id": snapshot.mapping_schedule_identity_id,
+            "mapping_entry_identity_id": snapshot.mapping_entry_identity_id,
+        }
         if not observations:
             outcome = ExecutionOutcome(
                 requirement.request_id,
@@ -731,6 +1188,7 @@ class ChronologicalValidationRunner:
                 None,
                 "NO_OBSERVATION",
                 capital_assumptions.identity_id,
+                **contract_fields,
             )
             return ForcedLiquidationOutcome(requirement, outcome, None)
         observation = observations[0]
@@ -748,6 +1206,7 @@ class ChronologicalValidationRunner:
                 None,
                 "OBSERVATION_AFTER_CUTOFF",
                 capital_assumptions.identity_id,
+                **contract_fields,
             )
             return ForcedLiquidationOutcome(requirement, outcome, None)
         if not observation.tradable:
@@ -760,11 +1219,72 @@ class ChronologicalValidationRunner:
                 None,
                 "NOT_TRADABLE",
                 capital_assumptions.identity_id,
+                **contract_fields,
             )
             return ForcedLiquidationOutcome(requirement, outcome, None)
         fill_price = observation.price - execution_assumptions.synthetic_slippage
         if fill_price <= 0:
             raise ValueError("synthetic liquidation slippage produces an invalid fill price")
+        limit_fact = None
+        if snapshot.concrete_contract_id is not None:
+            if contract_master is None or session_metadata is None:
+                raise ValueError("contract-bound forced liquidation requires master and session metadata")
+            contract = contract_master.get(snapshot.concrete_contract_id)
+            if contract is None or contract.identity_id != snapshot.contract_identity_id:
+                raise ValueError("forced-liquidation contract identity is inconsistent with the contract master")
+            if observation.concrete_contract_id != snapshot.concrete_contract_id:
+                raise ValueError("forced-liquidation observation does not bind the position's concrete contract")
+            if not contract.is_active_at(observation.available_at):
+                raise ValueError("forced-liquidation contract is inactive at execution observation time")
+            trading_day = session_metadata.trading_day_at(
+                contract.exchange,
+                contract.instrument_id,
+                observation.observed_at,
+            )
+            if trading_day != snapshot.position_trading_day:
+                raise ValueError("forced-liquidation observation is outside the position trading day")
+            if not contract.is_on_tick(observation.price) or not contract.is_on_tick(fill_price):
+                outcome = ExecutionOutcome(
+                    requirement.request_id,
+                    FillStatus.NOT_FILLED,
+                    observation.available_at,
+                    execution_assumptions.identity_id,
+                    None,
+                    None,
+                    "OFF_TICK_PRICE",
+                    capital_assumptions.identity_id,
+                    **contract_fields,
+                )
+                return ForcedLiquidationOutcome(requirement, outcome, None)
+            if contract.price_limit_rule_identity is not None:
+                limit_fact = ChronologicalValidationRunner._visible_limit_fact(
+                    price_limit_facts,
+                    contract.identity_id,
+                    contract.instrument_id,
+                    trading_day,
+                    contract.price_limit_rule_identity,
+                    observation.available_at,
+                )
+                if not contract.is_on_tick(limit_fact.lower_price) or not contract.is_on_tick(limit_fact.upper_price):
+                    raise ValueError("forced-liquidation price-limit bounds must conform to minimum tick")
+                if limit_fact.locked or not (
+                    limit_fact.lower_price <= observation.price <= limit_fact.upper_price
+                    and limit_fact.lower_price <= fill_price <= limit_fact.upper_price
+                ):
+                    reason = "LOCKED_PRICE_LIMIT" if limit_fact.locked else "OUTSIDE_PRICE_LIMIT"
+                    outcome = ExecutionOutcome(
+                        requirement.request_id,
+                        FillStatus.NOT_FILLED,
+                        observation.available_at,
+                        execution_assumptions.identity_id,
+                        None,
+                        None,
+                        reason,
+                        capital_assumptions.identity_id,
+                        price_limit_fact_id=limit_fact.identity_id,
+                        **contract_fields,
+                    )
+                    return ForcedLiquidationOutcome(requirement, outcome, None)
         realized_pnl_change = (
             (fill_price - snapshot.average_open_price)
             * snapshot.position_quantity
@@ -779,6 +1299,8 @@ class ChronologicalValidationRunner:
             execution_assumptions.synthetic_fee,
             "FORCED_LIQUIDATION_TRADABLE_OBSERVATION",
             capital_assumptions.identity_id,
+            price_limit_fact_id=limit_fact.identity_id if limit_fact else None,
+            **contract_fields,
         )
         next_snapshot = CapitalSnapshot(
             starting_capital=snapshot.starting_capital,
@@ -819,6 +1341,11 @@ class ChronologicalValidationRunner:
         capital_margin_assumptions: CapitalMarginAssumptions | None = None,
         mark_observations: Iterable[MarkObservation] = (),
         forced_liquidation_observations: Iterable[ExecutionObservation] = (),
+        contract_master: ContractMaster | None = None,
+        contract_mapping_schedule: ContractMappingSchedule | None = None,
+        session_metadata: SessionMetadata | None = None,
+        price_limit_facts: Iterable[PriceLimitFact] = (),
+        offset_cost_assumptions: OffsetCostAssumptions | None = None,
     ) -> ValidationRunResult:
         self._validate_binding(strategy, experiment, artifact_identity_id, artifact_code_hash)
         if mode is ValidationMode.FAST and disposition is ValidationDisposition.CONFIRMED:
@@ -827,6 +1354,12 @@ class ChronologicalValidationRunner:
             access = self._firewall.request_access(experiment, dataset_class)
             return ValidationRunResult(False, (), access.record, None)
         inputs = tuple(inputs)
+        order_specifications = tuple(order_specifications)
+        price_limit_facts = tuple(price_limit_facts)
+        contract_components = (contract_master, contract_mapping_schedule, session_metadata)
+        contract_enabled = any(component is not None for component in contract_components)
+        if contract_enabled and any(component is None for component in contract_components):
+            raise ValueError("contract execution requires master, mapping schedule, and session metadata together")
         if mode is ValidationMode.CONFIRMATORY and disposition is ValidationDisposition.CONFIRMED:
             if execution_cutoff_at is None or execution_assumptions is None:
                 raise ValueError("confirmatory validity requires execution assumptions and evaluation")
@@ -848,8 +1381,51 @@ class ChronologicalValidationRunner:
         liquidation_requirement = None
         liquidation_outcome = None
         final_capital_snapshot = capital_snapshot
+        contract_resolutions: tuple[ContractResolution, ...] = ()
         if mode is ValidationMode.CONFIRMATORY and disposition is ValidationDisposition.CONFIRMED:
-            execution_outcomes = self._evaluate_execution(inputs, execution_observations, execution_cutoff_at, execution_assumptions)
+            if contract_enabled:
+                contract_resolutions = self._resolve_contracts(
+                    inputs,
+                    strategy,
+                    contract_master,
+                    contract_mapping_schedule,
+                    session_metadata,
+                    capital_margin_assumptions,
+                )
+                for resolution in contract_resolutions:
+                    resolution_reference = (
+                        f"contract:{resolution.contract_identity_id};master:{resolution.contract_master_identity_id};"
+                        f"mapping_schedule:{resolution.mapping_schedule_identity_id};"
+                        f"mapping_entry:{resolution.mapping_entry_identity_id}"
+                    )
+                    self._ledger.append(
+                        EvidenceRecord(
+                            "CONTRACT_RESOLVED",
+                            experiment,
+                            dataset_class,
+                            resolution.concrete_instrument_id,
+                            evidence_reference=resolution_reference,
+                            fact_reference=resolution.identity_id,
+                        )
+                    )
+                    events += (
+                        ExecutionEvent(
+                            resolution.resolved_at,
+                            "CONTRACT_RESOLVED",
+                            resolution.request_id,
+                        ),
+                    )
+            execution_outcomes = self._evaluate_execution(
+                inputs,
+                execution_observations,
+                execution_cutoff_at,
+                execution_assumptions,
+                order_specifications,
+                contract_resolutions,
+                contract_master,
+                session_metadata,
+                price_limit_facts,
+            )
             execution_outcomes, capital_transitions = self._apply_capital_constraints(
                 execution_outcomes,
                 order_specifications,
@@ -857,29 +1433,46 @@ class ChronologicalValidationRunner:
                 capital_snapshot,
                 capital_margin_assumptions,
                 execution_assumptions,
+                contract_resolutions,
+                offset_cost_assumptions,
+                contract_master,
             )
             assumption_reference = f"execution:{execution_assumptions.identity_id};capital:{capital_margin_assumptions.identity_id}"
+            if offset_cost_assumptions is not None:
+                assumption_reference += f";offset_cost:{offset_cost_assumptions.identity_id}"
+            contract_lifecycle_references: list[str] = []
             for outcome, transition in zip(execution_outcomes, capital_transitions):
                 event_type = "EXECUTION_FILLED" if outcome.status is FillStatus.FILLED else "EXECUTION_NOT_FILLED"
+                execution_reference = assumption_reference
+                if outcome.contract_resolution_id is not None:
+                    execution_reference += (
+                        f";contract:{outcome.contract_identity_id};resolution:{outcome.contract_resolution_id};"
+                        f"master:{outcome.contract_master_identity_id};"
+                        f"mapping_schedule:{outcome.mapping_schedule_identity_id};"
+                        f"mapping_entry:{outcome.mapping_entry_identity_id};"
+                        f"limit:{outcome.price_limit_fact_id};close_offset:"
+                        f"{outcome.resolved_close_offset.value if outcome.resolved_close_offset else None}"
+                    )
+                    contract_lifecycle_references.append(f"resolution:{outcome.contract_resolution_id}")
                 self._ledger.append(
                     EvidenceRecord(
                         event_type,
                         experiment,
                         dataset_class,
                         outcome.reason,
-                        evidence_reference=assumption_reference,
+                        evidence_reference=execution_reference,
                         fact_reference=outcome.reference_id,
                     )
                 )
                 events += (ExecutionEvent(outcome.evaluated_at, outcome.status.value, outcome.request_id),)
-                if transition.quantity_change > 0:
+                if transition.quantity_change != 0:
                     self._ledger.append(
                         EvidenceRecord(
                             "POSITION_TRANSITION",
                             experiment,
                             dataset_class,
-                            "CREATED_OR_INCREASED",
-                            evidence_reference=assumption_reference,
+                            "CREATED_OR_INCREASED" if transition.quantity_change > 0 else "CLOSED_OR_REDUCED",
+                            evidence_reference=execution_reference,
                             fact_reference=transition.reference_id,
                         )
                     )
@@ -955,6 +1548,9 @@ class ChronologicalValidationRunner:
                     execution_cutoff_at,
                     execution_assumptions,
                     capital_margin_assumptions,
+                    contract_master,
+                    session_metadata,
+                    price_limit_facts,
                 )
                 liquidation_event = (
                     "FORCED_LIQUIDATION_FILLED"
@@ -995,6 +1591,8 @@ class ChronologicalValidationRunner:
                     )
             if lifecycle_references:
                 assumption_reference += ";" + ";".join(lifecycle_references)
+            if contract_lifecycle_references:
+                assumption_reference += ";" + ";".join(contract_lifecycle_references)
             events = tuple(sorted(events, key=lambda event: (event.timestamp, self._EVENT_ORDER[event.event_type], event.request_id)))
         validation_record = None
         if disposition is ValidationDisposition.REJECTED:
@@ -1014,4 +1612,5 @@ class ChronologicalValidationRunner:
             liquidation_requirement,
             liquidation_outcome,
             final_capital_snapshot,
+            contract_resolutions,
         )
