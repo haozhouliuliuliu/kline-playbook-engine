@@ -48,6 +48,14 @@ Known categories:
 All external components must progress through:
 CANDIDATE → VERIFIED → ADOPTED
 
+## Current local capability facts
+These are environment facts, not project dependencies or adoption decisions.
+
+- VS Code is available on the Owner's Windows workstation and is used for repository work.
+- A DeepSeek Flash-family model API is connected in the Owner's VS Code environment and may be considered as an independent reviewer when an actual review need justifies it.
+- Do not use the DeepSeek reviewer for routine small code changes merely to obtain a second opinion; prefer deterministic tests and repository evidence first.
+- Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
+
 ## Current next action
 CURRENT_NEXT_ACTION=MINIMUM_POSITION_MARK_TO_MARKET_AND_FORCED_LIQUIDATION_FEASIBILITY_PACKAGE
 
