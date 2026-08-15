@@ -49,7 +49,7 @@ All external components must progress through:
 CANDIDATE → VERIFIED → ADOPTED
 
 ## Current next action
-CURRENT_NEXT_ACTION=MINIMUM_BACKTEST_VALIDATION_EXECUTION_SEMANTICS_FEASIBILITY_PACKAGE
+CURRENT_NEXT_ACTION=MINIMUM_CONFIRMATORY_EXECUTION_REALISM_FEASIBILITY_PACKAGE
 
 The first implementation-stage work should:
 1. create the repository and formal authority files;
@@ -68,6 +68,9 @@ The first implementation-stage work should:
 - Strategy Identity + Evidence Spine feasibility is implemented in
   `src/strategy_evidence.py` with deterministic firewall tests and evidence in
   `docs/evidence/STRATEGY_EVIDENCE_SPINE_VERIFICATION.md`.
+- Backtest & Validation chronological connection semantics are implemented in
+  `src/validation_runner.py` with evidence in
+  `docs/evidence/VALIDATION_EXECUTION_SEMANTICS_VERIFICATION.md`.
 - No external trading framework, broker connector, strategy, or live-money
   capability has been verified or adopted.
 
