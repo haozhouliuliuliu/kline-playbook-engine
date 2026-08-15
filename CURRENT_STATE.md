@@ -57,7 +57,7 @@ These are environment facts, not project dependencies or adoption decisions.
 - Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
 
 ## Current next action
-CURRENT_NEXT_ACTION=MINIMUM_POSITION_MARK_TO_MARKET_AND_FORCED_LIQUIDATION_FEASIBILITY_PACKAGE
+CURRENT_NEXT_ACTION=MINIMUM_CHINA_FUTURES_CONTRACT_LIFECYCLE_AND_EXECUTION_SEMANTICS_FEASIBILITY_PACKAGE
 
 The first implementation-stage work should:
 1. create the repository and formal authority files;
@@ -85,6 +85,12 @@ The first implementation-stage work should:
 - Synthetic order-size, capital/margin affordability, and sequential capital
   snapshot semantics are implemented through the existing runner and ledger,
   with evidence in `docs/evidence/CAPITAL_MARGIN_CONSTRAINTS_VERIFICATION.md`.
+- The coherent offline position/capital lifecycle now covers fill-derived
+  positions, point-in-time mark-to-market, versioned synthetic maintenance
+  margin, deterministic forced-liquidation outcomes, post-liquidation
+  accounting, and evidence binding through the existing runner and ledger,
+  with evidence in
+  `docs/evidence/POSITION_CAPITAL_LIFECYCLE_VERIFICATION.md`.
 - No external trading framework, broker connector, strategy, or live-money
   capability has been verified or adopted.
 

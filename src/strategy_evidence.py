@@ -191,6 +191,7 @@ class EvidenceRecord:
     outcome: str
     lifecycle_state: LifecycleState | None = None
     evidence_reference: str | None = None
+    fact_reference: str | None = None
 
     def __post_init__(self) -> None:
         if not self.event_type or not self.outcome:
@@ -198,16 +199,17 @@ class EvidenceRecord:
 
     @property
     def record_id(self) -> str:
-        return _canonical_hash(
-            {
-                "event_type": self.event_type,
-                "experiment_id": self.experiment.experiment_id,
-                "dataset_class": self.dataset_class.value,
-                "outcome": self.outcome,
-                "lifecycle_state": self.lifecycle_state.value if self.lifecycle_state else None,
-                "evidence_reference": self.evidence_reference,
-            }
-        )
+        identity = {
+            "event_type": self.event_type,
+            "experiment_id": self.experiment.experiment_id,
+            "dataset_class": self.dataset_class.value,
+            "outcome": self.outcome,
+            "lifecycle_state": self.lifecycle_state.value if self.lifecycle_state else None,
+            "evidence_reference": self.evidence_reference,
+        }
+        if self.fact_reference is not None:
+            identity["fact_reference"] = self.fact_reference
+        return _canonical_hash(identity)
 
 
 class EvidenceLedger:
