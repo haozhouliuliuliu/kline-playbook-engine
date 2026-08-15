@@ -1,14 +1,18 @@
 # CURRENT_STATE
 
 ## Project phase
-PROJECT_PHASE=PROJECT_BOOTSTRAP
+PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
 ADOPTED_CONTRACT_SHA256=3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650bf690101e
+LAST_KNOWN_GOOD=b6d1961dca5b4c879bc7deb6406f3c63723b04d4
+BOOTSTRAP_ACCEPTANCE=GO
+BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
+CURRENT_BLOCKER=NONE
 
 ## Current objective
-Establish the clean repository/governance structure and verify the cheapest technical prerequisites needed to implement Skeleton v1.0.
+Establish the first real, provenance-bound, point-in-time historical China-futures data path and canonical research dataset before substantive strategy research.
 
 ## Current boundaries
 NOT_AUTHORIZED:
@@ -57,57 +61,21 @@ These are environment facts, not project dependencies or adoption decisions.
 - Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
 
 ## Current next action
-CURRENT_NEXT_ACTION=BOOTSTRAP_ACCEPTANCE_AND_PHASE_TRANSITION_REVIEW
+CURRENT_NEXT_ACTION=REAL_HISTORICAL_DATA_SUBSTRATE_FEASIBILITY_PACKAGE
 
-The first implementation-stage work should:
-1. create the repository and formal authority files;
-2. preserve Skeleton v1.0 without expanding it;
-3. define minimal tests for data/session semantics and state/ledger boundaries;
-4. perform a stage-level tool/open-source applicability review;
-5. verify only the cheapest fatal prerequisites before broad implementation;
-6. keep all broker/live-money actions disabled unless explicitly authorized later.
+## Current acceptance
 
-## Completed bootstrap evidence
-- Restored bootstrap history has been verified from the exported bundle at
-  `2f840bb84939eee5c6b0948a817641e79cf7af1d`.
-- The minimum Data Substrate contract is implemented in
-  `src/data_substrate.py` and covered by deterministic unit tests.
-- The clean-room reuse audit is recorded in `docs/reuse/STEEL_REUSE_AUDIT.md`.
-- Strategy Identity + Evidence Spine feasibility is implemented in
-  `src/strategy_evidence.py` with deterministic firewall tests and evidence in
-  `docs/evidence/STRATEGY_EVIDENCE_SPINE_VERIFICATION.md`.
-- Backtest & Validation chronological connection semantics are implemented in
-  `src/validation_runner.py` with evidence in
-  `docs/evidence/VALIDATION_EXECUTION_SEMANTICS_VERIFICATION.md`.
-- Confirmatory synthetic fill/non-fill and versioned execution-assumption
-  semantics are implemented through the existing runner and ledger, with
-  evidence in `docs/evidence/CONFIRMATORY_EXECUTION_REALISM_VERIFICATION.md`.
-- Synthetic order-size, capital/margin affordability, and sequential capital
-  snapshot semantics are implemented through the existing runner and ledger,
-  with evidence in `docs/evidence/CAPITAL_MARGIN_CONSTRAINTS_VERIFICATION.md`.
-- The coherent offline position/capital lifecycle now covers fill-derived
-  positions, point-in-time mark-to-market, versioned synthetic maintenance
-  margin, deterministic forced-liquidation outcomes, post-liquidation
-  accounting, and evidence binding through the existing runner and ledger,
-  with evidence in
-  `docs/evidence/POSITION_CAPITAL_LIFECYCLE_VERIFICATION.md`.
-- The normalized synthetic China-futures contract layer now covers immutable
-  contract metadata, point-in-time concrete-contract mapping, explicit roll
-  semantics, tick and price-limit enforcement, today/previous position buckets,
-  offset-sensitive synthetic costs, and existing-ledger identity binding, with
-  evidence in
-  `docs/evidence/CHINA_FUTURES_CONTRACT_EXECUTION_SEMANTICS_VERIFICATION.md`.
-- The minimum offline multi-strategy coordination layer now covers immutable
-  portfolio identity, point-in-time concrete-contract conflict detection,
-  deterministic synthetic arbitration, shared-capital contention, attributed
-  strategy sleeves, exact portfolio reconciliation, member firewall checks, and
-  existing-ledger evidence binding, with evidence in
-  `docs/evidence/MULTI_STRATEGY_PORTFOLIO_CONFLICT_SEMANTICS_VERIFICATION.md`.
-- The currently identified core confirmatory Backtest & Validation bootstrap
-  semantics are implemented; bootstrap acceptance and phase transition remain
-  a separate review and have not been performed by this package.
-- No external trading framework, broker connector, strategy, or live-money
-  capability has been verified or adopted.
+PROJECT_BOOTSTRAP is formally accepted at
+`b6d1961dca5b4c879bc7deb6406f3c63723b04d4`. The acceptance record is
+`docs/evidence/BOOTSTRAP_ACCEPTANCE.md`.
+
+## Current tool decision
+
+TOOL_DECISION=USE_EXISTING
+
+No data provider, external trading framework, broker connector, strategy, or
+live-money capability is verified or adopted. The next bounded package must
+perform the new-stage source/tool applicability review before any adoption.
 
 ## Owner decision gates
 Owner-level approval is required only for genuinely new product/research direction, frozen experiment semantics, permanent risk rules, paid commitments, real-money/broker actions, or irreversible external actions.
