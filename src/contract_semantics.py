@@ -21,6 +21,11 @@ class OrderAction(str, Enum):
     CLOSE = "CLOSE"
 
 
+class PositionDirection(str, Enum):
+    LONG = "LONG"
+    SHORT = "SHORT"
+
+
 class CloseOffset(str, Enum):
     CLOSE_TODAY = "CLOSE_TODAY"
     CLOSE_PREVIOUS = "CLOSE_PREVIOUS"

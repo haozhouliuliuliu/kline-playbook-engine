@@ -182,6 +182,30 @@ class ExperimentIdentity:
             }
         )
 
+    def validate_strategy(self, strategy: StrategyIdentity) -> None:
+        expected = (
+            strategy.research_lineage_id,
+            strategy.identity_id,
+            strategy.family_id,
+            strategy.strategy_version,
+            strategy.code_hash,
+            strategy.parameter_hash,
+            strategy.environment_hash,
+            strategy.required_feature_versions,
+        )
+        actual = (
+            self.research_lineage_id,
+            self.strategy_identity_id,
+            self.family_id,
+            self.strategy_version,
+            self.code_hash,
+            self.parameter_hash,
+            self.environment_hash,
+            self.feature_versions,
+        )
+        if actual != expected:
+            raise ValueError("experiment identity does not bind the supplied strategy identity")
+
 
 @dataclass(frozen=True)
 class EvidenceRecord:

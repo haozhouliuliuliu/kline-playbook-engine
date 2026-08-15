@@ -3,6 +3,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
+from src.contract_semantics import PositionDirection
 from src.data_substrate import CompletedBar
 from src.strategy_evidence import (
     DatasetClass,
@@ -89,6 +90,7 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
         dataset=DatasetClass.VALIDATION,
         capital_assumptions=None,
         initial_snapshot=None,
+        direction=PositionDirection.LONG,
     ):
         ledger = EvidenceLedger()
         runner = ChronologicalValidationRunner(ledger, FinalUnseenFirewall(ledger))
@@ -112,7 +114,9 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             ),
             execution_cutoff_at=at(9, 30),
             execution_assumptions=self.execution_assumptions,
-            order_specifications=(OrderSpecification("request-1", Decimal("1")),),
+            order_specifications=(
+                OrderSpecification("request-1", Decimal("1"), direction=direction),
+            ),
             capital_snapshot=initial_snapshot or CapitalSnapshot(Decimal("20")),
             capital_margin_assumptions=capital_assumptions or self.capital_assumptions,
             mark_observations=(() if mark is None else (mark,)),
@@ -176,6 +180,16 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
         self.assertEqual(marked.equity, Decimal("18.25"))
         self.assertEqual(marked.available_resources, Decimal("8.10"))
         self.assertEqual(result.mark_transitions[0].maintenance_requirement, Decimal("5.00"))
+
+    def test_short_position_uses_sell_side_fill_and_inverse_mark_to_market(self):
+        opened, _ = self.run_case(direction=PositionDirection.SHORT)
+        snapshot = opened.final_capital_snapshot
+        self.assertEqual(snapshot.average_open_price, Decimal("98.5"))
+        self.assertIs(snapshot.position_direction, PositionDirection.SHORT)
+
+        mark = self.mark_for(snapshot, Decimal("97"))
+        marked, _ = self.run_case(mark=mark, direction=PositionDirection.SHORT)
+        self.assertEqual(marked.final_capital_snapshot.unrealized_pnl, Decimal("1.5"))
 
     def test_unavailable_or_pre_position_mark_fails_closed(self):
         snapshot = self.filled_snapshot()
@@ -396,6 +410,7 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             state_at=at(9, 4),
             position_trading_day=DAY,
             today_quantity=Decimal("1"),
+            position_direction=PositionDirection.LONG,
         )
         with self.assertRaisesRegex(ValueError, "requires a valid fill"):
             self.run_case(initial_snapshot=fabricated_snapshot)

@@ -57,7 +57,7 @@ These are environment facts, not project dependencies or adoption decisions.
 - Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
 
 ## Current next action
-CURRENT_NEXT_ACTION=MINIMUM_MULTI_STRATEGY_INTERACTION_AND_PORTFOLIO_CONFLICT_SEMANTICS_FEASIBILITY_PACKAGE
+CURRENT_NEXT_ACTION=BOOTSTRAP_ACCEPTANCE_AND_PHASE_TRANSITION_REVIEW
 
 The first implementation-stage work should:
 1. create the repository and formal authority files;
@@ -97,6 +97,15 @@ The first implementation-stage work should:
   offset-sensitive synthetic costs, and existing-ledger identity binding, with
   evidence in
   `docs/evidence/CHINA_FUTURES_CONTRACT_EXECUTION_SEMANTICS_VERIFICATION.md`.
+- The minimum offline multi-strategy coordination layer now covers immutable
+  portfolio identity, point-in-time concrete-contract conflict detection,
+  deterministic synthetic arbitration, shared-capital contention, attributed
+  strategy sleeves, exact portfolio reconciliation, member firewall checks, and
+  existing-ledger evidence binding, with evidence in
+  `docs/evidence/MULTI_STRATEGY_PORTFOLIO_CONFLICT_SEMANTICS_VERIFICATION.md`.
+- The currently identified core confirmatory Backtest & Validation bootstrap
+  semantics are implemented; bootstrap acceptance and phase transition remain
+  a separate review and have not been performed by this package.
 - No external trading framework, broker connector, strategy, or live-money
   capability has been verified or adopted.
 

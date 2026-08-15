@@ -18,10 +18,12 @@ from src.contract_semantics import (
     ContractResolver,
     OffsetCostAssumptions,
     OrderAction,
+    PositionDirection,
     PriceLimitFact,
 )
 from src.data_substrate import CompletedBar, SessionMetadata
 from src.strategy_evidence import (
+    AccessResult,
     DatasetClass,
     EvidenceLedger,
     EvidenceRecord,
@@ -56,6 +58,7 @@ class OrderSpecification:
     quantity: Decimal
     action: OrderAction = OrderAction.OPEN
     close_offset: CloseOffset | None = None
+    direction: PositionDirection = PositionDirection.LONG
 
     def __post_init__(self) -> None:
         if not self.request_id or type(self.quantity) is not Decimal or self.quantity <= 0:
@@ -64,6 +67,8 @@ class OrderSpecification:
             raise ValueError("open order cannot specify a close offset")
         if self.action is OrderAction.CLOSE and self.close_offset is None:
             raise ValueError("close order requires an explicit close offset")
+        if not isinstance(self.direction, PositionDirection):
+            raise ValueError("order direction must be an explicit position direction")
 
 
 @dataclass(frozen=True)
@@ -129,6 +134,7 @@ class CapitalSnapshot:
     position_trading_day: date | None = None
     today_quantity: Decimal = Decimal("0")
     previous_quantity: Decimal = Decimal("0")
+    position_direction: PositionDirection | None = None
 
     def __post_init__(self) -> None:
         non_negative = (
@@ -152,6 +158,7 @@ class CapitalSnapshot:
             self.position_request_id,
             self.execution_assumption_id,
             self.capital_assumption_id,
+            self.position_direction,
         )
         if self.position_quantity == 0:
             if self.average_open_price != 0 or self.reserved_margin != 0 or self.unrealized_pnl != 0:
@@ -225,6 +232,7 @@ class CapitalSnapshot:
                 "position_trading_day": self.position_trading_day.isoformat() if self.position_trading_day else None,
                 "today_quantity": str(self.today_quantity),
                 "previous_quantity": str(self.previous_quantity),
+                "position_direction": self.position_direction.value if self.position_direction else None,
             }
         )
 
@@ -548,11 +556,24 @@ class ChronologicalValidationRunner:
     ) -> None:
         if artifact_identity_id != strategy.identity_id or artifact_code_hash != strategy.code_hash:
             raise ValueError("strategy artifact does not match strategy identity")
-        expected = ExperimentIdentity.from_strategy(
-            strategy, experiment.data_version, experiment.dataset_exposure_reference
-        )
-        if expected != experiment:
-            raise ValueError("experiment is not bound to the supplied strategy identity")
+        experiment.validate_strategy(strategy)
+
+    def _validate_authorized_access(
+        self,
+        access: AccessResult,
+        experiment: ExperimentIdentity,
+        dataset_class: DatasetClass,
+    ) -> None:
+        record = access.record
+        if (
+            not access.allowed
+            or record.event_type != "DATASET_ACCESS_GRANTED"
+            or record.outcome != "GRANTED"
+            or record.experiment != experiment
+            or record.dataset_class is not dataset_class
+            or record.record_id not in {item.record_id for item in self._ledger.records}
+        ):
+            raise ValueError("authorized dataset access must be an existing matching firewall grant")
 
     @classmethod
     def _ordered_events(cls, inputs: Iterable[ValidationInput]) -> tuple[ExecutionEvent, ...]:
@@ -723,9 +744,16 @@ class ChronologicalValidationRunner:
                     )
                 )
                 continue
+            buy_side = (
+                specification.action is OrderAction.OPEN
+                and specification.direction is PositionDirection.LONG
+            ) or (
+                specification.action is OrderAction.CLOSE
+                and specification.direction is PositionDirection.SHORT
+            )
             fill_price = (
                 observation.price + assumptions.synthetic_slippage
-                if specification.action is OrderAction.OPEN
+                if buy_side
                 else observation.price - assumptions.synthetic_slippage
             )
             limit_fact = None
@@ -888,6 +916,8 @@ class ChronologicalValidationRunner:
                     raise ValueError("cannot add to a position after mark-to-market in the minimum lifecycle")
                 if current.position_instrument != concrete_instrument:
                     raise ValueError("a mapping roll cannot silently change the concrete contract of an open position")
+                if current.position_direction is not specification.direction:
+                    raise ValueError("an order cannot change the direction of an existing position")
 
             if specification.action is OrderAction.CLOSE:
                 if current.position_quantity <= 0:
@@ -921,10 +951,12 @@ class ChronologicalValidationRunner:
                 else:
                     raise ValueError("close order has an unsupported offset")
                 total_cost = outcome.total_cost + offset_fee
+                pnl_sign = Decimal("1") if current.position_direction is PositionDirection.LONG else Decimal("-1")
                 realized_pnl_change = (
                     (outcome.fill_price - current.average_open_price)
                     * specification.quantity
                     * capital_assumptions.contract_multiplier
+                    * pnl_sign
                 )
                 released_margin = (
                     current.reserved_margin * specification.quantity / current.position_quantity
@@ -1015,6 +1047,7 @@ class ChronologicalValidationRunner:
                     "execution_assumption_id": execution_assumptions.identity_id,
                     "capital_assumption_id": capital_assumptions.identity_id,
                     "contract_resolution_id": resolution.identity_id if resolution else None,
+                    "position_direction": specification.direction.value,
                 }
             )
             next_snapshot = CapitalSnapshot(
@@ -1047,6 +1080,7 @@ class ChronologicalValidationRunner:
                 position_trading_day=item.bar.trading_day,
                 today_quantity=current.today_quantity + specification.quantity,
                 previous_quantity=current.previous_quantity,
+                position_direction=specification.direction,
             )
             constrained.append(replace(outcome, capital_assumption_id=capital_assumptions.identity_id))
             transitions.append(
@@ -1104,10 +1138,12 @@ class ChronologicalValidationRunner:
                 raise ChronologyError("mark observation must be independently observed and available after the position state")
             if mark.available_at > cutoff_at:
                 raise ChronologyError("mark observation is unavailable by the lifecycle cutoff")
+            pnl_sign = Decimal("1") if current.position_direction is PositionDirection.LONG else Decimal("-1")
             unrealized_pnl = (
                 (mark.price - current.average_open_price)
                 * current.position_quantity
                 * assumptions.contract_multiplier
+                * pnl_sign
             )
             next_snapshot = replace(
                 current,
@@ -1222,7 +1258,11 @@ class ChronologicalValidationRunner:
                 **contract_fields,
             )
             return ForcedLiquidationOutcome(requirement, outcome, None)
-        fill_price = observation.price - execution_assumptions.synthetic_slippage
+        fill_price = (
+            observation.price - execution_assumptions.synthetic_slippage
+            if snapshot.position_direction is PositionDirection.LONG
+            else observation.price + execution_assumptions.synthetic_slippage
+        )
         if fill_price <= 0:
             raise ValueError("synthetic liquidation slippage produces an invalid fill price")
         limit_fact = None
@@ -1285,10 +1325,12 @@ class ChronologicalValidationRunner:
                         **contract_fields,
                     )
                     return ForcedLiquidationOutcome(requirement, outcome, None)
+        pnl_sign = Decimal("1") if snapshot.position_direction is PositionDirection.LONG else Decimal("-1")
         realized_pnl_change = (
             (fill_price - snapshot.average_open_price)
             * snapshot.position_quantity
             * capital_assumptions.contract_multiplier
+            * pnl_sign
         )
         outcome = ExecutionOutcome(
             requirement.request_id,
@@ -1346,6 +1388,8 @@ class ChronologicalValidationRunner:
         session_metadata: SessionMetadata | None = None,
         price_limit_facts: Iterable[PriceLimitFact] = (),
         offset_cost_assumptions: OffsetCostAssumptions | None = None,
+        authorized_access: AccessResult | None = None,
+        defer_confirmation: bool = False,
     ) -> ValidationRunResult:
         self._validate_binding(strategy, experiment, artifact_identity_id, artifact_code_hash)
         if mode is ValidationMode.FAST and disposition is ValidationDisposition.CONFIRMED:
@@ -1370,7 +1414,11 @@ class ChronologicalValidationRunner:
             if capital_snapshot.position_quantity != 0:
                 raise ValueError("initial offline capital snapshot must be flat; a position requires a valid fill")
 
-        access = self._firewall.request_access(experiment, dataset_class)
+        if authorized_access is None:
+            access = self._firewall.request_access(experiment, dataset_class)
+        else:
+            self._validate_authorized_access(authorized_access, experiment, dataset_class)
+            access = authorized_access
         if not access.allowed:
             return ValidationRunResult(False, (), access.record, None)
 
@@ -1599,7 +1647,7 @@ class ChronologicalValidationRunner:
             validation_record = self._ledger.append(
                 EvidenceRecord("VALIDATION_REJECTED", experiment, dataset_class, "REJECTED")
             )
-        elif disposition is ValidationDisposition.CONFIRMED:
+        elif disposition is ValidationDisposition.CONFIRMED and not defer_confirmation:
             validation_record = self._ledger.append(EvidenceRecord("VALIDATION_CONFIRMED", experiment, dataset_class, "CONFIRMED", evidence_reference=assumption_reference))
         return ValidationRunResult(
             True,
