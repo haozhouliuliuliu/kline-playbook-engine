@@ -190,6 +190,7 @@ class EvidenceRecord:
     dataset_class: DatasetClass
     outcome: str
     lifecycle_state: LifecycleState | None = None
+    evidence_reference: str | None = None
 
     def __post_init__(self) -> None:
         if not self.event_type or not self.outcome:
@@ -204,6 +205,7 @@ class EvidenceRecord:
                 "dataset_class": self.dataset_class.value,
                 "outcome": self.outcome,
                 "lifecycle_state": self.lifecycle_state.value if self.lifecycle_state else None,
+                "evidence_reference": self.evidence_reference,
             }
         )
 

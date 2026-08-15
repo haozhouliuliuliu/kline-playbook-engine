@@ -49,7 +49,7 @@ All external components must progress through:
 CANDIDATE → VERIFIED → ADOPTED
 
 ## Current next action
-CURRENT_NEXT_ACTION=MINIMUM_CONFIRMATORY_EXECUTION_REALISM_FEASIBILITY_PACKAGE
+CURRENT_NEXT_ACTION=MINIMUM_CAPITAL_MARGIN_EXECUTION_CONSTRAINTS_FEASIBILITY_PACKAGE
 
 The first implementation-stage work should:
 1. create the repository and formal authority files;
@@ -71,6 +71,9 @@ The first implementation-stage work should:
 - Backtest & Validation chronological connection semantics are implemented in
   `src/validation_runner.py` with evidence in
   `docs/evidence/VALIDATION_EXECUTION_SEMANTICS_VERIFICATION.md`.
+- Confirmatory synthetic fill/non-fill and versioned execution-assumption
+  semantics are implemented through the existing runner and ledger, with
+  evidence in `docs/evidence/CONFIRMATORY_EXECUTION_REALISM_VERIFICATION.md`.
 - No external trading framework, broker connector, strategy, or live-money
   capability has been verified or adopted.
 

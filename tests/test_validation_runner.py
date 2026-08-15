@@ -1,4 +1,5 @@
 import unittest
+from decimal import Decimal
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -15,6 +16,8 @@ from src.strategy_evidence import (
 from src.validation_runner import (
     ChronologicalValidationRunner,
     ChronologyError,
+    ExecutionAssumptions,
+    ExecutionObservation,
     ValidationDisposition,
     ValidationInput,
     ValidationMode,
@@ -53,8 +56,9 @@ class ValidationRunnerTests(unittest.TestCase):
         self.ledger = EvidenceLedger()
         self.runner = ChronologicalValidationRunner(self.ledger, FinalUnseenFirewall(self.ledger))
         self.bar = CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5))
+        self.assumptions = ExecutionAssumptions("synthetic-v1", Decimal("1.5"), Decimal("0.25"))
 
-    def execute(self, mode=ValidationMode.CONFIRMATORY, dataset=DatasetClass.VALIDATION, inputs=None, disposition=None):
+    def execute(self, mode=ValidationMode.CONFIRMATORY, dataset=DatasetClass.VALIDATION, inputs=None, disposition=None, observations=(), cutoff=None, assumptions=None):
         return self.runner.run(
             mode=mode,
             strategy=self.strategy,
@@ -64,6 +68,9 @@ class ValidationRunnerTests(unittest.TestCase):
             dataset_class=dataset,
             inputs=inputs or (ValidationInput("request-1", self.bar, at(9, 5)),),
             disposition=disposition,
+            execution_observations=observations,
+            execution_cutoff_at=cutoff,
+            execution_assumptions=assumptions,
         )
 
     def test_runner_reuses_existing_completed_bar_availability(self):
@@ -124,7 +131,8 @@ class ValidationRunnerTests(unittest.TestCase):
         self.assertEqual(confirmatory.access_record.experiment.code_hash, self.strategy.code_hash)
 
     def test_confirmatory_mode_can_emit_confirmed_result_bound_to_existing_experiment(self):
-        result = self.execute(disposition=ValidationDisposition.CONFIRMED)
+        observation = ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100"))
+        result = self.execute(disposition=ValidationDisposition.CONFIRMED, observations=(observation,), cutoff=at(9, 10), assumptions=self.assumptions)
         self.assertEqual(result.validation_record.event_type, "VALIDATION_CONFIRMED")
         self.assertEqual(result.validation_record.experiment, self.experiment)
         self.assertEqual(self.ledger.records[-1], result.validation_record)
