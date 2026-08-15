@@ -15,10 +15,13 @@ from src.strategy_evidence import (
 )
 from src.validation_runner import (
     ChronologicalValidationRunner,
+    CapitalMarginAssumptions,
+    CapitalSnapshot,
     ChronologyError,
     ExecutionAssumptions,
     ExecutionObservation,
     FillStatus,
+    OrderSpecification,
     ValidationDisposition,
     ValidationInput,
     ValidationMode,
@@ -58,6 +61,8 @@ class ExecutionRealismTests(unittest.TestCase):
         self.runner = ChronologicalValidationRunner(self.ledger, FinalUnseenFirewall(self.ledger))
         self.input = ValidationInput("request-1", CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5)), at(9, 5))
         self.assumptions = ExecutionAssumptions("synthetic-v1", Decimal("1.5"), Decimal("0.25"))
+        self.capital_assumptions = CapitalMarginAssumptions("capital-fixture-v1", Decimal("1"), Decimal("0.1"), "SYNTH")
+        self.capital_snapshot = CapitalSnapshot(Decimal("100"))
 
     def confirm(self, observations=(), cutoff=at(9, 10), assumptions=None):
         return self.runner.run(
@@ -72,6 +77,9 @@ class ExecutionRealismTests(unittest.TestCase):
             execution_observations=observations,
             execution_cutoff_at=cutoff,
             execution_assumptions=assumptions or self.assumptions,
+            order_specifications=(OrderSpecification("request-1", Decimal("1")),),
+            capital_snapshot=self.capital_snapshot,
+            capital_margin_assumptions=self.capital_assumptions,
         )
 
     def test_later_independently_available_observation_fills_after_eligibility(self):
@@ -116,6 +124,9 @@ class ExecutionRealismTests(unittest.TestCase):
             execution_observations=(ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100"), tradable=False),),
             execution_cutoff_at=at(9, 10),
             execution_assumptions=self.assumptions,
+            order_specifications=(OrderSpecification("request-1", Decimal("1")),),
+            capital_snapshot=self.capital_snapshot,
+            capital_margin_assumptions=self.capital_assumptions,
         )
         self.assertEqual(result.execution_outcomes[0].status, FillStatus.NOT_FILLED)
         self.assertEqual(result.execution_outcomes[0].reason, "NOT_TRADABLE")
@@ -133,8 +144,9 @@ class ExecutionRealismTests(unittest.TestCase):
                 disposition=ValidationDisposition.CONFIRMED,
             )
         result = self.confirm((ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100")),))
-        self.assertEqual(result.validation_record.evidence_reference, self.assumptions.identity_id)
-        self.assertEqual(self.ledger.records[-2].evidence_reference, self.assumptions.identity_id)
+        reference = f"execution:{self.assumptions.identity_id};capital:{self.capital_assumptions.identity_id}"
+        self.assertEqual(result.validation_record.evidence_reference, reference)
+        self.assertEqual(self.ledger.records[-2].evidence_reference, reference)
 
     def test_identical_confirmatory_runs_have_identical_execution_evidence(self):
         observation = (ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100")),)
@@ -153,6 +165,9 @@ class ExecutionRealismTests(unittest.TestCase):
             execution_observations=observation,
             execution_cutoff_at=at(9, 10),
             execution_assumptions=self.assumptions,
+            order_specifications=(OrderSpecification("request-1", Decimal("1")),),
+            capital_snapshot=self.capital_snapshot,
+            capital_margin_assumptions=self.capital_assumptions,
         )
         self.assertEqual(first.execution_outcomes, second.execution_outcomes)
         self.assertEqual(first.validation_record.record_id, second.validation_record.record_id)

@@ -15,9 +15,12 @@ from src.strategy_evidence import (
 )
 from src.validation_runner import (
     ChronologicalValidationRunner,
+    CapitalMarginAssumptions,
+    CapitalSnapshot,
     ChronologyError,
     ExecutionAssumptions,
     ExecutionObservation,
+    OrderSpecification,
     ValidationDisposition,
     ValidationInput,
     ValidationMode,
@@ -57,8 +60,10 @@ class ValidationRunnerTests(unittest.TestCase):
         self.runner = ChronologicalValidationRunner(self.ledger, FinalUnseenFirewall(self.ledger))
         self.bar = CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5))
         self.assumptions = ExecutionAssumptions("synthetic-v1", Decimal("1.5"), Decimal("0.25"))
+        self.capital_assumptions = CapitalMarginAssumptions("capital-fixture-v1", Decimal("1"), Decimal("0.1"), "SYNTH")
+        self.capital_snapshot = CapitalSnapshot(Decimal("100"))
 
-    def execute(self, mode=ValidationMode.CONFIRMATORY, dataset=DatasetClass.VALIDATION, inputs=None, disposition=None, observations=(), cutoff=None, assumptions=None):
+    def execute(self, mode=ValidationMode.CONFIRMATORY, dataset=DatasetClass.VALIDATION, inputs=None, disposition=None, observations=(), cutoff=None, assumptions=None, specifications=(), capital_snapshot=None, capital_assumptions=None):
         return self.runner.run(
             mode=mode,
             strategy=self.strategy,
@@ -71,6 +76,9 @@ class ValidationRunnerTests(unittest.TestCase):
             execution_observations=observations,
             execution_cutoff_at=cutoff,
             execution_assumptions=assumptions,
+            order_specifications=specifications,
+            capital_snapshot=capital_snapshot,
+            capital_margin_assumptions=capital_assumptions,
         )
 
     def test_runner_reuses_existing_completed_bar_availability(self):
@@ -132,7 +140,7 @@ class ValidationRunnerTests(unittest.TestCase):
 
     def test_confirmatory_mode_can_emit_confirmed_result_bound_to_existing_experiment(self):
         observation = ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100"))
-        result = self.execute(disposition=ValidationDisposition.CONFIRMED, observations=(observation,), cutoff=at(9, 10), assumptions=self.assumptions)
+        result = self.execute(disposition=ValidationDisposition.CONFIRMED, observations=(observation,), cutoff=at(9, 10), assumptions=self.assumptions, specifications=(OrderSpecification("request-1", Decimal("1")),), capital_snapshot=self.capital_snapshot, capital_assumptions=self.capital_assumptions)
         self.assertEqual(result.validation_record.event_type, "VALIDATION_CONFIRMED")
         self.assertEqual(result.validation_record.experiment, self.experiment)
         self.assertEqual(self.ledger.records[-1], result.validation_record)

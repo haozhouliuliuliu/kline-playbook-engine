@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from decimal import Decimal
 from datetime import datetime
 from enum import Enum
@@ -38,6 +38,70 @@ class ValidationDisposition(str, Enum):
 class FillStatus(str, Enum):
     FILLED = "FILLED"
     NOT_FILLED = "NOT_FILLED"
+
+
+@dataclass(frozen=True)
+class OrderSpecification:
+    request_id: str
+    quantity: Decimal
+
+    def __post_init__(self) -> None:
+        if not self.request_id or type(self.quantity) is not Decimal or self.quantity <= 0:
+            raise ValueError("order request_id and positive Decimal quantity are required")
+
+
+@dataclass(frozen=True)
+class CapitalMarginAssumptions:
+    model_version: str
+    contract_multiplier: Decimal
+    initial_margin_rate: Decimal
+    currency: str
+
+    def __post_init__(self) -> None:
+        if not self.model_version or not self.currency:
+            raise ValueError("capital/margin model version and currency are required")
+        if type(self.contract_multiplier) is not Decimal or self.contract_multiplier <= 0:
+            raise ValueError("contract multiplier must be a positive Decimal")
+        if type(self.initial_margin_rate) is not Decimal or not Decimal("0") < self.initial_margin_rate <= Decimal("1"):
+            raise ValueError("initial margin rate must be a Decimal in (0, 1]")
+
+    @property
+    def identity_id(self) -> str:
+        return _execution_hash(
+            {
+                "model_version": self.model_version,
+                "contract_multiplier": str(self.contract_multiplier),
+                "initial_margin_rate": str(self.initial_margin_rate),
+                "currency": self.currency,
+            }
+        )
+
+
+@dataclass(frozen=True)
+class CapitalSnapshot:
+    starting_capital: Decimal
+    reserved_margin: Decimal = Decimal("0")
+    charged_costs: Decimal = Decimal("0")
+
+    def __post_init__(self) -> None:
+        values = (self.starting_capital, self.reserved_margin, self.charged_costs)
+        if any(type(value) is not Decimal or value < 0 for value in values):
+            raise ValueError("capital values must be non-negative Decimals")
+        if self.available_capital < 0:
+            raise ValueError("capital snapshot cannot have negative available capital")
+
+    @property
+    def available_capital(self) -> Decimal:
+        return self.starting_capital - self.reserved_margin - self.charged_costs
+
+
+@dataclass(frozen=True)
+class CapitalTransition:
+    request_id: str
+    before: CapitalSnapshot
+    after: CapitalSnapshot
+    required_margin: Decimal
+    required_cost: Decimal
 
 
 def _execution_hash(value: object) -> str:
@@ -96,6 +160,7 @@ class ExecutionOutcome:
     fill_price: Decimal | None
     total_cost: Decimal | None
     reason: str
+    capital_assumption_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -125,6 +190,7 @@ class ValidationRunResult:
     access_record: EvidenceRecord
     validation_record: EvidenceRecord | None
     execution_outcomes: tuple[ExecutionOutcome, ...] = ()
+    capital_transitions: tuple[CapitalTransition, ...] = ()
 
 
 class ChronologicalValidationRunner:
@@ -236,6 +302,36 @@ class ChronologicalValidationRunner:
             )
         return tuple(outcomes)
 
+    @staticmethod
+    def _apply_capital_constraints(
+        outcomes: tuple[ExecutionOutcome, ...],
+        specifications: Iterable[OrderSpecification],
+        snapshot: CapitalSnapshot,
+        assumptions: CapitalMarginAssumptions,
+    ) -> tuple[tuple[ExecutionOutcome, ...], tuple[CapitalTransition, ...]]:
+        specifications = tuple(specifications)
+        if tuple(spec.request_id for spec in specifications) != tuple(outcome.request_id for outcome in outcomes):
+            raise ValueError("order specifications must bind exactly to execution requests in order")
+        current = snapshot
+        constrained: list[ExecutionOutcome] = []
+        transitions: list[CapitalTransition] = []
+        for outcome, specification in zip(outcomes, specifications):
+            if outcome.status is not FillStatus.FILLED:
+                transitions.append(CapitalTransition(specification.request_id, current, current, Decimal("0"), Decimal("0")))
+                constrained.append(replace(outcome, capital_assumption_id=assumptions.identity_id))
+                continue
+            required_margin = outcome.fill_price * specification.quantity * assumptions.contract_multiplier * assumptions.initial_margin_rate
+            required_cost = outcome.total_cost
+            if current.available_capital < required_margin + required_cost:
+                constrained.append(ExecutionOutcome(specification.request_id, FillStatus.NOT_FILLED, outcome.evaluated_at, outcome.execution_assumption_id, None, None, "INSUFFICIENT_MARGIN", assumptions.identity_id))
+                transitions.append(CapitalTransition(specification.request_id, current, current, required_margin, required_cost))
+                continue
+            next_snapshot = CapitalSnapshot(current.starting_capital, current.reserved_margin + required_margin, current.charged_costs + required_cost)
+            constrained.append(replace(outcome, capital_assumption_id=assumptions.identity_id))
+            transitions.append(CapitalTransition(specification.request_id, current, next_snapshot, required_margin, required_cost))
+            current = next_snapshot
+        return tuple(constrained), tuple(transitions)
+
     def run(
         self,
         *,
@@ -250,16 +346,24 @@ class ChronologicalValidationRunner:
         execution_observations: Iterable[ExecutionObservation] = (),
         execution_cutoff_at: datetime | None = None,
         execution_assumptions: ExecutionAssumptions | None = None,
+        order_specifications: Iterable[OrderSpecification] = (),
+        capital_snapshot: CapitalSnapshot | None = None,
+        capital_margin_assumptions: CapitalMarginAssumptions | None = None,
     ) -> ValidationRunResult:
         self._validate_binding(strategy, experiment, artifact_identity_id, artifact_code_hash)
         if mode is ValidationMode.FAST and disposition is ValidationDisposition.CONFIRMED:
             raise ValueError("FAST mode cannot establish confirmatory validity")
+        if dataset_class is DatasetClass.FINAL_UNSEEN:
+            access = self._firewall.request_access(experiment, dataset_class)
+            return ValidationRunResult(False, (), access.record, None)
         inputs = tuple(inputs)
         if mode is ValidationMode.CONFIRMATORY and disposition is ValidationDisposition.CONFIRMED:
             if execution_cutoff_at is None or execution_assumptions is None:
                 raise ValueError("confirmatory validity requires execution assumptions and evaluation")
             if not inputs:
                 raise ValueError("confirmatory validity requires at least one execution evaluation")
+            if capital_snapshot is None or capital_margin_assumptions is None:
+                raise ValueError("confirmatory validity requires capital/margin assumptions and snapshot")
 
         access = self._firewall.request_access(experiment, dataset_class)
         if not access.allowed:
@@ -267,11 +371,14 @@ class ChronologicalValidationRunner:
 
         events = self._ordered_events(inputs)
         execution_outcomes: tuple[ExecutionOutcome, ...] = ()
+        capital_transitions: tuple[CapitalTransition, ...] = ()
         if mode is ValidationMode.CONFIRMATORY and disposition is ValidationDisposition.CONFIRMED:
             execution_outcomes = self._evaluate_execution(inputs, execution_observations, execution_cutoff_at, execution_assumptions)
+            execution_outcomes, capital_transitions = self._apply_capital_constraints(execution_outcomes, order_specifications, capital_snapshot, capital_margin_assumptions)
+            assumption_reference = f"execution:{execution_assumptions.identity_id};capital:{capital_margin_assumptions.identity_id}"
             for outcome in execution_outcomes:
                 event_type = "EXECUTION_FILLED" if outcome.status is FillStatus.FILLED else "EXECUTION_NOT_FILLED"
-                self._ledger.append(EvidenceRecord(event_type, experiment, dataset_class, outcome.status.value, evidence_reference=outcome.execution_assumption_id))
+                self._ledger.append(EvidenceRecord(event_type, experiment, dataset_class, outcome.reason, evidence_reference=assumption_reference))
                 events += (ExecutionEvent(outcome.evaluated_at, outcome.status.value, outcome.request_id),)
             events = tuple(sorted(events, key=lambda event: (event.timestamp, self._EVENT_ORDER[event.event_type], event.request_id)))
         validation_record = None
@@ -280,5 +387,5 @@ class ChronologicalValidationRunner:
                 EvidenceRecord("VALIDATION_REJECTED", experiment, dataset_class, "REJECTED")
             )
         elif disposition is ValidationDisposition.CONFIRMED:
-            validation_record = self._ledger.append(EvidenceRecord("VALIDATION_CONFIRMED", experiment, dataset_class, "CONFIRMED", evidence_reference=execution_assumptions.identity_id))
-        return ValidationRunResult(True, events, access.record, validation_record, execution_outcomes)
+            validation_record = self._ledger.append(EvidenceRecord("VALIDATION_CONFIRMED", experiment, dataset_class, "CONFIRMED", evidence_reference=assumption_reference))
+        return ValidationRunResult(True, events, access.record, validation_record, execution_outcomes, capital_transitions)

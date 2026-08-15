@@ -49,7 +49,7 @@ All external components must progress through:
 CANDIDATE → VERIFIED → ADOPTED
 
 ## Current next action
-CURRENT_NEXT_ACTION=MINIMUM_CAPITAL_MARGIN_EXECUTION_CONSTRAINTS_FEASIBILITY_PACKAGE
+CURRENT_NEXT_ACTION=MINIMUM_POSITION_MARK_TO_MARKET_AND_FORCED_LIQUIDATION_FEASIBILITY_PACKAGE
 
 The first implementation-stage work should:
 1. create the repository and formal authority files;
@@ -74,6 +74,9 @@ The first implementation-stage work should:
 - Confirmatory synthetic fill/non-fill and versioned execution-assumption
   semantics are implemented through the existing runner and ledger, with
   evidence in `docs/evidence/CONFIRMATORY_EXECUTION_REALISM_VERIFICATION.md`.
+- Synthetic order-size, capital/margin affordability, and sequential capital
+  snapshot semantics are implemented through the existing runner and ledger,
+  with evidence in `docs/evidence/CAPITAL_MARGIN_CONSTRAINTS_VERIFICATION.md`.
 - No external trading framework, broker connector, strategy, or live-money
   capability has been verified or adopted.
 
