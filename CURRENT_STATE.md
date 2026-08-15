@@ -9,10 +9,10 @@ ADOPTED_CONTRACT_SHA256=3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650b
 LAST_KNOWN_GOOD=b6d1961dca5b4c879bc7deb6406f3c63723b04d4
 BOOTSTRAP_ACCEPTANCE=GO
 BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
-CURRENT_BLOCKER=NONE
+CURRENT_BLOCKER=TQSDK_CURRENT_TRIAL_AUTHENTICATION_NOT_AVAILABLE
 
 ## Current objective
-Establish the first real, provenance-bound, point-in-time historical China-futures data path and canonical research dataset before substantive strategy research.
+Complete the current Owner-authenticated TqSdk real-data probe before source acceptance or canonical research dataset construction.
 
 ## Current boundaries
 NOT_AUTHORIZED:
@@ -49,6 +49,10 @@ Known categories:
 - storage baseline candidates: SQLite, Parquet; DuckDB optional
 - later/reference only: NautilusTrader, STUMPY, RD-Agent, Qlib, TradingAgents, MiroFish, Freqtrade, Jesse, LEAN
 
+Current project-specific source status:
+- TqSdk: CANDIDATE. Current official package/API `3.10.1` was inspected in a temporary environment, but TqSdk is not installed in the project/system runtime and the current Owner-trial real probe is blocked on local authentication.
+- SHFE official annual raw: VERIFIED for official-origin/hash/daily-statistical reference use only; not minute/Tick data and not ADOPTED as the canonical research source.
+
 All external components must progress through:
 CANDIDATE → VERIFIED → ADOPTED
 
@@ -61,7 +65,7 @@ These are environment facts, not project dependencies or adoption decisions.
 - Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
 
 ## Current next action
-CURRENT_NEXT_ACTION=REAL_HISTORICAL_DATA_SUBSTRATE_FEASIBILITY_PACKAGE
+CURRENT_NEXT_ACTION=HISTORICAL_DATA_SOURCE_OWNER_GATE
 
 ## Current acceptance
 
@@ -71,11 +75,33 @@ PROJECT_BOOTSTRAP is formally accepted at
 
 ## Current tool decision
 
-TOOL_DECISION=USE_EXISTING
+TOOL_DECISION=ADD_TOOL
 
-No data provider, external trading framework, broker connector, strategy, or
-live-money capability is verified or adopted. The next bounded package must
-perform the new-stage source/tool applicability review before any adoption.
+The capability under evaluation is a real historical-data source path. This
+does not adopt TqSdk or SHFE annual raw as a project dependency/source.
+
+## Completed research-foundation evidence
+
+- Incremental clean-room reuse classification is recorded in
+  `docs/reuse/STEEL_REUSE_AUDIT.md`; no old-project source code or processed
+  Gate1 dataset was copied.
+- The vendor-neutral historical provenance, raw-artifact, normalizer and
+  data-version contracts are implemented in `src/historical_data.py`.
+- Fixed-duration historical PIT normalization reuses the existing
+  `CompletedBar.available_at` and `CompletedBar.is_visible_at` semantics.
+- Deterministic synthetic quality-gate tests are in
+  `tests/test_historical_data.py`.
+- The SHFE official annual reference recheck is recorded in
+  `docs/evidence/SHFE_OFFICIAL_RAW_RECHECK_MANIFEST.json`.
+- Package findings and the current authentication limitation are recorded in
+  `docs/evidence/REAL_HISTORICAL_DATA_SUBSTRATE_FEASIBILITY.md`.
+- No current authenticated TqSdk historical response has been observed, so no
+  real data-version identity, real-sample PIT PASS, cross-source PASS, or
+  research-ready dataset is claimed.
+
+## Current Owner action
+
+OWNER_ACTION=Authenticate the Owner's existing TqSdk trial locally without sharing credentials in chat.
 
 ## Owner decision gates
 Owner-level approval is required only for genuinely new product/research direction, frozen experiment semantics, permanent risk rules, paid commitments, real-money/broker actions, or irreversible external actions.

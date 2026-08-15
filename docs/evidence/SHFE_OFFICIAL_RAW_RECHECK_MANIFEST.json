@@ -1,0 +1,81 @@
+{
+  "schema_version": "shfe-official-annual-reference-recheck-v1",
+  "verified_at": "2026-08-15T18:00:52.9255493Z",
+  "classification": "REFERENCE_ONLY_DAILY_STATISTICAL_CONCRETE_CONTRACT_DATA",
+  "canonical_raw_storage": false,
+  "verification_input_location": "C:\\Users\\H\\Documents\\steel-radar-lite\\data\\archive\\gate1\\raw\\shfe-official",
+  "new_project_raw_location": "data/raw/historical/",
+  "new_project_raw_location_git_policy": "IGNORED",
+  "parser_identity": "independent-read-only-zip-workbook-inspection-v1",
+  "data_version_identity_status": "NOT_MINTED_REFERENCE_NOT_NORMALIZED",
+  "sources": [
+    {
+      "provider": "Shanghai Futures Exchange",
+      "source_type": "official annual historical statistical archive",
+      "resource_identity": "P020250411613533276038.zip",
+      "url": "https://www.shfe.com.cn/eng/reports/StatisticalData/Annualdata/HistoricalData/downloadhistory/202501/P020250411613533276038.zip",
+      "retrieved_or_rechecked_at": "2026-08-15T18:00:52.9255493Z",
+      "http_status": 200,
+      "content_type": "application/zip",
+      "content_length": 24187534,
+      "last_modified": "2025-04-11T09:07:16Z",
+      "local_file_size": 24187534,
+      "sha256": "605e119b8f6e7cd73b02fa18aa75ce1b388d5628aa024d7f5b7961d028a9ec2c",
+      "coverage": "2023-01 through 2023-12",
+      "archive_member_count": 12,
+      "schema": "monthly SHFE concrete-contract daily quotation workbooks"
+    },
+    {
+      "provider": "Shanghai Futures Exchange",
+      "source_type": "official annual historical statistical archive",
+      "resource_identity": "P020250411613533972715.zip",
+      "url": "https://www.shfe.com.cn/eng/reports/StatisticalData/Annualdata/HistoricalData/downloadhistory/202501/P020250411613533972715.zip",
+      "retrieved_or_rechecked_at": "2026-08-15T18:00:52.9255493Z",
+      "http_status": 200,
+      "content_type": "application/zip",
+      "content_length": 35087891,
+      "last_modified": "2025-04-11T09:07:16Z",
+      "local_file_size": 35087891,
+      "sha256": "68505aefe460ffa3167bd200477a5ebb05a8aaac5e477bb013e97ffbcf7bc99e",
+      "coverage": "2024-01 through 2024-12",
+      "archive_member_count": 15,
+      "schema": "SHFE/INE concrete-contract daily quotation workbooks and directories"
+    },
+    {
+      "provider": "Shanghai Futures Exchange",
+      "source_type": "official annual historical statistical archive",
+      "resource_identity": "P020260116534160394483.zip",
+      "url": "https://www.shfe.com.cn/eng/reports/StatisticalData/Annualdata/HistoricalData/downloadhistory/202505/P020260116534160394483.zip",
+      "retrieved_or_rechecked_at": "2026-08-15T18:00:52.9255493Z",
+      "http_status": 200,
+      "content_type": "application/zip",
+      "content_length": 76474984,
+      "last_modified": "2026-01-16T06:50:16Z",
+      "local_file_size": 76474984,
+      "sha256": "af1991361ee7383adf27481a160aad2e5c7ee3708e4db52338161d54e596f7e8",
+      "coverage": "2025-01 through 2025-12",
+      "archive_member_count": 15,
+      "schema": "SHFE/INE concrete-contract daily quotation workbooks and directories"
+    }
+  ],
+  "independent_daily_fact_example": {
+    "source_resource_identity": "P020260116534160394483.zip",
+    "workbook": "SHFE contract quotation report 2025.6",
+    "contract": "SHFE.ni2509",
+    "trading_date": "2025-06-16",
+    "open": 120400,
+    "high": 120600,
+    "low": 119420,
+    "close": 120070,
+    "settlement": 119970,
+    "volume": 10431,
+    "open_interest": 26672,
+    "use": "future independent daily aggregate comparison only"
+  },
+  "limitations": [
+    "These archives are daily/statistical data, not official minute or Tick data.",
+    "The old-project files are read-only verification inputs and are not the new project's canonical raw storage.",
+    "No old normalized Gate1 dataset or research conclusion is inherited.",
+    "No project data-version identity is minted because these reference archives were not normalized into the intraday research path."
+  ]
+}

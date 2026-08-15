@@ -1,6 +1,6 @@
 # 00_READ_FIRST
 
-This repository is in `PROJECT_BOOTSTRAP`.
+This repository is in `RESEARCH_FOUNDATION`.
 
 Current authority/navigation:
 - Owner collaboration: `OWNER_COLLABORATION_CONTRACT.md`
@@ -9,7 +9,7 @@ Current authority/navigation:
 - Adopted governance: `CROSS_PROJECT_OPERATING_CONTRACT.md` Version 3.1, pinned by SHA256 in `CURRENT_STATE.md`
 - Tool catalog only: `TOOL_REGISTRY.md`
 
-Current bootstrap verification uses Python standard library only and does not adopt a trading framework.
+Current verification uses Python standard library project code and does not adopt a trading framework or data provider. TqSdk remains a candidate pending the current Owner-authenticated real historical-data probe.
 
 Canonical verification path:
 `python -m unittest discover -s tests -v`
