@@ -49,7 +49,7 @@ All external components must progress through:
 CANDIDATE → VERIFIED → ADOPTED
 
 ## Current next action
-CURRENT_NEXT_ACTION=SELECT_NEXT_MINIMUM_SKELETON_V1_0_FEASIBILITY_PACKAGE
+CURRENT_NEXT_ACTION=MINIMUM_BACKTEST_VALIDATION_EXECUTION_SEMANTICS_FEASIBILITY_PACKAGE
 
 The first implementation-stage work should:
 1. create the repository and formal authority files;
@@ -65,6 +65,9 @@ The first implementation-stage work should:
 - The minimum Data Substrate contract is implemented in
   `src/data_substrate.py` and covered by deterministic unit tests.
 - The clean-room reuse audit is recorded in `docs/reuse/STEEL_REUSE_AUDIT.md`.
+- Strategy Identity + Evidence Spine feasibility is implemented in
+  `src/strategy_evidence.py` with deterministic firewall tests and evidence in
+  `docs/evidence/STRATEGY_EVIDENCE_SPINE_VERIFICATION.md`.
 - No external trading framework, broker connector, strategy, or live-money
   capability has been verified or adopted.
 
