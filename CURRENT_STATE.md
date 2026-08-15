@@ -49,7 +49,7 @@ All external components must progress through:
 CANDIDATE → VERIFIED → ADOPTED
 
 ## Current next action
-CURRENT_NEXT_ACTION=BOOTSTRAP_REPOSITORY_AND_RUN_MINIMUM_TECHNICAL_FEASIBILITY_CHECKS
+CURRENT_NEXT_ACTION=SELECT_NEXT_MINIMUM_SKELETON_V1_0_FEASIBILITY_PACKAGE
 
 The first implementation-stage work should:
 1. create the repository and formal authority files;
@@ -58,6 +58,15 @@ The first implementation-stage work should:
 4. perform a stage-level tool/open-source applicability review;
 5. verify only the cheapest fatal prerequisites before broad implementation;
 6. keep all broker/live-money actions disabled unless explicitly authorized later.
+
+## Completed bootstrap evidence
+- Restored bootstrap history has been verified from the exported bundle at
+  `2f840bb84939eee5c6b0948a817641e79cf7af1d`.
+- The minimum Data Substrate contract is implemented in
+  `src/data_substrate.py` and covered by deterministic unit tests.
+- The clean-room reuse audit is recorded in `docs/reuse/STEEL_REUSE_AUDIT.md`.
+- No external trading framework, broker connector, strategy, or live-money
+  capability has been verified or adopted.
 
 ## Owner decision gates
 Owner-level approval is required only for genuinely new product/research direction, frozen experiment semantics, permanent risk rules, paid commitments, real-money/broker actions, or irreversible external actions.
