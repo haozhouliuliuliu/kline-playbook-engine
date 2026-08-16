@@ -372,7 +372,12 @@ def main() -> None:
         reevaluate_manifest(manifest_path, Path(args.raw_dir), configs)
         return
     if args.phase in ("acquire", "all"):
-        adapter = TqSdkSourceAdapter(credentials_from_terminal)
+        from src.historical_manifest import DatasetManifest  # noqa: PLC0415
+
+        # Capture credentials ONCE (one hidden terminal entry) so reconnect /
+        # resume can run unattended without re-prompting.
+        creds = credentials_from_terminal()
+        adapter = TqSdkSourceAdapter(lambda: creds)
         builder = DatasetBuilder(
             adapter=adapter,
             raw_dir=Path(args.raw_dir),
@@ -381,7 +386,7 @@ def main() -> None:
             contracts=configs,
         )
         try:
-            manifest = builder.build(requests)
+            manifest = _acquire_resilient(builder, requests, adapter, manifest_path)
         finally:
             adapter.close()
         print(f"ACQUIRED manifest_identity={manifest.identity()} partitions={len(manifest.partitions)}")
@@ -416,6 +421,52 @@ def _catalog_count(path: Path) -> int:
         return c.partition_count()
     finally:
         c.close()
+
+
+def _acquire_resilient(builder, requests, adapter, manifest_path: Path):
+    """Run builder.build() with unattended reconnect/resume.
+
+    Credentials are captured once at startup; on any acquisition failure the
+    adapter connection is closed and recreated from the in-memory credentials,
+    then build() resumes idempotently from the manifest checkpoint.  If the
+    manifest makes no progress across consecutive failures, the failure is
+    treated as fatal and re-raised (checkpoint preserved).
+    """
+    import time  # noqa: PLC0415
+
+    last_count = -1
+    stall = 0
+    max_stall = 8
+    while True:
+        try:
+            return builder.build(requests)
+        except Exception as exc:  # noqa: BLE001 - reconnect + resume on failure
+            count = _manifest_partition_count(manifest_path)
+            if count > last_count:
+                last_count = count
+                stall = 0
+            else:
+                stall += 1
+                print(
+                    f"[resilient] acquisition failure {type(exc).__name__} with no "
+                    f"progress ({stall}/{max_stall}); reconnecting and resuming"
+                )
+                if stall >= max_stall:
+                    raise
+            try:
+                adapter.close()
+            except Exception:  # noqa: BLE001 - best-effort cleanup
+                pass
+            time.sleep(5)
+
+
+def _manifest_partition_count(manifest_path: Path) -> int:
+    from src.historical_manifest import DatasetManifest  # noqa: PLC0415
+
+    try:
+        return len(DatasetManifest.load(manifest_path).partitions)
+    except Exception:  # noqa: BLE001 - manifest may be mid-write
+        return -1
 
 
 @dataclass(frozen=True)
