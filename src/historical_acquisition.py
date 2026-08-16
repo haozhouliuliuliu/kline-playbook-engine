@@ -1,14 +1,19 @@
-"""Small project-owned historical-data acquisition boundary (pilot).
+"""Project-owned historical-data acquisition boundary (hardened).
 
-Vendor-neutral request, storage, resume, and manifest logic is separated from
-the TqSdk-specific source adapter.  TqSdk is imported lazily and only inside
-the adapter, so the project runtime never depends on it.
+Vendor-neutral acquisition, storage, resume, and manifest behavior is separated
+from source/provider-specific facts.  A `SourceAdapter` exposes an immutable
+`SourceSpecification` (provider, source type, endpoint, raw schema, version,
+normalizer, availability rule) and the decoding behavior; the generic
+`DatasetBuilder` never assumes a specific provider.
 
 Safety:
 - concrete contracts only; pseudo MAIN/CONTINUOUS symbols are rejected;
 - credentials are supplied only at runtime (hidden local password input);
 - no credential is stored in the repo, config, evidence, logs, or manifests;
-- no broker or order functionality is exposed.
+- no broker or order functionality is exposed;
+- only clearly transient transport/network errors are retried (bounded);
+- session/trading-day facts are never inferred; explicit, versioned
+  `SessionMetadata` is required from project authority.
 """
 
 from __future__ import annotations
@@ -31,17 +36,11 @@ from src.data_substrate import SessionMetadata
 from src.historical_data import (
     DataVersionIdentity,
     NormalizerIdentity,
+    NormalizedHistoricalBatch,
     RawArtifact,
     SourceIdentity,
-    normalize_tqsdk_historical_bars,
 )
-from src.historical_manifest import DatasetManifest, ManifestPartition
-
-_RAW_SCHEMA_IDENTITY = "tqsdk-kline-records-json-v1"
-_AVAILABILITY_RULE = "bar-start-plus-duration-v1"
-_PROVIDER = "TQSDK"
-_SOURCE_TYPE = "PROFESSIONAL_HISTORICAL_API"
-_ENDPOINT = "TqApi.get_kline_data_series"
+from src.historical_manifest import DatasetManifest, ManifestPartition, canonical_hash
 
 _CONCRETE = re.compile(r"^[A-Z]+\.[A-Za-z]+[0-9]{3,4}$")
 _PSEUDO = re.compile(r"MAIN|CONTINUOUS|KQ\.m@|KQ\.i@|888|000", re.IGNORECASE)
@@ -97,12 +96,27 @@ class AcquisitionRequest:
 
     @property
     def partition_key(self) -> tuple:
-        # Must match ManifestPartition.partition_key so resume matching works.
-        return (self.concrete_instrument, self.granularity_seconds, self.requested_start.isoformat())
+        # Every outcome-affecting request dimension (excluding provider, which
+        # the builder prepends from the adapter's SourceSpecification).
+        return (
+            self.concrete_instrument,
+            self.granularity_seconds,
+            self.timezone,
+            self.trading_day.isoformat(),
+            self.requested_start.isoformat(),
+            self.requested_end.isoformat(),
+        )
 
-    @property
-    def raw_file_name(self) -> str:
-        return f"{self.concrete_instrument}.{self.granularity_seconds}s.{self.trading_day.isoformat()}.json"
+    def raw_file_name(self, provider: str) -> str:
+        # Collision-safe for distinguishable logical requests: provider plus a
+        # coverage tag derived from timezone/requested coverage.
+        coverage_tag = canonical_hash(
+            (self.timezone, self.requested_start.isoformat(), self.requested_end.isoformat())
+        )[:12]
+        return (
+            f"{provider}.{self.concrete_instrument}.{self.granularity_seconds}s."
+            f"{self.trading_day.isoformat()}.{coverage_tag}.json"
+        )
 
 
 @dataclass(frozen=True)
@@ -118,25 +132,204 @@ class AcquisitionResult:
 
 
 @dataclass(frozen=True)
+class SourceSpecification:
+    """Immutable source/provider facts owned by the adapter, not the builder."""
+
+    provider: str
+    source_type: str
+    endpoint_identity: str
+    raw_schema_identity: str
+    provider_dataset_version: str | None
+    normalizer: NormalizerIdentity
+    request_parameter_names: tuple[str, ...] = (
+        "duration_seconds",
+        "end_dt",
+        "start_dt",
+        "symbol",
+    )
+    availability_rule: str = "bar-start-plus-duration-v1"
+
+    def __post_init__(self) -> None:
+        for value, name in (
+            (self.provider, "source provider"),
+            (self.source_type, "source type"),
+            (self.endpoint_identity, "source endpoint identity"),
+            (self.raw_schema_identity, "source raw schema identity"),
+            (self.availability_rule, "source availability rule"),
+        ):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} is required")
+        if self.provider_dataset_version is not None and not str(self.provider_dataset_version).strip():
+            raise ValueError("provider dataset version must be non-empty")
+        if not isinstance(self.normalizer, NormalizerIdentity):
+            raise ValueError("source specification requires a NormalizerIdentity")
+        names = tuple(self.request_parameter_names)
+        if names != tuple(sorted(names)) or len(names) != len(set(names)):
+            raise ValueError("source request parameter names must be sorted and unique")
+        for name in names:
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError("source request parameter names must be non-empty strings")
+
+
+def build_request_parameters(
+    request: AcquisitionRequest, parameter_names: tuple[str, ...]
+) -> tuple[tuple[str, str], ...]:
+    """Map source-declared parameter names to non-secret request values."""
+    mapping = {
+        "duration_seconds": str(request.granularity_seconds),
+        "start_dt": request.requested_start.isoformat(),
+        "end_dt": request.requested_end.isoformat(),
+        "symbol": request.concrete_instrument,
+    }
+    return tuple((name, mapping[name]) for name in parameter_names)
+
+
+@dataclass(frozen=True)
+class ContractMetadataFact:
+    """Deterministic, evidence-bound contract/session metadata fact.
+
+    Binds exchange, concrete-contract applicability, minimum tick, effective
+    period, session metadata version, and the source/evidence reference so the
+    resulting identity is not an arbitrary label.  Classification is honest:
+    `VERIFIED_OFFICIAL` or `PILOT_FIXTURE`.
+    """
+
+    exchange: str
+    concrete_instrument: str
+    minimum_price_tick: Decimal
+    session_metadata_version: str
+    effective_start: date
+    effective_end: date
+    evidence_reference: str
+    evidence_classification: str
+    source_artifact_sha256: str | None = None
+
+    def __post_init__(self) -> None:
+        for value, name in (
+            (self.exchange, "metadata exchange"),
+            (self.concrete_instrument, "metadata concrete instrument"),
+            (self.session_metadata_version, "metadata session metadata version"),
+            (self.evidence_reference, "metadata evidence reference"),
+            (self.evidence_classification, "metadata evidence classification"),
+        ):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} is required")
+        validate_concrete_symbol(self.concrete_instrument)
+        if not self.concrete_instrument.startswith(self.exchange + "."):
+            raise ValueError("metadata exchange and contract disagree")
+        if type(self.minimum_price_tick) is not Decimal or self.minimum_price_tick <= 0:
+            raise ValueError("metadata minimum price tick must be a positive Decimal")
+        if self.effective_end < self.effective_start:
+            raise ValueError("metadata effective period is reversed")
+        if self.evidence_classification not in ("VERIFIED_OFFICIAL", "PILOT_FIXTURE"):
+            raise ValueError("metadata evidence classification must be VERIFIED_OFFICIAL or PILOT_FIXTURE")
+        if self.source_artifact_sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", self.source_artifact_sha256):
+            raise ValueError("metadata source artifact SHA256 must be 64 lowercase hexadecimal characters")
+
+    def identity_id(self) -> str:
+        return canonical_hash(
+            {
+                "exchange": self.exchange,
+                "concrete_instrument": self.concrete_instrument,
+                "minimum_price_tick": str(self.minimum_price_tick),
+                "session_metadata_version": self.session_metadata_version,
+                "effective_start": self.effective_start.isoformat(),
+                "effective_end": self.effective_end.isoformat(),
+                "evidence_reference": self.evidence_reference,
+                "evidence_classification": self.evidence_classification,
+                "source_artifact_sha256": self.source_artifact_sha256,
+            }
+        )
+
+
+@dataclass(frozen=True)
 class ContractConfig:
     """Contract-specific facts for normalization (no strategy semantics)."""
 
     concrete_instrument: str
     minimum_price_tick: Decimal
-    contract_metadata_identity: str
+    metadata_fact: ContractMetadataFact
     sessions: SessionMetadata
+
+    def __post_init__(self) -> None:
+        if self.metadata_fact.concrete_instrument != self.concrete_instrument:
+            raise ValueError("contract config and metadata fact disagree on contract")
+        if self.metadata_fact.minimum_price_tick != self.minimum_price_tick:
+            raise ValueError("contract config and metadata fact disagree on minimum tick")
+        if self.metadata_fact.session_metadata_version != self.sessions.version:
+            raise ValueError("contract config and metadata fact disagree on session metadata version")
+
+    @property
+    def contract_metadata_identity(self) -> str:
+        return self.metadata_fact.identity_id()
 
 
 class SourceAdapter(ABC):
     """Acquisition boundary.  Concrete adapters must not expose order APIs."""
+
+    @property
+    @abstractmethod
+    def source_specification(self) -> SourceSpecification:
+        raise NotImplementedError
 
     @abstractmethod
     def acquire(self, request: AcquisitionRequest) -> AcquisitionResult:
         raise NotImplementedError
 
     @abstractmethod
+    def decode(
+        self,
+        payload: bytes,
+        *,
+        artifact: RawArtifact,
+        data_version: DataVersionIdentity,
+        sessions: SessionMetadata,
+        minimum_price_tick: Decimal | None,
+    ) -> NormalizedHistoricalBatch:
+        raise NotImplementedError
+
+    @abstractmethod
     def close(self) -> None:
         raise NotImplementedError
+
+
+# --- transient retry classification ----------------------------------------
+
+_TRANSIENT_ERROR_FQN = frozenset(
+    {
+        "requests.exceptions.SSLError",
+        "requests.exceptions.ConnectionError",
+        "requests.exceptions.Timeout",
+        "requests.exceptions.ConnectTimeout",
+        "requests.exceptions.ReadTimeout",
+        "requests.exceptions.ChunkedEncodingError",
+        "urllib3.exceptions.SSLError",
+        "urllib3.exceptions.ConnectionError",
+        "urllib3.exceptions.ProtocolError",
+        "urllib3.exceptions.NewConnectionError",
+        "urllib3.exceptions.MaxRetryError",
+        "urllib3.exceptions.ReadTimeoutError",
+        "urllib3.exceptions.ConnectTimeoutError",
+        "socket.timeout",
+    }
+)
+
+
+def is_transient_network_error(exc: BaseException) -> bool:
+    """True only for clearly transient transport/network failures."""
+    fqn = f"{type(exc).__module__}.{type(exc).__name__}"
+    if fqn in _TRANSIENT_ERROR_FQN:
+        return True
+    return isinstance(exc, (ConnectionError, TimeoutError, OSError))
+
+
+def retry_decision(attempt: int, max_attempts: int, error: BaseException) -> tuple[bool, str]:
+    """Bounded retry only for transient network errors; otherwise fail closed."""
+    if not is_transient_network_error(error):
+        return (False, f"non-transient error {type(error).__name__}")
+    if attempt >= max_attempts:
+        return (False, "max attempts reached")
+    return (True, "transient network error")
 
 
 def _to_int(value: object) -> int:
@@ -177,7 +370,9 @@ class TqSdkSourceAdapter(SourceAdapter):
 
     Credentials come from a runtime provider (e.g. hidden terminal input) and
     exist only in memory; TqAuth is constructed per connection and disappears
-    when the process exits.  No broker/order API is used.
+    when the process exits.  No broker/order API is used.  Only clearly
+    transient transport/network errors receive bounded retry; authentication,
+    entitlement, and configuration failures fail closed immediately.
     """
 
     def __init__(
@@ -191,29 +386,60 @@ class TqSdkSourceAdapter(SourceAdapter):
         self._api = None
         self._version: str | None = None
 
+    @property
+    def source_specification(self) -> SourceSpecification:
+        return SourceSpecification(
+            provider="TQSDK",
+            source_type="PROFESSIONAL_HISTORICAL_API",
+            endpoint_identity="TqApi.get_kline_data_series",
+            raw_schema_identity="tqsdk-kline-records-json-v1",
+            provider_dataset_version=None,
+            normalizer=NormalizerIdentity(
+                "tqsdk-3.10.1-fixed-bar-adapter-v1",
+                "completed-historical-bar-v1",
+                "bar-start-plus-duration-v1",
+            ),
+        )
+
+    def _open_api(self, auth):
+        """Open a data-only TqApi.  Overridable for deterministic tests."""
+        import tqsdk  # lazy: project runtime does not depend on TqSdk
+        from tqsdk import TqApi
+
+        self._version = getattr(tqsdk, "__version__", "UNKNOWN")
+        return TqApi(auth=auth, disable_print=True)
+
+    def _build_auth(self, account: str, password: str):
+        """Build an in-memory TqAuth.  Overridable for deterministic tests."""
+        from tqsdk import TqAuth  # lazy import, only reached for real connections
+
+        return TqAuth(account, password)
+
     def _connect(self) -> None:
         if self._api is not None:
             return
-        import tqsdk  # lazy: project runtime does not depend on TqSdk
-        from tqsdk import TqApi, TqAuth
-
         account, password = self._credentials_provider()
         if not account or not password:
             raise AcquisitionError("credentials are required at runtime")
-        auth = TqAuth(account, password)  # in-memory only
+        auth = self._build_auth(account, password)  # in-memory only
         last_error: Exception | None = None
+        stop_reason = "connection not attempted"
         for attempt in range(1, self._max_connect_attempts + 1):
             try:
-                self._api = TqApi(auth=auth, disable_print=True)  # data server only
+                self._api = self._open_api(auth)  # data server only
                 break
-            except Exception as exc:  # noqa: BLE001 - bounded transient retry
-                last_error = exc
+            except Exception as exc:  # noqa: BLE001 - classified below
                 self._api = None
-                if attempt < self._max_connect_attempts:
-                    continue
+                last_error = exc
+                should_retry, stop_reason = retry_decision(
+                    attempt, self._max_connect_attempts, exc
+                )
+                if not should_retry:
+                    break
         if self._api is None:
-            raise AcquisitionError(f"TqSdk connection failed: {last_error!r}")
-        self._version = getattr(tqsdk, "__version__", "UNKNOWN")
+            raise AcquisitionError(
+                f"TqSdk connection failed ({stop_reason}): {type(last_error).__name__}"
+            )
 
     def acquire(self, request: AcquisitionRequest) -> AcquisitionResult:
         self._connect()
@@ -243,6 +469,25 @@ class TqSdkSourceAdapter(SourceAdapter):
             provider_version=self._version or "UNKNOWN",
         )
 
+    def decode(
+        self,
+        payload: bytes,
+        *,
+        artifact: RawArtifact,
+        data_version: DataVersionIdentity,
+        sessions: SessionMetadata,
+        minimum_price_tick: Decimal | None,
+    ) -> NormalizedHistoricalBatch:
+        from src.historical_data import normalize_tqsdk_historical_bars  # provider-specific decode
+
+        return normalize_tqsdk_historical_bars(
+            payload,
+            artifact=artifact,
+            data_version=data_version,
+            sessions=sessions,
+            minimum_price_tick=minimum_price_tick,
+        )
+
     def close(self) -> None:
         if self._api is not None:
             try:
@@ -263,7 +508,12 @@ def credentials_from_terminal() -> tuple[str, str]:
 
 
 class DatasetBuilder:
-    """Small idempotent dataset builder for the pilot.
+    """Generic idempotent dataset builder.
+
+    Owns acquisition/storage/manifest/idempotency behavior only.  All
+    source/provider-specific facts and decoding behavior come from the
+    adapter's `SourceSpecification` and `decode`; the builder never assumes a
+    provider.
 
     Resume semantics (no download manager):
     - manifest entry + on-disk raw hash match  -> skip (idempotent);
@@ -280,15 +530,14 @@ class DatasetBuilder:
         raw_dir: Path,
         manifest_path: Path,
         schema_version: str,
-        normalizer: NormalizerIdentity,
         contracts: dict[str, ContractConfig],
         retrieved_at_provider: Callable[[], datetime] | None = None,
     ) -> None:
         self._adapter = adapter
+        self._spec = adapter.source_specification
         self._raw_dir = Path(raw_dir)
         self._manifest_path = Path(manifest_path)
         self._schema_version = schema_version
-        self._normalizer = normalizer
         self._contracts = dict(contracts)
         self._retrieved_at_provider = retrieved_at_provider or (
             lambda: datetime.now(ZoneInfo("UTC"))
@@ -306,9 +555,10 @@ class DatasetBuilder:
 
         existing = self._load_existing_entries()
         entries: dict[tuple, ManifestPartition] = dict(existing)
+        provider = self._spec.provider
         for request in sorted(request_list, key=lambda r: r.partition_key):
-            key = request.partition_key
-            raw_path = self._raw_dir / request.raw_file_name
+            key = (provider,) + request.partition_key
+            raw_path = self._raw_dir / request.raw_file_name(provider)
             partial_path = raw_path.with_suffix(raw_path.suffix + ".partial")
             prior = entries.get(key)
             if prior is not None and raw_path.exists():
@@ -342,19 +592,16 @@ class DatasetBuilder:
         partial_path.write_bytes(payload)
         os.replace(partial_path, raw_path)  # atomic: never a partial final file
         config = self._contracts[request.concrete_instrument]
+        spec = self._spec
         retrieved_at = self._retrieved_at_provider()
+        request_parameters = build_request_parameters(request, spec.request_parameter_names)
         source = SourceIdentity(
-            provider=_PROVIDER,
-            source_type=_SOURCE_TYPE,
-            endpoint_identity=_ENDPOINT,
-            provider_dataset_version=None,
+            provider=spec.provider,
+            source_type=spec.source_type,
+            endpoint_identity=spec.endpoint_identity,
+            provider_dataset_version=spec.provider_dataset_version,
             retrieved_at=retrieved_at,
-            request_parameters=(
-                ("duration_seconds", str(request.granularity_seconds)),
-                ("end_dt", request.requested_end.isoformat()),
-                ("start_dt", request.requested_start.isoformat()),
-                ("symbol", request.concrete_instrument),
-            ),
+            request_parameters=request_parameters,
         )
         artifact = RawArtifact.from_bytes(
             payload=payload,
@@ -364,18 +611,18 @@ class DatasetBuilder:
             coverage_end=result.returned_end,
             granularity_seconds=request.granularity_seconds,
             timezone=request.timezone,
-            raw_schema_identity=_RAW_SCHEMA_IDENTITY,
+            raw_schema_identity=spec.raw_schema_identity,
             source_identity_id=source.identity_id,
         )
         data_version = DataVersionIdentity(
             source_identities=(source,),
             raw_artifacts=(artifact,),
-            normalizer=self._normalizer,
+            normalizer=spec.normalizer,
             session_metadata_version=config.sessions.version,
-            historical_availability_rule=_AVAILABILITY_RULE,
+            historical_availability_rule=spec.availability_rule,
             contract_metadata_identity=config.contract_metadata_identity,
         )
-        batch = normalize_tqsdk_historical_bars(
+        batch = self._adapter.decode(
             payload,
             artifact=artifact,
             data_version=data_version,
@@ -388,11 +635,13 @@ class DatasetBuilder:
             else f"ANOMALY:missing_expected_starts={len(batch.missing_expected_starts)}"
         )
         return ManifestPartition(
-            provider=_PROVIDER,
+            provider=spec.provider,
             api_version=result.provider_version,
             contract=request.concrete_instrument,
             exchange=request.exchange,
             granularity_seconds=request.granularity_seconds,
+            timezone=request.timezone,
+            trading_day=request.trading_day,
             requested_start=request.requested_start,
             requested_end=request.requested_end,
             returned_start=result.returned_start,
@@ -401,8 +650,10 @@ class DatasetBuilder:
             raw_bytes=len(payload),
             raw_sha256=sha256(payload).hexdigest(),
             request_identity=source.request_identity,
-            normalizer_identity=self._normalizer.identity_id,
+            request_parameters=request_parameters,
+            normalizer_identity=spec.normalizer.identity_id,
             session_metadata_version=config.sessions.version,
+            contract_metadata_identity=config.contract_metadata_identity,
             data_version_id=data_version.identity_id,
             normalized_batch_id=batch.identity_id,
             quality_status=quality,

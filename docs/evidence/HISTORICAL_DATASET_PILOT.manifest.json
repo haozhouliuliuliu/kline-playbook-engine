@@ -1,6 +1,6 @@
 {
-  "schema_version": "kline-playbook-dataset-manifest-v1",
-  "manifest_identity": "eb20798fcfcf95cff1fcc2131284f8fa3c9e1b3b797ccc4c340dad78cafc037c",
+  "schema_version": "kline-playbook-dataset-manifest-v2",
+  "manifest_identity": "cdbaae338707f5e77182274e5ee162b6015228f34c84f35d4a148a543dc38f03",
   "partitions": [
     {
       "provider": "TQSDK",
@@ -8,6 +8,8 @@
       "contract": "SHFE.ni2509",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-16",
       "requested_coverage_start": "2025-06-13T21:00:00+08:00",
       "requested_coverage_end": "2025-06-16T15:00:00+08:00",
       "returned_coverage_start": "2025-06-13T21:00:00+08:00",
@@ -16,10 +18,29 @@
       "raw_bytes": 81651,
       "raw_sha256": "d934f4f717077f773df17a1aa0c02ea8bc69484c93f22adde82beed3a1ad8885",
       "request_identity": "de714af97c616848e4467d55539e7e9c8478e85dd6f8a05ee6bfd375473046e3",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-16T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-13T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.ni2509"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.ni2509-pilot-session-v1",
-      "data_version_id": "dc8310a8394147140ca15c684e19a7008576560ef73002ca8cec46cb3c665d72",
-      "normalized_batch_id": "1aa7a8bc218aa998b85b0df0cc7b3c0f0f68b5a7a78bb97e1d646e94745fb385",
+      "contract_metadata_identity": "515d1083d132ce716dee0601f002a9538fa94b10fa9559d5f326ec0fa542b943",
+      "data_version_id": "e3efbc83e04626f3b6584aecb0e57d5838c09807b4cf40648e1c8bc51ad4af7b",
+      "normalized_batch_id": "54881a14ca4e49a1b31d0bceff41be8ae72b3d5c667f0a499ae8816880641ea1",
       "quality_status": "PASS"
     },
     {
@@ -28,6 +49,8 @@
       "contract": "SHFE.ni2509",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-17",
       "requested_coverage_start": "2025-06-16T21:00:00+08:00",
       "requested_coverage_end": "2025-06-17T15:00:00+08:00",
       "returned_coverage_start": "2025-06-16T21:00:00+08:00",
@@ -36,10 +59,29 @@
       "raw_bytes": 81692,
       "raw_sha256": "c3002f926783ba34b62bc0c8a674b421e3238b5d6613480b5e01e96dfd987a48",
       "request_identity": "d6ea4f67db8520cd37d3fcc94831aed83b8193a606f1baec8f60b83577128944",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-17T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-16T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.ni2509"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.ni2509-pilot-session-v1",
-      "data_version_id": "6abf743992022e6caeb7672e2038e7bbe42f88fd5b55d2c770692ff7fe4f394d",
-      "normalized_batch_id": "7bf707f6101b7156ab099a2f00eb38d92fe959829f513e32b48d5d244a16f1cd",
+      "contract_metadata_identity": "515d1083d132ce716dee0601f002a9538fa94b10fa9559d5f326ec0fa542b943",
+      "data_version_id": "4e65bb8c99680784bca670b767f31e5eef09cc38ad74a5f5dae3f979bf1d05ad",
+      "normalized_batch_id": "d1aba69d1d2aed58acdcb94d0c4ed106541f3723a7035e4ee33ec6c99aae2cb9",
       "quality_status": "PASS"
     },
     {
@@ -48,6 +90,8 @@
       "contract": "SHFE.ni2509",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-18",
       "requested_coverage_start": "2025-06-17T21:00:00+08:00",
       "requested_coverage_end": "2025-06-18T15:00:00+08:00",
       "returned_coverage_start": "2025-06-17T21:00:00+08:00",
@@ -56,10 +100,29 @@
       "raw_bytes": 81629,
       "raw_sha256": "770d2c58d5b2c85a4d91428dda967a9f1fc10fc6088890b85000b2d1066fab94",
       "request_identity": "2339fdd176d1b3c5f5837b93d3929286962914545f3bc0a19f0e36d92256995a",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-18T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-17T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.ni2509"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.ni2509-pilot-session-v1",
-      "data_version_id": "042c1b15d0a547fad72e48784ddb70c46d9294dec96809a7849002a6371c983e",
-      "normalized_batch_id": "a5f0e97b045fa920869f4f446e066a3d05fc106c8dc4eb0fc43d2a42cadf85c0",
+      "contract_metadata_identity": "515d1083d132ce716dee0601f002a9538fa94b10fa9559d5f326ec0fa542b943",
+      "data_version_id": "75cdc975cbcc6a465705d0171d7b959e39b82626be0ec0a0ba6e795dbdea0b3c",
+      "normalized_batch_id": "de40b5a524bcc3e03822f81f0c97b8d9c835bbec684e98f843fcd7cef5f368f0",
       "quality_status": "PASS"
     },
     {
@@ -68,6 +131,8 @@
       "contract": "SHFE.ni2509",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-19",
       "requested_coverage_start": "2025-06-18T21:00:00+08:00",
       "requested_coverage_end": "2025-06-19T15:00:00+08:00",
       "returned_coverage_start": "2025-06-18T21:00:00+08:00",
@@ -76,10 +141,29 @@
       "raw_bytes": 81725,
       "raw_sha256": "c2cef3832b7c8546047a1c4dfcd120335edbdd52f1e8dce1071e610c71ff1316",
       "request_identity": "bba5c3e194d8fec38d6b9157ab6e238e4ac1b98a4f380befb101d5d3501a1c4c",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-19T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-18T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.ni2509"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.ni2509-pilot-session-v1",
-      "data_version_id": "fd71dac0b56563aab884064f4de30512fecc12ca9b3b1b33169b864042ef89e7",
-      "normalized_batch_id": "5d13d592ad6d737b62af9ba9ac766cc4113e4de786d447f4e5415dc0f7a8fbc1",
+      "contract_metadata_identity": "515d1083d132ce716dee0601f002a9538fa94b10fa9559d5f326ec0fa542b943",
+      "data_version_id": "8fc14b888a49e7b921080a0e863a917962f4e1d3e8601d22e5ec6b13bee6677d",
+      "normalized_batch_id": "d98b68cac3b033a483395b78a1d7b1297c5bb998fb023362804d25a1a1743290",
       "quality_status": "PASS"
     },
     {
@@ -88,6 +172,8 @@
       "contract": "SHFE.ni2509",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-20",
       "requested_coverage_start": "2025-06-19T21:00:00+08:00",
       "requested_coverage_end": "2025-06-20T15:00:00+08:00",
       "returned_coverage_start": "2025-06-19T21:00:00+08:00",
@@ -96,10 +182,29 @@
       "raw_bytes": 81719,
       "raw_sha256": "69646fb670e41ed97284db97f268a8f6ad33f9ee7e8171d69e7ac7f81f179317",
       "request_identity": "c27a3c30e4e8184f4f12f3137c3128e9f6bc5faf16f63732735011d2e1bfbcc4",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-20T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-19T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.ni2509"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.ni2509-pilot-session-v1",
-      "data_version_id": "8c1cc24deb38873f1d902445603e41f875b51330f14d8579d2818909b536c1f1",
-      "normalized_batch_id": "a14bb835f3c1b1aa335ef43f2238a9c17ef2a0b125abfa0977a2a67c5828852b",
+      "contract_metadata_identity": "515d1083d132ce716dee0601f002a9538fa94b10fa9559d5f326ec0fa542b943",
+      "data_version_id": "f3bd6f3a70c5413e57a7582e6f92307152daf45adcc9fba2b36df204da479f49",
+      "normalized_batch_id": "06c038b8eb8e2b3d792c742ff5589e796f48b8203d859113eb86d295e0f718ca",
       "quality_status": "PASS"
     },
     {
@@ -108,6 +213,8 @@
       "contract": "SHFE.rb2510",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-16",
       "requested_coverage_start": "2025-06-13T21:00:00+08:00",
       "requested_coverage_end": "2025-06-16T15:00:00+08:00",
       "returned_coverage_start": "2025-06-13T21:00:00+08:00",
@@ -116,10 +223,29 @@
       "raw_bytes": 60042,
       "raw_sha256": "4c08e658adf07b6a64d52c8977d3ffd69789ab4f609f62d7e96770b960a37d5e",
       "request_identity": "3294eb3239cd19624f71c45f6f5341759030b13cb3d386e85903413fba5154c2",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-16T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-13T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.rb2510"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.rb2510-pilot-session-v1",
-      "data_version_id": "6b72e04669e520552269e86cdb270dbb94a66782ca2de1fa04450b66de516e55",
-      "normalized_batch_id": "4895b8b9f0c9d66d98b11fb1f8792dc2fa3a4410ccb41f7e6b3f7e549458dbdf",
+      "contract_metadata_identity": "b90423cd82421859d986332b8f6513e3dddb92816eb48070c24d498f9e6663e2",
+      "data_version_id": "21effb02ce66c99a2ec751441f514c1be7cf257a1d4d0629264aaa68777d53fe",
+      "normalized_batch_id": "ba20e68393ccebc74b3c604df8b4d4742d90e50cfaf1b3d1e7e613df831ffd76",
       "quality_status": "PASS"
     },
     {
@@ -128,6 +254,8 @@
       "contract": "SHFE.rb2510",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-17",
       "requested_coverage_start": "2025-06-16T21:00:00+08:00",
       "requested_coverage_end": "2025-06-17T15:00:00+08:00",
       "returned_coverage_start": "2025-06-16T21:00:00+08:00",
@@ -136,10 +264,29 @@
       "raw_bytes": 59986,
       "raw_sha256": "1ab7910fb6ffc5490100aa0cc7d4e641925e6e6e3b936c73a8b8ac1afd3d278d",
       "request_identity": "533632d04ad08364c2c487a5c185d212189550636fb13104b9cdafb497af3f93",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-17T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-16T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.rb2510"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.rb2510-pilot-session-v1",
-      "data_version_id": "7b1df803ba42bdc90cd0895b62d0326944380c43bbfae408bbc1360ed6464c0f",
-      "normalized_batch_id": "0ad8ae11f5855b0576454ebb7fb7757e14a8cf831ccaa5d4faf983579884429e",
+      "contract_metadata_identity": "b90423cd82421859d986332b8f6513e3dddb92816eb48070c24d498f9e6663e2",
+      "data_version_id": "b43cb0e897018f8ecd28515d09a6e6eb7d2d7b4c01ef93fe116fa49c3db90c55",
+      "normalized_batch_id": "9b490da74e4fccc31c510605b39f69f4b8e0f9d39514f56742a93d2c8d497019",
       "quality_status": "PASS"
     },
     {
@@ -148,6 +295,8 @@
       "contract": "SHFE.rb2510",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-18",
       "requested_coverage_start": "2025-06-17T21:00:00+08:00",
       "requested_coverage_end": "2025-06-18T15:00:00+08:00",
       "returned_coverage_start": "2025-06-17T21:00:00+08:00",
@@ -156,10 +305,29 @@
       "raw_bytes": 60005,
       "raw_sha256": "05fe7e8d638ff307ffce93e8c1226c1e806e41ff74b9988b67e25d3acbc1273e",
       "request_identity": "981a24455047812c1f43156fe5c732050ac1b2ed86ddc7d30ad64cb5ab1c6c03",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-18T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-17T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.rb2510"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.rb2510-pilot-session-v1",
-      "data_version_id": "2f1d0ec4eca23e72c95d24a1ab3577453285701b59bb7e2e41629c96b72f391c",
-      "normalized_batch_id": "3ecf604231a0b73913387eb216ba91134947bec82e34cd0bff31fdd83f60aa53",
+      "contract_metadata_identity": "b90423cd82421859d986332b8f6513e3dddb92816eb48070c24d498f9e6663e2",
+      "data_version_id": "7ffdcd063964da0954308e6c70934d5419d6b8c4fa39f48bc95709074d753dc7",
+      "normalized_batch_id": "0b25c16515d2d95e5f5ec34c63c857d0caacc9894fd38ce7b7cc9e3072c0dc1d",
       "quality_status": "PASS"
     },
     {
@@ -168,6 +336,8 @@
       "contract": "SHFE.rb2510",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-19",
       "requested_coverage_start": "2025-06-18T21:00:00+08:00",
       "requested_coverage_end": "2025-06-19T15:00:00+08:00",
       "returned_coverage_start": "2025-06-18T21:00:00+08:00",
@@ -176,10 +346,29 @@
       "raw_bytes": 59996,
       "raw_sha256": "f03881f7abfe3045e8c07d345daefeeecffd386af8b10cc4b87060a6398035a8",
       "request_identity": "9de747a152e16fd142b13a5ca5dee8bdef5755beaf68a7baf56d6ebfbffbbcb9",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-19T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-18T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.rb2510"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.rb2510-pilot-session-v1",
-      "data_version_id": "7ee63c25c6ba66a12404f147c81786b5871443ce2e88d25cf71c683b603e5221",
-      "normalized_batch_id": "5329bac1250132502b0f68871d101c799951bf1de40271f4d256ef8ae7cd2938",
+      "contract_metadata_identity": "b90423cd82421859d986332b8f6513e3dddb92816eb48070c24d498f9e6663e2",
+      "data_version_id": "2f9bd23a076e2d8aa652b168cd84b6402dcad7718be27bc11caea7a367664403",
+      "normalized_batch_id": "bf3a7c9871496f07c6434916f1214bb01f6f6ef07f2818f141d151f10f42805e",
       "quality_status": "PASS"
     },
     {
@@ -188,6 +377,8 @@
       "contract": "SHFE.rb2510",
       "exchange": "SHFE",
       "granularity_seconds": 60,
+      "timezone": "Asia/Shanghai",
+      "trading_day": "2025-06-20",
       "requested_coverage_start": "2025-06-19T21:00:00+08:00",
       "requested_coverage_end": "2025-06-20T15:00:00+08:00",
       "returned_coverage_start": "2025-06-19T21:00:00+08:00",
@@ -196,10 +387,29 @@
       "raw_bytes": 60013,
       "raw_sha256": "c92a568211f32afc379530692c66407cacab6c12b2dccd4b90a3cafe8912e93c",
       "request_identity": "dceb093e101dc164975b3305d5c1c8e0aa7ff23bba212fb5dee8cc7261fa0a11",
+      "request_parameters": [
+        [
+          "duration_seconds",
+          "60"
+        ],
+        [
+          "end_dt",
+          "2025-06-20T15:00:00+08:00"
+        ],
+        [
+          "start_dt",
+          "2025-06-19T21:00:00+08:00"
+        ],
+        [
+          "symbol",
+          "SHFE.rb2510"
+        ]
+      ],
       "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
       "session_metadata_version": "SHFE.rb2510-pilot-session-v1",
-      "data_version_id": "cc40859161e6498432235dbd64d6ccc4c71683f990868bf4db1279125e99e5a0",
-      "normalized_batch_id": "b34c8c06869608d1b64368b05454466863e5297cdeaaa5a50e809cb0d6e91159",
+      "contract_metadata_identity": "b90423cd82421859d986332b8f6513e3dddb92816eb48070c24d498f9e6663e2",
+      "data_version_id": "ce76e500be6e340a101b532185fe020c1b95452b07bda1e5bcce96966644acd7",
+      "normalized_batch_id": "7feb784362c20215090d32b23df6e22dacef2089883efc7b72fbb73fe732edd3",
       "quality_status": "PASS"
     }
   ]
