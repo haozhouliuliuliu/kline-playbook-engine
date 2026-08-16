@@ -316,11 +316,18 @@ _TRANSIENT_ERROR_FQN = frozenset(
 
 
 def is_transient_network_error(exc: BaseException) -> bool:
-    """True only for clearly transient transport/network failures."""
+    """True only for clearly transient transport/network failures.
+
+    A narrow set of requests/urllib3 transport errors plus the builtin
+    ``ConnectionError``/``TimeoutError`` are retried.  Authentication,
+    entitlement, configuration, file/config/certificate-setup and other
+    deterministic local failures (including plain ``OSError``) are never
+    treated as transient, so credentials are never blindly retried.
+    """
     fqn = f"{type(exc).__module__}.{type(exc).__name__}"
     if fqn in _TRANSIENT_ERROR_FQN:
         return True
-    return isinstance(exc, (ConnectionError, TimeoutError, OSError))
+    return isinstance(exc, (ConnectionError, TimeoutError))
 
 
 def retry_decision(attempt: int, max_attempts: int, error: BaseException) -> tuple[bool, str]:
@@ -380,9 +387,11 @@ class TqSdkSourceAdapter(SourceAdapter):
         credentials_provider: Callable[[], tuple[str, str]],
         *,
         max_connect_attempts: int = 3,
+        verified_runtime_version: str = "3.10.1",
     ) -> None:
         self._credentials_provider = credentials_provider
         self._max_connect_attempts = max_connect_attempts
+        self._verified_runtime_version = verified_runtime_version
         self._api = None
         self._version: str | None = None
 
@@ -426,8 +435,7 @@ class TqSdkSourceAdapter(SourceAdapter):
         stop_reason = "connection not attempted"
         for attempt in range(1, self._max_connect_attempts + 1):
             try:
-                self._api = self._open_api(auth)  # data server only
-                break
+                api = self._open_api(auth)  # data server only
             except Exception as exc:  # noqa: BLE001 - classified below
                 self._api = None
                 last_error = exc
@@ -436,10 +444,38 @@ class TqSdkSourceAdapter(SourceAdapter):
                 )
                 if not should_retry:
                     break
+                continue
+            self._api = api
+            break
         if self._api is None:
             raise AcquisitionError(
                 f"TqSdk connection failed ({stop_reason}): {type(last_error).__name__}"
             )
+        self._check_runtime_version()
+
+    def _check_runtime_version(self) -> None:
+        """Fail closed unless the runtime version matches the verified contract.
+
+        A different runtime must not silently continue under the
+        ``tqsdk-3.10.1...`` source/normalizer identity; it requires explicit
+        re-verification and a new adapter identity.  This is a deterministic
+        configuration failure and is never retried.
+        """
+        if self._version == self._verified_runtime_version:
+            return
+        api = self._api
+        self._api = None
+        self._version = None
+        if api is not None:
+            try:
+                api.close()
+            except Exception:  # noqa: BLE001 - best-effort cleanup
+                pass
+        raise AcquisitionError(
+            f"TqSdk runtime version {self._version!r} does not match the verified "
+            f"compatibility version {self._verified_runtime_version!r}; explicit "
+            "re-verification and a new adapter identity are required"
+        )
 
     def acquire(self, request: AcquisitionRequest) -> AcquisitionResult:
         self._connect()

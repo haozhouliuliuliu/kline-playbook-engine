@@ -301,14 +301,18 @@ class RetryClassificationTests(unittest.TestCase):
             self._fake_error("urllib3.exceptions", "MaxRetryError"),
             TimeoutError("timeout"),
             ConnectionError("conn"),
-            OSError("os"),
         ):
             with self.subTest(err=type(err).__name__):
                 self.assertTrue(is_transient_network_error(err))
+        # Deterministic/non-network failures must never be retried.
         for err in (
             self._fake_error("requests.exceptions", "HTTPError"),
             self._fake_error("requests.exceptions", "InvalidJSONError"),
             self._fake_error("tqsdk.exceptions", "TqsdkError"),
+            self._fake_error("ssl", "SSLError"),  # builtin SSL can be cert/config
+            self._fake_error("ssl", "SSLCertVerificationError"),
+            OSError(2, "No such file or directory"),  # plain OSError is not network
+            FileNotFoundError("missing"),
             ValueError("config"),
         ):
             with self.subTest(err=type(err).__name__):
@@ -323,16 +327,18 @@ class RetryClassificationTests(unittest.TestCase):
 
 
 class _ProbeAdapter(TqSdkSourceAdapter):
-    """TqSdk adapter stub for deterministic connect/retry tests."""
+    """TqSdk adapter stub for deterministic connect/retry/version tests."""
 
-    def __init__(self, error, *, max_connect_attempts=3, succeed_after=None):
+    def __init__(self, error, *, max_connect_attempts=3, succeed_after=None, success_version="3.10.1"):
         super().__init__(
             credentials_provider=lambda: ("acct", "pw"),
             max_connect_attempts=max_connect_attempts,
+            verified_runtime_version="3.10.1",
         )
         self.error = error
         self.calls = 0
         self.succeed_after = succeed_after
+        self.success_version = success_version
 
     def _build_auth(self, account, password):
         return object()
@@ -340,8 +346,8 @@ class _ProbeAdapter(TqSdkSourceAdapter):
     def _open_api(self, auth):
         self.calls += 1
         if self.succeed_after is not None and self.calls > self.succeed_after:
+            self._version = self.success_version
             self._api = object()
-            self._version = "fake"
             return self._api
         raise self.error
 
@@ -374,6 +380,30 @@ class TqSdkConnectRetryTests(unittest.TestCase):
         )
         adapter._connect()
         self.assertEqual(adapter.calls, 3)
+        self.assertIsNotNone(adapter._api)
+
+    def test_connect_runtime_version_mismatch_fails_closed(self):
+        adapter = _ProbeAdapter(
+            self._fake_error("requests.exceptions", "SSLError"),
+            max_connect_attempts=3,
+            succeed_after=0,
+            success_version="9.9.9",
+        )
+        with self.assertRaisesRegex(AcquisitionError, "does not match the verified"):
+            adapter._connect()
+        # Not retried (deterministic configuration failure) and connection closed.
+        self.assertEqual(adapter.calls, 1)
+        self.assertIsNone(adapter._api)
+
+    def test_connect_matching_runtime_version_succeeds(self):
+        adapter = _ProbeAdapter(
+            self._fake_error("requests.exceptions", "SSLError"),
+            max_connect_attempts=3,
+            succeed_after=1,
+            success_version="3.10.1",
+        )
+        adapter._connect()
+        self.assertEqual(adapter.calls, 2)
         self.assertIsNotNone(adapter._api)
 
 
