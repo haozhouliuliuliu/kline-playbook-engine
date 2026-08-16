@@ -17,11 +17,12 @@ acceptance package: record the Owner source/scope decision durably (done in
 `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`), define the BALANCED corpus
 (done in `docs/evidence/CANONICAL_DATASET_BALANCED_DEFINITION.md`), build the
 governed metadata/storage/acquisition/identity infrastructure on
-`ds/canonical-dataset-build` (done, tested), and acquire the corpus. The large
-raw acquisition is **GATED by the Owner scale guardrail** (projected ≈2.615 GB
-raw exceeds the ≈3× readiness guardrail); the exact projected scale is
-reported to GPT/project lead before any large acquisition. No partial
-canonical-dataset claims are exposed on `main`.
+`ds/canonical-dataset-build` (done, tested). Project-lead adjudication
+APPROVED the full BALANCED corpus scale (~2.615 GB projected) and required the
+HISTORICAL_METADATA_EFFECTIVE_PERIOD_BINDING fix, which is now corrected
+(contract-spec effective periods + night-closed days bound to official SHFE
+notices; fail-closed planner). The resumable canonical corpus build is now
+underway; no partial canonical-dataset claims are exposed on `main`.
 
 ## Owner source/scope decision (final, recorded durably)
 OWNER_APPROVAL=YES
@@ -34,15 +35,17 @@ PAID_CONTINUITY_AUTHORIZED=NO
 PAID_CONTINUITY_OWNER_GATE=REQUIRED_IF_NEEDED_LATER
 CANONICAL_DATASET_BUILT=NO
 CANONICAL_DATASET_ACCEPTED=NO
-CANONICAL_DATASET_STATUS=SCALE_GATED
-PROJECTED_RAW_GB=2.615
-PROJECTED_BARS=15445905
-PROJECTED_TRADED_PARTITIONS=32841
-SCALE_GUARDRAIL=STOP_AND_REPORT_PROJECTED
+CANONICAL_DATASET_STATUS=BUILD_IN_PROGRESS
+SCALE_DECISION=APPROVED_FULL_BALANCED_CORPUS
+APPROVED_PROJECTED_RAW_GB=2.615
+PLAN_PARTITIONS=32980
+HISTORICAL_METADATA_EFFECTIVE_PERIODS=PASS
+NIGHT_CLOSED_DAY_AUTHORITY=PASS
+GOVERNED_METADATA=PASS (after correction)
 CANONICAL_CORPUS_IDENTITY=NONE
 
-Authority record: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md` and
-`docs/evidence/CANONICAL_DATASET_PACKAGE.md`.
+Authority record: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`,
+`docs/evidence/CANONICAL_DATASET_PACKAGE.md` (includes the correction notice).
 Adoption does NOT authorize broker connectivity, live/Shadow trading, order
 submission, or future paid renewal; TqSdk runtime compatibility is frozen to
 the verified `3.10.1` identity until re-verified.
@@ -115,12 +118,13 @@ These are environment facts, not project dependencies or adoption decisions.
 - Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
 
 ## Current next action
-CURRENT_NEXT_ACTION=SCALE_DECISION_AND_CANONICAL_BUILD (the BALANCED corpus
-definition, governed metadata, storage schema, acquisition/resume engine,
-identity, and tests are complete on `ds/canonical-dataset-build`; the large
-raw acquisition is gated by the Owner scale guardrail at ≈2.615 GB projected
-raw, reported to GPT/project lead; after the scale decision, run the resumable
-build, then the research-protocol and chronological-split freeze review).
+CURRENT_NEXT_ACTION=CANONICAL_CORPUS_BUILD_IN_PROGRESS (the BALANCED corpus
+definition, corrected governed metadata with historical effective periods and
+official night-closed days, storage schema, fail-closed acquisition/resume
+engine, identity, and tests are complete on `ds/canonical-dataset-build`; the
+full corpus scale is APPROVED by project lead; the resumable build is running
+in bounded batches; after acceptance, mint the canonical corpus identity and
+proceed to the research-protocol and chronological-split freeze review).
 
 ## Current acceptance
 

@@ -1,6 +1,6 @@
 {
-  "schema_version": "canonical-trading-calendar-v1",
-  "version": "official-annual-raw-2024-2025-v1",
+  "schema_version": "canonical-trading-calendar-v2",
+  "version": "official-annual-raw-2024-2025-v2",
   "coverage": [
     "2024-01-01",
     "2025-12-31"
@@ -500,6 +500,33 @@
     "2024": 242,
     "2025": 243
   },
+  "night_closed_trading_days": {
+    "2024": [
+      "2024-01-02",
+      "2024-02-19",
+      "2024-04-08",
+      "2024-05-06",
+      "2024-06-11",
+      "2024-09-18",
+      "2024-10-08"
+    ],
+    "2025": [
+      "2025-01-02",
+      "2025-02-05",
+      "2025-04-07",
+      "2025-05-06",
+      "2025-06-03",
+      "2025-10-09"
+    ]
+  },
+  "night_closed_authority": {
+    "classification": "OFFICIAL_AVAILABLE",
+    "notice_urls": {
+      "2024": "https://www.shfe.com.cn/publicnotice/notice/202312/t20231226_801163.html",
+      "2025": "https://www.shfe.com.cn/publicnotice/notice/202412/t20241223_824109.html"
+    },
+    "rule": "A night-closed evening suspends the night session of the next trading day; no expected bar is generated for a closed night."
+  },
   "source": {
     "resource": "SHFE official annual raw",
     "url": "https://www.shfe.com.cn/eng/reports/StatisticalData/Annualdata/HistoricalData/downloadhistory/",
@@ -510,9 +537,5 @@
     },
     "classification": "OFFICIAL_AVAILABLE"
   },
-  "identity": "661280cb6048301bd700d120d2fe10a2d266f85a8f97b56d9868a657aad13cdb",
-  "night_closed_days": {
-    "status": "PENDING_OFFICIAL_BINDING",
-    "note": "2024/2025 SHFE 休市安排 notices (night-closed days) must be bound before the build."
-  }
+  "identity": "5892a946e0b6258cb2745d46ca58b636fd60a57e43ca2b116105f3b4747130be"
 }

@@ -15,6 +15,8 @@ from src.metadata_authority import (
     ProductSessionSchedule,
     TradingCalendar,
     build_session_metadata,
+    resolve_contract_spec,
+    resolve_session_schedule,
     session_windows_for_trading_day,
 )
 
@@ -52,24 +54,80 @@ class GovernedSourceTests(unittest.TestCase):
 
 
 class ContractSpecTests(unittest.TestCase):
-    def test_spec_identity_binds_facts(self) -> None:
-        spec = ContractSpec(
-            "SHFE", "au", "AU", Decimal("0.02"), "yuan/gram", Decimal("1000"), "gram/lot",
-            "yuan/gram", "1-12", "3", _source(),
+    def _spec(self, tick="0.02", eff_start=date(2024, 1, 1), eff_end=date(2025, 12, 31)):
+        return ContractSpec(
+            "SHFE", "au", "AU", Decimal(tick), "yuan/gram", Decimal("1000"), "gram/lot",
+            "yuan/gram", "1-12", "3", binding_notice="上期所公告[2020]134号",
+            effective_start=eff_start, effective_end=eff_end, source=_source(),
         )
+
+    def test_spec_identity_binds_facts_and_effective_period(self) -> None:
+        spec = self._spec()
         self.assertEqual(len(spec.identity()), 64)
-        other = ContractSpec(
-            "SHFE", "au", "AU", Decimal("0.04"), "yuan/gram", Decimal("1000"), "gram/lot",
-            "yuan/gram", "1-12", "3", _source(),
-        )
+        other = self._spec(tick="0.04")
         self.assertNotEqual(spec.identity(), other.identity())
+        # different effective period -> different identity
+        self.assertNotEqual(spec.identity(), self._spec(eff_start=date(2023, 1, 1)).identity())
+
+    def test_covers(self) -> None:
+        spec = self._spec()
+        self.assertTrue(spec.covers(date(2024, 6, 18)))
+        self.assertFalse(spec.covers(date(2023, 1, 1)))
+        self.assertFalse(spec.covers(date(2026, 1, 1)))
 
     def test_bad_tick_fails(self) -> None:
         with self.assertRaises(ValueError):
+            self._spec(tick="0")
+
+    def test_bad_binding_notice_fails(self) -> None:
+        with self.assertRaises(ValueError):
             ContractSpec(
-                "SHFE", "au", "AU", Decimal("0"), "yuan/gram", Decimal("1000"), "gram/lot",
-                "yuan/gram", "1-12", "3", _source(),
+                "SHFE", "au", "AU", Decimal("0.02"), "yuan/gram", Decimal("1000"), "gram/lot",
+                "yuan/gram", "1-12", "3", binding_notice=" ", effective_start=date(2024, 1, 1),
+                effective_end=date(2025, 12, 31), source=_source(),
             )
+
+
+class EffectivePeriodResolutionTests(unittest.TestCase):
+    def test_resolve_single_spec(self) -> None:
+        spec = ContractSpec(
+            "SHFE", "au", "AU", Decimal("0.02"), "yuan/gram", Decimal("1000"), "gram/lot",
+            "yuan/gram", "1-12", "3", binding_notice="n",
+            effective_start=date(2024, 1, 1), effective_end=date(2025, 12, 31), source=_source(),
+        )
+        resolved = resolve_contract_spec([spec], "au", date(2025, 6, 18))
+        self.assertEqual(resolved.identity(), spec.identity())
+
+    def test_no_effective_period_fails_closed(self) -> None:
+        spec = ContractSpec(
+            "SHFE", "au", "AU", Decimal("0.02"), "yuan/gram", Decimal("1000"), "gram/lot",
+            "yuan/gram", "1-12", "3", binding_notice="n",
+            effective_start=date(2024, 1, 1), effective_end=date(2025, 12, 31), source=_source(),
+        )
+        with self.assertRaises(ValueError):
+            resolve_contract_spec([spec], "au", date(2026, 6, 18))
+
+    def test_conflicting_effective_periods_fail_closed(self) -> None:
+        def make(tick: str, notice: str) -> ContractSpec:
+            return ContractSpec(
+                "SHFE", "au", "AU", Decimal(tick), "yuan/gram", Decimal("1000"), "gram/lot",
+                "yuan/gram", "1-12", "3", binding_notice=notice,
+                effective_start=date(2024, 1, 1), effective_end=date(2025, 12, 31), source=_source(),
+            )
+
+        with self.assertRaises(ValueError):
+            resolve_contract_spec([make("0.02", "n1"), make("0.04", "n2")], "au", date(2025, 6, 18))
+
+    def test_resolve_session_schedule_fail_closed(self) -> None:
+        schedule = ProductSessionSchedule(
+            "SHFE", "cu", date(2024, 1, 1), date(2025, 12, 31),
+            ((time(9, 0), time(10, 15)), (time(13, 30), time(15, 0))),
+            (time(21, 0), time(1, 0)), timezone="Asia/Shanghai", source=_source(),
+        )
+        resolved = resolve_session_schedule([schedule], "cu", date(2024, 6, 18))
+        self.assertEqual(resolved.identity(), schedule.identity())
+        with self.assertRaises(ValueError):
+            resolve_session_schedule([schedule], "cu", date(2026, 6, 18))
 
 
 class CalendarTests(unittest.TestCase):
@@ -86,6 +144,22 @@ class CalendarTests(unittest.TestCase):
 
     def test_identity(self) -> None:
         self.assertEqual(len(self.calendar.identity()), 64)
+
+    def test_night_closed_days(self) -> None:
+        cal = TradingCalendar(
+            "v1", [date(2024, 1, 2), date(2024, 1, 3)],
+            _source(), night_closed_trading_days=[date(2024, 1, 3)],
+        )
+        self.assertTrue(cal.is_night_closed(date(2024, 1, 3)))
+        self.assertFalse(cal.is_night_closed(date(2024, 1, 2)))
+        self.assertNotEqual(cal.identity(), self.calendar.identity())
+
+    def test_night_closed_must_be_trading_day(self) -> None:
+        with self.assertRaises(ValueError):
+            TradingCalendar(
+                "v1", [date(2024, 1, 2)], _source(),
+                night_closed_trading_days=[date(2024, 1, 5)],
+            )
 
 
 class SessionWindowTests(unittest.TestCase):
@@ -117,6 +191,22 @@ class SessionWindowTests(unittest.TestCase):
         )
         self.assertFalse(any(w.kind == "night" for w in windows))
         self.assertEqual(len([w for w in windows if w.kind == "day"]), 2)
+
+    def test_night_closed_from_calendar_authority(self) -> None:
+        day = date(2024, 6, 18)
+        cal = TradingCalendar(
+            "v1", self.calendar.trading_days(date(2024, 6, 17), date(2024, 6, 19)),
+            _source(), night_closed_trading_days=[day],
+        )
+        windows = session_windows_for_trading_day(cal, self.schedule, "SHFE.cu2407", day)
+        self.assertFalse(any(w.kind == "night" for w in windows))
+
+    def test_schedule_must_cover_trading_day(self) -> None:
+        # schedule effective period is 2024-2025; a 2026 trading day fails closed
+        other_days = [date(2026, 6, 17) + timedelta(days=i) for i in range(5)]
+        cal = TradingCalendar("v1", other_days, _source())
+        with self.assertRaises(ValueError):
+            session_windows_for_trading_day(cal, self.schedule, "SHFE.cu2407", date(2026, 6, 18))
 
     def test_non_trading_day_fails(self) -> None:
         with self.assertRaises(ValueError):

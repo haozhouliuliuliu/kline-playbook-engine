@@ -109,37 +109,59 @@ def load_calendar() -> TradingCalendar:
     days = []
     for year_days in data["trading_days"].values():
         days.extend(date.fromisoformat(d) for d in year_days)
+    night_closed = [
+        date.fromisoformat(d)
+        for year_days in data.get("night_closed_trading_days", {}).values()
+        for d in year_days
+    ]
     source = GovernedSource(
         resource_identity=data["source"]["resource"],
         url=data["source"]["url"],
         retrieved_at=datetime.fromisoformat(data["source"]["retrieved_at"]),
         artifact_sha256=None,
-        schema_version="shfe-official-annual-daily-v1",
+        schema_version="shfe-official-annual-daily-v2",
         classification=data["source"]["classification"],
         effective_period_start=COVERAGE_START,
         effective_period_end=COVERAGE_END,
     )
-    return TradingCalendar(data["version"], days, source)
+    return TradingCalendar(
+        data["version"], days, source, night_closed_trading_days=night_closed
+    )
 
 
 def load_specs() -> dict[str, ContractSpec]:
     data = _load_json("CANONICAL_CONTRACT_SPECS.json")
     specs = {}
     for product, item in data["products"].items():
+        effective_period = item.get("effective_period")
+        eff_start = (
+            date.fromisoformat(effective_period[0])
+            if effective_period
+            else COVERAGE_START
+        )
+        eff_end = (
+            date.fromisoformat(effective_period[1])
+            if effective_period
+            else COVERAGE_END
+        )
         source = GovernedSource(
             resource_identity=f"SHFE contract text {product}",
             url=item["source_url"],
             retrieved_at=datetime.fromisoformat(item["retrieved_at"]),
             artifact_sha256=None,
-            schema_version="shfe-contract-text-v1",
+            schema_version="shfe-contract-text-v2",
             classification="OFFICIAL_AVAILABLE",
-            effective_period_start=COVERAGE_START,
-            effective_period_end=COVERAGE_END,
+            effective_period_start=eff_start,
+            effective_period_end=eff_end,
         )
         specs[product] = ContractSpec(
             "SHFE", product, item["trading_code"], Decimal(item["tick"]), item["tick_unit"],
             Decimal(item["multiplier"]), item["multiplier_unit"], item["quote_unit"],
-            item["contract_months"], item["price_limit_pct"], source,
+            item["contract_months"], item["price_limit_pct"],
+            binding_notice=item.get("binding_notice", ""),
+            effective_start=eff_start,
+            effective_end=eff_end,
+            source=source,
         )
     return specs
 
@@ -193,12 +215,20 @@ def build_requests(
     calendar: TradingCalendar,
     universe: dict[str, list[str]],
     bounds: dict[str, dict[str, tuple[date, date]]] | None = None,
+    specs: dict[str, ContractSpec] | None = None,
+    schedules: dict[str, ProductSessionSchedule] | None = None,
 ) -> list[AcquisitionRequest]:
-    """Deterministically ordered acquisition requests (contract, trading-day).
+    """Deterministically ordered, FAIL-CLOSED acquisition requests.
 
     A request is generated only for trading days within the contract's governed
-    listing window (first..last official trading day), so the plan matches the
-    actual listed concrete-contract universe (no over-acquisition).
+    listing window (first..last official trading day).  Before planning a
+    request, the planner FAILS CLOSED when:
+    - no contract-spec effective period covers the product/day;
+    - multiple conflicting contract-spec effective periods cover it;
+    - no session-schedule effective period covers the product/day (session
+      authority unresolved);
+    - multiple conflicting session-schedule effective periods cover it;
+    - the contract's listing/expiry does not cover the trading day.
     """
     requests: list[AcquisitionRequest] = []
     for product in PRODUCTS:
@@ -209,11 +239,30 @@ def build_requests(
             )
             days = calendar.trading_days(first, last)
             for day in days:
+                # fail-closed metadata resolution (raises on no/conflicting coverage)
+                if not (first <= day <= last):
+                    raise ValueError(
+                        f"contract listing/expiry inconsistent with trading day "
+                        f"{day.isoformat()} for {contract}"
+                    )
+                if specs is not None:
+                    from src.metadata_authority import resolve_contract_spec  # noqa: PLC0415
+
+                    resolve_contract_spec(list(specs.values()), product, day)
+                if schedules is not None:
+                    from src.metadata_authority import resolve_session_schedule  # noqa: PLC0415
+
+                    resolve_session_schedule(list(schedules.values()), product, day)
                 prev = calendar.previous_trading_day(day)
                 if prev is None:
-                    continue
-                start = datetime.combine(prev, time(21, 0), tzinfo=CN)
-                end = datetime.combine(day, time(15, 0), tzinfo=CN)
+                    # First trading day of the corpus: no previous trading day
+                    # in the calendar, so acquire the day session only
+                    # (09:00-15:00). 2024-01-02 is also officially night-closed.
+                    start = datetime.combine(day, time(9, 0), tzinfo=CN)
+                    end = datetime.combine(day, time(15, 0), tzinfo=CN)
+                else:
+                    start = datetime.combine(prev, time(21, 0), tzinfo=CN)
+                    end = datetime.combine(day, time(15, 0), tzinfo=CN)
                 requests.append(
                     AcquisitionRequest(
                         exchange=exchange,
@@ -239,16 +288,19 @@ def build_contract_configs(
         spec = specs[product]
         schedule = schedules[product]
         for contract in sorted(universe[product]):
-            days = calendar.trading_days(COVERAGE_START, COVERAGE_END)
+            days = calendar.trading_days(spec.effective_start, spec.effective_end)
             sessions = build_session_metadata(calendar, schedule, contract, days)
             metadata_fact = ContractMetadataFact(
                 exchange="SHFE",
                 concrete_instrument=contract,
                 minimum_price_tick=spec.tick,
                 session_metadata_version=sessions.version,
-                effective_start=COVERAGE_START,
-                effective_end=COVERAGE_END,
-                evidence_reference="CANONICAL_BALANCED_UNIVERSE.json + CANONICAL_CONTRACT_SPECS.json",
+                effective_start=spec.effective_start,
+                effective_end=spec.effective_end,
+                evidence_reference=(
+                    "CANONICAL_CONTRACT_SPECS.json effective_period "
+                    + spec.binding_notice
+                ),
                 evidence_classification="VERIFIED_OFFICIAL",
             )
             configs[contract] = ContractConfig(
@@ -276,7 +328,7 @@ def main() -> None:
     schedules = load_schedules()
     universe = load_universe()
     bounds = load_universe_bounds()
-    requests = build_requests(calendar, universe, bounds)
+    requests = build_requests(calendar, universe, bounds, specs=specs, schedules=schedules)
     if args.max_partitions is not None:
         requests = requests[: args.max_partitions]
     print(f"PLAN partitions={len(requests)} products={PRODUCTS} coverage={COVERAGE_START}..{COVERAGE_END}")

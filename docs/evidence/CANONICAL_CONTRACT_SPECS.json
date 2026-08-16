@@ -13,8 +13,14 @@
       "source_url": "https://www.shfe.com.cn/products/futures/metal/nonferrousmetal/cu_f/",
       "spec_publication_date": "2023-03-29",
       "binding_notice": "[2023]2号公告",
+      "effective_period": [
+        "2023-01-17",
+        "2025-12-31"
+      ],
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17，15个合约修订版）",
+      "in_window_delivery_grade_revisions_only": [],
       "retrieved_at": "2026-08-16T16:00:00+08:00",
-      "identity": "e007bc138c7315957a849373b7e5a922a82d4d92ae81c8e0b57e3f65e0900842"
+      "identity": "1842799c7f8cf5acc1264ff46b066eae61ce6471e5e77ec014f3bf88093abe37"
     },
     "al": {
       "trading_code": "AL",
@@ -28,8 +34,16 @@
       "source_url": "https://www.shfe.com.cn/products/futures/metal/nonferrousmetal/al_f/",
       "spec_publication_date": "2024-07-12",
       "binding_notice": "[2024]105号公告",
+      "effective_period": [
+        "2023-01-17",
+        "2025-12-31"
+      ],
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17）；[2024]105号（2024-07-12，铝合约修订版，仅交割品级）",
+      "in_window_delivery_grade_revisions_only": [
+        "上期所公告[2024]105号 2024-07-12"
+      ],
       "retrieved_at": "2026-08-16T16:00:00+08:00",
-      "identity": "e285520097d116328aaf6af2f925ad19778e87b96c92f33ba99848562e927c0a"
+      "identity": "b5b50b75099b028d0941cd45155fafff8ec5a84cd1f94bf041b4be5f9b059566"
     },
     "ni": {
       "trading_code": "NI",
@@ -43,8 +57,14 @@
       "source_url": "https://www.shfe.com.cn/products/futures/metal/nonferrousmetal/ni_f/",
       "spec_publication_date": "2025-10-31",
       "binding_notice": "[2023]2号公告",
+      "effective_period": [
+        "2023-01-17",
+        "2025-12-31"
+      ],
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17）；[2025-10-31]文本更新（交割品级 GB/T 6516-2025）",
+      "in_window_delivery_grade_revisions_only": [],
       "retrieved_at": "2026-08-16T16:00:00+08:00",
-      "identity": "52785a3c222ad6f346c577c839007bb4ff92c52c7c7118c38fdaf748af92ab69"
+      "identity": "0fc029243709e6adc724cc3675d94e0411505524926a9e08e7470ef167280a5a"
     },
     "au": {
       "trading_code": "AU",
@@ -58,8 +78,14 @@
       "source_url": "https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/au_f/",
       "spec_publication_date": "2020-08-31",
       "binding_notice": "[2020]134号公告",
+      "effective_period": [
+        "2020-08-31",
+        "2025-12-31"
+      ],
+      "effective_period_proof": "上期所公告[2020]134号（2020-08-31）",
+      "in_window_delivery_grade_revisions_only": [],
       "retrieved_at": "2026-08-16T16:00:00+08:00",
-      "identity": "3fe323dc351c32b700234446a4c04f666493cbc035d8e141d6e88b3a6cc0783c"
+      "identity": "397f4f50f781855916a7d081a544d650181085b908ad6cd7f9ea3e0abbbdb00c"
     },
     "ag": {
       "trading_code": "AG",
@@ -73,8 +99,14 @@
       "source_url": "https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/ag_f/",
       "spec_publication_date": "2023-03-29",
       "binding_notice": "[2023]2号公告",
+      "effective_period": [
+        "2023-01-17",
+        "2025-12-31"
+      ],
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17）",
+      "in_window_delivery_grade_revisions_only": [],
       "retrieved_at": "2026-08-16T16:00:00+08:00",
-      "identity": "cdb7501ffb413157136d4531c9681fe138a7121e33a13b51141d23a68de33f95"
+      "identity": "6c86cb7c24b93182688c9e9e38eea32a16bcd64084d81d7572cb27df543b6bbd"
     },
     "rb": {
       "trading_code": "RB",
@@ -88,9 +120,17 @@
       "source_url": "https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/rb_f/",
       "spec_publication_date": "2024-09-24",
       "binding_notice": "[2024]116号公告",
+      "effective_period": [
+        "2023-01-17",
+        "2025-12-31"
+      ],
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17）；[2024]116号（2024-07-29，螺纹钢/线材合约及交割细则修订版，仅交割品级）",
+      "in_window_delivery_grade_revisions_only": [
+        "上期所公告[2024]116号 2024-07-29"
+      ],
       "retrieved_at": "2026-08-16T16:00:00+08:00",
-      "identity": "ef7cf948d7dea4dab1ee8aaac8b4eb8cb015ce1a2f359a270f1449bec75366e1"
+      "identity": "5410e91bc5cc50013bb598673a14c7a33243549c3769a63b66b57a53928537ed"
     }
   },
-  "root_identity": "72bba6f0d3df855732c02aa7871b3ceebd73a1848c2801544632b5c50613b2b7"
+  "root_identity": "7fde131a0aad36c41d0831285371d5d32d003a85ac63dc59798e7aef4b10a350"
 }

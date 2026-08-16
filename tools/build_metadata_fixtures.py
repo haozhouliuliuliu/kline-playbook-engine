@@ -61,6 +61,33 @@ SPEC_URLS = {
     "ag": ("https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/ag_f/", "2023-03-29", "[2023]2号公告"),
     "rb": ("https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/rb_f/", "2024-09-24", "[2024]116号公告"),
 }
+# Official binding notices that establish the contract-spec values effective
+# across the 2024-2025 window.  In-window contract-text revisions were
+# delivery-grade/delivery-detail changes only and did NOT change tick /
+# multiplier / quote unit (verified from the official revision announcements).
+SPEC_BINDING_NOTICES = {
+    # product: (base binding notice, effective_period_start, effective_period_end,
+    #           in-window delivery-grade revision notice(s) that did NOT change values)
+    "cu": ("上期所公告[2023]2号（2023-01-17，15个合约修订版）", "2023-01-17", "2025-12-31", []),
+    "al": ("上期所公告[2023]2号（2023-01-17）；[2024]105号（2024-07-12，铝合约修订版，仅交割品级）", "2023-01-17", "2025-12-31", ["上期所公告[2024]105号 2024-07-12"]),
+    "ni": ("上期所公告[2023]2号（2023-01-17）；[2025-10-31]文本更新（交割品级 GB/T 6516-2025）", "2023-01-17", "2025-12-31", []),
+    "au": ("上期所公告[2020]134号（2020-08-31）", "2020-08-31", "2025-12-31", []),
+    "ag": ("上期所公告[2023]2号（2023-01-17）", "2023-01-17", "2025-12-31", []),
+    "rb": ("上期所公告[2023]2号（2023-01-17）；[2024]116号（2024-07-29，螺纹钢/线材合约及交割细则修订版，仅交割品级）", "2023-01-17", "2025-12-31", ["上期所公告[2024]116号 2024-07-29"]),
+}
+# Official night-closed TRADING DAYS (trading days whose night session was
+# suspended), derived from the official annual 休市安排 announcements:
+#  2024: 上期所公告[2023]127号 (2023-12-26)
+#  2025: 上期所公告[2024]204号 (2024-12-23)
+# A night-closed evening E suspends the night session of the NEXT trading day.
+NIGHT_CLOSED_TRADING_DAYS = {
+    "2024": ["2024-01-02", "2024-02-19", "2024-04-08", "2024-05-06", "2024-06-11", "2024-09-18", "2024-10-08"],
+    "2025": ["2025-01-02", "2025-02-05", "2025-04-07", "2025-05-06", "2025-06-03", "2025-10-09"],
+}
+HOLIDAY_NOTICE_URLS = {
+    "2024": "https://www.shfe.com.cn/publicnotice/notice/202312/t20231226_801163.html",
+    "2025": "https://www.shfe.com.cn/publicnotice/notice/202412/t20241223_824109.html",
+}
 SPECS = {
     "cu": ("CU", Decimal("10"), "yuan/ton", Decimal("5"), "ton/lot", "yuan/ton", "1-12", "3"),
     "al": ("AL", Decimal("5"), "yuan/ton", Decimal("5"), "ton/lot", "yuan/ton", "1-12", "3"),
@@ -168,7 +195,13 @@ def main() -> None:
         "2025": "af1991361ee7383adf27481a160aad2e5c7ee3708e4db52338161d54e596f7e8",
     }
     days_all = sorted(all_days[2024] | all_days[2025])
-    calendar = TradingCalendar("official-annual-raw-2024-2025-v1", days_all, cal_source)
+    night_closed_dates = frozenset(
+        date.fromisoformat(d) for days in NIGHT_CLOSED_TRADING_DAYS.values() for d in days
+    )
+    calendar = TradingCalendar(
+        "official-annual-raw-2024-2025-v2", days_all, cal_source,
+        night_closed_trading_days=night_closed_dates,
+    )
 
     # ---- contract universe (bound to official annual raw) ----
     universe_entries: list[dict] = []
@@ -212,41 +245,53 @@ def main() -> None:
             "identity": schedule.identity(),
         }
 
-    # ---- contract specs (bound to official contract-text pages) ----
+    # ---- contract specs (bound to official contract-text pages + binding notices) ----
     spec_objs: list[ContractSpec] = []
     spec_dicts: dict[str, dict] = {}
     for product in PRODUCTS:
         url, pub_date, notice = SPEC_URLS[product]
         code, tick, tick_unit, mult, mult_unit, quote, months, plimit = SPECS[product]
+        binding_notice, eff_start_s, eff_end_s, delivery_revisions = SPEC_BINDING_NOTICES[product]
         spec_source = official_source(
             f"SHFE contract text {product} (published {pub_date})", url,
             "shfe-contract-text-v1", "OFFICIAL_AVAILABLE",
-            effective_start, effective_end,
+            date.fromisoformat(eff_start_s), date.fromisoformat(eff_end_s),
         )
-        spec = ContractSpec("SHFE", product, code, tick, tick_unit, mult, mult_unit,
-                            quote, months, plimit, spec_source)
+        spec = ContractSpec(
+            "SHFE", product, code, tick, tick_unit, mult, mult_unit,
+            quote, months, plimit, binding_notice,
+            date.fromisoformat(eff_start_s), date.fromisoformat(eff_end_s),
+            spec_source,
+        )
         spec_objs.append(spec)
         spec_dicts[product] = {
             "trading_code": code, "tick": str(tick), "tick_unit": tick_unit,
             "multiplier": str(mult), "multiplier_unit": mult_unit, "quote_unit": quote,
             "contract_months": months, "price_limit_pct": plimit,
             "source_url": url, "spec_publication_date": pub_date, "binding_notice": notice,
+            "effective_period": [eff_start_s, eff_end_s],
+            "effective_period_proof": binding_notice,
+            "in_window_delivery_grade_revisions_only": delivery_revisions,
             "retrieved_at": RETRIEVED_AT.isoformat(), "identity": spec.identity(),
         }
 
     calendar_json = {
-        "schema_version": "canonical-trading-calendar-v1",
+        "schema_version": "canonical-trading-calendar-v2",
         "version": calendar.version,
         "coverage": [effective_start.isoformat(), effective_end.isoformat()],
         "trading_days": {y: sorted(d.isoformat() for d in all_days[int(y)]) for y in ("2024", "2025")},
         "trading_day_counts": {y: len(all_days[int(y)]) for y in ("2024", "2025")},
+        "night_closed_trading_days": NIGHT_CLOSED_TRADING_DAYS,
+        "night_closed_authority": {
+            "classification": "OFFICIAL_AVAILABLE",
+            "notice_urls": HOLIDAY_NOTICE_URLS,
+            "rule": "A night-closed evening suspends the night session of the next trading day; no expected bar is generated for a closed night.",
+        },
         "source": {"resource": "SHFE official annual raw", "url": cal_source.url,
                     "retrieved_at": cal_source.retrieved_at.isoformat(),
                     "artifact_sha256s": zip_hashes,
                     "classification": "OFFICIAL_AVAILABLE"},
         "identity": calendar.identity(),
-        "night_closed_days": {"status": "PENDING_OFFICIAL_BINDING",
-                              "note": "2024/2025 SHFE 休市安排 notices (night-closed days) must be bound before the build."},
     }
     universe_json = {
         "schema_version": "canonical-contract-universe-v1",

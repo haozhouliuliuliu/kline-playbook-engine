@@ -54,23 +54,60 @@ and a new identity.
 Committed governed metadata fixtures (each fact binds source URL, retrieval
 timestamp, effective period, schema/version):
 
-- `CANONICAL_TRADING_CALENDAR.json` — trading days bound to the verified SHFE
-  official annual raw (OFFICIAL_AVAILABLE). Identity `661280cb…`.
+- `CANONICAL_TRADING_CALENDAR.json` — trading days + official night-closed
+  trading days bound to the verified SHFE official annual raw and the official
+  annual 休市安排 announcements (OFFICIAL_AVAILABLE). Identity `5892a946…`
+  (v2, includes night-closed days).
 - `CANONICAL_CONTRACT_UNIVERSE.json` — listed concrete contracts with
   first/last official trading day (OFFICIAL_AVAILABLE).
 - `CANONICAL_SESSION_SCHEDULES.json` — official day/night session schedules
-  bound to the official SHFE trading-hours page (OFFICIAL_AVAILABLE).
+  bound to the official SHFE trading-hours page, effective period
+  2024-01-01..2025-12-31 (OFFICIAL_AVAILABLE).
 - `CANONICAL_CONTRACT_SPECS.json` — tick, multiplier, quote unit, contract
-  months, price limit bound to official SHFE contract-text pages
-  (OFFICIAL_AVAILABLE).
+  months, price limit bound to official SHFE contract-text pages, with explicit
+  effective periods and binding notices (OFFICIAL_AVAILABLE).
 
-GOVERNED_METADATA=PASS
+### Correction notice (project-lead review, before large acquisition)
 
-Recorded limitations (not required for this package, explicitly deferred):
-- 2024/2025 night-closed days (SHFE 休市安排 notices) are PENDING_OFFICIAL_BINDING;
-  required only at build time.
-- Price-limit history is DEFERRED (not required to normalize/validate the bar
-  corpus in this package).
+The build-branch v1 evidence marked GOVERNED_METADATA=PASS too early: the
+contract specs recorded values and page/publication dates but did NOT prove
+effective coverage over the entire 2024–2025 window (al 2024-07-12, rb
+2024-09-24, ni 2025-10-31), and the 2024/2025 night-closed days were only
+PENDING_OFFICIAL_BINDING. GPT/project-lead review identified
+HISTORICAL_METADATA_EFFECTIVE_PERIOD_BINDING as a material blocker.
+
+Correction performed (before any large corpus acquisition):
+
+- **Contract-spec historical effective periods**: verified from official SHFE
+  material that, for every approved product, tick/multiplier/quote unit and the
+  session schedule were stable across 2024–2025. The in-window contract-text
+  revisions were delivery-grade/delivery-detail changes only:
+  - al: 上期所公告[2024]105号 (2024-07-12) — 铝合约修订版，仅交割品级；
+  - rb: 上期所公告[2024]116号 (2024-07-29) — 螺纹钢/线材合约及交割细则修订版，仅交割品级；
+  - base values set by 上期所公告[2023]2号 (2023-01-17) for cu/ag/ni and
+    [2020]134号 for au, effective before the window.
+  Each product's spec now records explicit effective_start/effective_end,
+  source_resource_identity, binding notice, retrieved_at, classification.
+- **Night-closed days**: resolved from the official annual 休市安排
+  announcements — 上期所公告[2023]127号 (2023-12-26, 2024) and
+  上期所公告[2024]204号 (2024-12-23, 2025). 2024: 7 night-closed trading days;
+  2025: 6. `TradingCalendar` now carries these and no expected bar is generated
+  for a closed night.
+- **Fail-closed metadata authority**: the build planner fails closed when no
+  effective period covers a trading day, multiple conflicting effective
+  periods cover it, session authority is unresolved, or contract
+  listing/expiry is inconsistent with the trading day (deterministic tests).
+
+No large canonical data was acquired under the defective metadata (the scale
+probe of 24 partitions used the raw TqSdk path, not the canonical corpus).
+Only after this actual effective-period validation succeeds is
+GOVERNED_METADATA restored to PASS.
+
+GOVERNED_METADATA=PASS (after correction; validated effective periods)
+
+Remaining recorded limitation (not required to normalize/validate the bar
+corpus in this package):
+- Price-limit history is DEFERRED.
 
 ## 5. Storage tool admission
 
