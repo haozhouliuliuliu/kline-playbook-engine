@@ -1,0 +1,224 @@
+{
+  "schema_version": "kline-playbook-pilot-cross-source-v1",
+  "source_a": "TqSdk pilot one-minute daily aggregate",
+  "source_b": "SHFE official 2025-06 workbook daily reference",
+  "compared_partitions": 10,
+  "summary": {
+    "MATCH": 10,
+    "MISMATCH": 0,
+    "NOT_COMPARABLE": 0,
+    "NOT_AVAILABLE": 0
+  },
+  "comparisons": [
+    {
+      "contract": "SHFE.ni2509",
+      "day": "2025-06-16",
+      "tqsdk": {
+        "open": "120400.0",
+        "high": "120600.0",
+        "low": "119420.0",
+        "close": "120070.0",
+        "volume": "10431",
+        "open_interest": "26672"
+      },
+      "official": {
+        "open": "120400",
+        "high": "120600",
+        "low": "119420",
+        "close": "120070",
+        "volume": "10431",
+        "open_interest": "26672"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.ni2509",
+      "day": "2025-06-17",
+      "tqsdk": {
+        "open": "120290.0",
+        "high": "120380.0",
+        "low": "118550.0",
+        "close": "118940.0",
+        "volume": "14146",
+        "open_interest": "28302"
+      },
+      "official": {
+        "open": "120290",
+        "high": "120380",
+        "low": "118550",
+        "close": "118940",
+        "volume": "14146",
+        "open_interest": "28302"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.ni2509",
+      "day": "2025-06-18",
+      "tqsdk": {
+        "open": "118850.0",
+        "high": "119100.0",
+        "low": "118440.0",
+        "close": "118870.0",
+        "volume": "9355",
+        "open_interest": "28934"
+      },
+      "official": {
+        "open": "118850",
+        "high": "119100",
+        "low": "118440",
+        "close": "118870",
+        "volume": "9355",
+        "open_interest": "28934"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.ni2509",
+      "day": "2025-06-19",
+      "tqsdk": {
+        "open": "118950.0",
+        "high": "119640.0",
+        "low": "118840.0",
+        "close": "119310.0",
+        "volume": "14744",
+        "open_interest": "31712"
+      },
+      "official": {
+        "open": "118950",
+        "high": "119640",
+        "low": "118840",
+        "close": "119310",
+        "volume": "14744",
+        "open_interest": "31712"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.ni2509",
+      "day": "2025-06-20",
+      "tqsdk": {
+        "open": "119280.0",
+        "high": "119620.0",
+        "low": "118630.0",
+        "close": "118680.0",
+        "volume": "15982",
+        "open_interest": "35191"
+      },
+      "official": {
+        "open": "119280",
+        "high": "119620",
+        "low": "118630",
+        "close": "118680",
+        "volume": "15982",
+        "open_interest": "35191"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.rb2510",
+      "day": "2025-06-16",
+      "tqsdk": {
+        "open": "2961.0",
+        "high": "2994.0",
+        "low": "2951.0",
+        "close": "2990.0",
+        "volume": "1537422",
+        "open_interest": "2164732"
+      },
+      "official": {
+        "open": "2961",
+        "high": "2994",
+        "low": "2951",
+        "close": "2990",
+        "volume": "1537422",
+        "open_interest": "2164732"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.rb2510",
+      "day": "2025-06-17",
+      "tqsdk": {
+        "open": "2986.0",
+        "high": "2994.0",
+        "low": "2972.0",
+        "close": "2981.0",
+        "volume": "1046277",
+        "open_interest": "2140997"
+      },
+      "official": {
+        "open": "2986",
+        "high": "2994",
+        "low": "2972",
+        "close": "2981",
+        "volume": "1046277",
+        "open_interest": "2140997"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.rb2510",
+      "day": "2025-06-18",
+      "tqsdk": {
+        "open": "2979.0",
+        "high": "2996.0",
+        "low": "2969.0",
+        "close": "2986.0",
+        "volume": "1326973",
+        "open_interest": "2133943"
+      },
+      "official": {
+        "open": "2979",
+        "high": "2996",
+        "low": "2969",
+        "close": "2986",
+        "volume": "1326973",
+        "open_interest": "2133943"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.rb2510",
+      "day": "2025-06-19",
+      "tqsdk": {
+        "open": "2986.0",
+        "high": "3002.0",
+        "low": "2975.0",
+        "close": "2986.0",
+        "volume": "1180366",
+        "open_interest": "2132733"
+      },
+      "official": {
+        "open": "2986",
+        "high": "3002",
+        "low": "2975",
+        "close": "2986",
+        "volume": "1180366",
+        "open_interest": "2132733"
+      },
+      "result": "MATCH"
+    },
+    {
+      "contract": "SHFE.rb2510",
+      "day": "2025-06-20",
+      "tqsdk": {
+        "open": "2990.0",
+        "high": "3010.0",
+        "low": "2982.0",
+        "close": "2992.0",
+        "volume": "1414281",
+        "open_interest": "2164155"
+      },
+      "official": {
+        "open": "2990",
+        "high": "3010",
+        "low": "2982",
+        "close": "2992",
+        "volume": "1414281",
+        "open_interest": "2164155"
+      },
+      "result": "MATCH"
+    }
+  ]
+}
