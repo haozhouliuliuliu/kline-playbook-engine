@@ -14,9 +14,14 @@ CURRENT_BLOCKER=NONE
 ## Current objective
 Execute the Owner-approved canonical research dataset build and source
 acceptance package: record the Owner source/scope decision durably (done in
-`docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`), then build and accept the
-BALANCED canonical research corpus on `ds/canonical-dataset-build` without
-exposing any partial canonical-dataset claims on `main`.
+`docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`), define the BALANCED corpus
+(done in `docs/evidence/CANONICAL_DATASET_BALANCED_DEFINITION.md`), build the
+governed metadata/storage/acquisition/identity infrastructure on
+`ds/canonical-dataset-build` (done, tested), and acquire the corpus. The large
+raw acquisition is **GATED by the Owner scale guardrail** (projected ≈2.615 GB
+raw exceeds the ≈3× readiness guardrail); the exact projected scale is
+reported to GPT/project lead before any large acquisition. No partial
+canonical-dataset claims are exposed on `main`.
 
 ## Owner source/scope decision (final, recorded durably)
 OWNER_APPROVAL=YES
@@ -29,8 +34,15 @@ PAID_CONTINUITY_AUTHORIZED=NO
 PAID_CONTINUITY_OWNER_GATE=REQUIRED_IF_NEEDED_LATER
 CANONICAL_DATASET_BUILT=NO
 CANONICAL_DATASET_ACCEPTED=NO
+CANONICAL_DATASET_STATUS=SCALE_GATED
+PROJECTED_RAW_GB=2.615
+PROJECTED_BARS=15445905
+PROJECTED_TRADED_PARTITIONS=32841
+SCALE_GUARDRAIL=STOP_AND_REPORT_PROJECTED
+CANONICAL_CORPUS_IDENTITY=NONE
 
-Authority record: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`.
+Authority record: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md` and
+`docs/evidence/CANONICAL_DATASET_PACKAGE.md`.
 Adoption does NOT authorize broker connectivity, live/Shadow trading, order
 submission, or future paid renewal; TqSdk runtime compatibility is frozen to
 the verified `3.10.1` identity until re-verified.
@@ -80,6 +92,12 @@ Current project-specific source status:
 - SHFE official annual raw: VERIFIED for official-origin/hash/daily-statistical
   reference use only; not minute/Tick data and not ADOPTED as the canonical
   research source.
+- PyArrow/Parquet: ADOPTED (canonical-build storage, tested 25.0.1; real local
+  probe preserved Decimal/timezone/nullable-OI and write/read logical equality
+  in the canonical partitioned layout).
+- SQLite (stdlib `sqlite3`): ADOPTED as the rebuildable canonical catalog/index
+  (not the historical truth authority).
+- DuckDB: DEFERRED (not installed).
 
 Real TqSdk samples recorded (raw in ignored `data/raw/historical/`, non-secret provenance in `docs/evidence/REAL_HISTORICAL_DATA_SUBSTRATE_FEASIBILITY.md`):
 - Bounded probe: `SHFE.ni2509` 1-min, 2025-06-16 10:00-10:40, 26 bars, `DataVersionIdentity=cd4a306f6310fc4e59d5f8b7d340e8b8acd054bb22b364f1ba35ac13def12b0b`.
@@ -97,7 +115,12 @@ These are environment facts, not project dependencies or adoption decisions.
 - Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
 
 ## Current next action
-CURRENT_NEXT_ACTION=CANONICAL_RESEARCH_DATASET_BUILD_AND_SOURCE_ACCEPTANCE_PACKAGE
+CURRENT_NEXT_ACTION=SCALE_DECISION_AND_CANONICAL_BUILD (the BALANCED corpus
+definition, governed metadata, storage schema, acquisition/resume engine,
+identity, and tests are complete on `ds/canonical-dataset-build`; the large
+raw acquisition is gated by the Owner scale guardrail at ≈2.615 GB projected
+raw, reported to GPT/project lead; after the scale decision, run the resumable
+build, then the research-protocol and chronological-split freeze review).
 
 ## Current acceptance
 
@@ -109,13 +132,12 @@ PROJECT_BOOTSTRAP is formally accepted at
 
 TOOL_DECISION=ADD_TOOL
 
-The approved BALANCED scope creates a real normalized-storage/catalog gap. The
-stage-level storage decision for the canonical build:
+Stage-level storage decision for the canonical build (executed):
 - RAW_ARTIFACT_STORAGE: keep ignored JSON raw artifacts + SHA256 provenance
   (existing mechanism remains authoritative raw evidence).
-- NORMALIZED_BAR_STORAGE: evaluate and, if a local probe succeeds, adopt
-  PyArrow/Parquet for normalized canonical bar storage.
-- MANIFEST/METADATA: SQLite (stdlib `sqlite3`) as a rebuildable local
+- NORMALIZED_BAR_STORAGE: PyArrow/Parquet ADOPTED after a real local probe
+  (tested 25.0.1) for normalized canonical bar storage.
+- MANIFEST/METADATA: SQLite (stdlib `sqlite3`) ADOPTED as a rebuildable local
   catalog/index; committed immutable manifests/evidence remain the durable
   provenance authority.
 - RESEARCH_QUERY_ENGINE: DuckDB remains DEFERRED/CANDIDATE; not installed.
@@ -150,6 +172,29 @@ data only and does not adopt a broker/order capability.
   `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`; `main` was
   fast-forwarded to the accepted readiness HEAD
   `238c230207250b3a02cd22dea658898a9a982e53` and pushed.
+- The BALANCED corpus definition and the scale guardrail result are recorded
+  in `docs/evidence/CANONICAL_DATASET_BALANCED_DEFINITION.md` and
+  `docs/evidence/CANONICAL_BALANCED_UNIVERSE.json` (6 products cu/al/ni/au/ag/rb;
+  2024-01-01..2025-12-31; PIT-complete listed contract universe; projected
+  ≈2.615 GB raw / ≈15.4 M bars / 32,841 traded partitions → exceeds the 3×
+  readiness guardrail → large acquisition GATED and reported to project lead).
+- Governed metadata fixtures bound to official SHFE sources:
+  `CANONICAL_TRADING_CALENDAR.json`, `CANONICAL_CONTRACT_UNIVERSE.json`,
+  `CANONICAL_SESSION_SCHEDULES.json`, `CANONICAL_CONTRACT_SPECS.json`
+  (metadata authority: `src/metadata_authority.py`).
+- Canonical normalized storage (Parquet layout + SQLite catalog) implemented
+  and tested (`src/canonical_storage.py`, `tests/test_canonical_storage.py`);
+  PyArrow 25.0.1 probe VERIFIED/ADOPTED.
+- Canonical corpus identity (`src/canonical_identity.py`), cross-source checker
+  (`src/cross_source_check.py`), and the resumable build runner
+  (`tools/build_canonical_dataset.py`, dry-run plan 32,912 partitions) are
+  implemented and tested.
+- Real bounded scale probe (24 partitions, one TqSdk session, 2026-08-16)
+  confirmed the trial is active and measured ≈79.6 KB/partition with full
+  session bar skeletons even for ultra-thin contracts; recorded in
+  `docs/evidence/CANONICAL_DATASET_PACKAGE.md`.
+- Formal package evidence: `docs/evidence/CANONICAL_DATASET_PACKAGE.md`
+  (FINAL=OWNER_GATE, CANONICAL_CORPUS_IDENTITY=NONE).
 
 ## Current Owner action
 

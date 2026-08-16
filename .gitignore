@@ -10,3 +10,5 @@ venv/
 *.sqlite3
 *.parquet
 /data/raw/historical/
+/data/raw/scale_probe/
+/data/canonical/

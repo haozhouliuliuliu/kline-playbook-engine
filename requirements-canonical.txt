@@ -1,0 +1,14 @@
+# Canonical-build runtime dependencies (NORMALIZED_BAR_STORAGE).
+#
+# These are build-time tooling dependencies only; the project's canonical
+# verification path (`python -m unittest discover -s tests -v`) remains
+# Python-standard-library only.
+#
+# PyArrow is ADOPTED for canonical normalized Parquet bar storage after a real
+# local probe (2026-08-16): Decimal/timezone/nullable-OI preserved, canonical
+# partitioned layout, write/read logical equality via select+cast. Version is
+# pinned to the exactly tested identity (PYARROW_STATUS=ADOPTED).
+#
+# tzdata is required on Windows so `zoneinfo.ZoneInfo("Asia/Shanghai")` works.
+pyarrow==25.0.1
+tzdata==2026.3

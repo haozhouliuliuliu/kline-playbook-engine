@@ -1,0 +1,179 @@
+{
+  "schema_version": "canonical-session-schedules-v1",
+  "products": {
+    "cu": {
+      "day_windows": [
+        [
+          "09:00:00",
+          "10:15:00"
+        ],
+        [
+          "10:30:00",
+          "11:30:00"
+        ],
+        [
+          "13:30:00",
+          "15:00:00"
+        ]
+      ],
+      "night_window": [
+        "21:00:00",
+        "01:00:00"
+      ],
+      "timezone": "Asia/Shanghai",
+      "source_url": "https://www.shfe.com.cn/services/calenderandholidays/tradinghours/",
+      "retrieved_at": "2026-08-16T16:00:00+08:00",
+      "effective_period": [
+        "2024-01-01",
+        "2025-12-31"
+      ],
+      "identity": "2a1168ed755460a0011ed7e9531d4e37fa7b67e7f50e71dbe2e7daab2a02dfac"
+    },
+    "al": {
+      "day_windows": [
+        [
+          "09:00:00",
+          "10:15:00"
+        ],
+        [
+          "10:30:00",
+          "11:30:00"
+        ],
+        [
+          "13:30:00",
+          "15:00:00"
+        ]
+      ],
+      "night_window": [
+        "21:00:00",
+        "01:00:00"
+      ],
+      "timezone": "Asia/Shanghai",
+      "source_url": "https://www.shfe.com.cn/services/calenderandholidays/tradinghours/",
+      "retrieved_at": "2026-08-16T16:00:00+08:00",
+      "effective_period": [
+        "2024-01-01",
+        "2025-12-31"
+      ],
+      "identity": "3607e05caff6d971f1e04a5975a1d690ece4af0b2c92eb7444064e5eca7197ba"
+    },
+    "ni": {
+      "day_windows": [
+        [
+          "09:00:00",
+          "10:15:00"
+        ],
+        [
+          "10:30:00",
+          "11:30:00"
+        ],
+        [
+          "13:30:00",
+          "15:00:00"
+        ]
+      ],
+      "night_window": [
+        "21:00:00",
+        "01:00:00"
+      ],
+      "timezone": "Asia/Shanghai",
+      "source_url": "https://www.shfe.com.cn/services/calenderandholidays/tradinghours/",
+      "retrieved_at": "2026-08-16T16:00:00+08:00",
+      "effective_period": [
+        "2024-01-01",
+        "2025-12-31"
+      ],
+      "identity": "3d69162217d8e1f782dc5f5029c3627775b0f55f0feb2f6a35fcae047c82a0a4"
+    },
+    "au": {
+      "day_windows": [
+        [
+          "09:00:00",
+          "10:15:00"
+        ],
+        [
+          "10:30:00",
+          "11:30:00"
+        ],
+        [
+          "13:30:00",
+          "15:00:00"
+        ]
+      ],
+      "night_window": [
+        "21:00:00",
+        "02:30:00"
+      ],
+      "timezone": "Asia/Shanghai",
+      "source_url": "https://www.shfe.com.cn/services/calenderandholidays/tradinghours/",
+      "retrieved_at": "2026-08-16T16:00:00+08:00",
+      "effective_period": [
+        "2024-01-01",
+        "2025-12-31"
+      ],
+      "identity": "36d6b96172e665d7a990ec11207e3955c8be80c65a9fa9331137429537ef8950"
+    },
+    "ag": {
+      "day_windows": [
+        [
+          "09:00:00",
+          "10:15:00"
+        ],
+        [
+          "10:30:00",
+          "11:30:00"
+        ],
+        [
+          "13:30:00",
+          "15:00:00"
+        ]
+      ],
+      "night_window": [
+        "21:00:00",
+        "02:30:00"
+      ],
+      "timezone": "Asia/Shanghai",
+      "source_url": "https://www.shfe.com.cn/services/calenderandholidays/tradinghours/",
+      "retrieved_at": "2026-08-16T16:00:00+08:00",
+      "effective_period": [
+        "2024-01-01",
+        "2025-12-31"
+      ],
+      "identity": "7c1e78d6a83335bd147a3587526adfde5e7cb04bcc47a9672eca10879b77fd25"
+    },
+    "rb": {
+      "day_windows": [
+        [
+          "09:00:00",
+          "10:15:00"
+        ],
+        [
+          "10:30:00",
+          "11:30:00"
+        ],
+        [
+          "13:30:00",
+          "15:00:00"
+        ]
+      ],
+      "night_window": [
+        "21:00:00",
+        "23:00:00"
+      ],
+      "timezone": "Asia/Shanghai",
+      "source_url": "https://www.shfe.com.cn/services/calenderandholidays/tradinghours/",
+      "retrieved_at": "2026-08-16T16:00:00+08:00",
+      "effective_period": [
+        "2024-01-01",
+        "2025-12-31"
+      ],
+      "identity": "d3b161981018e8e9972bf222fef22c28f058562a520f43d9dd4e2186b4356f3d"
+    }
+  },
+  "source": {
+    "url": "https://www.shfe.com.cn/services/calenderandholidays/tradinghours/",
+    "retrieved_at": "2026-08-16T16:00:00+08:00",
+    "classification": "OFFICIAL_AVAILABLE"
+  },
+  "root_identity": "7b9f366ac2beec16eb3083578955f37b35626586d6a4d3697279aae0e43f7237"
+}

@@ -1,0 +1,1304 @@
+{
+  "schema_version": "canonical-contract-universe-v1",
+  "products": [
+    "cu",
+    "al",
+    "ni",
+    "au",
+    "ag",
+    "rb"
+  ],
+  "contracts": [
+    {
+      "concrete_contract": "SHFE.cu2401",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2402",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-02-19"
+    },
+    {
+      "concrete_contract": "SHFE.cu2403",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-03-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2404",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2405",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2406",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.cu2407",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2408",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2409",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-09-18"
+    },
+    {
+      "concrete_contract": "SHFE.cu2410",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2411",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-11-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2412",
+      "product": "cu",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2501",
+      "product": "cu",
+      "first_trading_day": "2024-01-16",
+      "last_trading_day": "2025-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2502",
+      "product": "cu",
+      "first_trading_day": "2024-02-20",
+      "last_trading_day": "2025-02-17"
+    },
+    {
+      "concrete_contract": "SHFE.cu2503",
+      "product": "cu",
+      "first_trading_day": "2024-03-18",
+      "last_trading_day": "2025-03-17"
+    },
+    {
+      "concrete_contract": "SHFE.cu2504",
+      "product": "cu",
+      "first_trading_day": "2024-04-16",
+      "last_trading_day": "2025-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2505",
+      "product": "cu",
+      "first_trading_day": "2024-05-16",
+      "last_trading_day": "2025-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2506",
+      "product": "cu",
+      "first_trading_day": "2024-06-18",
+      "last_trading_day": "2025-06-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2507",
+      "product": "cu",
+      "first_trading_day": "2024-07-16",
+      "last_trading_day": "2025-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2508",
+      "product": "cu",
+      "first_trading_day": "2024-08-16",
+      "last_trading_day": "2025-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2509",
+      "product": "cu",
+      "first_trading_day": "2024-09-19",
+      "last_trading_day": "2025-09-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2510",
+      "product": "cu",
+      "first_trading_day": "2024-10-16",
+      "last_trading_day": "2025-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2511",
+      "product": "cu",
+      "first_trading_day": "2024-11-18",
+      "last_trading_day": "2025-11-17"
+    },
+    {
+      "concrete_contract": "SHFE.cu2512",
+      "product": "cu",
+      "first_trading_day": "2024-12-17",
+      "last_trading_day": "2025-12-15"
+    },
+    {
+      "concrete_contract": "SHFE.cu2601",
+      "product": "cu",
+      "first_trading_day": "2025-01-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2602",
+      "product": "cu",
+      "first_trading_day": "2025-02-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2603",
+      "product": "cu",
+      "first_trading_day": "2025-03-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2604",
+      "product": "cu",
+      "first_trading_day": "2025-04-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2605",
+      "product": "cu",
+      "first_trading_day": "2025-05-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2606",
+      "product": "cu",
+      "first_trading_day": "2025-06-17",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2607",
+      "product": "cu",
+      "first_trading_day": "2025-07-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2608",
+      "product": "cu",
+      "first_trading_day": "2025-08-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2609",
+      "product": "cu",
+      "first_trading_day": "2025-09-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2610",
+      "product": "cu",
+      "first_trading_day": "2025-10-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2611",
+      "product": "cu",
+      "first_trading_day": "2025-11-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.cu2612",
+      "product": "cu",
+      "first_trading_day": "2025-12-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2401",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2402",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-02-19"
+    },
+    {
+      "concrete_contract": "SHFE.al2403",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-03-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2404",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2405",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2406",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.al2407",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2408",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2409",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-09-18"
+    },
+    {
+      "concrete_contract": "SHFE.al2410",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2411",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-11-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2412",
+      "product": "al",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2501",
+      "product": "al",
+      "first_trading_day": "2024-01-16",
+      "last_trading_day": "2025-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2502",
+      "product": "al",
+      "first_trading_day": "2024-02-20",
+      "last_trading_day": "2025-02-17"
+    },
+    {
+      "concrete_contract": "SHFE.al2503",
+      "product": "al",
+      "first_trading_day": "2024-03-18",
+      "last_trading_day": "2025-03-17"
+    },
+    {
+      "concrete_contract": "SHFE.al2504",
+      "product": "al",
+      "first_trading_day": "2024-04-16",
+      "last_trading_day": "2025-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2505",
+      "product": "al",
+      "first_trading_day": "2024-05-16",
+      "last_trading_day": "2025-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2506",
+      "product": "al",
+      "first_trading_day": "2024-06-18",
+      "last_trading_day": "2025-06-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2507",
+      "product": "al",
+      "first_trading_day": "2024-07-16",
+      "last_trading_day": "2025-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2508",
+      "product": "al",
+      "first_trading_day": "2024-08-16",
+      "last_trading_day": "2025-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2509",
+      "product": "al",
+      "first_trading_day": "2024-09-19",
+      "last_trading_day": "2025-09-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2510",
+      "product": "al",
+      "first_trading_day": "2024-10-16",
+      "last_trading_day": "2025-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2511",
+      "product": "al",
+      "first_trading_day": "2024-11-18",
+      "last_trading_day": "2025-11-17"
+    },
+    {
+      "concrete_contract": "SHFE.al2512",
+      "product": "al",
+      "first_trading_day": "2024-12-17",
+      "last_trading_day": "2025-12-15"
+    },
+    {
+      "concrete_contract": "SHFE.al2601",
+      "product": "al",
+      "first_trading_day": "2025-01-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2602",
+      "product": "al",
+      "first_trading_day": "2025-02-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2603",
+      "product": "al",
+      "first_trading_day": "2025-03-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2604",
+      "product": "al",
+      "first_trading_day": "2025-04-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2605",
+      "product": "al",
+      "first_trading_day": "2025-05-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2606",
+      "product": "al",
+      "first_trading_day": "2025-06-17",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2607",
+      "product": "al",
+      "first_trading_day": "2025-07-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2608",
+      "product": "al",
+      "first_trading_day": "2025-08-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2609",
+      "product": "al",
+      "first_trading_day": "2025-09-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2610",
+      "product": "al",
+      "first_trading_day": "2025-10-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2611",
+      "product": "al",
+      "first_trading_day": "2025-11-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.al2612",
+      "product": "al",
+      "first_trading_day": "2025-12-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2401",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2402",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-02-19"
+    },
+    {
+      "concrete_contract": "SHFE.ni2403",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-03-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2404",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2405",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2406",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2407",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2408",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2409",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-09-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2410",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2411",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-11-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2412",
+      "product": "ni",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2501",
+      "product": "ni",
+      "first_trading_day": "2024-01-16",
+      "last_trading_day": "2025-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2502",
+      "product": "ni",
+      "first_trading_day": "2024-02-20",
+      "last_trading_day": "2025-02-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2503",
+      "product": "ni",
+      "first_trading_day": "2024-03-18",
+      "last_trading_day": "2025-03-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2504",
+      "product": "ni",
+      "first_trading_day": "2024-04-16",
+      "last_trading_day": "2025-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2505",
+      "product": "ni",
+      "first_trading_day": "2024-05-16",
+      "last_trading_day": "2025-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2506",
+      "product": "ni",
+      "first_trading_day": "2024-06-18",
+      "last_trading_day": "2025-06-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2507",
+      "product": "ni",
+      "first_trading_day": "2024-07-16",
+      "last_trading_day": "2025-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2508",
+      "product": "ni",
+      "first_trading_day": "2024-08-16",
+      "last_trading_day": "2025-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2509",
+      "product": "ni",
+      "first_trading_day": "2024-09-19",
+      "last_trading_day": "2025-09-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2510",
+      "product": "ni",
+      "first_trading_day": "2024-10-16",
+      "last_trading_day": "2025-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2511",
+      "product": "ni",
+      "first_trading_day": "2024-11-18",
+      "last_trading_day": "2025-11-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2512",
+      "product": "ni",
+      "first_trading_day": "2024-12-17",
+      "last_trading_day": "2025-12-15"
+    },
+    {
+      "concrete_contract": "SHFE.ni2601",
+      "product": "ni",
+      "first_trading_day": "2025-01-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2602",
+      "product": "ni",
+      "first_trading_day": "2025-02-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2603",
+      "product": "ni",
+      "first_trading_day": "2025-03-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2604",
+      "product": "ni",
+      "first_trading_day": "2025-04-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2605",
+      "product": "ni",
+      "first_trading_day": "2025-05-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2606",
+      "product": "ni",
+      "first_trading_day": "2025-06-17",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2607",
+      "product": "ni",
+      "first_trading_day": "2025-07-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2608",
+      "product": "ni",
+      "first_trading_day": "2025-08-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2609",
+      "product": "ni",
+      "first_trading_day": "2025-09-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2610",
+      "product": "ni",
+      "first_trading_day": "2025-10-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2611",
+      "product": "ni",
+      "first_trading_day": "2025-11-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ni2612",
+      "product": "ni",
+      "first_trading_day": "2025-12-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.au2401",
+      "product": "au",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2402",
+      "product": "au",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-02-19"
+    },
+    {
+      "concrete_contract": "SHFE.au2403",
+      "product": "au",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-03-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2404",
+      "product": "au",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2405",
+      "product": "au",
+      "first_trading_day": "2024-02-20",
+      "last_trading_day": "2024-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2406",
+      "product": "au",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.au2407",
+      "product": "au",
+      "first_trading_day": "2024-04-16",
+      "last_trading_day": "2024-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2408",
+      "product": "au",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2409",
+      "product": "au",
+      "first_trading_day": "2024-06-18",
+      "last_trading_day": "2024-09-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2410",
+      "product": "au",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2411",
+      "product": "au",
+      "first_trading_day": "2024-08-16",
+      "last_trading_day": "2024-11-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2412",
+      "product": "au",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2501",
+      "product": "au",
+      "first_trading_day": "2024-10-16",
+      "last_trading_day": "2025-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2502",
+      "product": "au",
+      "first_trading_day": "2024-01-16",
+      "last_trading_day": "2025-02-17"
+    },
+    {
+      "concrete_contract": "SHFE.au2503",
+      "product": "au",
+      "first_trading_day": "2024-12-17",
+      "last_trading_day": "2025-03-17"
+    },
+    {
+      "concrete_contract": "SHFE.au2504",
+      "product": "au",
+      "first_trading_day": "2024-03-18",
+      "last_trading_day": "2025-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2505",
+      "product": "au",
+      "first_trading_day": "2025-02-18",
+      "last_trading_day": "2025-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2506",
+      "product": "au",
+      "first_trading_day": "2024-05-16",
+      "last_trading_day": "2025-06-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2507",
+      "product": "au",
+      "first_trading_day": "2025-04-16",
+      "last_trading_day": "2025-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2508",
+      "product": "au",
+      "first_trading_day": "2024-07-16",
+      "last_trading_day": "2025-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2509",
+      "product": "au",
+      "first_trading_day": "2025-06-17",
+      "last_trading_day": "2025-09-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2510",
+      "product": "au",
+      "first_trading_day": "2024-09-19",
+      "last_trading_day": "2025-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2511",
+      "product": "au",
+      "first_trading_day": "2025-08-18",
+      "last_trading_day": "2025-11-17"
+    },
+    {
+      "concrete_contract": "SHFE.au2512",
+      "product": "au",
+      "first_trading_day": "2024-11-18",
+      "last_trading_day": "2025-12-15"
+    },
+    {
+      "concrete_contract": "SHFE.au2601",
+      "product": "au",
+      "first_trading_day": "2025-10-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.au2602",
+      "product": "au",
+      "first_trading_day": "2025-01-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.au2603",
+      "product": "au",
+      "first_trading_day": "2025-12-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.au2604",
+      "product": "au",
+      "first_trading_day": "2025-03-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.au2606",
+      "product": "au",
+      "first_trading_day": "2025-05-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.au2608",
+      "product": "au",
+      "first_trading_day": "2025-07-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.au2610",
+      "product": "au",
+      "first_trading_day": "2025-09-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.au2612",
+      "product": "au",
+      "first_trading_day": "2025-11-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2401",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2402",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-02-19"
+    },
+    {
+      "concrete_contract": "SHFE.ag2403",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-03-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2404",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2405",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2406",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.ag2407",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2408",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2409",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-09-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2410",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2411",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-11-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2412",
+      "product": "ag",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2501",
+      "product": "ag",
+      "first_trading_day": "2024-01-16",
+      "last_trading_day": "2025-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2502",
+      "product": "ag",
+      "first_trading_day": "2024-02-20",
+      "last_trading_day": "2025-02-17"
+    },
+    {
+      "concrete_contract": "SHFE.ag2503",
+      "product": "ag",
+      "first_trading_day": "2024-03-18",
+      "last_trading_day": "2025-03-17"
+    },
+    {
+      "concrete_contract": "SHFE.ag2504",
+      "product": "ag",
+      "first_trading_day": "2024-04-16",
+      "last_trading_day": "2025-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2505",
+      "product": "ag",
+      "first_trading_day": "2024-05-16",
+      "last_trading_day": "2025-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2506",
+      "product": "ag",
+      "first_trading_day": "2024-06-18",
+      "last_trading_day": "2025-06-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2507",
+      "product": "ag",
+      "first_trading_day": "2024-07-16",
+      "last_trading_day": "2025-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2508",
+      "product": "ag",
+      "first_trading_day": "2024-08-16",
+      "last_trading_day": "2025-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2509",
+      "product": "ag",
+      "first_trading_day": "2024-09-19",
+      "last_trading_day": "2025-09-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2510",
+      "product": "ag",
+      "first_trading_day": "2024-10-16",
+      "last_trading_day": "2025-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2511",
+      "product": "ag",
+      "first_trading_day": "2024-11-18",
+      "last_trading_day": "2025-11-17"
+    },
+    {
+      "concrete_contract": "SHFE.ag2512",
+      "product": "ag",
+      "first_trading_day": "2024-12-17",
+      "last_trading_day": "2025-12-15"
+    },
+    {
+      "concrete_contract": "SHFE.ag2601",
+      "product": "ag",
+      "first_trading_day": "2025-01-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2602",
+      "product": "ag",
+      "first_trading_day": "2025-02-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2603",
+      "product": "ag",
+      "first_trading_day": "2025-03-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2604",
+      "product": "ag",
+      "first_trading_day": "2025-04-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2605",
+      "product": "ag",
+      "first_trading_day": "2025-05-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2606",
+      "product": "ag",
+      "first_trading_day": "2025-06-17",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2607",
+      "product": "ag",
+      "first_trading_day": "2025-07-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2608",
+      "product": "ag",
+      "first_trading_day": "2025-08-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2609",
+      "product": "ag",
+      "first_trading_day": "2025-09-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2610",
+      "product": "ag",
+      "first_trading_day": "2025-10-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2611",
+      "product": "ag",
+      "first_trading_day": "2025-11-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.ag2612",
+      "product": "ag",
+      "first_trading_day": "2025-12-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2401",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2402",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-02-19"
+    },
+    {
+      "concrete_contract": "SHFE.rb2403",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-03-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2404",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2405",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2406",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.rb2407",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2408",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2409",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-09-18"
+    },
+    {
+      "concrete_contract": "SHFE.rb2410",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2411",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-11-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2412",
+      "product": "rb",
+      "first_trading_day": "2024-01-02",
+      "last_trading_day": "2024-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2501",
+      "product": "rb",
+      "first_trading_day": "2024-01-16",
+      "last_trading_day": "2025-01-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2502",
+      "product": "rb",
+      "first_trading_day": "2024-02-20",
+      "last_trading_day": "2025-02-17"
+    },
+    {
+      "concrete_contract": "SHFE.rb2503",
+      "product": "rb",
+      "first_trading_day": "2024-03-18",
+      "last_trading_day": "2025-03-17"
+    },
+    {
+      "concrete_contract": "SHFE.rb2504",
+      "product": "rb",
+      "first_trading_day": "2024-04-16",
+      "last_trading_day": "2025-04-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2505",
+      "product": "rb",
+      "first_trading_day": "2024-05-16",
+      "last_trading_day": "2025-05-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2506",
+      "product": "rb",
+      "first_trading_day": "2024-06-18",
+      "last_trading_day": "2025-06-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2507",
+      "product": "rb",
+      "first_trading_day": "2024-07-16",
+      "last_trading_day": "2025-07-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2508",
+      "product": "rb",
+      "first_trading_day": "2024-08-16",
+      "last_trading_day": "2025-08-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2509",
+      "product": "rb",
+      "first_trading_day": "2024-09-19",
+      "last_trading_day": "2025-09-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2510",
+      "product": "rb",
+      "first_trading_day": "2024-10-16",
+      "last_trading_day": "2025-10-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2511",
+      "product": "rb",
+      "first_trading_day": "2024-11-18",
+      "last_trading_day": "2025-11-17"
+    },
+    {
+      "concrete_contract": "SHFE.rb2512",
+      "product": "rb",
+      "first_trading_day": "2024-12-17",
+      "last_trading_day": "2025-12-15"
+    },
+    {
+      "concrete_contract": "SHFE.rb2601",
+      "product": "rb",
+      "first_trading_day": "2025-01-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2602",
+      "product": "rb",
+      "first_trading_day": "2025-02-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2603",
+      "product": "rb",
+      "first_trading_day": "2025-03-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2604",
+      "product": "rb",
+      "first_trading_day": "2025-04-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2605",
+      "product": "rb",
+      "first_trading_day": "2025-05-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2606",
+      "product": "rb",
+      "first_trading_day": "2025-06-17",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2607",
+      "product": "rb",
+      "first_trading_day": "2025-07-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2608",
+      "product": "rb",
+      "first_trading_day": "2025-08-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2609",
+      "product": "rb",
+      "first_trading_day": "2025-09-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2610",
+      "product": "rb",
+      "first_trading_day": "2025-10-16",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2611",
+      "product": "rb",
+      "first_trading_day": "2025-11-18",
+      "last_trading_day": "2025-12-31"
+    },
+    {
+      "concrete_contract": "SHFE.rb2612",
+      "product": "rb",
+      "first_trading_day": "2025-12-16",
+      "last_trading_day": "2025-12-31"
+    }
+  ],
+  "contract_counts": {
+    "cu": 36,
+    "al": 36,
+    "ni": 36,
+    "au": 32,
+    "ag": 36,
+    "rb": 36
+  },
+  "source": {
+    "resource": "SHFE official annual raw",
+    "url": "https://www.shfe.com.cn/eng/reports/StatisticalData/Annualdata/HistoricalData/downloadhistory/",
+    "retrieved_at": "2026-08-16T16:00:00+08:00",
+    "artifact_sha256s": {
+      "2024": "68505aefe460ffa3167bd200477a5ebb05a8aaac5e477bb013e97ffbcf7bc99e",
+      "2025": "af1991361ee7383adf27481a160aad2e5c7ee3708e4db52338161d54e596f7e8"
+    },
+    "classification": "OFFICIAL_AVAILABLE"
+  },
+  "universe_root_identity": "44ba2b1567660bf8eec64295ab74aca17294432b7c7e35f050d4a67cabe5a474"
+}
