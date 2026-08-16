@@ -12,7 +12,28 @@ BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
 
 ## Current objective
-Complete the current Owner-authenticated TqSdk real-data probe (done) and record its provenance, PIT, quality, and cross-source results before source acceptance or canonical research dataset construction.
+Execute the Owner-approved canonical research dataset build and source
+acceptance package: record the Owner source/scope decision durably (done in
+`docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`), then build and accept the
+BALANCED canonical research corpus on `ds/canonical-dataset-build` without
+exposing any partial canonical-dataset claims on `main`.
+
+## Owner source/scope decision (final, recorded durably)
+OWNER_APPROVAL=YES
+OWNER_SOURCE_APPROVAL=TQSDK
+TQSDK_STATUS=ADOPTED
+TQSDK_ADOPTION_SCOPE=historical concrete-contract 1-minute research data only
+TQSDK_VERIFIED_RUNTIME=3.10.1
+OWNER_DATASET_SCOPE_APPROVAL=BALANCED
+PAID_CONTINUITY_AUTHORIZED=NO
+PAID_CONTINUITY_OWNER_GATE=REQUIRED_IF_NEEDED_LATER
+CANONICAL_DATASET_BUILT=NO
+CANONICAL_DATASET_ACCEPTED=NO
+
+Authority record: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`.
+Adoption does NOT authorize broker connectivity, live/Shadow trading, order
+submission, or future paid renewal; TqSdk runtime compatibility is frozen to
+the verified `3.10.1` identity until re-verified.
 
 ## Current boundaries
 NOT_AUTHORIZED:
@@ -50,8 +71,15 @@ Known categories:
 - later/reference only: NautilusTrader, STUMPY, RD-Agent, Qlib, TradingAgents, MiroFish, Freqtrade, Jesse, LEAN
 
 Current project-specific source status:
-- TqSdk: VERIFIED. Under the current Owner trial with actual TqSdk version `3.10.1`, real concrete-contract one-minute data was returned for `SHFE.ni2509`, recorded with non-secret provenance/raw SHA256, and passed the existing normalization path, real-sample PIT normalization, all real quality gates, and the SHFE daily cross-source check. VERIFIED does not mean ADOPTED; TqSdk is not frozen as the permanent canonical source.
-- SHFE official annual raw: VERIFIED for official-origin/hash/daily-statistical reference use only; not minute/Tick data and not ADOPTED as the canonical research source.
+- TqSdk: ADOPTED (Owner-approved, scoped). `TQSDK_ADOPTION_SCOPE=historical
+  concrete-contract 1-minute research data only`;
+  `TQSDK_VERIFIED_RUNTIME=3.10.1`. Adoption does not authorize broker
+  connectivity, live/Shadow trading, order submission, or paid renewal; runtime
+  compatibility is frozen to the verified `3.10.1` identity. See
+  `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`.
+- SHFE official annual raw: VERIFIED for official-origin/hash/daily-statistical
+  reference use only; not minute/Tick data and not ADOPTED as the canonical
+  research source.
 
 Real TqSdk samples recorded (raw in ignored `data/raw/historical/`, non-secret provenance in `docs/evidence/REAL_HISTORICAL_DATA_SUBSTRATE_FEASIBILITY.md`):
 - Bounded probe: `SHFE.ni2509` 1-min, 2025-06-16 10:00-10:40, 26 bars, `DataVersionIdentity=cd4a306f6310fc4e59d5f8b7d340e8b8acd054bb22b364f1ba35ac13def12b0b`.
@@ -81,8 +109,20 @@ PROJECT_BOOTSTRAP is formally accepted at
 
 TOOL_DECISION=ADD_TOOL
 
-The capability under evaluation is a real historical-data source path. This
-does not adopt TqSdk or SHFE annual raw as a project dependency/source.
+The approved BALANCED scope creates a real normalized-storage/catalog gap. The
+stage-level storage decision for the canonical build:
+- RAW_ARTIFACT_STORAGE: keep ignored JSON raw artifacts + SHA256 provenance
+  (existing mechanism remains authoritative raw evidence).
+- NORMALIZED_BAR_STORAGE: evaluate and, if a local probe succeeds, adopt
+  PyArrow/Parquet for normalized canonical bar storage.
+- MANIFEST/METADATA: SQLite (stdlib `sqlite3`) as a rebuildable local
+  catalog/index; committed immutable manifests/evidence remain the durable
+  provenance authority.
+- RESEARCH_QUERY_ENGINE: DuckDB remains DEFERRED/CANDIDATE; not installed.
+- No pandas is added merely for convenience.
+
+TqSdk adoption is scoped to historical concrete-contract 1-minute research
+data only and does not adopt a broker/order capability.
 
 ## Completed research-foundation evidence
 
@@ -105,6 +145,11 @@ does not adopt TqSdk or SHFE annual raw as a project dependency/source.
   normalization, all real quality gates, and the SHFE daily cross-source
   check. DataVersionIdentity values are recorded in CURRENT_STATE and in the
   evidence file. No research-ready canonical dataset is built yet.
+- The Owner source/scope decision (TqSdk ADOPTED, BALANCED scope, no paid
+  continuity) is recorded durably in
+  `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`; `main` was
+  fast-forwarded to the accepted readiness HEAD
+  `238c230207250b3a02cd22dea658898a9a982e53` and pushed.
 
 ## Current Owner action
 

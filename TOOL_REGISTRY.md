@@ -398,6 +398,55 @@ High-value future evidence gates:
 2. **CodeGraph activation threshold:** defer until a real large/unfamiliar repository creates measurable native-navigation friction.
 3. **Taste concrete version:** choose at first real UI activation, preferring stable/pinned releases.
 4. **Security scanner final admission:** local deterministic fixture comparison should confirm the preferred scanner before promoting to `APPROVED`.
+
+---
+
+# 12. Project-adopted data-source / storage capabilities (kline-playbook-engine)
+
+These are **project-scoped** admissions made under the canonical research
+dataset package. They are not global constitutions. The authoritative
+project record is `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md` and
+`CURRENT_STATE.md`; the registry only catalogs them.
+
+## TqSdk
+
+- **Role:** Historical concrete-contract 1-minute research data acquisition (project-scoped canonical minute-data source).
+- **Status:** `APPROVED` (project scope: historical concrete-contract 1-minute research data only).
+- **Source/pin:** PyPI `tqsdk`; runtime compatibility frozen to verified `3.10.1` (`TQSDK_VERIFIED_RUNTIME=3.10.1`); a different runtime requires re-verification and a new source identity.
+- **Activation condition:** Canonical research dataset build under `ds/canonical-dataset-build`; local hidden `TqAuth` input only; no stored credentials.
+- **Material risk:** Trial/entitlement expiry; paid continuity NOT authorized (`PAID_CONTINUITY_AUTHORIZED=NO`, Owner gate if ever needed).
+- **Overlap:** SHFE official annual raw (daily cross-check reference only).
+- **Decision:** Owner-approved adoption (recorded durably); does NOT authorize broker connectivity, live/Shadow trading, order submission, or paid renewal.
+- **Revalidate when:** Runtime/API/entitlement behavior changes materially, or the adopted source identity changes.
+- **Remove:** Preserve acquired raw artifacts + manifest evidence before any source retirement.
+
+## PyArrow / Parquet
+
+- **Role:** NORMALIZED_BAR_STORAGE for the canonical research corpus.
+- **Status:** `APPROVED` after a real local write/read probe (project-scoped). Exact tested capability/version is pinned in the canonical evidence package.
+- **Source/pin:** PyPI `pyarrow`, pinned to the tested version in the project's dependency mechanism.
+- **Activation condition:** Canonical normalized bar storage on the `ds/canonical-dataset-build` branch; raw JSON remains the authoritative raw evidence.
+- **Material risk:** Version drift; schema evolution.
+- **Overlap:** Raw JSON artifacts (retained), SQLite catalog.
+- **Revalidate when:** Tested capability/version changes or storage schema version changes.
+- **Remove:** Preserve accepted Parquet inventories/hashes before removal.
+
+## SQLite (stdlib `sqlite3`)
+
+- **Role:** MANIFEST/METADATA local deterministic catalog/index.
+- **Status:** `APPROVED` (project-scoped).
+- **Source/pin:** Python standard library `sqlite3`.
+- **Activation condition:** Rebuildable catalog over accepted manifests/raw metadata; must NOT become the sole historical truth authority (committed immutable manifests/evidence remain the durable provenance authority).
+- **Material risk:** Single-file DB corruption; rebuild discipline required.
+- **Overlap:** Committed JSON manifests/evidence.
+- **Revalidate when:** Catalog schema/version changes.
+- **Remove:** Rebuild from accepted manifests before removing.
+
+## DuckDB
+
+- **Role:** RESEARCH_QUERY_ENGINE (optional).
+- **Status:** `DEFERRED` — do not install/adopt unless an actual current capability gap is demonstrated.
+- **Decision:** Not installed in this package.
 5. **mise final machine-level admission:** test on the owner’s real Windows environment before promoting to `APPROVED`.
 
 No unresolved Tool Registry item blocks Contract Version 3.1 because the constitution defines capability governance, not product winners.
