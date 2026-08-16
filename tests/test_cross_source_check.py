@@ -38,7 +38,7 @@ class DailyAggregateTests(unittest.TestCase):
             _Bar(datetime(2025, 6, 18, 9, 0, tzinfo=CN), Decimal("100"), Decimal("105"), Decimal("99"), Decimal("102"), 10, Decimal("50")),
             _Bar(datetime(2025, 6, 18, 9, 1, tzinfo=CN), Decimal("102"), Decimal("108"), Decimal("101"), Decimal("107"), 20, Decimal("52")),
         ]
-        agg = aggregate_daily_from_bars("SHFE.au2508", date(2025, 6, 18), bars)
+        agg = aggregate_daily_from_bars("au2508", date(2025, 6, 18), bars)
         self.assertEqual(agg.open, Decimal("100"))
         self.assertEqual(agg.high, Decimal("108"))
         self.assertEqual(agg.low, Decimal("99"))
@@ -46,9 +46,30 @@ class DailyAggregateTests(unittest.TestCase):
         self.assertEqual(agg.volume, 30)
         self.assertEqual(agg.open_interest, Decimal("52"))
 
+    def test_aggregate_ignores_zero_volume_placeholder_open(self) -> None:
+        # TqSdk returns a zero-volume placeholder bar at the session start whose
+        # OHLC is a reference price; the daily open must come from the first
+        # TRADED bar.
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        CN = ZoneInfo("Asia/Shanghai")
+        bars = [
+            _Bar(datetime(2025, 6, 18, 21, 0, tzinfo=CN), Decimal("68340"), Decimal("68340"), Decimal("68340"), Decimal("68340"), 0, Decimal("100")),
+            _Bar(datetime(2025, 6, 18, 21, 1, tzinfo=CN), Decimal("68160"), Decimal("68250"), Decimal("68160"), Decimal("68250"), 90, Decimal("100")),
+            _Bar(datetime(2025, 6, 18, 21, 2, tzinfo=CN), Decimal("68200"), Decimal("68200"), Decimal("68150"), Decimal("68180"), 10, Decimal("101")),
+        ]
+        agg = aggregate_daily_from_bars("cu2402", date(2025, 6, 18), bars)
+        self.assertEqual(agg.open, Decimal("68160"))  # first traded bar
+        self.assertEqual(agg.high, Decimal("68250"))
+        self.assertEqual(agg.low, Decimal("68150"))
+        self.assertEqual(agg.close, Decimal("68180"))  # last traded bar
+        self.assertEqual(agg.volume, 100)
+        self.assertEqual(agg.open_interest, Decimal("101"))  # last bar OI
+
     def test_empty_bars_fail(self) -> None:
         with self.assertRaises(ValueError):
-            aggregate_daily_from_bars("SHFE.au2508", date(2025, 6, 18), [])
+            aggregate_daily_from_bars("au2508", date(2025, 6, 18), [])
 
 
 class CompareDailyTests(unittest.TestCase):

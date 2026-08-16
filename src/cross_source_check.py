@@ -69,22 +69,31 @@ class OfficialDailyRow:
 
 
 def aggregate_daily_from_bars(contract: str, trading_day: date, bars: Iterable) -> DailyAggregate:
-    """Aggregate normalized bars (with .open/.high/.low/.close/.volume) to daily."""
+    """Aggregate normalized bars (with .open/.high/.low/.close/.volume) to daily.
+
+    Daily OHLC are derived from TRADED bars only (volume > 0): TqSdk returns
+    zero-volume placeholder bars at the session start whose OHLC are reference
+    prices, not real trades.  The official daily open is the first traded
+    price, high/low the traded extremes, close the last traded price.  Open
+    interest uses the last bar's end-of-day value (continuous).
+    """
     bar_list = sorted(bars, key=lambda b: b.completed_bar.start)
     if not bar_list:
         raise ValueError("cannot aggregate an empty bar set")
-    oi_end = None
-    # Use the last bar's close_oi (end-of-day open interest) when available.
+    traded = [b for b in bar_list if b.volume is not None and int(b.volume) > 0]
+    if not traded:
+        traded = bar_list  # no trades at all: use the available skeleton
     last = bar_list[-1]
+    oi_end = None
     if hasattr(last, "open_interest_end") and last.open_interest_end is not None:
         oi_end = last.open_interest_end
     return DailyAggregate(
         contract=contract,
         trading_day=trading_day,
-        open=bar_list[0].open,
-        high=max(b.high for b in bar_list),
-        low=min(b.low for b in bar_list),
-        close=last.close,
+        open=traded[0].open,
+        high=max(b.high for b in traded),
+        low=min(b.low for b in traded),
+        close=traded[-1].close,
         volume=sum(int(b.volume) for b in bar_list if b.volume is not None),
         open_interest=oi_end,
     )
@@ -106,11 +115,13 @@ def compare_daily(aggregate: DailyAggregate, official: OfficialDailyRow | None) 
     for field in fields:
         a = getattr(aggregate, field)
         b = getattr(official, field)
-        if str(a) != str(b):
+        # numeric comparison: Decimal equality ignores trailing-zero scale so an
+        # int 49865 and Decimal 49865.0 compare equal.
+        if Decimal(str(a)) != Decimal(str(b)):
             mismatches.append(field)
     oi_comparable = aggregate.open_interest is not None and official.open_interest is not None
     if oi_comparable:
-        if str(aggregate.open_interest) != str(official.open_interest):
+        if Decimal(str(aggregate.open_interest)) != Decimal(str(official.open_interest)):
             mismatches.append("open_interest")
     if mismatches:
         return {

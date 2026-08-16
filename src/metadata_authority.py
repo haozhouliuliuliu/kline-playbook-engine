@@ -336,9 +336,12 @@ def session_windows_for_trading_day(
             night_start_t, night_end_t = schedule.night_window
             start = datetime.combine(prev, night_start_t, tzinfo=zone)
             if night_end_t < night_start_t or night_end_t <= time(12, 0):
-                # night crosses midnight (e.g., 21:00 -> 01:00): ends on the
-                # trading day it opens for
-                end = datetime.combine(trading_day, night_end_t, tzinfo=zone)
+                # night crosses midnight (e.g., 21:00 -> 01:00): the session
+                # starts 21:00 of the previous trading day and ends at
+                # night_end on the FOLLOWING day.  This is prev + 1 day, not
+                # necessarily the trading day (weekends/holidays between prev
+                # and the trading day must NOT add expected bars).
+                end = datetime.combine(prev, night_end_t, tzinfo=zone) + timedelta(days=1)
             else:
                 # night does not cross midnight (e.g., 21:00 -> 23:00): ends
                 # the same evening on the previous trading day

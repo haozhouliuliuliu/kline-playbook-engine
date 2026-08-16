@@ -260,10 +260,13 @@ def build_requests(
 
                     resolve_session_schedule(list(schedules.values()), product, day)
                 prev = calendar.previous_trading_day(day)
-                if prev is None:
-                    # First trading day of the corpus: no previous trading day
-                    # in the calendar, so acquire the day session only
-                    # (09:00-15:00). 2024-01-02 is also officially night-closed.
+                if prev is None or calendar.is_night_closed(day):
+                    # First trading day of the corpus (no previous trading day)
+                    # or an officially night-closed trading day: acquire the day
+                    # session only (09:00-15:00). Requesting the night window on
+                    # a night-closed day makes TqSdk return a leading previous-
+                    # day anchor bar that would violate the requested-coverage
+                    # boundary.
                     start = datetime.combine(day, time(9, 0), tzinfo=CN)
                     end = datetime.combine(day, time(15, 0), tzinfo=CN)
                 else:
@@ -321,7 +324,7 @@ def build_contract_configs(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="print request plan only")
-    parser.add_argument("--phase", choices=("acquire", "normalize", "all"), default="all")
+    parser.add_argument("--phase", choices=("acquire", "normalize", "re-evaluate", "all"), default="all")
     parser.add_argument("--products", default=None, help="comma-separated product subset")
     parser.add_argument("--batch-size", type=int, default=200)
     parser.add_argument("--limit", type=int, default=None, help="max partitions this run")
@@ -361,6 +364,13 @@ def main() -> None:
     configs = build_contract_configs(calendar, universe, specs, schedules)
 
     manifest_path = Path(args.manifest)
+    if args.phase == "re-evaluate":
+        from src.historical_manifest import DatasetManifest  # noqa: PLC0415
+
+        if not manifest_path.exists():
+            raise SystemExit(f"no manifest at {manifest_path}")
+        reevaluate_manifest(manifest_path, Path(args.raw_dir), configs)
+        return
     if args.phase in ("acquire", "all"):
         adapter = TqSdkSourceAdapter(credentials_from_terminal)
         builder = DatasetBuilder(
@@ -414,25 +424,21 @@ class StoredPartition:
     storage_facts: dict
 
 
-def normalize_and_store_partition(
+def _reconstruct_and_normalize(
     partition: ManifestPartition,
     raw_dir: Path,
-    parquet_dir: Path,
     sessions,
-    contract_metadata_identity: str,
     minimum_price_tick: Decimal,
-) -> StoredPartition:
-    """Reconstruct the raw artifact + data version, normalize, store to Parquet.
+):
+    """Reconstruct source/artifact/data-version and normalize the raw artifact.
 
-    Uses the accepted normalization path (src.historical_data).  Fails closed
-    if the raw artifact on disk does not match the recorded raw SHA256.
+    Returns (batch, source).  Fails closed if the raw artifact on disk does not
+    match the recorded raw SHA256 or any reconstructed identity conflicts.
     """
-    # locate the raw file by deterministic name scheme + recorded hash
     raw_path = _find_raw_file(raw_dir, partition)
     payload = raw_path.read_bytes()
     if sha256_hex(payload) != partition.raw_sha256:
         raise ValueError(f"raw artifact hash mismatch for {partition.contract} {partition.trading_day}")
-
     source = SourceIdentity(
         provider=partition.provider,
         source_type=SOURCE_SPEC.source_type,
@@ -464,7 +470,6 @@ def normalize_and_store_partition(
     )
     if data_version.identity_id != partition.data_version_id:
         raise ValueError("reconstructed data version conflicts with recorded data version")
-
     batch = normalize_tqsdk_historical_bars(
         payload,
         artifact=artifact,
@@ -472,6 +477,79 @@ def normalize_and_store_partition(
         sessions=sessions,
         minimum_price_tick=minimum_price_tick,
     )
+    return batch, source
+
+
+def reevaluate_manifest(
+    manifest_path: Path,
+    raw_dir: Path,
+    configs: dict[str, ContractConfig],
+) -> None:
+    """Recompute quality_status for every accepted partition with current
+    governed session metadata and rewrite the manifest (raw data unchanged).
+    Used to correct assessments recorded under a defective session authority.
+    """
+    from src.historical_manifest import DatasetManifest  # noqa: PLC0415
+
+    manifest = DatasetManifest.load(manifest_path)
+    changed = 0
+    entries = []
+    for partition in manifest.partitions:
+        config = configs[partition.contract]
+        batch, _source = _reconstruct_and_normalize(
+            partition, raw_dir, config.sessions, config.minimum_price_tick
+        )
+        quality = (
+            "PASS"
+            if not batch.missing_expected_starts
+            else f"ANOMALY:missing_expected_starts={len(batch.missing_expected_starts)}"
+        )
+        if quality != partition.quality_status:
+            changed += 1
+        partition = ManifestPartition(
+            provider=partition.provider,
+            api_version=partition.api_version,
+            contract=partition.contract,
+            exchange=partition.exchange,
+            granularity_seconds=partition.granularity_seconds,
+            timezone=partition.timezone,
+            trading_day=partition.trading_day,
+            requested_start=partition.requested_start,
+            requested_end=partition.requested_end,
+            returned_start=partition.returned_start,
+            returned_end=partition.returned_end,
+            retrieved_at=partition.retrieved_at,
+            raw_bytes=partition.raw_bytes,
+            raw_sha256=partition.raw_sha256,
+            request_identity=partition.request_identity,
+            request_parameters=partition.request_parameters,
+            normalizer_identity=partition.normalizer_identity,
+            session_metadata_version=partition.session_metadata_version,
+            contract_metadata_identity=partition.contract_metadata_identity,
+            data_version_id=partition.data_version_id,
+            normalized_batch_id=partition.normalized_batch_id,
+            quality_status=quality,
+        )
+        entries.append(partition)
+    new_manifest = DatasetManifest(manifest.schema_version, tuple(entries))
+    DatasetManifest.save(new_manifest, manifest_path)
+    print(f"REEVALUATED partitions={len(entries)} quality_changed={changed} manifest_identity={new_manifest.identity()}")
+
+
+def normalize_and_store_partition(
+    partition: ManifestPartition,
+    raw_dir: Path,
+    parquet_dir: Path,
+    sessions,
+    contract_metadata_identity: str,
+    minimum_price_tick: Decimal,
+) -> StoredPartition:
+    """Reconstruct the raw artifact + data version, normalize, store to Parquet.
+
+    Uses the accepted normalization path (src.historical_data).  Fails closed
+    if the raw artifact on disk does not match the recorded raw SHA256.
+    """
+    batch, source = _reconstruct_and_normalize(partition, raw_dir, sessions, minimum_price_tick)
     product = partition.contract.split(".")[1][:2].lower()
     rows = []
     for bar in batch.bars:
@@ -486,10 +564,10 @@ def normalize_and_store_partition(
                 bar_start=bar.completed_bar.start,
                 bar_end=bar.completed_bar.end,
                 historical_available_at=bar.completed_bar.available_at,
-                open=str(bar.open),
-                high=str(bar.high),
-                low=str(bar.low),
-                close=str(bar.close),
+                open=bar.open,
+                high=bar.high,
+                low=bar.low,
+                close=bar.close,
                 volume=int(bar.volume) if bar.volume is not None else 0,
                 open_interest_start=int(bar.open_interest_start) if bar.open_interest_start is not None else None,
                 open_interest_end=int(bar.open_interest_end) if bar.open_interest_end is not None else None,

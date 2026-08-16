@@ -240,6 +240,33 @@ class SessionWindowTests(unittest.TestCase):
         # night 21:00 -> 01:00 = 240 min; day 09:00->10:15 = 75; 13:30->15:00 = 90
         self.assertEqual(len(starts), 240 + 75 + 90)
 
+    def test_monday_night_window_spans_only_friday_night(self) -> None:
+        # A Monday trading day's night session is Friday 21:00 -> Saturday
+        # 01:00 (crossing midnight); it must NOT span the whole weekend.
+        days = [date(2024, 6, 17), date(2024, 6, 18), date(2024, 6, 19),
+                date(2024, 6, 20), date(2024, 6, 21)]  # Mon-Fri
+        cal = TradingCalendar("v1", days, _source())
+        # Tuesday whose prev trading day is Monday: night 21:00 -> 01:00
+        tuesday = date(2024, 6, 18)
+        windows = session_windows_for_trading_day(cal, self.schedule, "SHFE.cu2407", tuesday)
+        night = [w for w in windows if w.kind == "night"]
+        self.assertEqual(len(night), 1)
+        self.assertEqual(night[0].start, datetime(2024, 6, 17, 21, 0, tzinfo=CN))
+        self.assertEqual(night[0].end, datetime(2024, 6, 18, 1, 0, tzinfo=CN))
+
+    def test_night_window_does_not_span_weekend(self) -> None:
+        # prev trading day = Friday; night session ends Saturday 01:00, not the
+        # Monday trading day 01:00.
+        friday = date(2024, 6, 14)
+        monday = date(2024, 6, 17)
+        days = [friday, monday]
+        cal = TradingCalendar("v1", days, _source())
+        windows = session_windows_for_trading_day(cal, self.schedule, "SHFE.cu2407", monday)
+        night = [w for w in windows if w.kind == "night"]
+        self.assertEqual(len(night), 1)
+        self.assertEqual(night[0].start, datetime(2024, 6, 14, 21, 0, tzinfo=CN))
+        self.assertEqual(night[0].end, datetime(2024, 6, 15, 1, 0, tzinfo=CN))
+
     def test_monday_without_previous_day_has_no_night(self) -> None:
         days = self.calendar.trading_days(date(2024, 6, 17), date(2024, 6, 17))
         meta = build_session_metadata(self.calendar, self.schedule, "SHFE.cu2407", days)
