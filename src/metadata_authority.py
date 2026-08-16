@@ -335,10 +335,14 @@ def session_windows_for_trading_day(
         if prev is not None:
             night_start_t, night_end_t = schedule.night_window
             start = datetime.combine(prev, night_start_t, tzinfo=zone)
-            end = datetime.combine(trading_day, night_end_t, tzinfo=zone)
             if night_end_t < night_start_t or night_end_t <= time(12, 0):
-                # night window crosses midnight: end is on the trading day
-                pass
+                # night crosses midnight (e.g., 21:00 -> 01:00): ends on the
+                # trading day it opens for
+                end = datetime.combine(trading_day, night_end_t, tzinfo=zone)
+            else:
+                # night does not cross midnight (e.g., 21:00 -> 23:00): ends
+                # the same evening on the previous trading day
+                end = datetime.combine(prev, night_end_t, tzinfo=zone)
             windows.append(SessionWindow(schedule.exchange, concrete_contract, trading_day, start, end, "night"))
     for day_start_t, day_end_t in schedule.day_windows:
         start = datetime.combine(trading_day, day_start_t, tzinfo=zone)

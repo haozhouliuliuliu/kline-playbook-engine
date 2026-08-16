@@ -1,11 +1,15 @@
 """Canonical BALANCED dataset build runner (resumable, bounded batches).
 
 Flow:
-1. Load governed metadata (trading calendar, contract universe, session
-   schedules, contract specs) from committed evidence JSON.
+1. Load governed metadata (trading calendar incl. official night-closed days,
+   contract universe, session schedules, contract specs with historical
+   effective periods) from committed evidence JSON.
 2. Build per-contract ContractConfig (explicit SessionMetadata + governed
    ContractMetadataFact).
-3. Generate AcquisitionRequest partitions from the governed universe.
+3. Generate AcquisitionRequest partitions from the governed universe with a
+   FAIL-CLOSED planner (no request is planned when metadata effective-period
+   coverage is missing/conflicting, session authority is unresolved, or
+   contract listing/expiry is inconsistent with the trading day).
 4. Run the accepted DatasetBuilder in bounded resumable batches (idempotent
    checkpoint/resume; a paused or interrupted run never invalidates accepted
    partitions and never duplicates data).
@@ -14,15 +18,17 @@ Flow:
 6. Optional cross-source check against the SHFE official annual raw.
 7. Compute the immutable canonical corpus identity.
 
-The full acquisition is Owner-gated by the scale guardrail
-(CANONICAL_BALANCED_UNIVERSE.json: PROJECTED_RAW_EXCEEDS_3X_READINESS_GUARDRAIL,
-projected ~2.6 GB).  This runner is fully implemented and tested with
-deterministic fakes so the build can proceed immediately once authorized.
+Phases: ``acquire`` (TqSdk raw acquisition; needs the TqSdk venv + hidden
+credentials), ``normalize`` (Parquet + SQLite catalog; needs the pyarrow venv),
+``all`` (both).  Project-lead approved the full BALANCED corpus scale
+(APPROVED_FULL_BALANCED_CORPUS, projected ~2.6 GB <= 5 GB cap).
 
 Usage (dry run / planning):
-  python -m tools.build_canonical_dataset --dry-run --max-partitions 10
-Usage (real, after gate):
-  python -m tools.build_canonical_dataset --batch-size 200 --max-partitions 1000
+  python -m tools.build_canonical_dataset --dry-run
+Usage (real acquisition batch, TqSdk venv):
+  python -m tools.build_canonical_dataset --phase acquire --products cu,al --limit 300
+Usage (normalize accepted partitions, pyarrow venv):
+  python -m tools.build_canonical_dataset --phase normalize
 """
 from __future__ import annotations
 
@@ -315,13 +321,23 @@ def build_contract_configs(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="print request plan only")
+    parser.add_argument("--phase", choices=("acquire", "normalize", "all"), default="all")
+    parser.add_argument("--products", default=None, help="comma-separated product subset")
     parser.add_argument("--batch-size", type=int, default=200)
-    parser.add_argument("--max-partitions", type=int, default=None)
+    parser.add_argument("--limit", type=int, default=None, help="max partitions this run")
     parser.add_argument("--raw-dir", default=str(PROJECT_ROOT / "data" / "raw" / "historical"))
-    parser.add_argument("--manifest", default=str(EVIDENCE / "CANONICAL_DATASET_MANIFEST.json"))
+    parser.add_argument("--manifest", default=str(PROJECT_ROOT / "data" / "canonical" / "manifest.json"))
     parser.add_argument("--parquet-dir", default=str(PROJECT_ROOT / "data" / "canonical" / "parquet"))
     parser.add_argument("--catalog", default=str(PROJECT_ROOT / "data" / "canonical" / "catalog.sqlite"))
     args = parser.parse_args()
+
+    selected_products = PRODUCTS
+    if args.products:
+        selected_products = [p.strip() for p in args.products.split(",") if p.strip()]
+        unknown = [p for p in selected_products if p not in PRODUCTS]
+        if unknown:
+            raise SystemExit(f"unknown products: {unknown}")
+    print(f"SELECTED_PRODUCTS={selected_products}")
 
     calendar = load_calendar()
     specs = load_specs()
@@ -329,46 +345,59 @@ def main() -> None:
     universe = load_universe()
     bounds = load_universe_bounds()
     requests = build_requests(calendar, universe, bounds, specs=specs, schedules=schedules)
-    if args.max_partitions is not None:
-        requests = requests[: args.max_partitions]
-    print(f"PLAN partitions={len(requests)} products={PRODUCTS} coverage={COVERAGE_START}..{COVERAGE_END}")
+    requests = [r for r in requests if r.concrete_instrument.split(".")[1][:2].lower() in selected_products]
+    if args.limit is not None:
+        requests = requests[: args.limit]
+    print(f"PLAN partitions={len(requests)} products={selected_products} coverage={COVERAGE_START}..{COVERAGE_END}")
 
     if args.dry_run:
-        per_product = {p: sum(1 for r in requests if r.concrete_instrument.startswith(f"SHFE.{p}")) for p in PRODUCTS}
+        per_product = {
+            p: sum(1 for r in requests if r.concrete_instrument.startswith(f"SHFE.{p}"))
+            for p in selected_products
+        }
         print(json.dumps({"dry_run": True, "per_product": per_product}, indent=2, sort_keys=True))
         return
 
     configs = build_contract_configs(calendar, universe, specs, schedules)
-    adapter = TqSdkSourceAdapter(credentials_from_terminal)
-    builder = DatasetBuilder(
-        adapter=adapter,
-        raw_dir=Path(args.raw_dir),
-        manifest_path=Path(args.manifest),
-        schema_version="canonical-balanced-manifest-v1",
-        contracts=configs,
-    )
-    try:
-        manifest = builder.build(requests)
-    finally:
-        adapter.close()
-    print(f"ACQUIRED manifest_identity={manifest.identity()} partitions={len(manifest.partitions)}")
+
+    manifest_path = Path(args.manifest)
+    if args.phase in ("acquire", "all"):
+        adapter = TqSdkSourceAdapter(credentials_from_terminal)
+        builder = DatasetBuilder(
+            adapter=adapter,
+            raw_dir=Path(args.raw_dir),
+            manifest_path=manifest_path,
+            schema_version="canonical-balanced-manifest-v1",
+            contracts=configs,
+        )
+        try:
+            manifest = builder.build(requests)
+        finally:
+            adapter.close()
+        print(f"ACQUIRED manifest_identity={manifest.identity()} partitions={len(manifest.partitions)}")
+    else:
+        from src.historical_manifest import DatasetManifest  # noqa: PLC0415
+
+        manifest = DatasetManifest.load(manifest_path)
+        print(f"MANIFEST partitions={len(manifest.partitions)} (normalize only)")
 
     # Normalize -> Parquet + SQLite catalog (per accepted partition).
-    catalog = CanonicalCatalog(Path(args.catalog))
-    catalog.set_meta("schema_version", "canonical-catalog-v1")
-    catalog.set_meta("manifest_identity", manifest.identity())
-    try:
-        for partition in manifest.partitions:
-            config = configs[partition.contract]
-            storage = normalize_and_store_partition(
-                partition, Path(args.raw_dir), Path(args.parquet_dir),
-                config.sessions, config.metadata_fact.identity_id(),
-                config.minimum_price_tick,
-            )
-            catalog.upsert_partition(storage.entry)
-    finally:
-        catalog.close()
-    print(f"CATALOG partitions={_catalog_count(Path(args.catalog))}")
+    if args.phase in ("normalize", "all"):
+        catalog = CanonicalCatalog(Path(args.catalog))
+        catalog.set_meta("schema_version", "canonical-catalog-v1")
+        catalog.set_meta("manifest_identity", manifest.identity())
+        try:
+            for partition in manifest.partitions:
+                config = configs[partition.contract]
+                storage = normalize_and_store_partition(
+                    partition, Path(args.raw_dir), Path(args.parquet_dir),
+                    config.sessions, config.metadata_fact.identity_id(),
+                    config.minimum_price_tick,
+                )
+                catalog.upsert_partition(storage.entry)
+        finally:
+            catalog.close()
+        print(f"CATALOG partitions={_catalog_count(Path(args.catalog))}")
 
 
 def _catalog_count(path: Path) -> int:

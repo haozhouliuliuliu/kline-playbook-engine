@@ -184,6 +184,21 @@ class SessionWindowTests(unittest.TestCase):
         day_windows = [w for w in windows if w.kind == "day"]
         self.assertEqual(len(day_windows), 2)
 
+    def test_non_crossing_night_window_rb(self) -> None:
+        # rb night 21:00-23:00 does NOT cross midnight: ends same evening
+        schedule = ProductSessionSchedule(
+            "SHFE", "rb", date(2024, 1, 1), date(2025, 12, 31),
+            ((time(9, 0), time(10, 15)), (time(13, 30), time(15, 0))),
+            (time(21, 0), time(23, 0)), timezone="Asia/Shanghai", source=_source(),
+        )
+        day = date(2024, 6, 18)  # Tuesday; prev trading day is Monday 17
+        windows = session_windows_for_trading_day(self.calendar, schedule, "SHFE.rb2410", day)
+        night = [w for w in windows if w.kind == "night"]
+        self.assertEqual(len(night), 1)
+        self.assertEqual(night[0].start, datetime(2024, 6, 17, 21, 0, tzinfo=CN))
+        self.assertEqual(night[0].end, datetime(2024, 6, 17, 23, 0, tzinfo=CN))
+        self.assertEqual(night[0].trading_day, day)
+
     def test_night_closed_day_has_no_night_window(self) -> None:
         day = date(2024, 6, 18)
         windows = session_windows_for_trading_day(
