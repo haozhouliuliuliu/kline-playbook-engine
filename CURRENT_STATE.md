@@ -12,17 +12,17 @@ BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
 
 ## Current objective
-Execute the Owner-approved canonical research dataset build and source
-acceptance package: record the Owner source/scope decision durably (done in
-`docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`), define the BALANCED corpus
-(done in `docs/evidence/CANONICAL_DATASET_BALANCED_DEFINITION.md`), build the
-governed metadata/storage/acquisition/identity infrastructure on
-`ds/canonical-dataset-build` (done, tested). Project-lead adjudication
-APPROVED the full BALANCED corpus scale (~2.615 GB projected) and required the
-HISTORICAL_METADATA_EFFECTIVE_PERIOD_BINDING fix, which is now corrected
-(contract-spec effective periods + night-closed days bound to official SHFE
-notices; fail-closed planner). The resumable canonical corpus build is now
-underway; no partial canonical-dataset claims are exposed on `main`.
+The Owner-approved canonical BALANCED research dataset is COMPLETE and ACCEPTED:
+32,980/32,980 partitions (cu/al/ni/au/ag/rb, 2024-01-01..2025-12-31) acquired
+from TqSdk, normalized to Parquet + SQLite catalog, cross-source verified
+against SHFE official daily, and sealed under the immutable canonical corpus
+identity. Acceptance record:
+`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`; corpus identity:
+`docs/evidence/CANONICAL_CORPUS_IDENTITY.json`; full cross-source evidence:
+`docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`. The next material stage is the
+research-protocol and chronological-split freeze review
+(`CURRENT_NEXT_ACTION=RESEARCH_PROTOCOL_AND_CHRONOLOGICAL_SPLIT_FREEZE_REVIEW`),
+which has NOT yet been executed.
 
 ## Owner source/scope decision (final, recorded durably)
 OWNER_APPROVAL=YES
@@ -125,16 +125,14 @@ These are environment facts, not project dependencies or adoption decisions.
 ## Current next action
 CURRENT_NEXT_ACTION=RESEARCH_PROTOCOL_AND_CHRONOLOGICAL_SPLIT_FREEZE_REVIEW
 
-The canonical BALANCED corpus is BUILT and ACCEPTED on
-`ds/canonical-dataset-build`: 32,980/32,980 partitions acquired from TqSdk
-(all PASS), normalized to Parquet + SQLite catalog, cross-source verified
-against SHFE official daily (32,841 MATCH / 0 MISMATCH / 139 NOT_AVAILABLE
-benign), and sealed under the immutable canonical corpus identity
+The canonical BALANCED corpus is BUILT and ACCEPTED and merged to `main` at
+`be2bc23e`: 32,980/32,980 partitions acquired from TqSdk (all PASS), normalized
+to Parquet + SQLite catalog, cross-source verified against SHFE official daily
+(32,841 MATCH / 0 MISMATCH / 139 NOT_AVAILABLE benign), and sealed under the
+immutable canonical corpus identity
 `1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`
-(`docs/evidence/CANONICAL_CORPUS_IDENTITY.json`).  The next review is the
-research-protocol and chronological-split freeze, which is NOT created here.
-No partial canonical-dataset claim is exposed on `main` until the merge below
-completes.
+(`docs/evidence/CANONICAL_CORPUS_IDENTITY.json`). The next review is the
+research-protocol and chronological-split freeze, which has NOT been executed.
 
 ## Current acceptance
 
@@ -180,7 +178,9 @@ data only and does not adopt a broker/order capability.
   day 2025-06-16) passed the existing normalization path, real-sample PIT
   normalization, all real quality gates, and the SHFE daily cross-source
   check. DataVersionIdentity values are recorded in CURRENT_STATE and in the
-  evidence file. No research-ready canonical dataset is built yet.
+  evidence file. This real-sample validation preceded the full canonical
+  corpus build; the full corpus is now BUILT and ACCEPTED
+  (`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`).
 - The Owner source/scope decision (TqSdk ADOPTED, BALANCED scope, no paid
   continuity) is recorded durably in
   `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`; `main` was
@@ -191,7 +191,9 @@ data only and does not adopt a broker/order capability.
   `docs/evidence/CANONICAL_BALANCED_UNIVERSE.json` (6 products cu/al/ni/au/ag/rb;
   2024-01-01..2025-12-31; PIT-complete listed contract universe; projected
   ≈2.615 GB raw / ≈15.4 M bars / 32,841 traded partitions → exceeds the 3×
-  readiness guardrail → large acquisition GATED and reported to project lead).
+  readiness guardrail → large acquisition GATED and reported to project lead;
+  the scale was subsequently approved as APPROVED_FULL_BALANCED_CORPUS and the
+  corpus was built and accepted).
 - Governed metadata fixtures bound to official SHFE sources:
   `CANONICAL_TRADING_CALENDAR.json`, `CANONICAL_CONTRACT_UNIVERSE.json`,
   `CANONICAL_SESSION_SCHEDULES.json`, `CANONICAL_CONTRACT_SPECS.json`
@@ -207,8 +209,13 @@ data only and does not adopt a broker/order capability.
   confirmed the trial is active and measured ≈79.6 KB/partition with full
   session bar skeletons even for ultra-thin contracts; recorded in
   `docs/evidence/CANONICAL_DATASET_PACKAGE.md`.
-- Formal package evidence: `docs/evidence/CANONICAL_DATASET_PACKAGE.md`
-  (FINAL=OWNER_GATE, CANONICAL_CORPUS_IDENTITY=NONE).
+- Formal package evidence (historical pre-acceptance OWNER_GATE):
+  `docs/evidence/CANONICAL_DATASET_PACKAGE.md` (FINAL=OWNER_GATE,
+  CANONICAL_CORPUS_IDENTITY=NONE). Superseded by the acceptance record
+  `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md` (ACCEPTED) and the corpus
+  identity `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`
+  (`1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`);
+  full cross-source evidence: `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`.
 
 ## Current Owner action
 

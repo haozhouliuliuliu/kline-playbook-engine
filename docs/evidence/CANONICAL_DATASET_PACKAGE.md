@@ -1,5 +1,15 @@
 # Canonical Dataset Package — Evidence (Phase 12)
 
+> **STATUS / SUPERSESSION (read first)** — This document preserves the
+> historical pre-acceptance OWNER_GATE package and is retained for auditability.
+> The scale guardrail was subsequently approved
+> (SCALE_DECISION=APPROVED_FULL_BALANCED_CORPUS), and the complete canonical
+> BALANCED corpus was later BUILT and ACCEPTED. This package's
+> `FINAL=OWNER_GATE` status is therefore superseded. Final current status
+> authority: `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`. Final corpus
+> identity authority: `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`
+> (`1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`).
+
 Status of the Owner-approved CANONICAL_RESEARCH_DATASET_BUILD_AND_SOURCE_ACCEPTANCE_PACKAGE.
 
 ```text
