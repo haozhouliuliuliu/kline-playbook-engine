@@ -19,6 +19,7 @@ This file defines the Owner's stable collaboration preferences for this project.
 - Owner-level approval is reserved for genuinely new product direction, research design, frozen semantics, permanent risk rules, real-money/broker actions, paid commitments, or irreversible external actions.
 - Safe, bounded work should be completed in one package where practical instead of being split into many artificial rounds.
 - Before splitting adjacent work into separate Codex packages, explicitly test whether it can be safely completed under the same authority, stage, verification boundary, and risk envelope. If yes, combine it into one bounded package. Split only when an Owner gate, materially different/frozen semantics, destructive or external consequence, independent acceptance boundary, or excessive scope/risk makes separation useful.
+- If GPT can safely complete repository-only documentation, state synchronization, review integration, or other bounded GitHub work through connected project tools, do it directly instead of consuming a VS Code/DeepSeek worker. Reserve local implementation agents for code, tests, runtime/local-environment work, or independent review that genuinely benefits from them.
 
 ## Parallel execution preference
 - When two or more bounded work packages are genuinely independent, do not share mutable authority/files, and can be verified separately, prefer safe parallel execution instead of unnecessary serial waiting.
@@ -26,6 +27,7 @@ This file defines the Owner's stable collaboration preferences for this project.
 - Parallel workers must not push `main` or independently edit shared authority such as `CURRENT_STATE.md`, `00_READ_FIRST.md`, frozen protocols, Owner evidence, or other common integration-owned files unless the integration task explicitly assigns that ownership.
 - Parallelize engineering audits, independent reviews, evidence gathering, and non-overlapping implementation when dependencies allow. Do not parallelize steps whose meaning depends on an unresolved upstream research-semantic decision or Owner gate.
 - Prefer a small number of high-value parallel lanes (normally 2–3) over many agents that create merge/conflict overhead. The project brain owns decomposition, dependency checks, integration order, and final adjudication.
+- When the Owner is manually relaying prompts and multiple independent lanes are already safe to start, provide all ready-to-run worker prompts in the same response rather than forcing the Owner to return once per lane. Each prompt must still identify its own worktree/branch, authority boundary, stop condition, model recommendation, and reasoning intensity.
 
 ## Codex workflow
 - When Codex is needed, provide one complete copy-paste task prompt. Do not ask the Owner to assemble fragments.
@@ -67,6 +69,8 @@ This file defines the Owner's stable collaboration preferences for this project.
 ## Cost and efficiency
 - Owner time, API usage, token usage, and context are hard constraints.
 - Prefer the cheapest reliable way to falsify a prerequisite before building expensive infrastructure.
+- Prefer capabilities already included in the Owner's existing subscriptions or already-authorized API quota before proposing a new paid API/service.
+- Do not add a new paid API merely to automate message relay between assistants when the existing manual relay plus repository/worktree workflow is adequate. Any new paid API/service remains an Owner gate.
 - Do not sacrifice correctness, safety, evidence quality, or reproducibility merely to reduce cost.
 
 ## Handoff and continuity
