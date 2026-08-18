@@ -171,29 +171,31 @@ Accepted engine facts:
 - TD-001 requires future day/week statistics to use `SessionMetadata`, not the bootstrap calendar;
 - LIMIT-001 is a fail-closed data/governance blocker for affected real confirmatory PnL, not a silent fill error.
 
-### Parallel engine-compatibility crosswalk — COMPLETE / advisory evidence
+### Engine-compatibility crosswalk — COMPLETE / advisory evidence / integrated to main
 
 ```text
-CROSSWALK_BRANCH=parallel/stat-engine-audit
-CROSSWALK_COMMIT=05ad7f9a94c1a6b885402a4417a0d095dbfa7c56
+CROSSWALK_ORIGINAL_BRANCH=parallel/stat-engine-audit
+CROSSWALK_ORIGINAL_COMMIT=05ad7f9a94c1a6b885402a4417a0d095dbfa7c56
+CROSSWALK_MAIN_INTEGRATION_COMMIT=4b2c882331f855c730d125517e6b7fd563025055
 CROSSWALK_DOC=docs/evidence/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ENGINE_COMPATIBILITY_CROSSWALK.md
 CROSSWALK_VERDICT=BROADLY_COMPATIBLE_WITH_SMALL_DELTAS_AND_DESIGN_AMBIGUITIES
 ```
 
-The crosswalk did not push `main`. Its durable evidence remains addressable by branch/commit. It found no frozen-protocol conflict, but identified unresolved round-trip counting, holding-horizon, open-ratio, cost-stress, and multiplicity-counting definitions.
+The worker itself did not push `main`; after project-brain adjudication, the integration lane merged the read-only evidence to `main`. It found no frozen-protocol conflict, but identified unresolved round-trip counting, holding-horizon, open-ratio, cost-stress, and multiplicity-counting definitions.
 
-### Independent adversarial statistical review — COMPLETE / advisory evidence
+### Independent adversarial statistical review — COMPLETE / advisory evidence / integrated to main
 
 ```text
-ADVERSARIAL_REVIEW_BRANCH=parallel/stat-profile-review
-ADVERSARIAL_REVIEW_COMMIT=5e78605d312ee2e6c22e82dc4d91d651eacac4b2
+ADVERSARIAL_REVIEW_ORIGINAL_BRANCH=parallel/stat-profile-review
+ADVERSARIAL_REVIEW_ORIGINAL_COMMIT=5e78605d312ee2e6c22e82dc4d91d651eacac4b2
+ADVERSARIAL_REVIEW_MAIN_INTEGRATION_COMMIT=4650e5fe24e4ac50377a2e7440b81921c57c0a87
 ADVERSARIAL_REVIEW_DOC=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADVERSARIAL_REVIEW.md
 REVIEW_VERDICT=GO_WITH_REQUIRED_CHANGES
 CRITICAL_COUNT=3
 HIGH_COUNT=6
 ```
 
-The review did not push `main`, did not read the other parallel crosswalk, did not inspect candidate outcomes, and did not alter frozen authority.
+The reviewer itself did not push `main`, did not read the parallel crosswalk, did not inspect candidate outcomes, and did not alter frozen authority. After adjudication, the integration lane merged the review document to `main` as durable evidence.
 
 Main CRITICAL findings accepted by project-brain adjudication:
 1. current candidate lacks a defensible power/detectability interpretation and risks false precision;
@@ -308,14 +310,24 @@ NOT_AUTHORIZED:
 - authenticated browser-cookie acquisition without separate review;
 - redistribution of copyrighted raw source material.
 
-## Tools / capability
+## Tools / capability / current execution workflow
 
 ```text
 TOOL_DECISION=USE_EXISTING
 TOOL_DECISION_SCOPE=COMMON_STATISTICAL_PROFILE_V1_REVISION_AFTER_PARALLEL_REVIEW
+PAID_CHAT_RELAY_ORCHESTRATOR=NOT_ADOPTED_CURRENTLY
+BRITTLE_VSCODE_UI_CHAT_AUTOMATION=NOT_ADOPTED_CURRENTLY
+CURRENT_DS_RELAY_MODE=OWNER_MANUAL_RELAY_WHEN_LOCAL_AGENT_IS_NEEDED
 ```
 
-No new tool gap is demonstrated. Existing repository evidence/code/tests, primary statistical literature, GPT project-brain adjudication, and the Owner's VS Code DeepSeek V4 Flash capability are sufficient for the next bounded package.
+No new tool gap is demonstrated. Existing repository evidence/code/tests, primary statistical literature, GPT project-brain adjudication, and the Owner's existing VS Code DeepSeek V4 Flash capability are sufficient for the next bounded package. The Owner explicitly declined adding a new paid OpenAI API solely to automate ChatGPT↔DeepSeek message relay; future new paid APIs/services remain an Owner gate. UI-click/clipboard automation is not the current plan because it is brittle.
+
+When GPT can safely perform repository-only documentation/state/review-integration work through connected GitHub tools, it should do so directly instead of consuming a DS worker. DS remains appropriate for local code/tests/runtime work and bounded independent review.
+
+Tool-status taxonomy must not be conflated:
+- project-level external capability status uses `CANDIDATE / VERIFIED / ADOPTED`;
+- the cross-project `TOOL_REGISTRY.md` uses its own catalog taxonomy such as `CANDIDATE / APPROVED / DEFERRED / REJECTED / RETIRED`;
+- repository/CURRENT_STATE project facts decide what this project actually uses.
 
 Project-local adopted capabilities remain:
 - TqSdk 3.10.1 — historical concrete-contract 1-minute research data only;
@@ -349,16 +361,18 @@ Activation boundaries:
 
 ## Parallel-work operating state
 
-Owner collaboration now explicitly prefers safe parallelism when work is genuinely independent.
+Owner collaboration explicitly prefers safe parallelism when work is genuinely independent.
 
 Project rules:
 - isolated worktrees/branches for parallel workers;
 - one integration lane owns `main` and shared authority/state;
 - parallel workers do not push `main` or independently edit shared authority unless assigned;
 - normally keep concurrency to 2–3 high-value lanes;
-- do not parallelize tasks whose meaning depends on an unresolved research-semantic decision or Owner gate.
+- when multiple independent lanes are already ready and Owner is manually relaying prompts, provide all runnable prompts together rather than one lane per conversation turn;
+- do not parallelize tasks whose meaning depends on an unresolved research-semantic decision or Owner gate;
+- before creating a new worktree/branch, inspect existing `git worktree list` and branch state instead of blindly recreating names.
 
-The two statistical parallel branches may be retained as review evidence until their useful content is fully superseded/integrated; their commit SHAs are recorded above.
+The statistical review/audit evidence is now integrated to `main`. Local review worktrees may still exist on the Owner machine and do not need destructive cleanup for handoff; future workers must inspect before reusing or creating worktrees.
 
 ## Verification status
 
@@ -371,7 +385,7 @@ python -m unittest discover -s tests -v
 exit 0
 ```
 
-Subsequent main changes after that verification are documentation/state/authority-only; no production/test code was modified during statistical candidate design, capability audit integration, parallel crosswalk, adversarial review, or this adjudication.
+All main changes after that verification, including second-pass handoff/state corrections and the two review-evidence integrations, are documentation/state/authority-only; no production/test code changed. Therefore `235 OK / 3 skipped` remains the latest code-bearing verification baseline, not a claim that a new code suite was required after doc-only merges.
 
 ## Current next action
 
