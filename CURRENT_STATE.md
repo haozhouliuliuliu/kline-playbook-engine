@@ -164,6 +164,29 @@ Constraints:
 - material independent adversarial review is required before the profile is locked;
 - exact profile implementation is not an Owner gate unless the work discovers that frozen research semantics themselves must change.
 
+State (fact sync 2026-08-19):
+
+```text
+COMMON_STATISTICAL_PROFILE_V1_STATUS=CANDIDATE_NOT_LOCKED
+STATISTICAL_PROFILE_DESIGN_COMMIT=6ef668fd7214fcef2f12b71cb3e9ea2a36bfcaf7
+STATISTICAL_PROFILE_DESIGN_DOC=docs/research/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE.md
+STATISTICAL_ENGINE_CAPABILITY_AUDIT=COMPLETE
+STATISTICAL_ENGINE_CAPABILITY_AUDIT_COMMIT=c34cebde4307eb2d532886ed8da94e2985323ede
+STATISTICAL_ENGINE_CAPABILITY_AUDIT_DOC=docs/evidence/HUMAN_PLAYBOOK_STATISTICAL_ENGINE_CAPABILITY_AUDIT_V1.md
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+VALIDATION_ACCESS=LOCKED
+HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
+```
+
+Capability audit facts (recorded only; the statistical candidate is unchanged):
+- realized PnL / costs / contract & trading-day identity and per-order realized PnL contributions are reliable and regression-tested;
+- unrealized PnL / equity / drawdown at partial-close snapshots are polluted by TD-002 (final realized totals remain correct);
+- the round-trip ledger (open->close pairing) is NOT materialized yet (small delta);
+- day/week/instrument-day aggregates are derivable with small deltas; no-trade-day counts need `SessionMetadata` + event set-difference;
+- multi-day portfolio/equity day series requires a medium delta (no multi-day portfolio loop exists);
+- per-hypothesis/per-wave event grouping requires a join (execution records are not directly keyed by hypothesis/wave);
+- LIMIT-001 blocks (fail-closed) real historical confirmatory PnL on price-limit-bound contracts; it is not a silent error.
+
 ## Canonical BALANCED corpus — ACCEPTED
 
 CANONICAL_DATASET_BUILT=YES
@@ -280,15 +303,17 @@ TD-001/TD-002/LIMIT-001 did not block semantic protocol freeze. They activate be
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=DESIGN_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE
+CURRENT_NEXT_ACTION=INDEPENDENT_ADVERSARIAL_REVIEW_OF_COMMON_STATISTICAL_PROFILE_V1
 CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
 TOOL_DECISION=USE_EXISTING
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+VALIDATION_ACCESS=LOCKED
+HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED
 OWNER_ACTION=NONE
 ```
 
-The next bounded package is to create a no-outcome-data `COMMON_STATISTICAL_PROFILE_V1` candidate, obtain an independent adversarial review, adjudicate the review, then lock/implement only if it remains inside Protocol v1.0. No repeated Owner approval is required unless a proposed change would alter frozen research semantics.
+The `COMMON_STATISTICAL_PROFILE_V1` design candidate is complete (commit `6ef668f`, status `CANDIDATE_NOT_LOCKED`) and the statistical engine capability audit is integrated (commit `c34cebde`). The next bounded package is the independent adversarial review of the candidate, then adjudication, then lock/implementation only if it remains inside Protocol v1.0. The main lane stops after integration: it does not adjudicate the review, implement the statistical evaluator, or lock the profile. No repeated Owner approval is required unless a proposed change would alter frozen research semantics.
 
 ## Owner decision gates
 

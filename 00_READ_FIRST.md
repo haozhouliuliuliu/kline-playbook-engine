@@ -12,6 +12,8 @@ Current authority/navigation:
 - **Active Claim Extraction schema:** `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`
 - Owner freeze evidence: `docs/evidence/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_FREEZE_2026-08-19.md`
 - Pre-outcome firewall implementation evidence: `docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md`
+- Common Statistical Profile v1 candidate (NOT_LOCKED): `docs/research/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE.md`
+- Statistical engine capability audit (COMPLETE): `docs/evidence/HUMAN_PLAYBOOK_STATISTICAL_ENGINE_CAPABILITY_AUDIT_V1.md`
 - Firewall acceptance history:
   - `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md`
   - `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md`
@@ -36,6 +38,7 @@ Project state:
 - **Pre-outcome firewall = ACCEPTED / COMPLETE_VERIFIED** at commit `046d3e7b386c50d936285741226c3b0b26d1a6e9`
 - Real claim extraction environment = VERIFIED / NOT_STARTED
 - Candidate outcome-bearing performance backtest = NOT_AUTHORIZED
+- **Common Statistical Profile v1 = CANDIDATE / NOT_LOCKED** (design commit `6ef668f`; engine capability audit `c34cebde` integrated)
 - **Current work package = COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW**
 - Current tool decision = USE_EXISTING
 
@@ -56,7 +59,7 @@ Current firewall reality:
 - validation, historical final holdout, Shadow/live and real-money/broker actions remain locked/not authorized.
 
 Next action:
-`DESIGN_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE`
+`INDEPENDENT_ADVERSARIAL_REVIEW_OF_COMMON_STATISTICAL_PROFILE_V1`
 
 Status authority: `CURRENT_STATE.md`.
 Frozen protocol authority: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md`.
