@@ -15,8 +15,9 @@ Project-specific mandatory rules:
 - No real broker order submission or real-money trading without explicit Owner authorization.
 - Protect existing Git/worktree/user files; no destructive cleanup.
 - For parallel work, use isolated worktrees/branches. Exactly one integration lane owns `main` and shared authority/state files.
+- Before creating or reusing a parallel worktree, inspect `git worktree list`, the target branch, and current remote state. Do not blindly recreate an existing branch/worktree or delete a retained review worktree just to make a command succeed.
 - Parallel workers must not push `main` or independently edit `CURRENT_STATE.md`, `00_READ_FIRST.md`, frozen protocols, Owner evidence, or other integration-owned authority unless explicitly assigned that ownership.
 - Do not parallelize work whose meaning depends on an unresolved frozen research-semantic decision or Owner gate.
 
-Canonical verification path:
+Canonical bootstrap verification path:
 `python -m unittest discover -s tests -v`
