@@ -1,6 +1,7 @@
 # CURRENT_STATE
 
 ## Project phase
+
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
@@ -11,20 +12,53 @@ BOOTSTRAP_ACCEPTANCE=GO
 BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
 
+## Binding research direction
+
+RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
+RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
+RESEARCH_DIRECTION_AUTHORITY=RESEARCH_DIRECTION.md
+
+Primary research route:
+
+```text
+traceable human trading experience
+-> AI-assisted extraction and structuring
+-> versioned Playbook Contract
+-> point-in-time market-scene representation / recognition
+-> historical validation of applicability and failure conditions
+-> strict validation / final-unseen governance
+-> accepted or rejected playbook
+```
+
+The project is not primarily an unconstrained indicator/rule/parameter-mining engine.
+Bounded parameterization and controlled search remain allowed when necessary to formalize or
+test an already identified playbook, under the Selection Firewall and search-freedom rules.
+Human sources create hypotheses, not accepted truth.
+
+LIVE_AI_SCENE_RECOGNITION_MODE=UNDECIDED
+LIVE_DISCRETIONARY_LLM_CRITICAL_PATH=NOT_AUTHORIZED
+OWNER_GATE_REQUIRED_FOR_LIVE_AI_SEMANTICS=YES
+
+The existing Skeleton v1.0 live-critical-path boundary remains unchanged. Any future live
+market-reading implementation that would change that boundary requires a separate review and
+Owner approval.
+
 ## Current objective
-The Owner-approved canonical BALANCED research dataset is COMPLETE and ACCEPTED:
-32,980/32,980 partitions (cu/al/ni/au/ag/rb, 2024-01-01..2025-12-31) acquired
-from TqSdk, normalized to Parquet + SQLite catalog, cross-source verified
-against SHFE official daily, and sealed under the immutable canonical corpus
-identity. Acceptance record:
-`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`; corpus identity:
-`docs/evidence/CANONICAL_CORPUS_IDENTITY.json`; full cross-source evidence:
-`docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`. The next material stage is the
-research-protocol and chronological-split freeze review
-(`CURRENT_NEXT_ACTION=RESEARCH_PROTOCOL_AND_CHRONOLOGICAL_SPLIT_FREEZE_REVIEW`),
-which has NOT yet been executed.
+
+The Owner-approved canonical BALANCED research dataset is COMPLETE and ACCEPTED.
+The next material stage is to design and freeze the research protocol and chronological split
+**under `RESEARCH_DIRECTION.md`** before any genuine strategy research starts.
+
+This next package must define how attributable human trading logic becomes versioned Playbook
+artifacts, how qualitative concepts may be operationalized without unlimited search, how
+family/lineage and exposure are tracked, and how development / validation / final-unseen data
+are separated.
+
+No specific playbook, source creator, split dates, validation cohort design, final-unseen
+unlock, or live-AI semantics are frozen yet.
 
 ## Owner source/scope decision (final, recorded durably)
+
 OWNER_APPROVAL=YES
 OWNER_SOURCE_APPROVAL=TQSDK
 TQSDK_STATUS=ADOPTED
@@ -33,11 +67,23 @@ TQSDK_VERIFIED_RUNTIME=3.10.1
 OWNER_DATASET_SCOPE_APPROVAL=BALANCED
 PAID_CONTINUITY_AUTHORIZED=NO
 PAID_CONTINUITY_OWNER_GATE=REQUIRED_IF_NEEDED_LATER
+
+Authority: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`.
+
+Adoption does NOT authorize broker connectivity, live/Shadow trading, order submission, or
+future paid renewal. TqSdk runtime compatibility remains bound to verified `3.10.1` until
+re-verified under a new compatible identity.
+
+## Canonical BALANCED corpus (accepted)
+
 CANONICAL_DATASET_BUILT=YES
 CANONICAL_DATASET_ACCEPTED=YES
 CANONICAL_DATASET_STATUS=ACCEPTED
 SCALE_DECISION=APPROVED_FULL_BALANCED_CORPUS
-APPROVED_PROJECTED_RAW_GB=2.615
+CANONICAL_PRODUCTS=cu,al,ni,au,ag,rb
+CANONICAL_COVERAGE=2024-01-01..2025-12-31
+CANONICAL_GRANULARITY=1-minute
+CONCRETE_CONTRACTS=212
 PLAN_PARTITIONS=32980
 ACQUIRED_PARTITIONS=32980
 NORMALIZED_PARTITIONS=32980
@@ -45,30 +91,41 @@ NORMALIZED_ROWS=15280452
 PARQUET_FILES=32980
 HISTORICAL_METADATA_EFFECTIVE_PERIODS=PASS
 NIGHT_CLOSED_DAY_AUTHORITY=PASS
-GOVERNED_METADATA=PASS (after correction)
+GOVERNED_METADATA=PASS
 CANONICAL_CORPUS_IDENTITY=1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8
 CROSS_SOURCE_SUMMARY_IDENTITY=cee702ea6cd79e62ec49bf7f1f632f70e5b0a7a577ba455e09597cce9d16d4ae
+CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
 
-Authority record: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`,
-`docs/evidence/CANONICAL_DATASET_PACKAGE.md` (includes the correction notice).
-Adoption does NOT authorize broker connectivity, live/Shadow trading, order
-submission, or future paid renewal; TqSdk runtime compatibility is frozen to
-the verified `3.10.1` identity until re-verified.
+Current acceptance authority:
+- `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
+- `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`
+- `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`
+
+The canonical corpus build itself created no development/validation/final-unseen exposure for
+any strategy lineage.
 
 ## Current boundaries
+
 NOT_AUTHORIZED:
 - concrete K-line strategy conclusions;
 - large-scale strategy mining;
-- automatic parameter optimization;
-- final-unseen evaluation;
+- unconstrained automated indicator/rule/parameter search as the default discovery route;
+- automatic parameter optimization outside a future frozen protocol;
+- final-unseen evaluation or unlock;
 - Shadow automated trading;
 - real-money trading;
 - real broker order submission;
+- discretionary LLM buy/sell decisions in the live critical path;
+- new paid commitments;
+- permanent RiskGate semantics without Owner approval;
 - large multi-agent research orchestration;
 - knowledge graph build-out;
-- microservices/distributed architecture.
+- microservices/distributed architecture;
+- importing strategy conclusions/results/parameters from `steel-radar-lite` or any other
+  project.
 
 ## Current architecture
+
 Top-level responsibility domains:
 1. Data Substrate
 2. Strategy Catalog
@@ -78,148 +135,100 @@ Top-level responsibility domains:
 6. Ledger
 7. Observability & Control
 
-See ARCHITECTURE_BASELINE.md for binding architecture details.
+See `ARCHITECTURE_BASELINE.md` for binding architecture details.
+`RESEARCH_DIRECTION.md` specializes the Research Loop / Strategy Catalog discovery paradigm
+without reopening Skeleton v1.0.
 
-## Tool/open-source status
-No candidate is automatically adopted.
+## Current tools and project capabilities
 
-Known categories:
-- execution backbone candidate: VeighNa / vn.py
-- fast screening candidate: vectorbt
-- data/simulation candidates: TqSdk, openctp, SimNow
-- storage baseline candidates: SQLite, Parquet; DuckDB optional
-- later/reference only: NautilusTrader, STUMPY, RD-Agent, Qlib, TradingAgents, MiroFish, Freqtrade, Jesse, LEAN
+Current stage tool decision:
 
-Current project-specific source status:
-- TqSdk: ADOPTED (Owner-approved, scoped). `TQSDK_ADOPTION_SCOPE=historical
-  concrete-contract 1-minute research data only`;
-  `TQSDK_VERIFIED_RUNTIME=3.10.1`. Adoption does not authorize broker
-  connectivity, live/Shadow trading, order submission, or paid renewal; runtime
-  compatibility is frozen to the verified `3.10.1` identity. See
-  `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`.
-- SHFE official annual raw: VERIFIED for official-origin/hash/daily-statistical
-  reference use only; not minute/Tick data and not ADOPTED as the canonical
-  research source.
-- PyArrow/Parquet: ADOPTED (canonical-build storage, tested 25.0.1; real local
-  probe preserved Decimal/timezone/nullable-OI and write/read logical equality
-  in the canonical partitioned layout).
-- SQLite (stdlib `sqlite3`): ADOPTED as the rebuildable canonical catalog/index
-  (not the historical truth authority).
-- DuckDB: DEFERRED (not installed).
+TOOL_DECISION=USE_EXISTING
 
-Real TqSdk samples recorded (raw in ignored `data/raw/historical/`, non-secret provenance in `docs/evidence/REAL_HISTORICAL_DATA_SUBSTRATE_FEASIBILITY.md`):
-- Bounded probe: `SHFE.ni2509` 1-min, 2025-06-16 10:00-10:40, 26 bars, `DataVersionIdentity=cd4a306f6310fc4e59d5f8b7d340e8b8acd054bb22b364f1ba35ac13def12b0b`.
-- Full trading day: `SHFE.ni2509` 1-min, trading day 2025-06-16 (night 2025-06-13 21:00 through day 2025-06-16 15:00), 465 bars, `DataVersionIdentity=724e16537247eb1af233d12a92c9d07d926bff84944abe96c0e5eb518b424fdc`.
+No new tool is required to design the Human Playbook research protocol / chronological split.
 
-All external components must progress through:
-CANDIDATE → VERIFIED → ADOPTED
+Project-local adopted capabilities:
+- TqSdk 3.10.1: ADOPTED for scoped historical concrete-contract 1-minute research data only.
+- SHFE official annual raw: VERIFIED for official daily/statistical reference use only; not the
+  canonical minute-data provider.
+- PyArrow/Parquet 25.0.1: ADOPTED for normalized canonical bar storage.
+- SQLite (`sqlite3`): ADOPTED as rebuildable canonical catalog/index; not the sole historical
+  truth authority.
+- Raw JSON + SHA256 provenance: retained as authoritative raw evidence mechanism.
+- DuckDB: DEFERRED / optional; not installed.
+
+All external components must progress through project-level:
+CANDIDATE -> VERIFIED -> ADOPTED.
 
 ## Current local capability facts
-These are environment facts, not project dependencies or adoption decisions.
+
+These are environment facts, not project dependencies or research authority.
 
 - VS Code is available on the Owner's Windows workstation and is used for repository work.
-- A DeepSeek Flash-family model API is connected in the Owner's VS Code environment and may be considered as an independent reviewer when an actual review need justifies it.
-- Do not use the DeepSeek reviewer for routine small code changes merely to obtain a second opinion; prefer deterministic tests and repository evidence first.
-- Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
+- A DeepSeek Flash-family model API is connected in the Owner's VS Code environment and may
+  support ordinary engineering or justified independent review.
+- DeepSeek/model availability does not authorize it to decide frozen research semantics.
+- Do not use an external reviewer for routine small changes merely to obtain a second opinion;
+  prefer deterministic tests/repository evidence first.
+- Ponytail was found globally installed in Codex and was disabled/removed from active global
+  discovery on 2026-08-15, with a reversible backup retained outside active discovery.
+
+## Known limitations / technical debt
+
+Authority/index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
+
+Current non-blocking items that must survive handoff:
+- TD-001: bootstrap `NormalizedSessionCalendar` overlaps session/trading-day responsibility
+  with authoritative `SessionMetadata`; consolidate/isolate before it can become a second
+  business-logic owner.
+- TD-002: partial-close validation snapshot temporarily clears unrealized PnL until a later
+  valid mark recomputes it; resolve before PnL-sensitive confirmatory evidence is treated as
+  final quality.
+- LIMIT-001: full governed historical price-limit metadata is deferred; bind it before claiming
+  historical price-limit non-fill realism in confirmatory validation.
+- DECISION-001: exact live AI market-reading / scene-recognition implementation remains an
+  unresolved Owner-gated future decision; current discretionary LLM live critical path remains
+  not authorized.
+
+None of these invalidate the accepted canonical corpus.
 
 ## Current next action
+
 CURRENT_NEXT_ACTION=RESEARCH_PROTOCOL_AND_CHRONOLOGICAL_SPLIT_FREEZE_REVIEW
+CURRENT_NEXT_ACTION_MUST_CONFORM_TO=RESEARCH_DIRECTION.md
 
-The canonical BALANCED corpus is BUILT and ACCEPTED and merged to `main` at
-`be2bc23e`: 32,980/32,980 partitions acquired from TqSdk (all PASS), normalized
-to Parquet + SQLite catalog, cross-source verified against SHFE official daily
-(32,841 MATCH / 0 MISMATCH / 139 NOT_AVAILABLE benign), and sealed under the
-immutable canonical corpus identity
-`1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`
-(`docs/evidence/CANONICAL_CORPUS_IDENTITY.json`). The next review is the
-research-protocol and chronological-split freeze, which has NOT been executed.
+The review has NOT yet been executed or accepted.
 
-## Current acceptance
+It must not silently inherit an earlier generic-quant research assumption. In particular,
+any prior draft such as a 12/6/6 split or generic candidate-mining workflow remains only a
+proposal unless the new Human Playbook First protocol explicitly evaluates and freezes it.
 
-PROJECT_BOOTSTRAP is formally accepted at
-`b6d1961dca5b4c879bc7deb6406f3c63723b04d4`. The acceptance record is
-`docs/evidence/BOOTSTRAP_ACCEPTANCE.md`.
+The upcoming review should produce a single Owner decision package for genuinely frozen
+research semantics rather than asking the Owner to decide routine implementation details.
 
-## Current tool decision
+## Current acceptance / durable evidence
 
-TOOL_DECISION=ADD_TOOL
-
-Stage-level storage decision for the canonical build (executed):
-- RAW_ARTIFACT_STORAGE: keep ignored JSON raw artifacts + SHA256 provenance
-  (existing mechanism remains authoritative raw evidence).
-- NORMALIZED_BAR_STORAGE: PyArrow/Parquet ADOPTED after a real local probe
-  (tested 25.0.1) for normalized canonical bar storage.
-- MANIFEST/METADATA: SQLite (stdlib `sqlite3`) ADOPTED as a rebuildable local
-  catalog/index; committed immutable manifests/evidence remain the durable
-  provenance authority.
-- RESEARCH_QUERY_ENGINE: DuckDB remains DEFERRED/CANDIDATE; not installed.
-- No pandas is added merely for convenience.
-
-TqSdk adoption is scoped to historical concrete-contract 1-minute research
-data only and does not adopt a broker/order capability.
-
-## Completed research-foundation evidence
-
-- Incremental clean-room reuse classification is recorded in
-  `docs/reuse/STEEL_REUSE_AUDIT.md`; no old-project source code or processed
-  Gate1 dataset was copied.
-- The vendor-neutral historical provenance, raw-artifact, normalizer and
-  data-version contracts are implemented in `src/historical_data.py`.
-- Fixed-duration historical PIT normalization reuses the existing
-  `CompletedBar.available_at` and `CompletedBar.is_visible_at` semantics.
-- Deterministic synthetic quality-gate tests are in
-  `tests/test_historical_data.py`.
-- The SHFE official annual reference recheck is recorded in
-  `docs/evidence/SHFE_OFFICIAL_RAW_RECHECK_MANIFEST.json`.
-- Package findings, the successful real probe, real provenance, real-sample
-  PIT/quality results, and the exact SHFE cross-source match are recorded in
-  `docs/evidence/REAL_HISTORICAL_DATA_SUBSTRATE_FEASIBILITY.md`.
-- Real TqSdk `3.10.1` samples (`SHFE.ni2509` 1-min bounded and full trading
-  day 2025-06-16) passed the existing normalization path, real-sample PIT
-  normalization, all real quality gates, and the SHFE daily cross-source
-  check. DataVersionIdentity values are recorded in CURRENT_STATE and in the
-  evidence file. This real-sample validation preceded the full canonical
-  corpus build; the full corpus is now BUILT and ACCEPTED
-  (`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`).
-- The Owner source/scope decision (TqSdk ADOPTED, BALANCED scope, no paid
-  continuity) is recorded durably in
-  `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`; `main` was
-  fast-forwarded to the accepted readiness HEAD
-  `238c230207250b3a02cd22dea658898a9a982e53` and pushed.
-- The BALANCED corpus definition and the scale guardrail result are recorded
-  in `docs/evidence/CANONICAL_DATASET_BALANCED_DEFINITION.md` and
-  `docs/evidence/CANONICAL_BALANCED_UNIVERSE.json` (6 products cu/al/ni/au/ag/rb;
-  2024-01-01..2025-12-31; PIT-complete listed contract universe; projected
-  ≈2.615 GB raw / ≈15.4 M bars / 32,841 traded partitions → exceeds the 3×
-  readiness guardrail → large acquisition GATED and reported to project lead;
-  the scale was subsequently approved as APPROVED_FULL_BALANCED_CORPUS and the
-  corpus was built and accepted).
-- Governed metadata fixtures bound to official SHFE sources:
-  `CANONICAL_TRADING_CALENDAR.json`, `CANONICAL_CONTRACT_UNIVERSE.json`,
-  `CANONICAL_SESSION_SCHEDULES.json`, `CANONICAL_CONTRACT_SPECS.json`
-  (metadata authority: `src/metadata_authority.py`).
-- Canonical normalized storage (Parquet layout + SQLite catalog) implemented
-  and tested (`src/canonical_storage.py`, `tests/test_canonical_storage.py`);
-  PyArrow 25.0.1 probe VERIFIED/ADOPTED.
-- Canonical corpus identity (`src/canonical_identity.py`), cross-source checker
-  (`src/cross_source_check.py`), and the resumable build runner
-  (`tools/build_canonical_dataset.py`, dry-run plan 32,912 partitions) are
-  implemented and tested.
-- Real bounded scale probe (24 partitions, one TqSdk session, 2026-08-16)
-  confirmed the trial is active and measured ≈79.6 KB/partition with full
-  session bar skeletons even for ultra-thin contracts; recorded in
-  `docs/evidence/CANONICAL_DATASET_PACKAGE.md`.
-- Formal package evidence (historical pre-acceptance OWNER_GATE):
-  `docs/evidence/CANONICAL_DATASET_PACKAGE.md` (FINAL=OWNER_GATE,
-  CANONICAL_CORPUS_IDENTITY=NONE). Superseded by the acceptance record
-  `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md` (ACCEPTED) and the corpus
-  identity `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`
-  (`1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`);
-  full cross-source evidence: `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`.
+- Architecture: `ARCHITECTURE_BASELINE.md` — Skeleton v1.0 ACCEPTED.
+- Bootstrap: `docs/evidence/BOOTSTRAP_ACCEPTANCE.md`.
+- Human Playbook First direction: `RESEARCH_DIRECTION.md` — OWNER_APPROVED.
+- Canonical source/scope decision: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`.
+- Canonical corpus acceptance: `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`.
+- Canonical corpus identity: `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`.
+- Full cross-source evidence: `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`.
+- Historical pre-acceptance canonical package: `docs/evidence/CANONICAL_DATASET_PACKAGE.md`
+  (preserved for audit; superseded for current corpus status by final acceptance evidence).
+- Known limitations/debt index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
 
 ## Current Owner action
 
 OWNER_ACTION=NONE
 
+The next Owner gate occurs after the project brain has designed a decision-ready Human
+Playbook research protocol / chronological-split freeze package. No repeated approval is
+needed for the already accepted canonical data/source decisions.
+
 ## Owner decision gates
-Owner-level approval is required only for genuinely new product/research direction, frozen experiment semantics, permanent risk rules, paid commitments, real-money/broker actions, or irreversible external actions.
+
+Owner-level approval is required only for genuinely new product/research direction, frozen
+experiment semantics, permanent risk rules, paid commitments, real-money/broker actions, or
+irreversible external actions.
