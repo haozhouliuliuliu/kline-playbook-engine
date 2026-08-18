@@ -7,6 +7,7 @@ Current authority/navigation:
 - Binding architecture: `ARCHITECTURE_BASELINE.md` — Skeleton v1.0
 - Binding research direction: `RESEARCH_DIRECTION.md` — Human Playbook First
 - Current state/next action: `CURRENT_STATE.md`
+- Research-protocol input package: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_1.md`
 - Source Dossier schema: `docs/research/HUMAN_PLAYBOOK_SOURCE_DOSSIER_V0_2.md`
 - Source Material Inventory: `docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md`
 - First-wave source close-out: `docs/research/HUMAN_PLAYBOOK_SOURCE_LAYER_FIRST_WAVE_CLOSEOUT.md`
@@ -27,21 +28,23 @@ Project state (accepted/current):
 - First Human Playbook source-layer wave COMPLETE / GO at source-only level
 - Source Dossier v0.2 is ACTIVE_DRAFT / NON_FROZEN
 - Claim Extraction schema v0.1 is ACTIVE_DRAFT / NON_FROZEN and has NOT been applied to real trading logic
+- Research-protocol input package v0.1 is READY_FOR_INDEPENDENT_ADVERSARIAL_REVIEW / NOT_FROZEN
 - Research-protocol / chronological-split freeze remains required before genuine strategy research and is NOT EXECUTED
-- Current work package = HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_PREPARATION
-- Current task = prepare a decision-ready protocol input package from the binding research direction, source-layer findings, claim schema, skeptical/data-snooping guardrails, observability/lineage requirements and unresolved chronological-split/exposure questions
+- Current work package = INDEPENDENT_ADVERSARIAL_REVIEW_OF_HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE
+- Current reviewer role = advisory only; reviewer may attack assumptions and propose alternatives but may NOT freeze research semantics
 - Concrete claim extraction, strategy research, machine thresholding, backtest, final-unseen access and live trading remain NOT AUTHORIZED
 - Tool decision for current package = USE_EXISTING
 
-Important source-layer findings:
-- source quality != playbook validity
-- lineage agreement != independent confirmation
-- unavailable source inputs must not be replaced with invented bar proxies
-- failure/negative/no-trade visibility is first-class evidence
-- commercial claims/testimonials are not validity evidence
-- process/psychology sources are separate from market-scene features
-- skeptical/data-snooping evidence must challenge later research conclusions
-- Chinese provenance difficulty does not lower the evidence bar
+Protocol-input package explicitly asks review of:
+- whether 24 months can support the candidate chronological split;
+- whether 12/6/6 is too weak/arbitrary;
+- source-material/example leakage into validation/final-unseen;
+- hidden search freedom from AI interpretation variants;
+- lineage/exposure inheritance loopholes;
+- observability substitutions that change source meaning;
+- family-specific acceptance-gate gaming;
+- validation/final revision policy;
+- whether the design is too strict for qualitative human knowledge or too permissive against disguised data mining.
 
 Status authority: `CURRENT_STATE.md`; research-direction authority: `RESEARCH_DIRECTION.md`.
 
