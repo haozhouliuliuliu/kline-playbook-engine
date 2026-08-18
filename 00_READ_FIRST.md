@@ -12,8 +12,10 @@ Current authority/navigation:
 - **Active Claim Extraction schema:** `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`
 - Owner freeze evidence: `docs/evidence/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_FREEZE_2026-08-19.md`
 - Pre-outcome firewall implementation evidence: `docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md`
-- First firewall acceptance review: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md`
-- **Current firewall acceptance delta:** `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md`
+- Firewall acceptance history:
+  - `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md`
+  - `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md`
+  - **final acceptance:** `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_FINAL_ACCEPTANCE_V1_2.md`
 - Current state/next action: `CURRENT_STATE.md`
 - Source Dossier schema: `docs/research/HUMAN_PLAYBOOK_SOURCE_DOSSIER_V0_2.md`
 - Source Material Inventory: `docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md`
@@ -31,10 +33,10 @@ Project state:
 - `INSUFFICIENT_EVIDENCE` = frozen legitimate result
 - Historical final cohort = project-governed historical holdout, not universal epistemic unseen proof
 - RESEARCH_WAVE whole-wave multiplicity governance = frozen
-- Common statistical profile must lock before first candidate outcome-bearing performance backtest
-- c6eb082 hardening resolved major firewall identity-binding gaps (E-1..E-4); review v1.1 found the remaining E-5 PRIMARY/scope/parameter-search cross-binding gap, now resolved
-- **Current work package = HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IDENTITY_CROSS_BINDING_HARDENING**
-- **Current status = COMPLETE_VERIFIED**
+- **Pre-outcome firewall = ACCEPTED / COMPLETE_VERIFIED** at commit `046d3e7b386c50d936285741226c3b0b26d1a6e9`
+- Real claim extraction environment = VERIFIED / NOT_STARTED
+- Candidate outcome-bearing performance backtest = NOT_AUTHORIZED
+- **Current work package = COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW**
 - Current tool decision = USE_EXISTING
 
 Frozen chronology:
@@ -45,21 +47,16 @@ VALIDATION: 2025-01-01 .. 2025-06-30
 PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT: 2025-07-01 .. 2025-12-31
 ```
 
-Current E-5 status — RESOLVED:
-- `WaveHypothesisBinding` is the immutable per-hypothesis PRIMARY/scope/parameter-search identity frozen by the wave manifest;
-- `ResearchWaveRegistry.lock()` proves every tested `OutcomeTestRegistration` has the exact PRIMARY, scope, and parameter/search identities frozen for that hypothesis (missing/extra/duplicate/mismatch all fail closed);
-- `ResearchFirewall._resolve_binding()` only reports `PRIMARY_SCOPE_SEARCH_IDENTITIES=LOCKED` when the locked wave holds an exact binding matching the registration;
-- human-readable `instrument_timeframe_context_scope` / `parameter_search_ranges` remain informational only; identity comparison uses deterministic hashes.
-
-Because only TEST_ONLY profiles exist:
-- real claim extraction is verified-ready but not started;
-- candidate PnL/equity/expectancy/Sharpe/win-loss inspection remains NOT AUTHORIZED;
-- validation remains locked;
-- historical final-holdout remains locked;
-- Shadow/live and real-money/broker actions remain NOT AUTHORIZED.
+Current firewall reality:
+- `WaveHypothesisBinding` is the immutable per-hypothesis PRIMARY/scope/parameter-search identity authority;
+- wave lock and authoritative access both cross-check the exact binding;
+- SOURCE_ONLY policy + bounded claim-extraction runner are verified;
+- TEST_ONLY profiles can authorize only synthetic DEVELOPMENT fixtures;
+- real candidate PnL/equity/expectancy/Sharpe/win-loss inspection remains denied until a real independently reviewed `COMMON_STATISTICAL_PROFILE_V1` is locked and bound into a real research wave;
+- validation, historical final holdout, Shadow/live and real-money/broker actions remain locked/not authorized.
 
 Next action:
-`COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW`
+`DESIGN_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE`
 
 Status authority: `CURRENT_STATE.md`.
 Frozen protocol authority: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md`.
