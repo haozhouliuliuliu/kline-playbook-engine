@@ -7,6 +7,7 @@ Current authority/navigation:
 - Binding architecture: `ARCHITECTURE_BASELINE.md` — Skeleton v1.0
 - Binding research direction: `RESEARCH_DIRECTION.md` — Human Playbook First
 - Current state/next action: `CURRENT_STATE.md`
+- Current Human Playbook acquisition-tool pilot: `docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`
 - Known non-blocking limitations/debt: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`
 - Adopted governance: `CROSS_PROJECT_OPERATING_CONTRACT.md` Version 3.1, pinned by SHA256 in `CURRENT_STATE.md`
 - Tool catalog only: `TOOL_REGISTRY.md`
@@ -23,10 +24,12 @@ Project state (accepted):
 - PyArrow/Parquet ADOPTED — canonical normalized bar storage
 - SQLite ADOPTED — rebuildable canonical catalog/index
 - Canonical BALANCED corpus ACCEPTED (2024-01-01..2025-12-31)
-- Next action = RESEARCH_PROTOCOL_AND_CHRONOLOGICAL_SPLIT_FREEZE_REVIEW, which must conform to `RESEARCH_DIRECTION.md`
+- Research-protocol / chronological-split freeze review remains required before genuine strategy research, but execution is currently deferred while the bounded Human Playbook source-acquisition tool-admission pilot is completed
+- Current next action = HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_PILOT
 
 Status authority: `CURRENT_STATE.md`; research-direction authority:
-`RESEARCH_DIRECTION.md`; corpus acceptance:
+`RESEARCH_DIRECTION.md`; acquisition-tool pilot:
+`docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`; corpus acceptance:
 `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`; corpus identity:
 `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`.
 
