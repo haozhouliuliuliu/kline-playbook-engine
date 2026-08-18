@@ -1,0 +1,51 @@
+{
+  "schema_version": "human-playbook-tool-admission-windows-v1",
+  "date": "2026-08-18",
+  "status": "COMPLETE_CLOSE_OUT",
+  "evidence": "HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md",
+  "scope": "Windows real-machine tool admission pilot (engineering verification only)",
+  "tools": {
+    "video-to-skill": {
+      "pin": "5e9f97e89855a8a0ea998ba85e179fbc1765d4b7",
+      "overall_status": "CANDIDATE",
+      "capabilities": {
+        "LOCAL_MULTIMODAL_PIPELINE": "VERIFIED",
+        "YOUTUBE_PUBLIC_URL_ADAPTER": "NOT_VERIFIED_BLOCKED_BY_403",
+        "BILIBILI_PUBLIC_URL_ADAPTER": "NOT_VERIFIED_BLOCKED_BY_412"
+      }
+    },
+    "book-to-skill": {
+      "pin": "ed84a9f9eb79a21953c38c2740773135eedc31ab",
+      "status": "DEFERRED_REFERENCE"
+    },
+    "docling": {
+      "pin": "v2.120.3",
+      "pin_commit": "46a1103b8c4adc6bbde1e30ec48fd0f7142d5600",
+      "status": "VERIFIED",
+      "scope": "Windows Human Playbook document/layout extraction capability",
+      "adopted": false
+    },
+    "video-transcribe-skill": {
+      "pin": "377ca33e2d2738c75e9a320ccfe80c1569f712e8",
+      "status": "VERIFIED",
+      "scope": "local/offline Chinese no-caption transcription fallback",
+      "adopted": false,
+      "caveats": [
+        "non-exact transcript",
+        "Chinese trading terms require spot-check",
+        "Bilibili API / yt-dlp behavior can drift"
+      ]
+    }
+  },
+  "minimal_recommended_combo": [
+    "docling",
+    "video-transcribe-skill"
+  ],
+  "negative_evidence": {
+    "youtube_media_download": "403_forbidden_without_cookies",
+    "bilibili_ytdlp_path": "412_precondition_failed",
+    "bilibili_official_public_api_path": "AVAILABLE",
+    "anti_bot_circumvention": "NOT_ATTEMPTED (deliberate safety boundary)"
+  },
+  "cleanup_path": "%LOCALAPPDATA%\\Temp\\kline-playbook-hp-pilot"
+}

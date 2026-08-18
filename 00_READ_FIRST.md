@@ -24,8 +24,8 @@ Project state (accepted):
 - PyArrow/Parquet ADOPTED — canonical normalized bar storage
 - SQLite ADOPTED — rebuildable canonical catalog/index
 - Canonical BALANCED corpus ACCEPTED (2024-01-01..2025-12-31)
-- Research-protocol / chronological-split freeze review remains required before genuine strategy research, but execution is currently deferred while the bounded Human Playbook source-acquisition tool-admission pilot is completed
-- Current next action = HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_PILOT
+- Research-protocol / chronological-split freeze review remains required before genuine strategy research and stays unexecuted; the bounded Human Playbook source-acquisition tool-admission pilot is COMPLETE (bounded close-out 2026-08-19), with evidence recorded in `docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md`
+- Current next action = pending project-brain decision from that evidence; the research-protocol / chronological-split freeze review remains the required next research stage (no strategy research is authorized by this close-out)
 
 Status authority: `CURRENT_STATE.md`; research-direction authority:
 `RESEARCH_DIRECTION.md`; acquisition-tool pilot:

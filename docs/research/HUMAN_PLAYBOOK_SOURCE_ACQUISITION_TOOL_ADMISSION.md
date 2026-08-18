@@ -268,3 +268,44 @@ Run the real Windows admission probe on the Owner's workstation using the existi
 Escalate to Codex only if the existing VS Code/DeepSeek path demonstrates a concrete capability gap (for example, inability to execute the required repository/shell workflow reliably). Model availability alone is not a reason to create a second execution path.
 
 The research-protocol / chronological-split freeze remains intentionally unexecuted during this bounded preparatory acquisition-tool package. No strategy research, backtest, final-unseen access, Shadow/live trading, or paid commitment is authorized by this pilot.
+
+## 12. Real Windows probe result (2026-08-18/19) — COMPLETE
+
+Evidence: `docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md`
+(+ compact JSON). Bounded close-out; platform negatives are valid evidence.
+
+```text
+video-to-skill:          CANDIDATE overall
+   LOCAL_MULTIMODAL_PIPELINE        = VERIFIED (local media + sidecar SRT probe)
+   YOUTUBE_PUBLIC_URL_ADAPTER       = NOT_VERIFIED / BLOCKED_BY_403_IN_CURRENT_ENV
+   BILIBILI_PUBLIC_URL_ADAPTER      = NOT_VERIFIED / BLOCKED_BY_412_IN_CURRENT_ENV
+book-to-skill:           DEFERRED / REFERENCE (Skill-generation layer not a current need)
+Docling:                 VERIFIED (scope: Windows document/layout extraction; NOT ADOPTED)
+video-transcribe-skill:  VERIFIED (scope: local/offline Chinese no-caption fallback; non-exact)
+```
+
+Key real findings:
+
+- YouTube `inspect` (metadata/captions) works; actual media download is a stable
+  `403` without cookies on this network (3 videos tested). Bilibili via yt-dlp is
+  `412`; the Bilibili official public API path works (used by video-transcribe-skill).
+  Not attempting anti-bot circumvention is a deliberate project safety boundary;
+  these are capability limitations for this environment, not project blockers.
+- Local `video-to-skill` pipeline verified: transcript(timestamps)+frames+OCR+provenance,
+  with caption↔screen-OCR binding confirmed at t=0 (`BUY SIGNAL`, conf 0.99); OCR
+  text quality and visual sampling coverage are imperfect and recorded as caveats.
+- `book-to-skill` simple extraction silently drops figures; Docling retains
+  tables/figures/layout (TableItem=1, PictureItem=1 on the self-authored probe).
+- `video-transcribe-skill` downloaded Bilibili audio via the public API and produced
+  a timestamped Chinese faster-whisper transcript (zh, 260 segments); ≥20-point
+  spot check shows numbers/dates largely correct but Chinese trading vocabulary
+  homophone errors are frequent (螺纹钢→罗文钢, 期权→齐旋, 同花顺→左笑, 保证金→保证经,
+  止损→指引之损, 挂单→刮单, 手数→手术, 一手→医手). Whisper text is never exact quote.
+
+Minimal recommended combination: **Docling** (document path) + **video-transcribe-skill**
+(Chinese no-caption fallback); **video-to-skill** kept CANDIDATE (local pipeline as
+verified sub-capability; public URL acquisition unreliable on this network);
+**book-to-skill** not required.
+
+This close-out created no research-protocol freeze, no strategy extraction, no
+backtest, no final-unseen access, and no paid commitment.

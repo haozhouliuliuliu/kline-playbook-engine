@@ -174,13 +174,17 @@ TOOL_DECISION_SCOPE=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_PILOT
 Reason: repeated Human Playbook ingestion requires reproducible provenance-preserving handling
 of books/documents and multimodal video beyond ad-hoc chat/web reading.
 
-No source-acquisition candidate has been VERIFIED or ADOPTED yet.
+Source-acquisition tool admission pilot: **COMPLETE (bounded close-out, 2026-08-19)**.
+Evidence: `docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md`
+(+ compact JSON). Final statuses from the real Windows probe:
 
-Current admission candidates and static status:
-- `Lum1104/video-to-skill`: CANDIDATE; static review pass; real Windows public-video probe required.
-- `virgiliojr94/book-to-skill`: CANDIDATE; static review pass with strict official-repository/commit pin requirement.
-- `docling-project/docling`: CANDIDATE document parser; stable-version real-document probe required.
-- `UKplus8HRS/video-transcribe-skill`: CANDIDATE fallback; Chinese no-caption accuracy probe required.
+- `Lum1104/video-to-skill`: overall **CANDIDATE**.
+  - `LOCAL_MULTIMODAL_PIPELINE` = VERIFIED (local media + sidecar SRT probe passed)
+  - `YOUTUBE_PUBLIC_URL_ADAPTER` = NOT_VERIFIED / BLOCKED_BY_403_IN_CURRENT_ENVIRONMENT
+  - `BILIBILI_PUBLIC_URL_ADAPTER` = NOT_VERIFIED / BLOCKED_BY_412_IN_CURRENT_ENVIRONMENT
+- `virgiliojr94/book-to-skill`: **DEFERRED / REFERENCE** (Skill-generation layer is not a current need).
+- `docling-project/docling` (`v2.120.3`): **VERIFIED** (scope: Windows document/layout extraction); NOT ADOPTED.
+- `UKplus8HRS/video-transcribe-skill`: **VERIFIED** (scope: local/offline Chinese no-caption fallback); NOT ADOPTED.
 - Bilibili MCP / Firecrawl / Crawl4AI / Open Notebook and related overlap candidates remain deferred until a demonstrated residual gap exists.
 
 Pilot details and acceptance contract:
@@ -235,23 +239,35 @@ pilot.
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_PILOT
+CURRENT_NEXT_ACTION=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_PILOT  (CLOSED)
 CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md
 ```
 
-Static source review is underway/completed for the first candidate set. The next bounded step
-is a real Windows probe on the Owner's workstation using immutable upstream pins and public or
-rights-cleared source material, with evidence written back into this repository.
+The source-acquisition tool-admission pilot is COMPLETE (bounded close-out). Final evidence and
+statuses are recorded in
+`docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md` and
+`docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`.
 
-The intended first real-path checks are:
-1. `video-to-skill` on one public YouTube video and one public Bilibili video, without cookies/auth;
-2. book/document extraction using a rights-cleared document, comparing simple extraction with
-   `Docling` where layout/visual structure matters;
-3. `video-transcribe-skill` only as no-caption fallback / controlled Chinese transcription comparison.
+Real Windows findings recorded:
+- YouTube media download is blocked by 403 without cookies and Bilibili yt-dlp is blocked by 412
+  on this network. These are `KNOWN_LIMITATION` / capability limitations, NOT project blockers;
+  anti-bot circumvention was deliberately not attempted (project safety boundary).
+- The Bilibili official public API path works (used by `video-transcribe-skill`).
+- The local `video-to-skill` multimodal pipeline (transcript timestamps + frames + OCR +
+  provenance) was verified on a self-authored local media + sidecar SRT.
+- Docling verified for Windows document/layout extraction (tables/figures retained).
+- `video-transcribe-skill` verified for Chinese no-caption fallback, with Chinese trading
+  vocabulary accuracy caveats recorded.
 
-After this preparatory package is accepted or rejected, the project returns to the required
-Human Playbook research-protocol / chronological-split freeze review before genuine strategy
-research.
+Minimal recommended combination from this pilot: **Docling** (document path) +
+**video-transcribe-skill** (Chinese no-caption fallback); `video-to-skill` remains CANDIDATE
+(local pipeline verified as a sub-capability); `book-to-skill` not required.
+
+The next material research stage remains the required Human Playbook research-protocol /
+chronological-split freeze review, which stays unexecuted. Per project-brain direction, the
+concrete next action is decided after review of this formal evidence; this close-out does NOT
+authorize strategy research, backtest, final-unseen access, Shadow/live trading, or paid
+commitments.
 
 ## Current acceptance / durable evidence
 
@@ -262,7 +278,7 @@ research.
 - Canonical corpus acceptance: `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`.
 - Canonical corpus identity: `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`.
 - Full cross-source evidence: `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`.
-- Source-acquisition tool pilot: `docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md` — ACTIVE_PILOT, no tool adopted yet.
+- Source-acquisition tool pilot: `docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md` — COMPLETE (bounded close-out); evidence: `docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md`.
 - Historical pre-acceptance canonical package: `docs/evidence/CANONICAL_DATASET_PACKAGE.md`
   (preserved for audit; superseded for current corpus status by final acceptance evidence).
 - Known limitations/debt index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
