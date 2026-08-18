@@ -14,6 +14,9 @@ Project-specific mandatory rules:
 - External tools/frameworks remain candidates until this project explicitly verifies and adopts them.
 - No real broker order submission or real-money trading without explicit Owner authorization.
 - Protect existing Git/worktree/user files; no destructive cleanup.
+- For parallel work, use isolated worktrees/branches. Exactly one integration lane owns `main` and shared authority/state files.
+- Parallel workers must not push `main` or independently edit `CURRENT_STATE.md`, `00_READ_FIRST.md`, frozen protocols, Owner evidence, or other integration-owned authority unless explicitly assigned that ownership.
+- Do not parallelize work whose meaning depends on an unresolved frozen research-semantic decision or Owner gate.
 
-Canonical bootstrap verification path:
+Canonical verification path:
 `python -m unittest discover -s tests -v`
