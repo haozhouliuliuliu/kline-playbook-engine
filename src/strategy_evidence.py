@@ -17,7 +17,11 @@ def _canonical_hash(value: Any) -> str:
 class DatasetClass(str, Enum):
     DEVELOPMENT = "DEVELOPMENT"
     VALIDATION = "VALIDATION"
+    # Legacy name kept for compatibility (existing code/tests still use it).
     FINAL_UNSEEN = "FINAL_UNSEEN"
+    # Canonical frozen semantic name (Research Protocol v1.0 / 12-6-6 split).
+    PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT = "PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT"
+    SHADOW_FORWARD = "SHADOW_FORWARD"
 
 
 class LifecycleState(str, Enum):
@@ -269,19 +273,25 @@ class AccessResult:
 
 
 class FinalUnseenFirewall:
-    """Records access facts and denies final-unseen access until a future owner gate exists."""
+    """Legacy compatibility firewall (deprecated for candidate outcomes).
+
+    All pre-outcome research access rules are owned by
+    `src.research_firewall.ResearchFirewall` — the single firewall owner. This class
+    is a thin compatibility adapter that keeps the legacy `request_access` /
+    `has_exposure` interface working for existing callers (validation_runner,
+    portfolio_semantics, tests). Coarse DEVELOPMENT/VALIDATION grants here are NOT
+    candidate-outcome authorization; candidate outcome-bearing access must pass the
+    pre-outcome gate (`ResearchFirewall.request_candidate_outcome_access`).
+    """
 
     def __init__(self, ledger: EvidenceLedger) -> None:
+        from src.research_firewall import ResearchFirewall
+
         self._ledger = ledger
+        self._owner = ResearchFirewall(ledger)
 
     def request_access(self, experiment: ExperimentIdentity, dataset_class: DatasetClass) -> AccessResult:
-        if dataset_class is DatasetClass.FINAL_UNSEEN:
-            record = EvidenceRecord("DATASET_ACCESS_DENIED", experiment, dataset_class, "DENIED")
-            self._ledger.append(record)
-            return AccessResult(False, record)
-        record = EvidenceRecord("DATASET_ACCESS_GRANTED", experiment, dataset_class, "GRANTED")
-        self._ledger.append(record)
-        return AccessResult(True, record)
+        return self._owner.legacy_request_access(experiment, dataset_class)
 
     def has_exposure(self, strategy: StrategyIdentity, dataset_class: DatasetClass) -> bool:
-        return dataset_class in self._ledger.exposures_for(strategy.research_lineage_id)
+        return self._owner.has_exposure(strategy, dataset_class)

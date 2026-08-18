@@ -11,6 +11,8 @@ BOOTSTRAP_ACCEPTANCE=GO
 BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
 CURRENT_WORK_PACKAGE=HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IMPLEMENTATION
+CURRENT_WORK_PACKAGE_STATUS=COMPLETE_VERIFIED
+CURRENT_WORK_PACKAGE_EVIDENCE=docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md
 
 ## Binding research direction
 
@@ -67,8 +69,17 @@ CHRONOLOGICAL_SPLIT_STATUS=FROZEN_12_6_6
 OWNER_FREEZE_DECISION=APPROVED
 PERFORMANCE_RESEARCH_STARTED=NO
 REAL_CLAIM_EXTRACTION_STARTED=NO
-CLAIM_EXTRACTION_SCHEMA_STATUS=ACTIVE_V1_0_PENDING_SOURCE_ONLY_READINESS
+PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED
+SOURCE_ONLY_CONTROLS_STATUS=VERIFIED
+RESEARCH_WAVE_MANIFEST_STATUS=VERIFIED
+STATISTICAL_PROFILE_INTERFACE_STATUS=VERIFIED
+PRE_OUTCOME_GATE_STATUS=VERIFIED_FAIL_CLOSED
+HISTORICAL_FINAL_HOLDOUT_LOCK=ENFORCED
+CLAIM_EXTRACTION_SCHEMA_STATUS=ACTIVE_V1_0_SOURCE_ONLY_VERIFIED
 ```
+
+Pre-outcome firewall implementation evidence:
+`docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md`
 
 Material research-semantic changes now require a new protocol version, material independent adversarial review, and the normal Owner research-semantic gate.
 
@@ -109,15 +120,11 @@ The frozen split is `12/6/6`.
 
 It is an audit/governance choice and does not guarantee statistical power. Sparse families may return `INSUFFICIENT_EVIDENCE`; split boundaries may not be changed after outcomes are viewed to rescue evidence.
 
-## Pre-outcome gate — implementation pending
+## Pre-outcome gate — implemented (fail closed)
 
-Research Protocol v1.0 is semantically frozen, but current code does **not** yet implement the full gate.
+Research Protocol v1.0 is frozen and the pre-outcome firewall is now implemented and tested. The single owner of the access rules is `src/research_firewall.py` (`ResearchFirewall` + `PreOutcomeGate` + `SourceOnlyPolicy` + `ResearchWaveRegistry` + `StatisticalProfileRegistry` + `HistoricalFinalHoldoutStateMachine` + `classify_cohort`). The legacy `FinalUnseenFirewall` in `src/strategy_evidence.py` now delegates to `ResearchFirewall` and keeps its legacy interface; `DatasetClass` added the canonical `PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT` (and `SHADOW_FORWARD`) while preserving `FINAL_UNSEEN`.
 
-Repository reality:
-- `src/strategy_evidence.py` has append-only strategy/evidence identities and a simple `FinalUnseenFirewall` that denies `DatasetClass.FINAL_UNSEEN`;
-- it does not yet implement SOURCE_ONLY technical denial, immutable RESEARCH_WAVE manifests, common-statistical-profile locks, or the new historical-final state model.
-
-Before the first candidate outcome-bearing performance backtest, all must be technically true and verified:
+Before the first candidate outcome-bearing performance backtest, all are now technically enforced (fail closed) and verified by regression tests:
 
 ```text
 SOURCE_ONLY_CONTROLS=ACTIVE_AND_VERIFIED
@@ -127,7 +134,7 @@ RESEARCH_WAVE=LOCKED
 PRIMARY_SCOPE_SEARCH_IDENTITIES=LOCKED
 ```
 
-Until this gate is implemented and passes:
+Because only `TEST_ONLY` statistical profiles exist in this package, the only reachable grant is `SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY` (synthetic dummy fixtures). State therefore remains:
 
 ```text
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
@@ -136,15 +143,14 @@ HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 ```
 
 Allowed now:
-- implement/test SOURCE_ONLY controls;
-- implement research-wave/profile/firewall machinery;
+- design/review the real `COMMON_STATISTICAL_PROFILE_V1` (next step);
 - source discovery/provenance;
 - non-candidate engine sanity tests;
 - non-outcome operationalization/tests;
-- after SOURCE_ONLY controls are verified, controlled real source-faithful claim extraction under Claim Schema v1.0.
+- controlled real source-faithful claim extraction under Claim Schema v1.0 (SOURCE_ONLY controls verified).
 
 Forbidden now:
-- candidate PnL/equity/expectancy/Sharpe/win-loss or equivalent performance inspection.
+- candidate PnL/equity/expectancy/Sharpe/win-loss or equivalent performance inspection before the real profile is locked and the gate passes.
 
 ## Canonical BALANCED corpus — ACCEPTED
 
@@ -255,21 +261,16 @@ TD-001/TD-002/LIMIT-001 did not block semantic protocol freeze. They must activa
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=IMPLEMENT_AND_VERIFY_HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL
-CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_SELECTION_FIREWALL_REQUIREMENTS_V1_0.md
+CURRENT_NEXT_ACTION=COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
+CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
+PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED
+SOURCE_ONLY_CONTROLS_STATUS=VERIFIED
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 NEXT_AFTER_GATE_SOURCE_ONLY=BEGIN_CONTROLLED_REAL_CLAIM_EXTRACTION_V1_0
 OWNER_ACTION=NONE
 ```
 
-The immediate bounded engineering package is to implement and verify:
-- SOURCE_ONLY technical denial/session evidence;
-- immutable research-wave manifest/lock;
-- common statistical-profile identity/lock interface (exact independently reviewed numerical profile may be completed in the same pre-outcome program before candidate outcomes);
-- pre-outcome fail-closed gate;
-- historical-final state naming/lock semantics without unlocking it;
-- tests proving candidate outcomes remain inaccessible until the required locks are present.
-
-No repeated Owner approval is required for this ordinary implementation work under frozen Protocol v1.0.
+The pre-outcome firewall package is complete and verified (`tests/test_research_firewall.py`, 38 tests; full suite 219 OK / 3 skipped). The next bounded package is the real `COMMON_STATISTICAL_PROFILE_V1` numeric standard design and independent review under Protocol v1.0; until that profile is locked, candidate outcome-bearing backtests remain `NOT_AUTHORIZED`. SOURCE_ONLY controls are verified, so the project may begin controlled real claim extraction under Claim Schema v1.0 (this package extracted no real claims). No repeated Owner approval is required for this ordinary implementation work under frozen Protocol v1.0.
 
 ## Owner decision gates
 

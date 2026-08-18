@@ -11,6 +11,7 @@ Current authority/navigation:
 - **Binding Selection Firewall requirements:** `docs/research/HUMAN_PLAYBOOK_SELECTION_FIREWALL_REQUIREMENTS_V1_0.md`
 - **Active Claim Extraction schema:** `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`
 - Owner freeze evidence: `docs/evidence/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_FREEZE_2026-08-19.md`
+- Pre-outcome firewall implementation evidence: `docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md`
 - Current state/next action: `CURRENT_STATE.md`
 - Final v0.3 candidate (historical input to frozen protocol): `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_3.md`
 - Final Owner decision package: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_DECISION_PACKAGE_V0_2.md`
@@ -39,7 +40,9 @@ Project state (accepted/current):
 - Historical final cohort = project-governed historical holdout, not a claim of universal epistemic unseen-ness
 - RESEARCH_WAVE whole-wave multiplicity governance = frozen
 - Common statistical profile must lock before first candidate outcome-bearing performance backtest
-- Current work package = `HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IMPLEMENTATION`
+- Pre-outcome research firewall = IMPLEMENTED_AND_VERIFIED (single owner: `src/research_firewall.py`)
+- Current work package = `HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IMPLEMENTATION` (COMPLETE)
+- Next package = `COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW`
 - Current tool decision = USE_EXISTING
 
 Frozen chronology:
@@ -51,9 +54,9 @@ PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT: 2025-07-01 .. 2025-12-31
 ```
 
 Important implementation reality:
-- current `src/strategy_evidence.py` still has only the earlier simple final-unseen deny firewall;
-- SOURCE_ONLY, RESEARCH_WAVE, common-statistical-profile and full historical-holdout state semantics are **not yet implemented**;
-- therefore candidate outcome-bearing performance backtests remain NOT AUTHORIZED.
+- `src/research_firewall.py` is the single owner of SOURCE_ONLY technical denial/session evidence, immutable RESEARCH_WAVE manifests, common-statistical-profile identity/lock, the fail-closed pre-outcome gate, and the historical-final state machine;
+- the legacy `FinalUnseenFirewall` in `src/strategy_evidence.py` delegates to it (compatibility preserved);
+- only TEST_ONLY statistical profiles exist, so candidate outcome-bearing performance backtests remain NOT AUTHORIZED until the real `COMMON_STATISTICAL_PROFILE_V1` is designed, reviewed, and locked.
 
 Immediate allowed work:
 - implement/test the frozen pre-outcome firewall requirements;
