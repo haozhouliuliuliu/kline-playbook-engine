@@ -263,6 +263,8 @@ No candidate is `VERIFIED` or `ADOPTED` yet.
 
 ## 11. Next bounded action
 
-Run the real Windows admission probe, preferably through Codex on the Owner's workstation, using immutable source pins and recording artifacts/evidence back into this repository.
+Run the real Windows admission probe on the Owner's workstation using the existing VS Code DeepSeek Flash-family capability first, because this package is bounded engineering verification rather than frozen research-semantics review. Use immutable source pins and record artifacts/evidence back into this repository.
+
+Escalate to Codex only if the existing VS Code/DeepSeek path demonstrates a concrete capability gap (for example, inability to execute the required repository/shell workflow reliably). Model availability alone is not a reason to create a second execution path.
 
 The research-protocol / chronological-split freeze remains intentionally unexecuted during this bounded preparatory acquisition-tool package. No strategy research, backtest, final-unseen access, Shadow/live trading, or paid commitment is authorized by this pilot.
