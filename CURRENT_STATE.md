@@ -11,7 +11,7 @@ LAST_KNOWN_GOOD=b6d1961dca5b4c879bc7deb6406f3c63723b04d4
 BOOTSTRAP_ACCEPTANCE=GO
 BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
-CURRENT_WORK_PACKAGE=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_PILOT
+CURRENT_WORK_PACKAGE=HUMAN_PLAYBOOK_SOURCE_DOSSIER_AND_INVENTORY_PILOT
 
 ## Binding research direction
 
@@ -32,43 +32,60 @@ traceable human trading experience
 ```
 
 The project is not primarily an unconstrained indicator/rule/parameter-mining engine.
-Bounded parameterization and controlled search remain allowed when necessary to formalize or
-test an already identified playbook, under the Selection Firewall and search-freedom rules.
 Human sources create hypotheses, not accepted truth.
 
 LIVE_AI_SCENE_RECOGNITION_MODE=UNDECIDED
 LIVE_DISCRETIONARY_LLM_CRITICAL_PATH=NOT_AUTHORIZED
 OWNER_GATE_REQUIRED_FOR_LIVE_AI_SEMANTICS=YES
 
-The existing Skeleton v1.0 live-critical-path boundary remains unchanged. Any future live
-market-reading implementation that would change that boundary requires a separate review and
-Owner approval.
+The existing Skeleton v1.0 live-critical-path boundary remains unchanged.
 
 ## Current objective
 
 The Owner-approved canonical BALANCED research dataset is COMPLETE and ACCEPTED.
 
-The next material research-semantic stage remains the Human Playbook research-protocol and
-chronological-split freeze review under `RESEARCH_DIRECTION.md`, and that freeze is still
-required before any genuine strategy research begins.
+The required Human Playbook research-protocol / chronological-split freeze review remains the
+next material research-semantic stage before genuine strategy research. The Owner has explicitly
+deferred execution of that freeze for the current preparatory source-layer work.
 
-However, the Owner has explicitly deferred execution of that freeze while the project completes
-a bounded preparatory package for Human Playbook source acquisition. The current work package
-is therefore to evaluate whether specialized tools are needed to ingest books/documents and
-multimodal video while preserving provenance, page/transcript/timestamp anchors, visual
-evidence, and the separation between source claims and AI interpretation.
+The source-acquisition tool-admission pilot is COMPLETE and accepted. The current bounded work
+package is now source-level only:
+
+```text
+project-led source discovery
+-> provenance / identity verification
+-> Source Dossier v0.2
+-> Source Material Inventory
+-> source-level admission / observability classification
+```
+
+This stage must stop before concrete trading-claim extraction or machine operationalization.
 
 ```text
 RESEARCH_PROTOCOL_FREEZE_REQUIRED_BEFORE_STRATEGY_RESEARCH=YES
-RESEARCH_PROTOCOL_FREEZE_EXECUTION_STATUS=DEFERRED_DURING_ACQUISITION_TOOL_PILOT
+RESEARCH_PROTOCOL_FREEZE_EXECUTION_STATUS=DEFERRED_DURING_SOURCE_DOSSIER_WORK
 STRATEGY_RESEARCH_STARTED=NO
+SOURCE_DOSSIER_SCHEMA_STATUS=ACTIVE_DRAFT_NON_FROZEN
 ```
 
-No specific playbook, source creator, split dates, validation cohort design, final-unseen
-unlock, or live-AI semantics are frozen yet.
+Current source-layer authorities:
+- `docs/research/HUMAN_PLAYBOOK_SOURCE_DOSSIER_V0_2.md`
+- `docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md`
 
-Current acquisition-tool pilot authority:
-`docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`.
+No specific playbook, source creator ranking, split dates, validation cohort design,
+final-unseen unlock, or live-AI semantics are frozen.
+
+## Acquisition ownership
+
+Default acquisition model:
+
+```text
+PROJECT_LED_DISCOVERY=PRIMARY
+OWNER_SUPPLIED_MATERIAL=SUPPLEMENTAL
+```
+
+The Owner is not the project's manual source collector. Owner-supplied and project-discovered
+materials use the same evidence standard.
 
 ## Owner source/scope decision (final, recorded durably)
 
@@ -84,8 +101,7 @@ PAID_CONTINUITY_OWNER_GATE=REQUIRED_IF_NEEDED_LATER
 Authority: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`.
 
 Adoption does NOT authorize broker connectivity, live/Shadow trading, order submission, or
-future paid renewal. TqSdk runtime compatibility remains bound to verified `3.10.1` until
-re-verified under a new compatible identity.
+future paid renewal.
 
 ## Canonical BALANCED corpus (accepted)
 
@@ -114,16 +130,18 @@ Current acceptance authority:
 - `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`
 - `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`
 
-The canonical corpus build itself created no development/validation/final-unseen exposure for
-any strategy lineage.
+The canonical corpus build created no development/validation/final-unseen exposure for any
+strategy lineage.
 
 ## Current boundaries
 
 NOT_AUTHORIZED:
 - concrete K-line strategy conclusions;
+- concrete buy/sell rule extraction as project claims during the current source-dossier stage;
 - large-scale strategy mining;
 - unconstrained automated indicator/rule/parameter search as the default discovery route;
 - automatic parameter optimization outside a future frozen protocol;
+- converting fuzzy source language into machine thresholds during the current source stage;
 - final-unseen evaluation or unlock;
 - Shadow automated trading;
 - real-money trading;
@@ -134,14 +152,10 @@ NOT_AUTHORIZED:
 - large multi-agent research orchestration;
 - knowledge graph build-out;
 - microservices/distributed architecture;
-- importing strategy conclusions/results/parameters from `steel-radar-lite` or any other
-  project.
-
-The current acquisition-tool pilot also does NOT authorize:
-- treating a generated Skill or summary as source authority;
+- importing strategy conclusions/results/parameters from any other project;
+- treating generated summaries/Skills as source authority;
 - bypassing paywalls/DRM/platform permissions;
-- authenticated browser-cookie acquisition without a separate credential/data-flow review;
-- automatic installation/adoption of discovered Skills/Plugins/MCP servers;
+- authenticated browser-cookie acquisition without separate credential/data-flow review;
 - redistribution of copyrighted raw source material.
 
 ## Current architecture
@@ -155,52 +169,50 @@ Top-level responsibility domains:
 6. Ledger
 7. Observability & Control
 
-See `ARCHITECTURE_BASELINE.md` for binding architecture details.
+See `ARCHITECTURE_BASELINE.md` for binding details.
 `RESEARCH_DIRECTION.md` specializes the Research Loop / Strategy Catalog discovery paradigm
 without reopening Skeleton v1.0.
 
-The current source-acquisition tool pilot is a preparatory Research Loop capability package;
-it does not add a new top-level architecture domain.
+The current source-dossier/inventory work is a preparatory Research Loop package; it does not
+add a new top-level architecture domain.
 
 ## Current tools and project capabilities
 
-Current stage tool decision:
+Current-stage tool decision:
 
 ```text
-TOOL_DECISION=ADD_TOOL
-TOOL_DECISION_SCOPE=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_PILOT
+TOOL_DECISION=USE_EXISTING
+TOOL_DECISION_SCOPE=HUMAN_PLAYBOOK_SOURCE_DOSSIER_AND_INVENTORY
 ```
 
-Reason: repeated Human Playbook ingestion requires reproducible provenance-preserving handling
-of books/documents and multimodal video beyond ad-hoc chat/web reading.
+Reason: the current source-level work can proceed using existing web/repository capabilities and
+the already verified acquisition components when a material actually requires them. No new tool
+is required for the dossier/inventory schema or first source-level population.
 
-Source-acquisition tool admission pilot: **COMPLETE (bounded close-out, 2026-08-19)**.
-Evidence: `docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md`
-(+ compact JSON). Final statuses from the real Windows probe:
+Completed source-acquisition tool-admission pilot evidence:
+`docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md`.
 
-- `Lum1104/video-to-skill`: overall **CANDIDATE**.
-  - `LOCAL_MULTIMODAL_PIPELINE` = VERIFIED (local media + sidecar SRT probe passed)
-  - `YOUTUBE_PUBLIC_URL_ADAPTER` = NOT_VERIFIED / BLOCKED_BY_403_IN_CURRENT_ENVIRONMENT
-  - `BILIBILI_PUBLIC_URL_ADAPTER` = NOT_VERIFIED / BLOCKED_BY_412_IN_CURRENT_ENVIRONMENT
-- `virgiliojr94/book-to-skill`: **DEFERRED / REFERENCE** (Skill-generation layer is not a current need).
-- `docling-project/docling` (`v2.120.3`): **VERIFIED** (scope: Windows document/layout extraction); NOT ADOPTED.
-- `UKplus8HRS/video-transcribe-skill`: **VERIFIED** (scope: local/offline Chinese no-caption fallback); NOT ADOPTED.
-- Bilibili MCP / Firecrawl / Crawl4AI / Open Notebook and related overlap candidates remain deferred until a demonstrated residual gap exists.
+Final source-acquisition statuses:
+- `Lum1104/video-to-skill`: overall CANDIDATE.
+  - `LOCAL_MULTIMODAL_PIPELINE` = VERIFIED.
+  - YouTube public URL adapter = NOT_VERIFIED / blocked by 403 in current environment.
+  - Bilibili public URL adapter = NOT_VERIFIED / blocked by 412 in current environment.
+- `virgiliojr94/book-to-skill`: DEFERRED / REFERENCE.
+- `docling-project/docling` v2.120.3: VERIFIED for Windows document/layout extraction; NOT ADOPTED.
+- `UKplus8HRS/video-transcribe-skill`: VERIFIED for local/offline Chinese no-caption fallback;
+  NOT ADOPTED; terminology/numbers require spot-checking and transcripts are not exact quotes by default.
+- Bilibili MCP / Firecrawl / Crawl4AI / Open Notebook and related overlap candidates remain
+  deferred until a demonstrated residual gap exists.
 
-Pilot details and acceptance contract:
-`docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`.
-
-Project-local adopted capabilities unrelated to this pending admission:
+Project-local adopted capabilities unrelated to this pending source-layer work:
 - TqSdk 3.10.1: ADOPTED for scoped historical concrete-contract 1-minute research data only.
-- SHFE official annual raw: VERIFIED for official daily/statistical reference use only; not the
-  canonical minute-data provider.
+- SHFE official annual raw: VERIFIED for official daily/statistical reference use only.
 - PyArrow/Parquet 25.0.1: ADOPTED for normalized canonical bar storage.
-- SQLite (`sqlite3`): ADOPTED as rebuildable canonical catalog/index; not the sole historical
-  truth authority.
-- Raw JSON + SHA256 provenance: retained as authoritative raw evidence mechanism.
+- SQLite (`sqlite3`): ADOPTED as rebuildable canonical catalog/index; not sole historical truth.
+- Raw JSON + SHA256 provenance retained as authoritative raw evidence mechanism.
 - DuckDB: DEFERRED / optional; not installed.
 
-All external components must progress through project-level:
+All external components progress through project-level:
 CANDIDATE -> VERIFIED -> ADOPTED.
 
 ## Current local capability facts
@@ -213,61 +225,45 @@ These are environment facts, not project dependencies or research authority.
 - DeepSeek/model availability does not authorize it to decide frozen research semantics.
 - Do not use an external reviewer for routine small changes merely to obtain a second opinion;
   prefer deterministic tests/repository evidence first.
-- Ponytail was found globally installed in Codex and was disabled/removed from active global
-  discovery on 2026-08-15, with a reversible backup retained outside active discovery.
+- Ponytail was disabled/removed from active global discovery on 2026-08-15, with a reversible
+  backup retained outside active discovery.
 
 ## Known limitations / technical debt
 
 Authority/index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
 
 Current non-blocking items that must survive handoff:
-- TD-001: bootstrap `NormalizedSessionCalendar` overlaps session/trading-day responsibility
-  with authoritative `SessionMetadata`; consolidate/isolate before it can become a second
-  business-logic owner.
-- TD-002: partial-close validation snapshot temporarily clears unrealized PnL until a later
-  valid mark recomputes it; resolve before PnL-sensitive confirmatory evidence is treated as
-  final quality.
+- TD-001: bootstrap `NormalizedSessionCalendar` overlaps session/trading-day responsibility with
+  authoritative `SessionMetadata`; consolidate/isolate before it can become a second business-logic owner.
+- TD-002: partial-close validation snapshot temporarily clears unrealized PnL until a later valid
+  mark recomputes it; resolve before PnL-sensitive confirmatory evidence is final quality.
 - LIMIT-001: full governed historical price-limit metadata is deferred; bind it before claiming
   historical price-limit non-fill realism in confirmatory validation.
 - DECISION-001: exact live AI market-reading / scene-recognition implementation remains an
-  unresolved Owner-gated future decision; current discretionary LLM live critical path remains
-  not authorized.
+  unresolved Owner-gated future decision; discretionary LLM live critical path remains not authorized.
+- ACQ-LIMIT-001: anonymous YouTube media download was blocked by 403 and Bilibili yt-dlp by 412
+  in the tested Windows environment; these are acquisition capability limitations, not project blockers.
 
-None of these invalidate the accepted canonical corpus or block the bounded acquisition-tool
-pilot.
+None invalidates the accepted canonical corpus or blocks current source-level work.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_PILOT  (CLOSED)
-CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md
+CURRENT_NEXT_ACTION=HUMAN_PLAYBOOK_SOURCE_DOSSIER_AND_INVENTORY_PILOT
+CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_SOURCE_DOSSIER_V0_2.md
+CURRENT_NEXT_ACTION_INVENTORY=docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md
 ```
 
-The source-acquisition tool-admission pilot is COMPLETE (bounded close-out). Final evidence and
-statuses are recorded in
-`docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md` and
-`docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`.
+Bounded next action:
+- populate a small representative first wave of source/material records;
+- verify identity/provenance and source-level evidence quality;
+- classify failure visibility, incentives/marketing, lineage independence, and observability compatibility;
+- use `EXPLICIT / INFERRED / UNKNOWN` only as future-compatible vocabulary, without extracting
+  concrete trading logic in this stage;
+- stop before strategy research.
 
-Real Windows findings recorded:
-- YouTube media download is blocked by 403 without cookies and Bilibili yt-dlp is blocked by 412
-  on this network. These are `KNOWN_LIMITATION` / capability limitations, NOT project blockers;
-  anti-bot circumvention was deliberately not attempted (project safety boundary).
-- The Bilibili official public API path works (used by `video-transcribe-skill`).
-- The local `video-to-skill` multimodal pipeline (transcript timestamps + frames + OCR +
-  provenance) was verified on a self-authored local media + sidecar SRT.
-- Docling verified for Windows document/layout extraction (tables/figures retained).
-- `video-transcribe-skill` verified for Chinese no-caption fallback, with Chinese trading
-  vocabulary accuracy caveats recorded.
-
-Minimal recommended combination from this pilot: **Docling** (document path) +
-**video-transcribe-skill** (Chinese no-caption fallback); `video-to-skill` remains CANDIDATE
-(local pipeline verified as a sub-capability); `book-to-skill` not required.
-
-The next material research stage remains the required Human Playbook research-protocol /
-chronological-split freeze review, which stays unexecuted. Per project-brain direction, the
-concrete next action is decided after review of this formal evidence; this close-out does NOT
-authorize strategy research, backtest, final-unseen access, Shadow/live trading, or paid
-commitments.
+The research-protocol / chronological-split freeze remains intentionally unexecuted. A later
+freeze package will require its normal Owner decision and review boundary.
 
 ## Current acceptance / durable evidence
 
@@ -278,22 +274,21 @@ commitments.
 - Canonical corpus acceptance: `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`.
 - Canonical corpus identity: `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`.
 - Full cross-source evidence: `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`.
-- Source-acquisition tool pilot: `docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md` — COMPLETE (bounded close-out); evidence: `docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md`.
-- Historical pre-acceptance canonical package: `docs/evidence/CANONICAL_DATASET_PACKAGE.md`
-  (preserved for audit; superseded for current corpus status by final acceptance evidence).
+- Source-acquisition tool pilot: `docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md` — COMPLETE.
+- Tool-admission evidence: `docs/evidence/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_WINDOWS_2026-08-18.md`.
+- Current Source Dossier draft: `docs/research/HUMAN_PLAYBOOK_SOURCE_DOSSIER_V0_2.md`.
+- Current Source Material Inventory: `docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md`.
 - Known limitations/debt index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
 
 ## Current Owner action
 
 OWNER_ACTION=NONE
 
-No repeated Owner approval is required for the bounded source-acquisition tool-admission pilot.
-A new Owner gate is required if the work would introduce a paid commitment, irreversible
-external action, authenticated/credential-bearing acquisition with material new data-flow risk,
-change frozen research semantics, or change the live critical-path boundary.
+No repeated Owner approval is required for the current bounded source-level dossier/inventory work.
 
-The research-protocol / chronological-split freeze itself remains a later Owner decision package
-because it will freeze research semantics.
+A new Owner gate is required for paid commitments, irreversible external actions,
+authenticated/credential-bearing acquisition with material new data-flow risk, frozen research
+semantics, permanent risk rules, real-money/broker actions, or live critical-path changes.
 
 ## Owner decision gates
 
