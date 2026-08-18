@@ -7,12 +7,13 @@ Current authority/navigation:
 - Binding architecture: `ARCHITECTURE_BASELINE.md` — Skeleton v1.0
 - Binding research direction: `RESEARCH_DIRECTION.md` — Human Playbook First
 - Current state/next action: `CURRENT_STATE.md`
+- Final protocol freeze candidate: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_3.md`
+- Final Owner decision package: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_DECISION_PACKAGE_V0_2.md`
+- Targeted delta review: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_DELTA_ADVERSARIAL_REVIEW_V0_1.md`
+- Delta adjudication: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_DELTA_ADJUDICATION_V0_1.md`
 - Final pre-freeze gap review: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_FINAL_PREFREEZE_GAP_REVIEW_V0_1.md`
-- Revised protocol candidate under delta review: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_2.md`
-- Prior Owner decision package (HOLD pending delta review): `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_DECISION_PACKAGE_V0_1.md`
-- Independent adversarial review: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_ADVERSARIAL_REVIEW_V0_1.md`
-- Project-brain adjudication: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_ADJUDICATION_V0_1.md`
-- Historical protocol input v0.1: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_1.md`
+- Prior independent review: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_ADVERSARIAL_REVIEW_V0_1.md`
+- Prior adjudication: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_ADJUDICATION_V0_1.md`
 - Source Dossier schema: `docs/research/HUMAN_PLAYBOOK_SOURCE_DOSSIER_V0_2.md`
 - Source Material Inventory: `docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md`
 - First-wave source close-out: `docs/research/HUMAN_PLAYBOOK_SOURCE_LAYER_FIRST_WAVE_CLOSEOUT.md`
@@ -28,22 +29,34 @@ Project state (accepted/current):
 - Canonical BALANCED corpus ACCEPTED (2024-01-01..2025-12-31)
 - Source-acquisition tool pilot COMPLETE
 - First Human Playbook source-layer wave COMPLETE / GO at source-only level
-- First independent protocol review COMPLETE: `GO_WITH_REQUIRED_CHANGES`
-- Project-brain adjudication COMPLETE
-- Owner-requested final recap FOUND NEW MATERIAL GAPS
-- Research-protocol / chronological-split freeze remains NOT EXECUTED
+- First protocol adversarial review COMPLETE: `GO_WITH_REQUIRED_CHANGES`
+- First project-brain adjudication COMPLETE
+- Owner-requested final recap found three additional material gaps
+- Targeted delta adversarial review COMPLETE: `GO_WITH_REQUIRED_CHANGES`, no new CRITICAL
+- Delta adjudication COMPLETE
+- Final freeze candidate v0.3 and Owner decision package v0.2 are READY / NOT_FROZEN
+- Research protocol / chronology freeze remains NOT EXECUTED
 - Strategy research has NOT started
-- Current work package = TARGETED_FINAL_PREFREEZE_ADVERSARIAL_DELTA_REVIEW
+- Current work package = HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_FINAL_OWNER_FREEZE_DECISION_V0_3
 - Current tool decision = USE_EXISTING
 
-New final pre-freeze gaps requiring targeted independent review:
-1. historical locked holdout is not automatically epistemically unseen to humans/current AI models; future Shadow/Forward is the genuinely prospective unseen path;
-2. search-freedom/multiple-testing accounting must explicitly include whole playbook families/claims/research waves, not only branches inside a winner;
-3. the common project-wide statistical profile must be locked before the first outcome-bearing candidate performance backtest, not merely before validation.
+Final v0.3 additions beyond v0.2:
+1. distinguish project-governed historical holdout from genuinely prospective unseen data; use SOURCE_ONLY technical denial and disclose residual human/AI prior-knowledge risk;
+2. govern multiplicity across immutable RESEARCH_WAVE denominators, not only within-family branches;
+3. lock the project-wide statistical profile and research wave before the first candidate outcome-bearing performance backtest.
 
-The earlier project-brain recommendation (`12/6/6`, governance safeguards, `INSUFFICIENT_EVIDENCE`) is NOT rejected, but it is on HOLD until these new deltas receive targeted independent review and project-brain adjudication.
+Project-brain final recommendation remains:
 
-Concrete claim extraction, outcome-bearing strategy backtest, validation/final-holdout access and live trading remain NOT AUTHORIZED.
+```text
+APPROVE GOVERNANCE=YES
+INITIAL_SPLIT=12/6/6
+ALLOW_INSUFFICIENT_EVIDENCE=YES
+APPROVE_HISTORICAL_HOLDOUT_PROSPECTIVE_UNSEEN_DISTINCTION=YES
+APPROVE_RESEARCH_WAVE_MULTIPLICITY=YES
+APPROVE_PRE_OUTCOME_STATISTICAL_PROFILE_LOCK=YES
+```
+
+Concrete claim extraction, candidate outcome-bearing backtest, validation/final-holdout access and live trading remain NOT AUTHORIZED until the Owner freezes v0.3 and the relevant implementation gates are completed.
 
 Status authority: `CURRENT_STATE.md`; research-direction authority: `RESEARCH_DIRECTION.md`.
 
