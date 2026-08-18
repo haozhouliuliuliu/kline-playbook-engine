@@ -47,13 +47,51 @@ UNKNOWN
 
 None of these statuses means a playbook is valid.
 
-## 3. Inventory table
+## 3. First-wave inventory — source-level only
 
-| source_id | material_id | canonical source / series | material | type | language | provenance | processing status | source admission | observability | failure visibility | lineage note | current evidence / next source-level check |
+Access/provenance checked on 2026-08-19. These rows intentionally stop before concrete trading-claim extraction.
+
+| source_id | material_id | canonical source / series | material | type | language | provenance | processing status | source admission | observability | failure visibility | lineage / incentive note | current evidence / next source-level check |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| TBD | TBD | TBD | TBD | TBD | TBD | TBD | DISCOVERED | KEEP_CANDIDATE | UNKNOWN | UNKNOWN | UNKNOWN | Populate through project-led discovery; no strategy extraction |
+| SRC-BRANDT | MAT-BRANDT-DIARY | Peter L. Brandt | *Diary of a Professional Commodity Trader* | publisher book / longitudinal diary | EN | TRACEABLE_ORIGINAL | PROVENANCE_CHECKED | PRIORITY_DEEP_DIVE | OBSERVABLE_NOW | PRESENT | Wiley original; Brandt also operates commercial Factor services; publisher/author performance claims are not validity evidence | Wiley identifies the book as a 2009 trading diary with charts, analysis and play-by-play; deeper source-level check should sample dispersed periods + failures without extracting rules |
+| SRC-BROOKS | MAT-BROOKS-PA | Al Brooks | Wiley *Trading Price Action* series + official Brooks Trading Course | books + long-form paid video course | EN | TRACEABLE_ORIGINAL | PROVENANCE_CHECKED | PRIORITY_DEEP_DIVE | OBSERVABLE_NOW | UNKNOWN | Official commercial education business; dense proprietary vocabulary creates high future AI-interpretation risk | Wiley confirms the book series; official site advertises 100+ hour / 52-module course. Next source-level check: material continuity, explicit failure/no-trade coverage, source glossary boundaries |
+| SRC-RASCHKE | MAT-RASCHKE-VIDEOS | Linda Bradford Raschke | official video archive | long-form professional trading video archive | EN | TRACEABLE_ORIGINAL | PROVENANCE_CHECKED | PRIORITY_DEEP_DIVE | PARTIALLY_OBSERVABLE | UNKNOWN | Official site; mixed topics include price/volume plus Market Profile concepts; commercial subscription surface present | Official archive spans volume/price, day type, trade location, mean reversion, trend, breakouts, psychology and Market Profile. Next: identify which observation surfaces are reproducible with current data |
+| SRC-GRIMES | MAT-GRIMES-MARKETLIFE | Adam H. Grimes / MarketLife | official blog + course platform | education/archive + commercial service | EN | TRACEABLE_ORIGINAL | PROVENANCE_CHECKED | KEEP_CANDIDATE | PARTIALLY_OBSERVABLE | UNKNOWN | Author explicitly spans quantitative and discretionary trading; MarketLife is commercial with subscriptions; marketing/testimonial claims are not validity evidence | Official blog links course migration to MarketLife; MarketLife states educational focus and paid tiers. Next: identify free/original long-form corpus suitable for source-level review before paid material is considered |
+| SRC-STEENBARGER | MAT-STEENBARGER-TRADERFEED | Brett Steenbarger / TraderFeed | TraderFeed archive / resource center | longitudinal process, review and psychology archive | EN | TRACEABLE_ORIGINAL | PROVENANCE_CHECKED | PRIORITY_DEEP_DIVE | PARTIALLY_OBSERVABLE | PRESENT | Process/psychology source, not an independent vote for a specific technical setup; long archive reduces highlight-only bias | TraderFeed documents a multi-year archive with thousands of posts and curated failure/discipline/performance topics; next source-level check should focus on review/error/no-trade process evidence rather than trade-rule extraction |
+| SRC-QINGZE | MAT-QINGZE-10Y | 青泽 | 《十年一梦：一个操盘手的自白》 | Chinese book / long-form trading memoir | ZH | VERIFIED_SOURCE_IDENTITY | PROVENANCE_CHECKED | KEEP_CANDIDATE | UNKNOWN | Chinese futures context is strategically relevant, but current check is bibliographic only; no assumption of validity or completeness | University library records confirm author 青泽, 企业管理出版社, 2006, 326 pages, and domestic stock/futures growth narrative. Next: obtain authorized text/sample and inspect failure density / hindsight risk / observation surfaces |
+| SRC-QHRB-COMP | MAT-QHRB-COMPETITION | 期货日报全国期货实盘交易大赛 | official competition site / rankings | public-record discovery channel | ZH | TRACEABLE_ORIGINAL | PROVENANCE_CHECKED | DISCOVERY_ONLY | UNKNOWN | Official site explicitly says ranking data do not guarantee trading ability; use as discovery path, not playbook evidence | Use competition records to discover less-marketed Chinese traders, then separately verify identity, original long-form material and failure evidence |
 
-## 4. Required material record
+## 4. Canonical provenance pointers for first wave
+
+These are discovery/provenance anchors, not proof that any source/playbook is valid.
+
+### Peter L. Brandt
+- Wiley Online Books: `https://onlinelibrary.wiley.com/doi/book/10.1002/9781119202967`
+- Wiley-VCH product page: `https://www.wiley-vch.de/en/areas-interest/finance-economics-law/diary-of-a-professional-commodity-trader-978-1-394-37796-1`
+- Author/commercial site: `https://www.peterlbrandt.com/`
+
+### Al Brooks
+- Wiley companion/book identity: `https://books.wiley.com/titles/9781118066515/`
+- Official course/site: `https://www.brookspriceaction.com/`
+
+### Linda Bradford Raschke
+- Official videos: `https://lindaraschke.net/linda-videos/`
+
+### Adam H. Grimes
+- Author blog: `https://adamhgrimes.com/`
+- MarketLife: `https://www.marketlifetrading.com/`
+
+### Brett Steenbarger
+- TraderFeed: `https://traderfeed.blogspot.com/`
+
+### 青泽
+- University library bibliographic record: `https://opac.lib.uibe.edu.cn/opac/book/49b182740517669f88a4ed25a47f359d`
+- Additional university library record: `https://jp.tfswufe.edu.cn/opac/book/f2386b9ba460e94891dbcbcf5b182482`
+
+### 期货日报全国期货实盘交易大赛
+- Official competition site: `https://ds.qhrb.com.cn/`
+
+## 5. Required material record
 
 For every material promoted beyond `DISCOVERED`, record or link the following:
 
@@ -91,7 +129,7 @@ open_source_level_questions:
 
 Do not fill missing facts by inference. Use `UNKNOWN` when evidence is absent.
 
-## 5. Source-level processing route
+## 6. Source-level processing route
 
 ```text
 DISCOVER
@@ -103,7 +141,7 @@ DISCOVER
 -> stop before concrete trading-claim extraction unless later authority allows it
 ```
 
-## 6. Tool routing from completed admission pilot
+## 7. Tool routing from completed admission pilot
 
 Use the smallest verified capability needed:
 
@@ -114,7 +152,7 @@ Use the smallest verified capability needed:
 
 Tool status is separate from source status.
 
-## 7. Current package boundary
+## 8. Current package boundary
 
 Current work may populate this inventory and complete source-level dossiers.
 
@@ -126,18 +164,12 @@ Current work may **not**:
 - use final-unseen data;
 - make live trading decisions.
 
-## 8. Next source-level target
+## 9. Remaining representative lanes
 
-Populate a small representative first wave across materially different source forms and observation surfaces, enough to test whether Source Dossier v0.2 works in practice without creating strategy-research exposure.
+The first population intentionally does not claim full coverage. Still missing or incomplete:
+- auction/profile lineage sample with clearly traceable original/descendant boundaries;
+- skeptical/counter-evidence source specifically for technical-analysis/data-snooping risk;
+- additional China-first long-form trader sources discovered through public records rather than marketing prominence;
+- explicit negative/near-miss material samples for several first-wave candidates.
 
-Selection should favor diversity of evidence form rather than fame or popularity:
-- longitudinal diary/archive;
-- dense price-action/context teaching;
-- professional short-term trading material;
-- auction/profile lineage material;
-- process/review/error documentation;
-- Chinese futures long-form source;
-- Chinese competition/public-record discovery path;
-- skeptical/counter-evidence source.
-
-Specific people/materials remain candidates until provenance is checked and recorded here.
+These are the next source-level gaps. They remain source research, not strategy research.
