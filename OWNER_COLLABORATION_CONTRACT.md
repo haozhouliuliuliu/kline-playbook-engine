@@ -20,6 +20,13 @@ This file defines the Owner's stable collaboration preferences for this project.
 - Safe, bounded work should be completed in one package where practical instead of being split into many artificial rounds.
 - Before splitting adjacent work into separate Codex packages, explicitly test whether it can be safely completed under the same authority, stage, verification boundary, and risk envelope. If yes, combine it into one bounded package. Split only when an Owner gate, materially different/frozen semantics, destructive or external consequence, independent acceptance boundary, or excessive scope/risk makes separation useful.
 
+## Parallel execution preference
+- When two or more bounded work packages are genuinely independent, do not share mutable authority/files, and can be verified separately, prefer safe parallel execution instead of unnecessary serial waiting.
+- Use isolated Git worktrees/branches for parallel workers. Keep one integration lane as the only lane allowed to advance `main` and shared state/authority files.
+- Parallel workers must not push `main` or independently edit shared authority such as `CURRENT_STATE.md`, `00_READ_FIRST.md`, frozen protocols, Owner evidence, or other common integration-owned files unless the integration task explicitly assigns that ownership.
+- Parallelize engineering audits, independent reviews, evidence gathering, and non-overlapping implementation when dependencies allow. Do not parallelize steps whose meaning depends on an unresolved upstream research-semantic decision or Owner gate.
+- Prefer a small number of high-value parallel lanes (normally 2–3) over many agents that create merge/conflict overhead. The project brain owns decomposition, dependency checks, integration order, and final adjudication.
+
 ## Codex workflow
 - When Codex is needed, provide one complete copy-paste task prompt. Do not ask the Owner to assemble fragments.
 - Ordinary implementation bugs, test bugs, documentation/state defects, or issues already decidable by current project authority should be fixed by Codex autonomously, with tests, until the bounded task is complete.
