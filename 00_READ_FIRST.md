@@ -7,8 +7,9 @@ Current authority/navigation:
 - Binding architecture: `ARCHITECTURE_BASELINE.md` — Skeleton v1.0
 - Binding research direction: `RESEARCH_DIRECTION.md` — Human Playbook First
 - Current state/next action: `CURRENT_STATE.md`
-- Revised protocol freeze candidate: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_2.md`
-- Owner decision package: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_DECISION_PACKAGE_V0_1.md`
+- Final pre-freeze gap review: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_FINAL_PREFREEZE_GAP_REVIEW_V0_1.md`
+- Revised protocol candidate under delta review: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_2.md`
+- Prior Owner decision package (HOLD pending delta review): `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_DECISION_PACKAGE_V0_1.md`
 - Independent adversarial review: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_ADVERSARIAL_REVIEW_V0_1.md`
 - Project-brain adjudication: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_ADJUDICATION_V0_1.md`
 - Historical protocol input v0.1: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_1.md`
@@ -27,28 +28,22 @@ Project state (accepted/current):
 - Canonical BALANCED corpus ACCEPTED (2024-01-01..2025-12-31)
 - Source-acquisition tool pilot COMPLETE
 - First Human Playbook source-layer wave COMPLETE / GO at source-only level
-- Independent protocol review COMPLETE: `GO_WITH_REQUIRED_CHANGES` (3 CRITICAL, 6 HIGH)
+- First independent protocol review COMPLETE: `GO_WITH_REQUIRED_CHANGES`
 - Project-brain adjudication COMPLETE
-- Revised protocol candidate v0.2 = OWNER_DECISION_CANDIDATE / NOT_FROZEN
-- Owner decision package = READY
+- Owner-requested final recap FOUND NEW MATERIAL GAPS
 - Research-protocol / chronological-split freeze remains NOT EXECUTED
 - Strategy research has NOT started
-- Concrete claim extraction, backtest, final-unseen access and live trading remain NOT AUTHORIZED
+- Current work package = TARGETED_FINAL_PREFREEZE_ADVERSARIAL_DELTA_REVIEW
 - Current tool decision = USE_EXISTING
 
-Project-brain recommended freeze decision:
+New final pre-freeze gaps requiring targeted independent review:
+1. historical locked holdout is not automatically epistemically unseen to humans/current AI models; future Shadow/Forward is the genuinely prospective unseen path;
+2. search-freedom/multiple-testing accounting must explicitly include whole playbook families/claims/research waves, not only branches inside a winner;
+3. the common project-wide statistical profile must be locked before the first outcome-bearing candidate performance backtest, not merely before validation.
 
-```text
-APPROVE GOVERNANCE=YES
-INITIAL_SPLIT=12/6/6
-ALLOW_INSUFFICIENT_EVIDENCE=YES
-```
+The earlier project-brain recommendation (`12/6/6`, governance safeguards, `INSUFFICIENT_EVIDENCE`) is NOT rejected, but it is on HOLD until these new deltas receive targeted independent review and project-brain adjudication.
 
-Owner may authorize the recommended freeze with:
-
-`按推荐冻结`
-
-No freeze occurs until Owner approval is received and recorded durably.
+Concrete claim extraction, outcome-bearing strategy backtest, validation/final-holdout access and live trading remain NOT AUTHORIZED.
 
 Status authority: `CURRENT_STATE.md`; research-direction authority: `RESEARCH_DIRECTION.md`.
 
