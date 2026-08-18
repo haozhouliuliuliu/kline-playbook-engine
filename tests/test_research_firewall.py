@@ -1,28 +1,39 @@
-"""Deterministic regression tests for the pre-outcome research firewall.
+"""Deterministic regression tests for the identity-bound pre-outcome firewall.
 
-Covers the frozen Selection Firewall requirements (v1.0) implementation:
-- SOURCE_ONLY session/policy technical denial
-- immutable RESEARCH_WAVE manifests and permanent tested denominator
-- common statistical profile identity/lock interface (TEST_ONLY fixtures)
-- the single fail-closed pre-outcome gate (all 14 minimum checks)
+Covers the frozen Selection Firewall requirements (v1.0) after acceptance-review
+hardening:
+- project-issued SOURCE_ONLY verification (a manual TECHNICALLY_DENIED session is
+  not verified without project-issued evidence)
+- bounded SOURCE_ONLY claim-extraction runner with technical denial
+- immutable RESEARCH_WAVE manifests whose permanent denominator is derived from
+  the manifest (no split-brain) with exact profile/counting-unit identity binding
+- canonical identity-bound OutcomeTestRegistration
+- the single fail-closed pre-outcome gate (identity-binding checks)
 - historical final-holdout state machine (no auto-unlock)
 - frozen 12/6/6 chronology classification
 - legacy FinalUnseenFirewall compatibility
 """
 
+import inspect
 import unittest
 from dataclasses import FrozenInstanceError
 from datetime import date
 
 from src.research_firewall import (
+    ApprovedSourceBundle,
+    ClaimRecordDraft,
+    ClaimRecordOutput,
     Cohort,
     CommonStatisticalProfile,
     FinalHoldoutState,
     FrozenResearchProtocol,
     HistoricalFinalHoldoutStateMachine,
+    OutcomeTestRegistration,
+    PreOutcomeGate,
     ProtectedMarketAccessMode,
     ResearchFirewall,
     ResearchWaveManifest,
+    SourceOnlyClaimExtractionContext,
     SourceOnlySession,
     classify_cohort,
 )
@@ -56,26 +67,6 @@ def strategy(*, family_id="neutral-family", version="1.0", parent_identity_id=No
     )
 
 
-def make_wave_manifest(
-    wave_id="wave-test-only-v1",
-    family_ids=("family-fixture-v1",),
-    primary_branches=("primary-branch-fixture-v1",),
-    created_at="2026-08-19T00:00:00Z",
-):
-    return ResearchWaveManifest(
-        research_wave_id=wave_id,
-        protocol_version="1.0",
-        statistical_profile_version="0.0-test",
-        tested_family_claim_identities=family_ids,
-        primary_branch_identities=primary_branches,
-        declared_outcome_tested_alternatives=(),
-        instrument_timeframe_context_scope="TEST_ONLY:instrument=TEST;timeframe=5m;context=TEST",
-        parameter_search_ranges="TEST_ONLY:none",
-        denominator_counting_semantics="TEST_ONLY:independent-falsifiable-hypotheses",
-        created_at=created_at,
-    )
-
-
 def make_test_only_profile(profile_id="profile-test-only-v1"):
     return CommonStatisticalProfile(
         profile_id=profile_id,
@@ -89,28 +80,94 @@ def make_test_only_profile(profile_id="profile-test-only-v1"):
     )
 
 
-def make_source_only_session(session_id="source-only-session-1"):
-    return SourceOnlySession(
+COUNTING_UNIT_IDENTITY = "counting-unit-test-v1"
+HYPOTHESIS_TEST_ID = "hypothesis-test-v1"
+
+
+def make_wave_manifest(
+    *,
+    wave_id="wave-test-only-v1",
+    profile_id="profile-test-only-v1",
+    profile_identity=None,
+    counting_unit_identity=COUNTING_UNIT_IDENTITY,
+    tested_hypothesis_test_ids=(HYPOTHESIS_TEST_ID,),
+    created_at="2026-08-19T00:00:00Z",
+):
+    if profile_identity is None:
+        profile_identity = make_test_only_profile(profile_id=profile_id).profile_identity
+    return ResearchWaveManifest(
+        research_wave_id=wave_id,
+        protocol_version="1.0",
+        statistical_profile_id=profile_id,
+        statistical_profile_identity=profile_identity,
+        multiplicity_counting_unit_identity=counting_unit_identity,
+        tested_hypothesis_test_ids=tested_hypothesis_test_ids,
+        primary_branch_identities=("primary-branch-fixture-v1",),
+        declared_outcome_tested_alternatives=(),
+        instrument_timeframe_context_scope="TEST_ONLY:instrument=TEST;timeframe=5m;context=TEST",
+        parameter_search_ranges="TEST_ONLY:none",
+        denominator_counting_semantics="TEST_ONLY:independent-falsifiable-hypotheses",
+        created_at=created_at,
+    )
+
+
+def make_open_session(policy, *, session_id="source-only-session-1"):
+    return policy.open_verified_session(
         session_id=session_id,
         model_identity="model-fixture-v1",
         prompt_spec_version="prompt-spec-v1",
         source_bundle_identity="bundle-fixture-v1",
         source_bundle_hash="bundle-hash-fixture-v1",
         tool_retrieval_mode="PROJECT_SOURCE_ONLY",
-        protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
+        researcher_model_exposure_note="no known exposure",
     )
 
 
-def make_satisfied_firewall(ledger):
-    """Fully-satisfied pre-outcome control stack using TEST_ONLY fixtures only."""
+def make_registered_firewall(
+    ledger,
+    *,
+    hypothesis_test_id=HYPOTHESIS_TEST_ID,
+    session_id="source-only-session-1",
+    profile_id="profile-test-only-v1",
+    wave_id="wave-test-only-v1",
+    family_claim_identity="family-claim-fixture-v1",
+    primary_branch_identity="primary-branch-fixture-v1",
+    scope_identity="scope-fixture-v1",
+    parameter_search_identity="parameter-search-fixture-v1",
+    strategy_obj=None,
+):
+    """Build a fully identity-bound firewall: verified session + TEST_ONLY
+    profile + wave + one registered outcome test, with the wave locked."""
+    if strategy_obj is None:
+        strategy_obj = strategy()
+    experiment = ExperimentIdentity.from_strategy(strategy_obj, "data-fixture-v1", "exposure-fixture-v1")
     firewall = ResearchFirewall(ledger)
-    session = firewall.source_only.record_session(make_source_only_session())
-    profile = firewall.profiles.register(make_test_only_profile())
+    session = make_open_session(firewall.source_only, session_id=session_id)
+    profile = firewall.profiles.register(make_test_only_profile(profile_id=profile_id))
     firewall.profiles.lock(profile.profile_id)
-    wave = firewall.waves.register(make_wave_manifest())
-    firewall.waves.add_tested_hypothesis(wave.research_wave_id, "hypothesis-fixture-v1")
-    firewall.waves.lock(wave.research_wave_id)
-    return firewall, session.session_id, profile.profile_id, wave.research_wave_id
+    wave = firewall.waves.register(
+        make_wave_manifest(
+            wave_id=wave_id,
+            profile_id=profile.profile_id,
+            profile_identity=profile.profile_identity,
+            tested_hypothesis_test_ids=(hypothesis_test_id,),
+        )
+    )
+    firewall.register_outcome_test(
+        hypothesis_test_id=hypothesis_test_id,
+        strategy=strategy_obj,
+        experiment=experiment,
+        family_claim_identity=family_claim_identity,
+        primary_branch_identity=primary_branch_identity,
+        scope_identity=scope_identity,
+        parameter_search_identity=parameter_search_identity,
+        source_only_session_id=session.session_id,
+        research_wave_id=wave.research_wave_id,
+        statistical_profile_id=profile.profile_id,
+        multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+    )
+    firewall.lock_wave(wave.research_wave_id)
+    return firewall, session, profile, wave, experiment
 
 
 class ChronologyClassificationTests(unittest.TestCase):
@@ -140,11 +197,15 @@ class ChronologyClassificationTests(unittest.TestCase):
 
 
 class SourceOnlyPolicyTests(unittest.TestCase):
-    def test_verified_session_records_all_required_fields(self):
+    def test_open_verified_session_is_project_verified(self):
         policy = ResearchFirewall(EvidenceLedger()).source_only
-        session = policy.record_session(
+        session = make_open_session(policy)
+        self.assertTrue(policy.is_verified(session.session_id))
+        self.assertIsNotNone(session.verification_evidence)
+        self.assertEqual(
+            session.session_identity,
             SourceOnlySession(
-                session_id="s1",
+                session_id="source-only-session-1",
                 model_identity="model-fixture-v1",
                 prompt_spec_version="prompt-spec-v1",
                 source_bundle_identity="bundle-fixture-v1",
@@ -152,21 +213,41 @@ class SourceOnlyPolicyTests(unittest.TestCase):
                 tool_retrieval_mode="PROJECT_SOURCE_ONLY",
                 protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
                 researcher_model_exposure_note="no known exposure",
+            ).session_identity,
+        )
+
+    def test_manually_constructed_technically_denied_session_is_not_verified(self):
+        # Test 3: manually constructed TECHNICALLY_DENIED without project-issued
+        # verification evidence is NOT VERIFIED.
+        policy = ResearchFirewall(EvidenceLedger()).source_only
+        policy.record_session(
+            SourceOnlySession(
+                session_id="manual",
+                model_identity="model-fixture-v1",
+                prompt_spec_version="prompt-spec-v1",
+                source_bundle_identity="bundle-fixture-v1",
+                source_bundle_hash="bundle-hash-fixture-v1",
+                tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+                protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
             )
         )
-        self.assertTrue(policy.is_verified("s1"))
-        self.assertEqual(session.session_identity, session.session_identity)
-        again = SourceOnlySession(
-            session_id="s1",
-            model_identity="model-fixture-v1",
-            prompt_spec_version="prompt-spec-v1",
-            source_bundle_identity="bundle-fixture-v1",
-            source_bundle_hash="bundle-hash-fixture-v1",
-            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
-            protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
-            researcher_model_exposure_note="no known exposure",
+        self.assertFalse(policy.is_verified("manual"))
+
+    def test_manually_forged_verification_evidence_is_not_verified(self):
+        policy = ResearchFirewall(EvidenceLedger()).source_only
+        policy.record_session(
+            SourceOnlySession(
+                session_id="forged",
+                model_identity="model-fixture-v1",
+                prompt_spec_version="prompt-spec-v1",
+                source_bundle_identity="bundle-fixture-v1",
+                source_bundle_hash="bundle-hash-fixture-v1",
+                tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+                protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
+                verification_evidence="forged-evidence",
+            )
         )
-        self.assertEqual(again.session_identity, session.session_identity)
+        self.assertFalse(policy.is_verified("forged"))
 
     def test_prompt_only_instruction_is_not_technical_denial(self):
         policy = ResearchFirewall(EvidenceLedger()).source_only
@@ -207,70 +288,159 @@ class SourceOnlyPolicyTests(unittest.TestCase):
 
     def test_duplicate_session_id_is_rejected(self):
         policy = ResearchFirewall(EvidenceLedger()).source_only
-        policy.record_session(make_source_only_session())
+        make_open_session(policy)
         with self.assertRaisesRegex(ValueError, "duplicate"):
-            policy.record_session(make_source_only_session())
+            make_open_session(policy)
 
 
 class ResearchWaveRegistryTests(unittest.TestCase):
     def test_wave_manifest_is_immutable(self):
-        registry = ResearchFirewall(EvidenceLedger()).waves
-        manifest = registry.register(make_wave_manifest())
+        firewall = ResearchFirewall(EvidenceLedger())
+        manifest = firewall.waves.register(make_wave_manifest())
         with self.assertRaises(FrozenInstanceError):
             manifest.denominator_counting_semantics = "changed"
+        with self.assertRaises(FrozenInstanceError):
+            manifest.tested_hypothesis_test_ids = ("other-hypothesis",)
 
     def test_manifest_identity_is_deterministic(self):
-        registry = ResearchFirewall(EvidenceLedger()).waves
-        first = registry.register(make_wave_manifest())
-        second = registry.register(make_wave_manifest(wave_id="wave-2"))
+        firewall = ResearchFirewall(EvidenceLedger())
+        first = firewall.waves.register(make_wave_manifest())
+        second = firewall.waves.register(make_wave_manifest(wave_id="wave-2"))
         self.assertEqual(first.manifest_identity, make_wave_manifest().manifest_identity)
         self.assertNotEqual(first.manifest_identity, second.manifest_identity)
 
-    def test_lock_then_append_is_forbidden(self):
-        registry = ResearchFirewall(EvidenceLedger()).waves
-        wave = registry.register(make_wave_manifest())
-        registry.add_tested_hypothesis(wave.research_wave_id, "h1")
-        registry.lock(wave.research_wave_id)
-        self.assertTrue(registry.is_locked(wave.research_wave_id))
-        with self.assertRaisesRegex(ValueError, "locked wave"):
-            registry.add_tested_hypothesis(wave.research_wave_id, "h2")
+    def test_lock_requires_registered_tested_hypothesis(self):
+        # Test 6: manifest tested set != registry/binding set -> wave cannot lock.
+        firewall = ResearchFirewall(EvidenceLedger())
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-missing",)))
+        with self.assertRaisesRegex(ValueError, "not registered"):
+            firewall.lock_wave(wave.research_wave_id)
+        self.assertFalse(firewall.waves.is_locked(wave.research_wave_id))
 
-    def test_append_after_outcome_test_start_requires_new_wave(self):
-        registry = ResearchFirewall(EvidenceLedger()).waves
-        wave = registry.register(make_wave_manifest())
-        registry.add_tested_hypothesis(wave.research_wave_id, "h1")
-        registry.lock(wave.research_wave_id)
-        registry.declare_outcome_test_start(wave.research_wave_id)
-        self.assertTrue(registry.has_outcome_test_started(wave.research_wave_id))
-        # The wave is locked before outcome testing starts, so a late hypothesis is
-        # rejected (fail closed) and the test set stays immutable.
-        with self.assertRaises(ValueError):
-            registry.add_tested_hypothesis(wave.research_wave_id, "h2")
-        self.assertEqual(registry.denominator(wave.research_wave_id), ("h1",))
-        # A new hypothesis requires a new wave / new search event.
-        new_wave = registry.register(make_wave_manifest(wave_id="wave-2", family_ids=("family-2",)))
-        registry.add_tested_hypothesis(new_wave.research_wave_id, "h2")
-        self.assertEqual(registry.denominator(new_wave.research_wave_id), ("h2",))
+    def test_lock_rejects_registration_pointing_to_another_wave(self):
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        wave_a = firewall.waves.register(make_wave_manifest(wave_id="wave-a", tested_hypothesis_test_ids=("h-1",)))
+        wave_b = firewall.waves.register(make_wave_manifest(wave_id="wave-b", tested_hypothesis_test_ids=("h-1",)))
+        session = make_open_session(firewall.source_only)
+        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        # Register h-1 under wave-b, then try to lock wave-a which also claims h-1.
+        firewall.register_outcome_test(
+            hypothesis_test_id="h-1",
+            strategy=strategy(),
+            experiment=exp,
+            family_claim_identity="family-1",
+            primary_branch_identity="primary-1",
+            scope_identity="scope-1",
+            parameter_search_identity="param-1",
+            source_only_session_id=session.session_id,
+            research_wave_id="wave-b",
+            statistical_profile_id=profile.profile_id,
+            multiplicity_counting_unit_identity=wave_b.multiplicity_counting_unit_identity,
+        )
+        with self.assertRaisesRegex(ValueError, "another wave"):
+            firewall.lock_wave(wave_a.research_wave_id)
 
-    def test_denominator_keeps_fail_and_insufficient_evidence(self):
-        registry = ResearchFirewall(EvidenceLedger()).waves
-        wave = registry.register(make_wave_manifest(family_ids=("f1", "f2")))
-        registry.add_tested_hypothesis(wave.research_wave_id, "h1")
-        registry.add_tested_hypothesis(wave.research_wave_id, "h2")
-        registry.lock(wave.research_wave_id)
-        registry.declare_outcome_test_start(wave.research_wave_id)
-        registry.record_outcome(wave.research_wave_id, "h1", "FAIL")
-        registry.record_outcome(wave.research_wave_id, "h2", "INSUFFICIENT_EVIDENCE")
-        self.assertEqual(registry.denominator(wave.research_wave_id), ("h1", "h2"))
-        outcomes = dict(registry.denominator_with_outcomes(wave.research_wave_id))
-        self.assertEqual(outcomes["h1"], "FAIL")
-        self.assertEqual(outcomes["h2"], "INSUFFICIENT_EVIDENCE")
+    def test_wave_profile_identity_mismatch_is_rejected(self):
+        # Test 5: wave/profile identity mismatch -> DENY (registration rejected).
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        wave = firewall.waves.register(
+            make_wave_manifest(
+                wave_id="wave-p",
+                profile_id=profile.profile_id,
+                profile_identity="wrong-profile-identity",
+                tested_hypothesis_test_ids=("h-1",),
+            )
+        )
+        session = make_open_session(firewall.source_only)
+        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        with self.assertRaisesRegex(ValueError, "profile"):
+            firewall.register_outcome_test(
+                hypothesis_test_id="h-1",
+                strategy=strategy(),
+                experiment=exp,
+                family_claim_identity="family-1",
+                primary_branch_identity="primary-1",
+                scope_identity="scope-1",
+                parameter_search_identity="param-1",
+                source_only_session_id=session.session_id,
+                research_wave_id="wave-p",
+                statistical_profile_id=profile.profile_id,
+                multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+            )
+        self.assertFalse(firewall.waves.is_locked("wave-p"))
+
+    def test_empty_tested_denominator_cannot_lock(self):
+        # Test 7: empty tested denominator -> wave cannot lock (rejected at build).
+        with self.assertRaisesRegex(ValueError, "non-empty"):
+            make_wave_manifest(tested_hypothesis_test_ids=())
+
+    def test_denominator_derived_from_manifest_and_permanent(self):
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        session = make_open_session(firewall.source_only)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1", "h-2")))
+        for hyp, family in (("h-1", "family-1"), ("h-2", "family-2")):
+            strategy_obj = strategy(family_id=family)
+            exp = ExperimentIdentity.from_strategy(strategy_obj, "data-fixture-v1", "exposure-fixture-v1")
+            firewall.register_outcome_test(
+                hypothesis_test_id=hyp,
+                strategy=strategy_obj,
+                experiment=exp,
+                family_claim_identity=family,
+                primary_branch_identity="primary-1",
+                scope_identity="scope-1",
+                parameter_search_identity="param-1",
+                source_only_session_id=session.session_id,
+                research_wave_id=wave.research_wave_id,
+                statistical_profile_id=profile.profile_id,
+                multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+            )
+        firewall.lock_wave(wave.research_wave_id)
+        self.assertEqual(firewall.waves.denominator(wave.research_wave_id), ("h-1", "h-2"))
+        firewall.waves.declare_outcome_test_start(wave.research_wave_id)
+        firewall.waves.record_terminal_outcome(wave.research_wave_id, "h-1", "FAIL")
+        firewall.waves.record_terminal_outcome(wave.research_wave_id, "h-2", "INSUFFICIENT_EVIDENCE")
+        # FAIL / INSUFFICIENT_EVIDENCE stay permanently in the denominator.
+        self.assertEqual(firewall.waves.denominator(wave.research_wave_id), ("h-1", "h-2"))
+        outcomes = dict(firewall.waves.outcome_records(wave.research_wave_id))
+        self.assertEqual(outcomes["h-1"], "FAIL")
+        self.assertEqual(outcomes["h-2"], "INSUFFICIENT_EVIDENCE")
+
+    def test_outcome_cannot_be_silently_overwritten(self):
+        # Test 10: a second different outcome cannot overwrite the first.
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        session = make_open_session(firewall.source_only)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
+        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        firewall.register_outcome_test(
+            hypothesis_test_id="h-1",
+            strategy=strategy(),
+            experiment=exp,
+            family_claim_identity="family-1",
+            primary_branch_identity="primary-1",
+            scope_identity="scope-1",
+            parameter_search_identity="param-1",
+            source_only_session_id=session.session_id,
+            research_wave_id=wave.research_wave_id,
+            statistical_profile_id=profile.profile_id,
+            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+        )
+        firewall.lock_wave(wave.research_wave_id)
+        firewall.waves.record_terminal_outcome(wave.research_wave_id, "h-1", "FAIL")
+        with self.assertRaisesRegex(ValueError, "cannot overwrite"):
+            firewall.waves.record_terminal_outcome(wave.research_wave_id, "h-1", "PASS")
+        # Idempotent re-record of the same fact is allowed.
+        firewall.waves.record_terminal_outcome(wave.research_wave_id, "h-1", "FAIL")
+        self.assertEqual(firewall.waves.outcome_records(wave.research_wave_id), (("h-1", "FAIL"),))
 
     def test_unlocked_wave_cannot_start_outcome_testing(self):
-        registry = ResearchFirewall(EvidenceLedger()).waves
-        wave = registry.register(make_wave_manifest())
+        firewall = ResearchFirewall(EvidenceLedger())
+        wave = firewall.waves.register(make_wave_manifest())
         with self.assertRaisesRegex(ValueError, "unlocked wave"):
-            registry.declare_outcome_test_start(wave.research_wave_id)
+            firewall.waves.declare_outcome_test_start(wave.research_wave_id)
 
 
 class StatisticalProfileRegistryTests(unittest.TestCase):
@@ -330,144 +500,138 @@ class HistoricalFinalHoldoutStateMachineTests(unittest.TestCase):
             machine.conclude(FinalHoldoutState.FINAL_ACCEPTED)
 
 
-class PreOutcomeGateTests(unittest.TestCase):
-    """The 14 minimum pre-outcome gate checks."""
+class IdentityBoundGateTests(unittest.TestCase):
+    """The required identity-bound pre-outcome gate regressions."""
 
     def setUp(self):
         self.ledger = EvidenceLedger()
-        self.firewall, self.session_id, self.profile_id, self.wave_id = make_satisfied_firewall(self.ledger)
+        self.firewall, self.session, self.profile, self.wave, self.experiment = make_registered_firewall(self.ledger)
 
-    def _gate(self, **overrides):
-        defaults = dict(
-            cohort=Cohort.DEVELOPMENT,
-            source_only_session_id=self.session_id,
-            wave_id=self.wave_id,
-            profile_id=self.profile_id,
-            multiplicity_counting_unit_locked=True,
-            primary_scope_search_identities_locked=True,
-            synthetic_fixture=True,
+    def _grant(self, *, cohort=Cohort.DEVELOPMENT, hypothesis_test_id=HYPOTHESIS_TEST_ID, experiment=None, synthetic_fixture=True):
+        return self.firewall.request_candidate_outcome_access(
+            cohort=cohort,
+            experiment=experiment if experiment is not None else self.experiment,
+            hypothesis_test_id=hypothesis_test_id,
+            synthetic_fixture=synthetic_fixture,
         )
-        defaults.update(overrides)
-        return self.firewall.evaluate_gate(**defaults)
 
-    def _control(self, decision, name):
-        return next(control for control in decision.controls if control.name == name)
+    # 1. unrelated locked wave cannot authorize an experiment outside its test set
+    def test_unrelated_locked_wave_cannot_authorize_other_experiment(self):
+        firewall2, _, _, _, experiment2 = make_registered_firewall(
+            EvidenceLedger(),
+            hypothesis_test_id="h-other",
+            session_id="source-only-session-2",
+            wave_id="wave-2",
+            family_claim_identity="family-other",
+            strategy_obj=strategy(family_id="family-other"),
+        )
+        self.assertTrue(firewall2.waves.is_locked("wave-2"))
+        # The first hypothesis cannot be granted to the other wave's experiment.
+        access = self._grant(hypothesis_test_id=HYPOTHESIS_TEST_ID, experiment=experiment2)
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:EXPERIMENT_IDENTITY_MISMATCH")
+        # And the other wave's hypothesis is not registered in this firewall.
+        access2 = self._grant(hypothesis_test_id="h-other", experiment=self.experiment)
+        self.assertFalse(access2.allowed)
+        self.assertEqual(access2.record.evidence_reference, "IDENTITY_BINDING:UNREGISTERED_HYPOTHESIS_TEST")
 
-    # 1. SOURCE_ONLY missing -> DENY
-    def test_missing_source_only_denies(self):
-        decision = self._gate(source_only_session_id="does-not-exist")
-        self.assertFalse(decision.allowed)
-        self.assertFalse(self._control(decision, "SOURCE_ONLY_CONTROLS").satisfied)
+    # 2. unrelated verified SOURCE_ONLY session cannot authorize another lineage
+    def test_unrelated_verified_session_cannot_authorize_other_lineage(self):
+        firewall2, session2, _, _, experiment2 = make_registered_firewall(
+            EvidenceLedger(),
+            hypothesis_test_id="h-other",
+            session_id="source-only-session-2",
+            wave_id="wave-2",
+            family_claim_identity="family-other",
+            strategy_obj=strategy(family_id="family-other"),
+        )
+        self.assertTrue(firewall2.source_only.is_verified(session2.session_id))
+        # session-2's verified status cannot authorize the other lineage's
+        # experiment on this firewall's hypothesis.
+        access = self._grant(hypothesis_test_id=HYPOTHESIS_TEST_ID, experiment=experiment2)
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:EXPERIMENT_IDENTITY_MISMATCH")
 
-    # 2. SOURCE_ONLY unverified -> DENY
-    def test_unverified_source_only_denies(self):
-        self.firewall.source_only.record_session(
-            SourceOnlySession(
-                session_id="prompt-only-session",
-                model_identity="model-fixture-v1",
-                prompt_spec_version="prompt-spec-v1",
-                source_bundle_identity="bundle-fixture-v1",
-                source_bundle_hash="bundle-hash-fixture-v1",
-                tool_retrieval_mode="PROJECT_SOURCE_ONLY",
-                protected_market_access_mode=ProtectedMarketAccessMode.PROMPT_ONLY,
+    # 4. authoritative API has no caller-controlled lock booleans
+    def test_no_caller_controlled_lock_booleans(self):
+        access_params = set(inspect.signature(self.firewall.request_candidate_outcome_access).parameters)
+        for forbidden in (
+            "multiplicity_counting_unit_locked",
+            "primary_scope_search_identities_locked",
+            "wave_id",
+            "profile_id",
+            "source_only_session_id",
+        ):
+            self.assertNotIn(forbidden, access_params)
+        gate_params = set(inspect.signature(self.firewall.evaluate_gate).parameters)
+        self.assertNotIn("multiplicity_counting_unit_locked", gate_params)
+        self.assertNotIn("primary_scope_search_identities_locked", gate_params)
+
+    # 5. wave/profile identity mismatch -> DENY (adversarial direct registration)
+    def test_profile_identity_mismatch_blocks_wave_lock(self):
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-adv",)))
+        session = make_open_session(firewall.source_only)
+        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        # Bypass the validating factory to prove the access-preventing cross-check.
+        firewall.tests.register(
+            OutcomeTestRegistration(
+                hypothesis_test_id="h-adv",
+                experiment_identity_id=exp.experiment_id,
+                strategy_identity_id=strategy().identity_id,
+                research_lineage_id="research-lineage-fixture",
+                family_claim_identity="family-1",
+                primary_branch_identity="primary-1",
+                scope_identity="scope-1",
+                parameter_search_identity="param-1",
+                source_only_session_id=session.session_id,
+                source_only_session_identity=session.session_identity,
+                source_bundle_identity=session.source_bundle_identity,
+                source_bundle_hash=session.source_bundle_hash,
+                research_wave_id=wave.research_wave_id,
+                statistical_profile_id=profile.profile_id,
+                statistical_profile_identity="wrong-profile-identity",
+                multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+                protocol_version="1.0",
             )
         )
-        self.assertFalse(self.firewall.source_only.is_verified("prompt-only-session"))
-        decision = self._gate(source_only_session_id="prompt-only-session")
-        self.assertFalse(decision.allowed)
+        with self.assertRaisesRegex(ValueError, "profile"):
+            firewall.lock_wave(wave.research_wave_id)
+        self.assertFalse(firewall.waves.is_locked(wave.research_wave_id))
 
-    # 3. profile missing -> DENY
-    def test_missing_statistical_profile_denies(self):
-        decision = self._gate(profile_id="does-not-exist")
-        self.assertFalse(decision.allowed)
-        self.assertFalse(self._control(decision, "COMMON_STATISTICAL_PROFILE").satisfied)
-
-    # 4. profile draft / unlocked -> DENY
-    def test_unlocked_statistical_profile_denies(self):
-        draft = self.firewall.profiles.register(make_test_only_profile(profile_id="profile-draft"))
-        decision = self._gate(profile_id=draft.profile_id)
-        self.assertFalse(decision.allowed)
-
-    # 5. wave missing -> DENY
-    def test_missing_wave_denies(self):
-        decision = self._gate(wave_id="does-not-exist")
-        self.assertFalse(decision.allowed)
-        self.assertFalse(self._control(decision, "RESEARCH_WAVE").satisfied)
-
-    # 6. wave unlocked -> DENY
-    def test_unlocked_wave_denies(self):
-        unlocked = self.firewall.waves.register(make_wave_manifest(wave_id="wave-unlocked"))
-        decision = self._gate(wave_id=unlocked.research_wave_id)
-        self.assertFalse(decision.allowed)
-
-    # 7. PRIMARY/scope/search identities not locked -> DENY
-    def test_primary_scope_search_identities_not_locked_denies(self):
-        decision = self._gate(primary_scope_search_identities_locked=False)
-        self.assertFalse(decision.allowed)
-        self.assertFalse(self._control(decision, "PRIMARY_SCOPE_SEARCH_IDENTITIES").satisfied)
-
-    # 8. all satisfied -> synthetic DEVELOPMENT only
-    def test_all_satisfied_permits_synthetic_development_only(self):
-        decision = self._gate()
-        self.assertTrue(decision.allowed)
-        self.assertEqual(decision.cohort, Cohort.DEVELOPMENT)
-        self.assertTrue(decision.synthetic_only)
-        self.assertEqual(decision.reason, "SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY")
-
-        experiment = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
-        access = self.firewall.request_candidate_outcome_access(
+    # 8. exact registered binding -> only synthetic DEVELOPMENT may pass
+    def test_exact_registered_binding_permits_synthetic_development_only(self):
+        decision = self.firewall.evaluate_gate(
             cohort=Cohort.DEVELOPMENT,
-            experiment=experiment,
-            source_only_session_id=self.session_id,
-            wave_id=self.wave_id,
-            profile_id=self.profile_id,
-            multiplicity_counting_unit_locked=True,
-            primary_scope_search_identities_locked=True,
+            experiment=self.experiment,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
             synthetic_fixture=True,
         )
+        self.assertTrue(decision.allowed)
+        self.assertEqual(decision.reason, "SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY")
+        self.assertTrue(decision.synthetic_only)
+        # TEST_ONLY profile refuses a non-synthetic fixture.
+        real = self._grant(synthetic_fixture=False)
+        self.assertFalse(real.allowed)
+        self.assertEqual(real.record.evidence_reference, "TEST_ONLY_PROFILE_REQUIRES_SYNTHETIC_FIXTURE")
+
+    # 9. first granted outcome marks the wave outcome-start durably
+    def test_first_grant_marks_wave_outcome_start_durably(self):
+        self.assertFalse(self.firewall.waves.has_outcome_test_started(self.wave.research_wave_id))
+        access = self._grant()
         self.assertTrue(access.allowed)
-        self.assertEqual(access.record.event_type, "PRE_OUTCOME_GATE_GRANTED")
+        self.assertTrue(self.firewall.waves.has_outcome_test_started(self.wave.research_wave_id))
+        started = [r for r in self.ledger.records if r.event_type == "WAVE_OUTCOME_TEST_STARTED"]
+        self.assertEqual(len(started), 1)
+        # The durable registry fact is idempotent (already declared).
+        self.assertFalse(self.firewall.waves.declare_outcome_test_start(self.wave.research_wave_id))
+        granted = [r for r in self.ledger.records if r.event_type == "PRE_OUTCOME_GATE_GRANTED"]
+        self.assertEqual(len(granted), 1)
+        self.assertIn("SYNTHETIC_TEST_ONLY_FIRST_LOOK", granted[0].evidence_reference)
 
-    def test_test_only_profile_denies_real_candidate_fixture(self):
-        decision = self._gate(synthetic_fixture=False)
-        self.assertFalse(decision.allowed)
-        self.assertEqual(decision.reason, "TEST_ONLY_PROFILE_REQUIRES_SYNTHETIC_FIXTURE")
-
-    # 9. VALIDATION still default DENY (no validation authority yet)
-    def test_validation_default_deny(self):
-        decision = self._gate(cohort=Cohort.VALIDATION)
-        self.assertFalse(decision.allowed)
-        self.assertEqual(decision.reason, "VALIDATION_DEFAULT_DENY_NO_VALIDATION_AUTHORITY")
-
-    # 10. HISTORICAL FINAL HOLDOUT always DENY
-    def test_historical_final_holdout_always_denied(self):
-        decision = self._gate(cohort=Cohort.PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT)
-        self.assertFalse(decision.allowed)
-        self.assertEqual(decision.reason, "FINAL_HISTORICAL_HOLDOUT_ALWAYS_LOCKED")
-
-    # 11. Shadow/Forward DENY
-    def test_shadow_forward_denied(self):
-        decision = self._gate(cohort=Cohort.SHADOW_FORWARD)
-        self.assertFalse(decision.allowed)
-        self.assertEqual(decision.reason, "SHADOW_FORWARD_NOT_AUTHORIZED")
-
-    # 12. locked wave cannot append hypothesis
-    def test_locked_wave_cannot_append_hypothesis(self):
-        with self.assertRaisesRegex(ValueError, "locked wave"):
-            self.firewall.waves.add_tested_hypothesis(self.wave_id, "late-hypothesis")
-
-    # 13. renaming a strategy/family cannot wash lineage/exposure
-    def test_renaming_family_preserves_lineage_exposure(self):
-        catalog = StrategyCatalog()
-        parent = catalog.register(strategy())
-        experiment = ExperimentIdentity.from_strategy(parent, "data-fixture-v1", "exposure-fixture-v1")
-        self.firewall.legacy_request_access(experiment, DatasetClass.VALIDATION)
-        child = catalog.register(
-            strategy(family_id="renamed-family", version="2.0", parent_identity_id=parent.identity_id)
-        )
-        self.assertTrue(self.firewall.has_exposure(child, DatasetClass.VALIDATION))
-
-    # 14. legacy FinalUnseenFirewall behavior must not silently break
+    # 12. legacy FinalUnseenFirewall compatibility remains green
     def test_legacy_final_unseen_firewall_compatibility(self):
         ledger = EvidenceLedger()
         firewall = FinalUnseenFirewall(ledger)
@@ -490,45 +654,91 @@ class PreOutcomeGateTests(unittest.TestCase):
         self.assertEqual(final_legacy.record.event_type, "DATASET_ACCESS_DENIED")
         self.assertNotIn(DatasetClass.FINAL_UNSEEN, ledger.exposures_for(parent.research_lineage_id))
 
+    # 13. VALIDATION remains DENIED
+    def test_validation_remains_denied(self):
+        access = self._grant(cohort=Cohort.VALIDATION)
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "VALIDATION_DEFAULT_DENY_NO_VALIDATION_AUTHORITY")
 
-class ResearchFirewallIntegrationTests(unittest.TestCase):
+    # 14. historical final remains DENIED
+    def test_historical_final_remains_denied(self):
+        access = self._grant(cohort=Cohort.PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT)
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "FINAL_HISTORICAL_HOLDOUT_ALWAYS_LOCKED")
+
+    # 15. Shadow/Forward remains DENIED
+    def test_shadow_forward_remains_denied(self):
+        access = self._grant(cohort=Cohort.SHADOW_FORWARD)
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "SHADOW_FORWARD_NOT_AUTHORIZED")
+
+    # extra: default firewall denies any candidate outcome access
     def test_default_firewall_denies_candidate_outcome_access(self):
         firewall = ResearchFirewall(EvidenceLedger())
         experiment = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
         access = firewall.request_candidate_outcome_access(
             cohort=Cohort.DEVELOPMENT,
             experiment=experiment,
-            source_only_session_id="missing",
-            wave_id="missing",
-            profile_id="missing",
-            multiplicity_counting_unit_locked=False,
-            primary_scope_search_identities_locked=False,
+            hypothesis_test_id="never-registered",
             synthetic_fixture=False,
         )
         self.assertFalse(access.allowed)
-        self.assertEqual(access.record.event_type, "PRE_OUTCOME_GATE_DENIED")
-        self.assertEqual(access.record.outcome, "DENIED")
+        self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:UNREGISTERED_HYPOTHESIS_TEST")
 
-    def test_candidate_final_holdout_access_is_denied_even_when_controls_satisfied(self):
-        firewall, session_id, profile_id, wave_id = make_satisfied_firewall(EvidenceLedger())
-        experiment = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+    # extra: an unverified session cannot authorize even through a fully locked wave
+    def test_unverified_session_cannot_authorize_even_when_wave_locked(self):
+        firewall = ResearchFirewall(EvidenceLedger())
+        manual = SourceOnlySession(
+            session_id="manual-session",
+            model_identity="model-fixture-v1",
+            prompt_spec_version="prompt-spec-v1",
+            source_bundle_identity="bundle-fixture-v1",
+            source_bundle_hash="bundle-hash-fixture-v1",
+            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+            protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
+        )
+        firewall.source_only.record_session(manual)
+        self.assertFalse(firewall.source_only.is_verified("manual-session"))
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
+        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        firewall.register_outcome_test(
+            hypothesis_test_id="h-1",
+            strategy=strategy(),
+            experiment=exp,
+            family_claim_identity="family-1",
+            primary_branch_identity="primary-1",
+            scope_identity="scope-1",
+            parameter_search_identity="param-1",
+            source_only_session_id="manual-session",
+            research_wave_id=wave.research_wave_id,
+            statistical_profile_id=profile.profile_id,
+            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+        )
+        firewall.lock_wave(wave.research_wave_id)
         access = firewall.request_candidate_outcome_access(
-            cohort=Cohort.PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT,
-            experiment=experiment,
-            source_only_session_id=session_id,
-            wave_id=wave_id,
-            profile_id=profile_id,
-            multiplicity_counting_unit_locked=True,
-            primary_scope_search_identities_locked=True,
+            cohort=Cohort.DEVELOPMENT,
+            experiment=exp,
+            hypothesis_test_id="h-1",
             synthetic_fixture=True,
         )
         self.assertFalse(access.allowed)
-        self.assertEqual(access.record.event_type, "PRE_OUTCOME_GATE_DENIED")
+        self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:SOURCE_ONLY_NOT_VERIFIED")
 
+    # extra: renaming a strategy/family cannot wash lineage/exposure
+    def test_renaming_family_preserves_lineage_exposure(self):
+        catalog = StrategyCatalog()
+        parent = catalog.register(strategy())
+        experiment = ExperimentIdentity.from_strategy(parent, "data-fixture-v1", "exposure-fixture-v1")
+        self.firewall.legacy_request_access(experiment, DatasetClass.VALIDATION)
+        child = catalog.register(
+            strategy(family_id="renamed-family", version="2.0", parent_identity_id=parent.identity_id)
+        )
+        self.assertTrue(self.firewall.has_exposure(child, DatasetClass.VALIDATION))
+
+    # extra: legacy coarse grants are not candidate-outcome authorization
     def test_legacy_coarse_grants_are_not_candidate_outcome_authorization(self):
-        # A coarse DEVELOPMENT grant through the legacy path must not be usable as
-        # candidate-outcome authorization: the authoritative gate still fails closed
-        # when the real control stack is absent.
         ledger = EvidenceLedger()
         firewall = ResearchFirewall(ledger)
         parent = StrategyCatalog().register(strategy())
@@ -538,15 +748,122 @@ class ResearchFirewallIntegrationTests(unittest.TestCase):
         candidate = firewall.request_candidate_outcome_access(
             cohort=Cohort.DEVELOPMENT,
             experiment=experiment,
-            source_only_session_id="missing",
-            wave_id="missing",
-            profile_id="missing",
-            multiplicity_counting_unit_locked=False,
-            primary_scope_search_identities_locked=False,
+            hypothesis_test_id="never-registered",
             synthetic_fixture=False,
         )
         self.assertFalse(candidate.allowed)
         self.assertEqual(candidate.record.event_type, "PRE_OUTCOME_GATE_DENIED")
+
+
+class SourceOnlyClaimExtractionContextTests(unittest.TestCase):
+    """Bounded SOURCE_ONLY claim-extraction runner tests (Test 11)."""
+
+    def _make_runner(self, policy=None, session=None):
+        if policy is None:
+            policy = ResearchFirewall(EvidenceLedger()).source_only
+        if session is None:
+            session = make_open_session(policy)
+        bundle = ApprovedSourceBundle(
+            source_bundle_id="bundle-fixture-v1",
+            source_bundle_hash="bundle-hash-fixture-v1",
+            source_anchor_reference="fixture:book:edition-1:chapter-1",
+        )
+        output = ClaimRecordOutput()
+        runner = SourceOnlyClaimExtractionContext(
+            source_bundle=bundle,
+            source_only=policy,
+            session_id=session.session_id,
+            output_surface=output,
+        )
+        return runner, output, bundle
+
+    def test_runner_is_verified_and_records_claims(self):
+        runner, output, bundle = self._make_runner()
+        self.assertTrue(runner.verified)
+        draft = ClaimRecordDraft(
+            claim_id="claim-1",
+            source_id=bundle.source_bundle_id,
+            source_anchor="fixture:book:edition-1:chapter-1:page-12",
+            claim_status="EXPLICIT",
+            source_excerpt_short_or_paraphrase="synthetic fixture claim",
+            source_only_session_id=runner.session_id,
+            created_at="2026-08-19T00:00:00Z",
+        )
+        recorded = runner.record_claim(draft)
+        self.assertEqual(recorded.claim_id, "claim-1")
+        self.assertEqual(len(output.records), 1)
+
+    def test_runner_cannot_access_protected_period_market_outcomes(self):
+        # Test 11: the SOURCE_ONLY runner has no market-outcome surface; any
+        # protected-period project market outcome request is DENIED + audited.
+        runner, _, _ = self._make_runner()
+        result = runner.request_protected_market_outcome("some-market-outcome-request")
+        self.assertEqual(result.outcome, "DENIED")
+        self.assertEqual(result.reason, "SOURCE_ONLY_TECHNICAL_DENIAL")
+        self.assertEqual(len(runner.denial_records), 1)
+        self.assertFalse(hasattr(runner, "market_data"))
+        self.assertFalse(hasattr(runner, "outcomes"))
+
+    def test_runner_does_not_hold_market_or_outcome_surfaces(self):
+        runner, _, _ = self._make_runner()
+        for forbidden in ("_market", "_outcome", "_validation", "_final"):
+            self.assertFalse(
+                any(attribute.startswith(forbidden) for attribute in vars(runner)),
+                f"runner must not hold {forbidden} surfaces",
+            )
+
+    def test_runner_rejects_claim_bound_to_another_session(self):
+        runner, output, bundle = self._make_runner()
+        draft = ClaimRecordDraft(
+            claim_id="claim-x",
+            source_id=bundle.source_bundle_id,
+            source_anchor="fixture:anchor",
+            claim_status="EXPLICIT",
+            source_excerpt_short_or_paraphrase="synthetic",
+            source_only_session_id="other-session",
+            created_at="2026-08-19T00:00:00Z",
+        )
+        with self.assertRaisesRegex(ValueError, "session"):
+            runner.record_claim(draft)
+
+
+class PreOutcomeGateUnitTests(unittest.TestCase):
+    """Direct unit tests of the low-level pure gate (boolean interface).
+
+    The authoritative production path never accepts caller booleans; these tests
+    keep the pure gate function itself covered.
+    """
+
+    def setUp(self):
+        self.gate = PreOutcomeGate()
+
+    def _evaluate(self, cohort=Cohort.DEVELOPMENT, **overrides):
+        defaults = dict(
+            source_only_verified=True,
+            statistical_profile_locked=True,
+            statistical_profile_test_only=True,
+            multiplicity_counting_unit_locked=True,
+            research_wave_locked=True,
+            primary_scope_search_identities_locked=True,
+            synthetic_fixture=True,
+        )
+        defaults.update(overrides)
+        return self.gate.evaluate(cohort=cohort, **defaults)
+
+    def test_all_satisfied_development_grants_synthetic_only(self):
+        decision = self._evaluate()
+        self.assertTrue(decision.allowed)
+        self.assertEqual(decision.reason, "SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY")
+
+    def test_final_always_denied_regardless_of_controls(self):
+        decision = self._evaluate(cohort=Cohort.PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT)
+        self.assertFalse(decision.allowed)
+        self.assertEqual(decision.reason, "FINAL_HISTORICAL_HOLDOUT_ALWAYS_LOCKED")
+
+    def test_missing_control_fails_closed(self):
+        decision = self._evaluate(source_only_verified=False)
+        self.assertFalse(decision.allowed)
+        self.assertIn("SOURCE_ONLY_CONTROLS", decision.reason)
 
 
 if __name__ == "__main__":

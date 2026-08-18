@@ -70,16 +70,23 @@ OWNER_FREEZE_DECISION=APPROVED
 PERFORMANCE_RESEARCH_STARTED=NO
 REAL_CLAIM_EXTRACTION_STARTED=NO
 PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED
-SOURCE_ONLY_CONTROLS_STATUS=VERIFIED
-RESEARCH_WAVE_MANIFEST_STATUS=VERIFIED
-STATISTICAL_PROFILE_INTERFACE_STATUS=VERIFIED
+IDENTITY_BINDING=VERIFIED
+SOURCE_ONLY_POLICY=VERIFIED
+SOURCE_ONLY_CLAIM_EXTRACTION_RUNNER=VERIFIED
+REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED
+RESEARCH_WAVE_IDENTITY_BINDING=VERIFIED
+STATISTICAL_PROFILE_INTERFACE=VERIFIED
 PRE_OUTCOME_GATE_STATUS=VERIFIED_FAIL_CLOSED
 HISTORICAL_FINAL_HOLDOUT_LOCK=ENFORCED
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 CLAIM_EXTRACTION_SCHEMA_STATUS=ACTIVE_V1_0_SOURCE_ONLY_VERIFIED
 ```
 
 Pre-outcome firewall implementation evidence:
 `docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md`
+
+Acceptance review (gaps resolved by this hardening pass):
+`docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md`
 
 Material research-semantic changes now require a new protocol version, material independent adversarial review, and the normal Owner research-semantic gate.
 
@@ -120,11 +127,13 @@ The frozen split is `12/6/6`.
 
 It is an audit/governance choice and does not guarantee statistical power. Sparse families may return `INSUFFICIENT_EVIDENCE`; split boundaries may not be changed after outcomes are viewed to rescue evidence.
 
-## Pre-outcome gate — implemented (fail closed)
+## Pre-outcome gate — implemented (fail closed, identity-bound)
 
-Research Protocol v1.0 is frozen and the pre-outcome firewall is now implemented and tested. The single owner of the access rules is `src/research_firewall.py` (`ResearchFirewall` + `PreOutcomeGate` + `SourceOnlyPolicy` + `ResearchWaveRegistry` + `StatisticalProfileRegistry` + `HistoricalFinalHoldoutStateMachine` + `classify_cohort`). The legacy `FinalUnseenFirewall` in `src/strategy_evidence.py` now delegates to `ResearchFirewall` and keeps its legacy interface; `DatasetClass` added the canonical `PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT` (and `SHADOW_FORWARD`) while preserving `FINAL_UNSEEN`.
+Research Protocol v1.0 is frozen and the pre-outcome firewall is implemented, identity-bound, and tested. The single owner of the access rules is `src/research_firewall.py` (`ResearchFirewall` + `PreOutcomeGate` + `OutcomeTestRegistry`/`OutcomeTestRegistration` + `SourceOnlyPolicy` + `SourceOnlyClaimExtractionContext` + `ResearchWaveRegistry` + `StatisticalProfileRegistry` + `HistoricalFinalHoldoutStateMachine` + `classify_cohort`). The legacy `FinalUnseenFirewall` in `src/strategy_evidence.py` delegates to `ResearchFirewall` and keeps its legacy interface; `DatasetClass` added the canonical `PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT` (and `SHADOW_FORWARD`) while preserving `FINAL_UNSEEN`.
 
-Before the first candidate outcome-bearing performance backtest, all are now technically enforced (fail closed) and verified by regression tests:
+Candidate outcome access is keyed by a single registered `hypothesis_test_id`; the experiment, family/claim, PRIMARY branch, scope/search, SOURCE_ONLY session/bundle, wave, and exact statistical profile are all resolved and verified from project-owned registries. Callers cannot assert frozen lock state (`multiplicity_counting_unit_locked` / `primary_scope_search_identities_locked` were removed from the authoritative API).
+
+Before the first candidate outcome-bearing performance backtest, all are technically enforced (fail closed) and verified by regression tests:
 
 ```text
 SOURCE_ONLY_CONTROLS=ACTIVE_AND_VERIFIED
@@ -134,7 +143,7 @@ RESEARCH_WAVE=LOCKED
 PRIMARY_SCOPE_SEARCH_IDENTITIES=LOCKED
 ```
 
-Because only `TEST_ONLY` statistical profiles exist in this package, the only reachable grant is `SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY` (synthetic dummy fixtures). State therefore remains:
+Because only `TEST_ONLY` statistical profiles exist in this package, the only reachable grant is `SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY` (synthetic dummy fixtures, with explicit TEST_ONLY first-look audit). State therefore remains:
 
 ```text
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
@@ -147,7 +156,7 @@ Allowed now:
 - source discovery/provenance;
 - non-candidate engine sanity tests;
 - non-outcome operationalization/tests;
-- controlled real source-faithful claim extraction under Claim Schema v1.0 (SOURCE_ONLY controls verified).
+- controlled real source-faithful claim extraction under Claim Schema v1.0 inside the verified SOURCE_ONLY runner (SOURCE_ONLY policy + bounded runner verified; no real claims extracted yet).
 
 Forbidden now:
 - candidate PnL/equity/expectancy/Sharpe/win-loss or equivalent performance inspection before the real profile is locked and the gate passes.
@@ -264,13 +273,17 @@ TD-001/TD-002/LIMIT-001 did not block semantic protocol freeze. They must activa
 CURRENT_NEXT_ACTION=COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
 CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
 PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED
-SOURCE_ONLY_CONTROLS_STATUS=VERIFIED
+IDENTITY_BINDING=VERIFIED
+SOURCE_ONLY_POLICY=VERIFIED
+SOURCE_ONLY_CLAIM_EXTRACTION_RUNNER=VERIFIED
+RESEARCH_WAVE_IDENTITY_BINDING=VERIFIED
+STATISTICAL_PROFILE_INTERFACE=VERIFIED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 NEXT_AFTER_GATE_SOURCE_ONLY=BEGIN_CONTROLLED_REAL_CLAIM_EXTRACTION_V1_0
 OWNER_ACTION=NONE
 ```
 
-The pre-outcome firewall package is complete and verified (`tests/test_research_firewall.py`, 38 tests; full suite 219 OK / 3 skipped). The next bounded package is the real `COMMON_STATISTICAL_PROFILE_V1` numeric standard design and independent review under Protocol v1.0; until that profile is locked, candidate outcome-bearing backtests remain `NOT_AUTHORIZED`. SOURCE_ONLY controls are verified, so the project may begin controlled real claim extraction under Claim Schema v1.0 (this package extracted no real claims). No repeated Owner approval is required for this ordinary implementation work under frozen Protocol v1.0.
+The pre-outcome firewall package is complete, identity-bound, and verified (`tests/test_research_firewall.py`, 46 tests; full suite 227 OK / 3 skipped; acceptance-review gaps E-1..E-4 resolved). The next bounded package is the real `COMMON_STATISTICAL_PROFILE_V1` numeric standard design and independent review under Protocol v1.0; until that profile is locked, candidate outcome-bearing backtests remain `NOT_AUTHORIZED`. SOURCE_ONLY policy and the bounded claim-extraction runner are verified, so controlled real claim extraction under Claim Schema v1.0 may begin inside the SOURCE_ONLY environment (this package extracted no real claims). No repeated Owner approval is required for this ordinary implementation work under frozen Protocol v1.0.
 
 ## Owner decision gates
 

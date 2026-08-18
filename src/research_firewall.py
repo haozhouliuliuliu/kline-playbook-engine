@@ -15,7 +15,10 @@ This module is the single owner of the frozen pre-outcome access rules:
   real numerical standard is deliberately NOT designed here);
 - the single fail-closed pre-outcome gate;
 - historical final-holdout semantic state machine (never auto-unlocks);
-- frozen 12/6/6 chronology classification.
+- frozen 12/6/6 chronology classification;
+- canonical identity-bound outcome-test registration (candidate outcome access is
+  keyed by one registered hypothesis identity; all other facts are resolved and
+  verified from project-owned registries, never asserted by the caller).
 
 The legacy `FinalUnseenFirewall` in `src/strategy_evidence.py` delegates here.
 There is deliberately no second parallel firewall rule set in the project.
@@ -23,7 +26,7 @@ There is deliberately no second parallel firewall rule set in the project.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from enum import Enum
 from hashlib import sha256
@@ -101,7 +104,12 @@ class ProtectedMarketAccessMode(str, Enum):
 
 @dataclass(frozen=True)
 class SourceOnlySession:
-    """Immutable SOURCE_ONLY session evidence record (Claim Schema v1.0 §4)."""
+    """Immutable SOURCE_ONLY session evidence record (Claim Schema v1.0 §4).
+
+    `verification_evidence` is a project-issued token produced only by
+    `SourceOnlyPolicy.open_verified_session`. A session that merely declares
+    `TECHNICALLY_DENIED` without project-issued evidence is never verified.
+    """
 
     session_id: str
     model_identity: str
@@ -111,6 +119,7 @@ class SourceOnlySession:
     tool_retrieval_mode: str
     protected_market_access_mode: ProtectedMarketAccessMode
     researcher_model_exposure_note: str | None = None
+    verification_evidence: str | None = None
 
     def __post_init__(self) -> None:
         required = (
@@ -155,11 +164,16 @@ class SourceOnlyPolicy:
     There is deliberately NO protected-period market outcome retrieval surface here.
     The only market-outcome-related entry point always DENIES, which is what makes
     the denial technical rather than a prompt instruction.
+
+    Verification is project-issued: only `open_verified_session` produces the
+    `verification_evidence` token that `is_verified` accepts. Manually constructed
+    sessions cannot self-verify.
     """
 
     def __init__(self) -> None:
         self._sessions: dict[str, SourceOnlySession] = {}
         self._denials: list[ProtectedOutcomeRequestResult] = []
+        self._issuer_nonce = _canonical_hash(("SOURCE_ONLY_PROJECT_ISSUER_V1",))
 
     @property
     def sessions(self) -> tuple[SourceOnlySession, ...]:
@@ -169,7 +183,47 @@ class SourceOnlyPolicy:
     def denial_records(self) -> tuple[ProtectedOutcomeRequestResult, ...]:
         return tuple(self._denials)
 
+    def _expected_evidence(self, session: SourceOnlySession) -> str:
+        return _canonical_hash((self._issuer_nonce, session.session_identity))
+
+    def open_verified_session(
+        self,
+        *,
+        session_id: str,
+        model_identity: str,
+        prompt_spec_version: str,
+        source_bundle_identity: str,
+        source_bundle_hash: str,
+        tool_retrieval_mode: str,
+        researcher_model_exposure_note: str | None = None,
+    ) -> SourceOnlySession:
+        """Project-owned verified-session creation path.
+
+        Builds a session whose `protected_market_access_mode` is
+        `TECHNICALLY_DENIED` and stamps project-issued verification evidence.
+        """
+        if session_id in self._sessions:
+            raise ValueError("duplicate SOURCE_ONLY session id")
+        base = SourceOnlySession(
+            session_id=session_id,
+            model_identity=model_identity,
+            prompt_spec_version=prompt_spec_version,
+            source_bundle_identity=source_bundle_identity,
+            source_bundle_hash=source_bundle_hash,
+            tool_retrieval_mode=tool_retrieval_mode,
+            protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
+            researcher_model_exposure_note=researcher_model_exposure_note,
+        )
+        session = replace(base, verification_evidence=self._expected_evidence(base))
+        self._sessions[session_id] = session
+        return session
+
     def record_session(self, session: SourceOnlySession) -> SourceOnlySession:
+        """Compatibility/test recording path.
+
+        Records a session as supplied. It is NOT verified unless it carries valid
+        project-issued verification evidence.
+        """
         if session.session_id in self._sessions:
             raise ValueError("duplicate SOURCE_ONLY session id")
         self._sessions[session.session_id] = session
@@ -179,25 +233,148 @@ class SourceOnlyPolicy:
         return self._sessions.get(session_id)
 
     def is_verified(self, session_id: str) -> bool:
-        """A session is SOURCE_ONLY verified only if technical denial is in effect."""
+        """A session is verified only with project-issued technical-denial evidence."""
         session = self._sessions.get(session_id)
         if session is None:
             return False
         if session.protected_market_access_mode is not ProtectedMarketAccessMode.TECHNICALLY_DENIED:
             return False
-        required = (
-            session.model_identity,
-            session.prompt_spec_version,
-            session.source_bundle_identity,
-            session.source_bundle_hash,
-            session.tool_retrieval_mode,
-        )
-        return bool(session.session_id) and all(required)
+        if not session.verification_evidence:
+            return False
+        return session.verification_evidence == self._expected_evidence(session)
 
     def request_protected_market_outcome(self, session_id: str | None) -> ProtectedOutcomeRequestResult:
         """Technical denial surface: any attempt to obtain project market outcomes
         through SOURCE_ONLY is DENIED. No retrieval surface is ever exposed."""
         denial = ProtectedOutcomeRequestResult(session_id, "DENIED", "SOURCE_ONLY_TECHNICAL_DENIAL")
+        self._denials.append(denial)
+        return denial
+
+
+# ---------------------------------------------------------------------------
+# SOURCE_ONLY claim-extraction runner/context (bounded)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ApprovedSourceBundle:
+    """Provenance pointer to an approved source; no redistributed content."""
+
+    source_bundle_id: str
+    source_bundle_hash: str
+    source_anchor_reference: str
+    content_note: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.source_bundle_id or not self.source_bundle_hash or not self.source_anchor_reference:
+            raise ValueError("approved source bundle requires identity, hash, and anchor reference")
+
+
+@dataclass(frozen=True)
+class ClaimRecordDraft:
+    """Minimal provenance/claim-record output (Claim Schema v1.0 structural subset)."""
+
+    claim_id: str
+    source_id: str
+    source_anchor: str
+    claim_status: str
+    source_excerpt_short_or_paraphrase: str
+    source_only_session_id: str
+    created_at: str
+
+    def __post_init__(self) -> None:
+        required = (
+            self.claim_id,
+            self.source_id,
+            self.source_anchor,
+            self.claim_status,
+            self.source_excerpt_short_or_paraphrase,
+            self.source_only_session_id,
+            self.created_at,
+        )
+        if not all(required):
+            raise ValueError("claim record draft has required empty fields")
+
+
+class ClaimRecordOutput:
+    """Append-only provenance/claim-record surface. Contains no market data."""
+
+    def __init__(self) -> None:
+        self._records: list[ClaimRecordDraft] = []
+
+    @property
+    def records(self) -> tuple[ClaimRecordDraft, ...]:
+        return tuple(self._records)
+
+    def record(self, draft: ClaimRecordDraft) -> ClaimRecordDraft:
+        if any(record.claim_id == draft.claim_id for record in self._records):
+            raise ValueError("duplicate claim id")
+        self._records.append(draft)
+        return draft
+
+
+class SourceOnlyClaimExtractionContext:
+    """Minimal bounded SOURCE_ONLY claim-extraction environment.
+
+    Structurally holds ONLY:
+    - an approved source bundle (provenance, not redistributed content);
+    - SOURCE_ONLY services/session;
+    - a provenance/claim-record output surface.
+
+    It deliberately does NOT hold any canonical market-data repository, historical
+    outcome API, validation/final data surface, or generic market-outcome retrieval
+    service. The only market-outcome-related entry point always DENIES and audits.
+    """
+
+    def __init__(
+        self,
+        *,
+        source_bundle: ApprovedSourceBundle,
+        source_only: SourceOnlyPolicy,
+        session_id: str,
+        output_surface: ClaimRecordOutput,
+    ) -> None:
+        self._source_bundle = source_bundle
+        self._source_only = source_only
+        self._session_id = session_id
+        self._output_surface = output_surface
+        self._denials: list[ProtectedOutcomeRequestResult] = []
+
+    @property
+    def source_bundle(self) -> ApprovedSourceBundle:
+        return self._source_bundle
+
+    @property
+    def session_id(self) -> str:
+        return self._session_id
+
+    @property
+    def denial_records(self) -> tuple[ProtectedOutcomeRequestResult, ...]:
+        return tuple(self._denials)
+
+    @property
+    def verified(self) -> bool:
+        session = self._source_only.get(self._session_id)
+        if session is None or not self._source_only.is_verified(self._session_id):
+            return False
+        return (
+            session.source_bundle_identity == self._source_bundle.source_bundle_id
+            and session.source_bundle_hash == self._source_bundle.source_bundle_hash
+        )
+
+    def record_claim(self, draft: ClaimRecordDraft) -> ClaimRecordDraft:
+        """Append a claim to the provenance output surface (no market data)."""
+        if not self.verified:
+            raise ValueError("SOURCE_ONLY runner requires a verified session bound to the approved source bundle")
+        if draft.source_only_session_id != self._session_id:
+            raise ValueError("claim record is bound to a different SOURCE_ONLY session")
+        if draft.source_id != self._source_bundle.source_bundle_id:
+            raise ValueError("claim record is bound to a different source bundle")
+        return self._output_surface.record(draft)
+
+    def request_protected_market_outcome(self, request_reference: str | None) -> ProtectedOutcomeRequestResult:
+        """Technical denial: the runner has no market-outcome surface; always DENY + audit."""
+        denial = self._source_only.request_protected_market_outcome(self._session_id)
         self._denials.append(denial)
         return denial
 
@@ -209,12 +386,20 @@ class SourceOnlyPolicy:
 
 @dataclass(frozen=True)
 class ResearchWaveManifest:
-    """Immutable pre-registered research wave (Protocol v1.0 §7)."""
+    """Immutable pre-registered research wave (Protocol v1.0 §7).
+
+    The canonical tested denominator is `tested_hypothesis_test_ids`, bound
+    directly in this immutable manifest. The registry derives the permanent
+    denominator from the manifest, so the manifest and the denominator can never
+    diverge (no split-brain).
+    """
 
     research_wave_id: str
     protocol_version: str
-    statistical_profile_version: str
-    tested_family_claim_identities: tuple[str, ...]
+    statistical_profile_id: str
+    statistical_profile_identity: str
+    multiplicity_counting_unit_identity: str
+    tested_hypothesis_test_ids: tuple[str, ...]
     primary_branch_identities: tuple[str, ...]
     declared_outcome_tested_alternatives: tuple[str, ...]
     instrument_timeframe_context_scope: str
@@ -226,7 +411,9 @@ class ResearchWaveManifest:
         required = (
             self.research_wave_id,
             self.protocol_version,
-            self.statistical_profile_version,
+            self.statistical_profile_id,
+            self.statistical_profile_identity,
+            self.multiplicity_counting_unit_identity,
             self.instrument_timeframe_context_scope,
             self.parameter_search_ranges,
             self.denominator_counting_semantics,
@@ -234,8 +421,10 @@ class ResearchWaveManifest:
         )
         if not all(required):
             raise ValueError("research wave manifest has required empty fields")
-        if not self.tested_family_claim_identities:
-            raise ValueError("research wave must declare a tested family/claim set")
+        if not self.tested_hypothesis_test_ids:
+            raise ValueError("research wave must declare a non-empty tested hypothesis set")
+        if len(self.tested_hypothesis_test_ids) != len(set(self.tested_hypothesis_test_ids)):
+            raise ValueError("tested hypothesis identities must be unique")
 
     @property
     def manifest_identity(self) -> str:
@@ -243,8 +432,10 @@ class ResearchWaveManifest:
             {
                 "research_wave_id": self.research_wave_id,
                 "protocol_version": self.protocol_version,
-                "statistical_profile_version": self.statistical_profile_version,
-                "tested_family_claim_identities": self.tested_family_claim_identities,
+                "statistical_profile_id": self.statistical_profile_id,
+                "statistical_profile_identity": self.statistical_profile_identity,
+                "multiplicity_counting_unit_identity": self.multiplicity_counting_unit_identity,
+                "tested_hypothesis_test_ids": self.tested_hypothesis_test_ids,
                 "primary_branch_identities": self.primary_branch_identities,
                 "declared_outcome_tested_alternatives": self.declared_outcome_tested_alternatives,
                 "instrument_timeframe_context_scope": self.instrument_timeframe_context_scope,
@@ -256,13 +447,13 @@ class ResearchWaveManifest:
 
 
 class ResearchWaveRegistry:
-    """Immutable research waves with a permanent tested denominator."""
+    """Immutable research waves; the denominator is derived from the locked manifest."""
 
     def __init__(self) -> None:
         self._manifests: dict[str, ResearchWaveManifest] = {}
         self._locked: set[str] = set()
         self._outcome_started: set[str] = set()
-        self._denominator: dict[str, dict[str, str]] = {}
+        self._outcomes: dict[str, dict[str, str]] = {}
 
     @property
     def wave_ids(self) -> tuple[str, ...]:
@@ -272,62 +463,199 @@ class ResearchWaveRegistry:
         if manifest.research_wave_id in self._manifests:
             raise ValueError("duplicate research wave id")
         self._manifests[manifest.research_wave_id] = manifest
-        self._denominator[manifest.research_wave_id] = {}
+        self._outcomes[manifest.research_wave_id] = {}
         return manifest
 
     def get(self, wave_id: str) -> ResearchWaveManifest | None:
         return self._manifests.get(wave_id)
 
-    def lock(self, wave_id: str) -> None:
+    def lock(self, wave_id: str, outcome_registry: "OutcomeTestRegistry") -> None:
+        """Fail-closed lock.
+
+        Verifies the tested denominator is non-empty and every tested hypothesis
+        registration exists, points to this wave, and binds the same profile and
+        counting-unit identity as the manifest. Inconsistency -> lock fails.
+        """
         self._require_exists(wave_id)
+        if wave_id in self._locked:
+            raise ValueError("wave is already locked")
         if wave_id in self._outcome_started:
             raise ValueError("cannot lock a wave after outcome testing has started")
+        manifest = self._manifests[wave_id]
+        if not manifest.tested_hypothesis_test_ids:
+            raise ValueError("cannot lock a wave with an empty tested denominator")
+        for hypothesis_test_id in manifest.tested_hypothesis_test_ids:
+            registration = outcome_registry.get(hypothesis_test_id)
+            if registration is None:
+                raise ValueError(f"tested hypothesis is not registered: {hypothesis_test_id}")
+            if registration.research_wave_id != wave_id:
+                raise ValueError(f"tested hypothesis registration points to another wave: {hypothesis_test_id}")
+            if registration.statistical_profile_id != manifest.statistical_profile_id:
+                raise ValueError("tested hypothesis registration profile id mismatches the wave manifest")
+            if registration.statistical_profile_identity != manifest.statistical_profile_identity:
+                raise ValueError("tested hypothesis registration profile identity mismatches the wave manifest")
+            if registration.multiplicity_counting_unit_identity != manifest.multiplicity_counting_unit_identity:
+                raise ValueError("tested hypothesis registration counting-unit identity mismatches the wave manifest")
         self._locked.add(wave_id)
 
     def is_locked(self, wave_id: str) -> bool:
         return wave_id in self._locked
 
-    def declare_outcome_test_start(self, wave_id: str) -> None:
+    def declare_outcome_test_start(self, wave_id: str) -> bool:
+        """Durable first-look fact. Returns True if newly started, else False."""
         self._require_exists(wave_id)
         if wave_id not in self._locked:
             raise ValueError("cannot start outcome testing on an unlocked wave")
+        if wave_id in self._outcome_started:
+            return False
         self._outcome_started.add(wave_id)
+        return True
 
     def has_outcome_test_started(self, wave_id: str) -> bool:
         return wave_id in self._outcome_started
 
-    def add_tested_hypothesis(self, wave_id: str, hypothesis_id: str) -> None:
-        """Pre-registration before lock. Once locked, the test set is immutable."""
-        self._require_exists(wave_id)
-        if wave_id in self._locked:
-            raise ValueError("cannot append a hypothesis to a locked wave; create a new wave")
-        if wave_id in self._outcome_started:
-            raise ValueError("cannot append a hypothesis after outcome testing has started")
-        denominator = self._denominator[wave_id]
-        if hypothesis_id in denominator:
-            raise ValueError("duplicate tested hypothesis")
-        denominator[hypothesis_id] = "PENDING"
-
-    def record_outcome(self, wave_id: str, hypothesis_id: str, outcome: str) -> None:
-        """FAIL and INSUFFICIENT_EVIDENCE remain permanently in the denominator."""
-        self._require_exists(wave_id)
-        denominator = self._denominator[wave_id]
-        if hypothesis_id not in denominator:
-            raise ValueError("hypothesis is not in the wave test set")
-        denominator[hypothesis_id] = outcome
-
     def denominator(self, wave_id: str) -> tuple[str, ...]:
-        """Permanent tested denominator; includes FAIL and INSUFFICIENT_EVIDENCE."""
-        return tuple(sorted(self._denominator.get(wave_id, {})))
+        """Permanent tested denominator derived from the immutable manifest."""
+        manifest = self._manifests.get(wave_id)
+        if manifest is None:
+            return ()
+        return tuple(sorted(manifest.tested_hypothesis_test_ids))
 
-    def denominator_with_outcomes(self, wave_id: str) -> tuple[tuple[str, str], ...]:
+    def record_terminal_outcome(self, wave_id: str, hypothesis_test_id: str, outcome: str) -> None:
+        """Append-only terminal outcome recording.
+
+        The first terminal outcome for a hypothesis is immutable: re-recording the
+        same fact is idempotent, a different outcome is rejected, and the tested
+        denominator always keeps FAIL / INSUFFICIENT_EVIDENCE.
+        """
+        self._require_exists(wave_id)
+        if wave_id not in self._locked:
+            raise ValueError("cannot record an outcome for an unlocked wave")
+        if hypothesis_test_id not in self.denominator(wave_id):
+            raise ValueError("hypothesis is not in the wave tested set")
+        existing = self._outcomes[wave_id].get(hypothesis_test_id)
+        if existing is not None:
+            if existing == outcome:
+                return  # explicit idempotent re-record of the same fact
+            raise ValueError(
+                f"cannot overwrite a recorded outcome {existing!r} with {outcome!r}; "
+                "use an explicit evidence/revision event instead"
+            )
+        self._outcomes[wave_id][hypothesis_test_id] = outcome
+
+    def outcome_records(self, wave_id: str) -> tuple[tuple[str, str], ...]:
         return tuple(
-            sorted((hypothesis_id, outcome) for hypothesis_id, outcome in self._denominator.get(wave_id, {}).items())
+            sorted(
+                (hypothesis_test_id, outcome)
+                for hypothesis_test_id, outcome in self._outcomes.get(wave_id, {}).items()
+            )
         )
 
     def _require_exists(self, wave_id: str) -> None:
         if wave_id not in self._manifests:
             raise ValueError("unknown research wave id")
+
+
+# ---------------------------------------------------------------------------
+# OUTCOME TEST REGISTRATION (canonical identity-bound hypothesis registration)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class OutcomeTestRegistration:
+    """Immutable, canonical identity binding for one outcome test / hypothesis.
+
+    Every candidate outcome access is keyed by `hypothesis_test_id`; all other
+    binding facts are resolved from this registration and verified against the
+    project-owned registries at access time. It is never possible to combine an
+    unrelated locked wave + session + experiment + profile just because each is
+    individually locked.
+    """
+
+    hypothesis_test_id: str
+    experiment_identity_id: str
+    strategy_identity_id: str
+    research_lineage_id: str
+    family_claim_identity: str
+    primary_branch_identity: str
+    scope_identity: str
+    parameter_search_identity: str
+    source_only_session_id: str
+    source_only_session_identity: str
+    source_bundle_identity: str
+    source_bundle_hash: str
+    research_wave_id: str
+    statistical_profile_id: str
+    statistical_profile_identity: str
+    multiplicity_counting_unit_identity: str
+    protocol_version: str
+
+    def __post_init__(self) -> None:
+        required = (
+            self.hypothesis_test_id,
+            self.experiment_identity_id,
+            self.strategy_identity_id,
+            self.research_lineage_id,
+            self.family_claim_identity,
+            self.primary_branch_identity,
+            self.scope_identity,
+            self.parameter_search_identity,
+            self.source_only_session_id,
+            self.source_only_session_identity,
+            self.source_bundle_identity,
+            self.source_bundle_hash,
+            self.research_wave_id,
+            self.statistical_profile_id,
+            self.statistical_profile_identity,
+            self.multiplicity_counting_unit_identity,
+            self.protocol_version,
+        )
+        if not all(required):
+            raise ValueError("outcome test registration has required empty fields")
+
+    @property
+    def registration_identity(self) -> str:
+        return _canonical_hash(
+            {
+                "hypothesis_test_id": self.hypothesis_test_id,
+                "experiment_identity_id": self.experiment_identity_id,
+                "strategy_identity_id": self.strategy_identity_id,
+                "research_lineage_id": self.research_lineage_id,
+                "family_claim_identity": self.family_claim_identity,
+                "primary_branch_identity": self.primary_branch_identity,
+                "scope_identity": self.scope_identity,
+                "parameter_search_identity": self.parameter_search_identity,
+                "source_only_session_id": self.source_only_session_id,
+                "source_only_session_identity": self.source_only_session_identity,
+                "source_bundle_identity": self.source_bundle_identity,
+                "source_bundle_hash": self.source_bundle_hash,
+                "research_wave_id": self.research_wave_id,
+                "statistical_profile_id": self.statistical_profile_id,
+                "statistical_profile_identity": self.statistical_profile_identity,
+                "multiplicity_counting_unit_identity": self.multiplicity_counting_unit_identity,
+                "protocol_version": self.protocol_version,
+            }
+        )
+
+
+class OutcomeTestRegistry:
+    """Append-only registry of identity-bound outcome-test registrations."""
+
+    def __init__(self) -> None:
+        self._registrations: dict[str, OutcomeTestRegistration] = {}
+
+    @property
+    def registrations(self) -> tuple[OutcomeTestRegistration, ...]:
+        return tuple(self._registrations.values())
+
+    def register(self, registration: OutcomeTestRegistration) -> OutcomeTestRegistration:
+        if registration.hypothesis_test_id in self._registrations:
+            raise ValueError("duplicate hypothesis test id")
+        self._registrations[registration.hypothesis_test_id] = registration
+        return registration
+
+    def get(self, hypothesis_test_id: str) -> OutcomeTestRegistration | None:
+        return self._registrations.get(hypothesis_test_id)
 
 
 # ---------------------------------------------------------------------------
@@ -534,19 +862,16 @@ class PreOutcomeGate:
         "PRIMARY_SCOPE_SEARCH_IDENTITIES",
     )
 
-    def evaluate(
-        self,
+    @staticmethod
+    def build_controls(
         *,
-        cohort: Cohort,
         source_only_verified: bool,
         statistical_profile_locked: bool,
-        statistical_profile_test_only: bool,
         multiplicity_counting_unit_locked: bool,
         research_wave_locked: bool,
         primary_scope_search_identities_locked: bool,
-        synthetic_fixture: bool,
-    ) -> PreOutcomeGateDecision:
-        controls = (
+    ) -> tuple[GateControl, ...]:
+        return (
             GateControl(
                 "SOURCE_ONLY_CONTROLS",
                 source_only_verified,
@@ -572,6 +897,26 @@ class PreOutcomeGate:
                 primary_scope_search_identities_locked,
                 "LOCKED" if primary_scope_search_identities_locked else "MISSING_OR_UNLOCKED",
             ),
+        )
+
+    def evaluate(
+        self,
+        *,
+        cohort: Cohort,
+        source_only_verified: bool,
+        statistical_profile_locked: bool,
+        statistical_profile_test_only: bool,
+        multiplicity_counting_unit_locked: bool,
+        research_wave_locked: bool,
+        primary_scope_search_identities_locked: bool,
+        synthetic_fixture: bool,
+    ) -> PreOutcomeGateDecision:
+        controls = self.build_controls(
+            source_only_verified=source_only_verified,
+            statistical_profile_locked=statistical_profile_locked,
+            multiplicity_counting_unit_locked=multiplicity_counting_unit_locked,
+            research_wave_locked=research_wave_locked,
+            primary_scope_search_identities_locked=primary_scope_search_identities_locked,
         )
         missing = tuple(control.name for control in controls if not control.satisfied)
 
@@ -608,13 +953,18 @@ class PreOutcomeGate:
 class ResearchFirewall:
     """Single owner of pre-outcome research access rules.
 
-    Composes SOURCE_ONLY policy, research waves, statistical profile registry,
-    the pre-outcome gate, and the historical final-holdout state machine.
+    Composes the outcome-test registry, research-wave registry, statistical
+    profile registry, SOURCE_ONLY policy, the pre-outcome gate, and the
+    historical final-holdout state machine. Candidate outcome access is keyed by
+    a single registered hypothesis/test identity and every other fact is resolved
+    and verified from project-owned registries — callers never declare frozen lock
+    state themselves.
     """
 
     def __init__(self, ledger: EvidenceLedger) -> None:
         self._ledger = ledger
         self._source_only = SourceOnlyPolicy()
+        self._tests = OutcomeTestRegistry()
         self._waves = ResearchWaveRegistry()
         self._profiles = StatisticalProfileRegistry()
         self._gate = PreOutcomeGate()
@@ -623,6 +973,10 @@ class ResearchFirewall:
     @property
     def source_only(self) -> SourceOnlyPolicy:
         return self._source_only
+
+    @property
+    def tests(self) -> OutcomeTestRegistry:
+        return self._tests
 
     @property
     def waves(self) -> ResearchWaveRegistry:
@@ -672,6 +1026,72 @@ class ResearchFirewall:
     def has_exposure(self, strategy: StrategyIdentity, dataset_class: DatasetClass) -> bool:
         return dataset_class in self._ledger.exposures_for(strategy.research_lineage_id)
 
+    # -- outcome-test registration (identity-bound) -----------------------------
+
+    def register_outcome_test(
+        self,
+        *,
+        hypothesis_test_id: str,
+        strategy: StrategyIdentity,
+        experiment: ExperimentIdentity,
+        family_claim_identity: str,
+        primary_branch_identity: str,
+        scope_identity: str,
+        parameter_search_identity: str,
+        source_only_session_id: str,
+        research_wave_id: str,
+        statistical_profile_id: str,
+        multiplicity_counting_unit_identity: str,
+    ) -> OutcomeTestRegistration:
+        """Create and register a canonical identity-bound outcome-test registration.
+
+        All referenced identities are resolved and validated against the
+        project-owned registries at registration time.
+        """
+        if experiment.strategy_identity_id != strategy.identity_id:
+            raise ValueError("experiment does not bind the supplied strategy identity")
+        wave = self._waves.get(research_wave_id)
+        if wave is None:
+            raise ValueError("unknown research wave id")
+        if wave.protocol_version != FrozenResearchProtocol.RESEARCH_PROTOCOL_VERSION:
+            raise ValueError("wave protocol version mismatch")
+        profile = self._profiles.get(statistical_profile_id)
+        if profile is None:
+            raise ValueError("unknown statistical profile id")
+        if wave.statistical_profile_id != profile.profile_id:
+            raise ValueError("wave profile id does not match the supplied profile")
+        if wave.statistical_profile_identity != profile.profile_identity:
+            raise ValueError("wave profile identity does not match the supplied profile")
+        if wave.multiplicity_counting_unit_identity != multiplicity_counting_unit_identity:
+            raise ValueError("wave counting-unit identity does not match the supplied counting unit")
+        session = self._source_only.get(source_only_session_id)
+        if session is None:
+            raise ValueError("unknown SOURCE_ONLY session id")
+        registration = OutcomeTestRegistration(
+            hypothesis_test_id=hypothesis_test_id,
+            experiment_identity_id=experiment.experiment_id,
+            strategy_identity_id=strategy.identity_id,
+            research_lineage_id=strategy.research_lineage_id,
+            family_claim_identity=family_claim_identity,
+            primary_branch_identity=primary_branch_identity,
+            scope_identity=scope_identity,
+            parameter_search_identity=parameter_search_identity,
+            source_only_session_id=session.session_id,
+            source_only_session_identity=session.session_identity,
+            source_bundle_identity=session.source_bundle_identity,
+            source_bundle_hash=session.source_bundle_hash,
+            research_wave_id=wave.research_wave_id,
+            statistical_profile_id=profile.profile_id,
+            statistical_profile_identity=profile.profile_identity,
+            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+            protocol_version=FrozenResearchProtocol.RESEARCH_PROTOCOL_VERSION,
+        )
+        return self._tests.register(registration)
+
+    def lock_wave(self, wave_id: str) -> None:
+        """Fail-closed wave lock with cross-registry identity validation."""
+        self._waves.lock(wave_id, self._tests)
+
     # -- authoritative candidate-outcome path -----------------------------------
 
     @staticmethod
@@ -687,32 +1107,115 @@ class ResearchFirewall:
         except KeyError:
             raise ValueError("cohort has no dataset-class representation") from None
 
+    def _resolve_binding(self, hypothesis_test_id: str, experiment: ExperimentIdentity) -> tuple[str | None, dict[str, bool] | None]:
+        """Resolve the registration and verify every identity binding.
+
+        Returns (None, controls) on success, or (reason, None) on any mismatch.
+        No caller-supplied lock booleans are consulted; every fact is derived from
+        project-owned registries.
+        """
+        registration = self._tests.get(hypothesis_test_id)
+        if registration is None:
+            return "UNREGISTERED_HYPOTHESIS_TEST", None
+        if experiment.experiment_id != registration.experiment_identity_id:
+            return "EXPERIMENT_IDENTITY_MISMATCH", None
+        if experiment.strategy_identity_id != registration.strategy_identity_id:
+            return "STRATEGY_IDENTITY_MISMATCH", None
+        wave = self._waves.get(registration.research_wave_id)
+        if wave is None:
+            return "WAVE_MISSING", None
+        if not self._waves.is_locked(wave.research_wave_id):
+            return "WAVE_NOT_LOCKED", None
+        if hypothesis_test_id not in self._waves.denominator(wave.research_wave_id):
+            return "HYPOTHESIS_NOT_IN_WAVE_TEST_SET", None
+        if registration.research_wave_id != wave.research_wave_id:
+            return "REGISTRATION_WAVE_MISMATCH", None
+        profile = self._profiles.get(registration.statistical_profile_id)
+        if profile is None:
+            return "PROFILE_MISSING", None
+        if not self._profiles.is_locked(profile.profile_id):
+            return "PROFILE_NOT_LOCKED", None
+        if profile.profile_identity != registration.statistical_profile_identity:
+            return "PROFILE_IDENTITY_MISMATCH", None
+        if wave.statistical_profile_id != registration.statistical_profile_id:
+            return "WAVE_PROFILE_ID_MISMATCH", None
+        if wave.statistical_profile_identity != registration.statistical_profile_identity:
+            return "WAVE_PROFILE_IDENTITY_MISMATCH", None
+        if registration.multiplicity_counting_unit_identity != wave.multiplicity_counting_unit_identity:
+            return "MULTIPLICITY_COUNTING_UNIT_MISMATCH", None
+        session = self._source_only.get(registration.source_only_session_id)
+        if session is None:
+            return "SOURCE_ONLY_SESSION_MISSING", None
+        if session.session_identity != registration.source_only_session_identity:
+            return "SOURCE_ONLY_SESSION_IDENTITY_MISMATCH", None
+        if session.source_bundle_identity != registration.source_bundle_identity:
+            return "SOURCE_BUNDLE_IDENTITY_MISMATCH", None
+        if session.source_bundle_hash != registration.source_bundle_hash:
+            return "SOURCE_BUNDLE_HASH_MISMATCH", None
+        if not self._source_only.is_verified(registration.source_only_session_id):
+            return "SOURCE_ONLY_NOT_VERIFIED", None
+        if registration.protocol_version != FrozenResearchProtocol.RESEARCH_PROTOCOL_VERSION:
+            return "PROTOCOL_VERSION_MISMATCH", None
+        controls = {
+            "source_only_verified": True,
+            "statistical_profile_locked": True,
+            "statistical_profile_test_only": profile.is_test_only,
+            "multiplicity_counting_unit_locked": True,
+            "research_wave_locked": True,
+            "primary_scope_search_identities_locked": True,
+        }
+        return None, controls
+
     def evaluate_gate(
         self,
         *,
         cohort: Cohort,
-        source_only_session_id: str,
-        wave_id: str,
-        profile_id: str,
-        multiplicity_counting_unit_locked: bool,
-        primary_scope_search_identities_locked: bool,
+        experiment: ExperimentIdentity,
+        hypothesis_test_id: str,
         synthetic_fixture: bool,
     ) -> PreOutcomeGateDecision:
-        """Resolve control state from the registries and evaluate the gate (fail closed)."""
-        source_only_verified = self._source_only.is_verified(source_only_session_id)
-        profile = self._profiles.get(profile_id)
-        statistical_profile_locked = profile is not None and self._profiles.is_locked(profile_id)
-        statistical_profile_test_only = profile is not None and profile.is_test_only
-        wave = self._waves.get(wave_id)
-        research_wave_locked = wave is not None and self._waves.is_locked(wave_id)
+        """Authoritative gate evaluation, fully derived from project registries."""
+        mismatch, controls = self._resolve_binding(hypothesis_test_id, experiment)
+        if cohort in (
+            Cohort.PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT,
+            Cohort.SHADOW_FORWARD,
+            Cohort.OUT_OF_SCOPE,
+            Cohort.VALIDATION,
+        ):
+            # Cohort itself is always denied; the gate produces the canonical reason.
+            return self._gate.evaluate(
+                cohort=cohort,
+                source_only_verified=False,
+                statistical_profile_locked=False,
+                statistical_profile_test_only=False,
+                multiplicity_counting_unit_locked=False,
+                research_wave_locked=False,
+                primary_scope_search_identities_locked=False,
+                synthetic_fixture=synthetic_fixture,
+            )
+        if mismatch is not None or controls is None:
+            failed_controls = PreOutcomeGate.build_controls(
+                source_only_verified=False,
+                statistical_profile_locked=False,
+                multiplicity_counting_unit_locked=False,
+                research_wave_locked=False,
+                primary_scope_search_identities_locked=False,
+            )
+            return PreOutcomeGateDecision(
+                False,
+                cohort,
+                False,
+                "IDENTITY_BINDING:" + (mismatch or "UNRESOLVED"),
+                failed_controls,
+            )
         return self._gate.evaluate(
             cohort=cohort,
-            source_only_verified=source_only_verified,
-            statistical_profile_locked=statistical_profile_locked,
-            statistical_profile_test_only=statistical_profile_test_only,
-            multiplicity_counting_unit_locked=multiplicity_counting_unit_locked,
-            research_wave_locked=research_wave_locked,
-            primary_scope_search_identities_locked=primary_scope_search_identities_locked,
+            source_only_verified=controls["source_only_verified"],
+            statistical_profile_locked=controls["statistical_profile_locked"],
+            statistical_profile_test_only=controls["statistical_profile_test_only"],
+            multiplicity_counting_unit_locked=controls["multiplicity_counting_unit_locked"],
+            research_wave_locked=controls["research_wave_locked"],
+            primary_scope_search_identities_locked=controls["primary_scope_search_identities_locked"],
             synthetic_fixture=synthetic_fixture,
         )
 
@@ -721,31 +1224,49 @@ class ResearchFirewall:
         *,
         cohort: Cohort,
         experiment: ExperimentIdentity,
-        source_only_session_id: str,
-        wave_id: str,
-        profile_id: str,
-        multiplicity_counting_unit_locked: bool,
-        primary_scope_search_identities_locked: bool,
+        hypothesis_test_id: str,
         synthetic_fixture: bool,
     ) -> AccessResult:
-        """Authoritative candidate outcome-bearing access. Fail closed by default."""
+        """Authoritative candidate outcome-bearing access. Fail closed by default.
+
+        Only accepts a registered hypothesis/test identity plus cohort/fixture
+        information. Every other fact is resolved and verified from the registries.
+        On the first grant, the wave's outcome-test-start is recorded durably.
+        """
         decision = self.evaluate_gate(
             cohort=cohort,
-            source_only_session_id=source_only_session_id,
-            wave_id=wave_id,
-            profile_id=profile_id,
-            multiplicity_counting_unit_locked=multiplicity_counting_unit_locked,
-            primary_scope_search_identities_locked=primary_scope_search_identities_locked,
+            experiment=experiment,
+            hypothesis_test_id=hypothesis_test_id,
             synthetic_fixture=synthetic_fixture,
         )
         dataset_class = self._dataset_class_for_cohort(cohort)
         if decision.allowed:
+            registration = self._tests.get(hypothesis_test_id)
+            profile = self._profiles.get(registration.statistical_profile_id)
+            test_only = profile is not None and profile.is_test_only
+            first_look = self._waves.declare_outcome_test_start(registration.research_wave_id)
+            if first_look:
+                self._ledger.append(
+                    EvidenceRecord(
+                        "WAVE_OUTCOME_TEST_STARTED",
+                        experiment,
+                        dataset_class,
+                        "STARTED",
+                        evidence_reference=(
+                            f"wave:{registration.research_wave_id};hypothesis:{hypothesis_test_id}"
+                        ),
+                    )
+                )
+            audit_note = "SYNTHETIC_TEST_ONLY_FIRST_LOOK" if test_only else "DEVELOPMENT_OUTCOME_GRANTED"
             record = EvidenceRecord(
                 "PRE_OUTCOME_GATE_GRANTED",
                 experiment,
                 dataset_class,
                 "GRANTED",
-                evidence_reference=decision.reason,
+                evidence_reference=(
+                    f"{decision.reason};{audit_note};wave:{registration.research_wave_id};"
+                    f"hypothesis:{hypothesis_test_id}"
+                ),
             )
         else:
             record = EvidenceRecord(

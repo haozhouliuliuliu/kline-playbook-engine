@@ -1,10 +1,13 @@
 # HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0
 
-> Version: 1.0
+> Version: 1.0 (hardened)
 > Date: 2026-08-19
-> Status: IMPLEMENTED_AND_TESTED / ENGINEERING_VERIFIED
+> Status: IMPLEMENTED_AND_TESTED / ENGINEERING_VERIFIED / IDENTITY_BOUND
 > Work package: `HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IMPLEMENTATION`
 > Tool decision: `USE_EXISTING` (no new tool adopted)
+> Acceptance review: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md`
+> Review verdict: `PARTIAL_FIX_REQUIRED` -> resolved by this hardening pass
+> Acceptance boundary: `PREOUTCOME_FIREWALL_ACCEPTANCE=COMPLETE_VERIFIED` (engineering)
 
 ## 1. Frozen authority references (do not modify)
 
@@ -36,74 +39,116 @@ historical-final state machine.
 ## 2. Implementation owner / module
 
 Single owner of the pre-outcome research access rules:
-`src/research_firewall.py` — `ResearchFirewall`, `PreOutcomeGate`,
-`SourceOnlyPolicy`, `SourceOnlySession`, `ResearchWaveRegistry`,
-`ResearchWaveManifest`, `StatisticalProfileRegistry`,
-`CommonStatisticalProfile`, `HistoricalFinalHoldoutStateMachine`,
-`classify_cohort`, frozen constants.
+`src/research_firewall.py`:
+- `ResearchFirewall` (single owner), `PreOutcomeGate` (low-level pure gate),
+  `PreOutcomeGateDecision`, `GateControl`;
+- `OutcomeTestRegistration` + `OutcomeTestRegistry` — canonical identity-bound
+  hypothesis/outcome-test registration;
+- `SourceOnlyPolicy`, `SourceOnlySession` (project-issued verification),
+  `SourceOnlyClaimExtractionContext`, `ApprovedSourceBundle`,
+  `ClaimRecordOutput`, `ClaimRecordDraft`;
+- `ResearchWaveRegistry`, `ResearchWaveManifest` (single canonical denominator);
+- `StatisticalProfileRegistry`, `CommonStatisticalProfile` (identity/lock only);
+- `HistoricalFinalHoldoutStateMachine` (never auto-unlocks);
+- `classify_cohort` and frozen constants.
 
 Legacy compatibility:
 `src/strategy_evidence.py` — `DatasetClass` gained the canonical
 `PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT` and `SHADOW_FORWARD` members;
-`FINAL_UNSEEN` is kept as a legacy name. `FinalUnseenFirewall` is now a thin
+`FINAL_UNSEEN` is kept as a legacy name. `FinalUnseenFirewall` is a thin
 compatibility adapter that **delegates every decision** to `ResearchFirewall`.
 There is exactly one owner of the access rules; there is no second parallel
 firewall rule set in the project.
 
-## 3. Implemented controls
+## 3. Identity-bound outcome-test registration (acceptance gaps E-1, E-2)
+
+Every candidate outcome access is keyed by a single registered
+`hypothesis_test_id`. `OutcomeTestRegistration` is immutable and binds:
+- hypothesis/test identity;
+- `experiment_identity_id` + `strategy_identity_id` (ExperimentIdentity /
+  strategy identity);
+- research lineage;
+- family / claim identity;
+- PRIMARY branch identity;
+- instrument/timeframe/context scope identity;
+- parameter/search identity;
+- SOURCE_ONLY session id + session identity hash;
+- source bundle identity/hash;
+- `research_wave_id`;
+- exact statistical profile id + profile identity hash;
+- multiplicity / counting-unit identity;
+- protocol version.
+
+`ResearchFirewall.request_candidate_outcome_access()` accepts only
+`cohort`, `experiment`, `hypothesis_test_id`, and `synthetic_fixture`. All other
+facts are resolved from the registries and verified at access time. It is
+impossible to combine an unrelated locked wave + session + experiment + profile
+just because each is individually locked (`IDENTITY_BINDING:*` denies).
+
+## 4. No caller-supplied frozen lock booleans (acceptance gap E-1)
+
+The authoritative production paths
+`ResearchFirewall.request_candidate_outcome_access()` and
+`ResearchFirewall.evaluate_gate()` no longer accept
+`multiplicity_counting_unit_locked` or `primary_scope_search_identities_locked`.
+All gate-critical lock state is derived from project-owned immutable
+registries/artifacts. The low-level pure `PreOutcomeGate.evaluate()` still accepts
+booleans and is covered by direct unit tests only.
+
+## 5. Implemented controls
 
 | Control | Status | Where |
 | --- | --- | --- |
-| SOURCE_ONLY_CONTROLS | ACTIVE_AND_VERIFIED (engineering) | `SourceOnlyPolicy` / `SourceOnlySession` |
+| SOURCE_ONLY_CONTROLS | ACTIVE_AND_VERIFIED (project-issued) | `SourceOnlyPolicy` / `SourceOnlySession` |
 | COMMON_STATISTICAL_PROFILE | interface + lock implemented; real numeric profile NOT designed | `CommonStatisticalProfile` / `StatisticalProfileRegistry` |
-| MULTIPLICITY_COUNTING_UNIT | LOCKED control enforced by the gate | `PreOutcomeGate` |
-| RESEARCH_WAVE | LOCKED (immutable manifest) | `ResearchWaveRegistry` / `ResearchWaveManifest` |
-| PRIMARY_SCOPE_SEARCH_IDENTITIES | LOCKED control enforced by the gate | `PreOutcomeGate` |
+| MULTIPLICITY_COUNTING_UNIT | LOCKED (derived from locked wave + manifest counting-unit identity) | `ResearchWaveManifest` / gate |
+| RESEARCH_WAVE | LOCKED (immutable manifest; single canonical denominator) | `ResearchWaveRegistry` / `ResearchWaveManifest` |
+| PRIMARY_SCOPE_SEARCH_IDENTITIES | LOCKED (bound in the outcome-test registration) | `OutcomeTestRegistration` / gate |
 
-### 3.1 SOURCE_ONLY
+### 5.1 SOURCE_ONLY (project-issued verification)
 
-`SourceOnlySession` records at least:
-- model identity/version;
-- prompt/spec version;
-- source bundle identity/hash;
-- tool/retrieval mode;
-- protected market access mode;
-- explicit researcher/model exposure note.
+`SourceOnlySession` records model identity/version, prompt/spec version, source
+bundle identity/hash, tool/retrieval mode, protected market access mode, and an
+explicit researcher/model exposure note.
 
-`SourceOnlyPolicy.is_verified()` requires `protected_market_access_mode ==
-TECHNICALLY_DENIED`. A `PROMPT_ONLY` mode ("the prompt said do not look") is
-**not** technical denial and is not verified. The policy exposes **no**
-protected-period market outcome retrieval surface; the only market-outcome-related
-entry point (`request_protected_market_outcome`) always returns `DENIED` and
-records the denial.
+Verification is **project-issued**: only `SourceOnlyPolicy.open_verified_session()`
+stamps `verification_evidence` that `is_verified()` accepts. A manually constructed
+`TECHNICALLY_DENIED` session (or one with forged evidence) is **not** verified.
+`PROMPT_ONLY` ("the prompt said do not look") is not technical denial. The policy
+exposes no protected-period market outcome retrieval surface; the only
+market-outcome-related entry point always returns `DENIED` and records the denial.
+
+A bounded `SourceOnlyClaimExtractionContext` runner structurally holds only an
+approved source bundle (provenance), SOURCE_ONLY services/session, and a
+provenance/claim-record output surface. It has no canonical market-data
+repository, historical outcome API, validation/final data surface, or generic
+market-outcome retrieval service; any protected-period project market-outcome
+request through it is `DENIED` + audited.
 
 This does **not** claim to eliminate external model latent memory. Latent/parametric
 prior market knowledge that cannot be proven absent remains a disclosed residual
 threat-model risk under the frozen protocol.
 
-### 3.2 RESEARCH_WAVE
+### 5.2 RESEARCH_WAVE (single canonical denominator; acceptance gap E-3)
 
-`ResearchWaveManifest` is immutable (frozen dataclass) and binds:
-- research_wave_id;
-- protocol version;
-- statistical profile version;
-- tested family/claim identities;
-- PRIMARY branch identities;
-- declared outcome-tested alternatives;
-- instrument/timeframe/context scope;
-- parameter/search ranges;
-- denominator/counting semantics.
+`ResearchWaveManifest` is immutable and directly binds the complete tested
+hypothesis identity set (`tested_hypothesis_test_ids`), plus the exact
+statistical profile id/hash and multiplicity counting-unit identity. The permanent
+denominator is **derived from the manifest** — there is no second mutable
+pre-lock list, so manifest and denominator cannot diverge.
 
-`ResearchWaveRegistry` enforces:
-- waves are buildable before outcome testing starts;
-- once locked, a wave's test set cannot be modified (`add_tested_hypothesis`
-  raises after lock);
-- after the first outcome-bearing test, new hypotheses require a new wave /
-  new search event;
-- FAIL and `INSUFFICIENT_EVIDENCE` entries remain permanently in the denominator
-  (no deletion path exists).
+`ResearchWaveRegistry.lock()` fails closed and verifies:
+- the tested set is non-empty;
+- every tested hypothesis identity has a registration;
+- each registration points to this wave;
+- each registration binds the same profile id/identity and counting-unit identity
+  as the manifest.
 
-### 3.3 Common statistical profile interface
+Once locked, the test set is permanently immutable. A new family/claim/branch
+requires a new wave / new search event. `FAIL` and `INSUFFICIENT_EVIDENCE`
+remain permanently in the tested denominator.
+
+### 5.3 Common statistical profile interface
 
 `CommonStatisticalProfile` implements fields, identity hash, version, lock state,
 and a `TEST_ONLY` marker for fixtures. This package deliberately does **not**
@@ -112,10 +157,9 @@ numbers, or dependence thresholds. The real `COMMON_STATISTICAL_PROFILE_V1` nume
 standard must be designed and independently reviewed separately under Protocol v1.0
 before any candidate outcome.
 
-### 3.4 Pre-outcome gate
+### 5.4 Pre-outcome gate (acceptance gap E-4)
 
-`PreOutcomeGate` is a single fail-closed gate. Before any candidate outcome-bearing
-performance access, all five controls must be satisfied:
+The gate requires all five controls satisfied:
 
 ```text
 SOURCE_ONLY_CONTROLS            = ACTIVE_AND_VERIFIED
@@ -125,31 +169,50 @@ RESEARCH_WAVE                   = LOCKED
 PRIMARY_SCOPE_SEARCH_IDENTITIES = LOCKED
 ```
 
-Any missing/unknown prerequisite -> `DENIED`. Because only `TEST_ONLY` profiles
-exist in this package, the only reachable grant is
-`SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY` (synthetic dummy fixtures). A `TEST_ONLY`
-profile refuses a non-synthetic fixture
+The profile used at access must equal the exact profile id/hash bound in the wave
+manifest and the hypothesis registration (`WAVE_PROFILE_ID_MISMATCH`,
+`PROFILE_IDENTITY_MISMATCH` -> DENY). Because only `TEST_ONLY` profiles exist in
+this package, the only reachable grant is `SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY`
+(synthetic dummy fixtures); a `TEST_ONLY` profile refuses a non-synthetic fixture
 (`TEST_ONLY_PROFILE_REQUIRES_SYNTHETIC_FIXTURE`).
 
-## 4. Denied paths
+## 6. Durable first-look and append-only outcome audit
 
-- missing SOURCE_ONLY -> DENY;
-- SOURCE_ONLY unverified (including PROMPT_ONLY) -> DENY;
+- On the first authoritative outcome grant, `ResearchWaveRegistry` durably
+  declares the wave outcome-test-start (`WAVE_OUTCOME_TEST_STARTED` evidence
+  record), and the grant record carries an explicit
+  `SYNTHETIC_TEST_ONLY_FIRST_LOOK` audit note for TEST_ONLY synthetic grants so
+  they can never be confused with a future real candidate wave.
+- `record_terminal_outcome()` is append-only: the first terminal outcome is
+  immutable; re-recording the same fact is idempotent; a different outcome is
+  rejected (`cannot overwrite`). `FAIL` / `INSUFFICIENT_EVIDENCE` stay in the
+  permanent denominator. Future CAT1 revisions must use explicit
+  evidence/revision events (not implemented in this package, by design).
+
+## 7. Denied paths
+
+- missing / unverified SOURCE_ONLY session (including PROMPT_ONLY and
+  manually-forged sessions) -> DENY;
 - statistical profile missing / draft / unlocked -> DENY;
-- multiplicity counting unit unlocked -> DENY;
 - research wave missing / unlocked -> DENY;
-- PRIMARY/scope/search identities unlocked -> DENY;
-- VALIDATION -> default DENY (no explicit validation authority in this package);
+- unregistered hypothesis/test -> DENY (`UNREGISTERED_HYPOTHESIS_TEST`);
+- experiment/strategy identity mismatch vs registration -> DENY
+  (`EXPERIMENT_IDENTITY_MISMATCH`, `STRATEGY_IDENTITY_MISMATCH`);
+- hypothesis not in the wave tested set -> DENY;
+- wave/profile id/hash mismatch -> DENY / lock fail;
+- counting-unit identity mismatch -> DENY / lock fail;
+- source bundle / session identity mismatch -> DENY;
+- VALIDATION -> default DENY (no validation authority in this package);
 - PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT -> always DENY
   (`FINAL_HISTORICAL_HOLDOUT_ALWAYS_LOCKED`);
 - Shadow/Forward -> DENY (`SHADOW_FORWARD_NOT_AUTHORIZED`);
 - out-of-scope dates -> DENY;
-- locked wave cannot append hypothesis -> DENY/raise;
+- locked wave cannot gain new hypotheses; a new hypothesis requires a new wave;
 - final-holdout unlock is never automatic; exposure requires a separate,
   explicitly registered unlock authority and no such authority is registered by
   default.
 
-## 5. Historical final naming and state machine
+## 8. Historical final naming and state machine
 
 Compatibility migration: `DatasetClass.FINAL_UNSEEN` is preserved (old code/tests
 keep working). The canonical semantic name
@@ -168,7 +231,7 @@ FINAL_HISTORICAL_HOLDOUT_LOCKED
 This package implements **no** automatic final-holdout unlock. `VOID` changes a
 conclusion and never restores holdout status.
 
-## 6. Compatibility approach
+## 9. Compatibility approach
 
 - `FinalUnseenFirewall` keeps its legacy constructor and interface
   (`request_access(experiment, dataset_class)`, `has_exposure(...)`) and now
@@ -178,31 +241,41 @@ conclusion and never restores holdout status.
   deterministic records) is preserved and covered by the existing test suite.
 - Coarse DEVELOPMENT/VALIDATION grants through the legacy path are **not**
   candidate-outcome authorization. The authoritative candidate-outcome path is
-  `ResearchFirewall.request_candidate_outcome_access` / `evaluate_gate`, which is
-  fail-closed. This is documented in `tests/test_research_firewall.py`
-  (`test_legacy_coarse_grants_are_not_candidate_outcome_authorization`).
+  `ResearchFirewall.request_candidate_outcome_access()` / `evaluate_gate()`,
+  which is identity-bound and fail-closed.
 
-## 7. Tests
+## 10. Tests
 
-New: `tests/test_research_firewall.py` (38 tests) covering:
-- frozen 12/6/6 chronology classification and constants;
-- SOURCE_ONLY session/policy (verification, PROMPT_ONLY not technical denial,
-  technical denial of market-outcome requests, exposure note, identity
-  determinism);
-- research wave immutability, lock, append-after-lock denial, append-after-test
-  requires new wave, permanent denominator with FAIL / INSUFFICIENT_EVIDENCE;
-- statistical profile registry lock/identity and TEST_ONLY marker;
-- historical final-holdout state machine (no auto-unlock, authority required,
-  VOID never restores);
-- the 14 minimum pre-outcome gate checks;
-- firewall integration (default deny, final always denied even when controls
-  satisfied, legacy coarse grants are not candidate-outcome authorization).
+New: `tests/test_research_firewall.py` (46 tests) covering, among others, the 15
+required identity-binding regressions:
+1. unrelated locked wave cannot authorize an experiment/hypothesis outside its
+   registered test set;
+2. unrelated verified SOURCE_ONLY session cannot authorize another lineage;
+3. manually constructed `TECHNICALLY_DENIED` session is NOT verified without
+   project-issued evidence (forged evidence also rejected);
+4. authoritative API has no caller-controlled multiplicity/PRIMARY lock booleans
+   (`inspect.signature` assertion);
+5. wave/profile identity mismatch -> DENY / lock fail;
+6. manifest tested set != registry/binding set -> wave cannot lock;
+7. empty tested denominator -> wave cannot lock;
+8. exact registered binding (experiment + family/claim + PRIMARY + scope/search +
+   source session/bundle + wave + TEST_ONLY profile) -> only synthetic
+   DEVELOPMENT passes;
+9. first granted outcome marks the wave outcome-start durably (with explicit
+   TEST_ONLY first-look audit);
+10. a second different outcome cannot overwrite the first;
+11. the synthetic SOURCE_ONLY claim runner cannot access protected-period project
+    market outcomes (DENY + audit) and holds no market/outcome surfaces;
+12. legacy `FinalUnseenFirewall` compatibility remains green;
+13. VALIDATION remains DENIED;
+14. historical final remains DENIED;
+15. Shadow/Forward remains DENIED.
 
 Canonical suite: `python -m unittest discover -s tests -v`
-Result: 219 tests OK (3 skipped), including the pre-existing 181 tests unchanged
+Result: 227 tests OK (3 skipped), including the pre-existing suite unchanged
 (no regression).
 
-## 8. Known limitations
+## 11. Known limitations
 
 - `CommonStatisticalProfile` is an identity/lock interface only; the real numeric
   standard is not designed here (by design).
@@ -211,39 +284,42 @@ Result: 219 tests OK (3 skipped), including the pre-existing 181 tests unchanged
   authorization and cannot inform candidate quality.
 - External model latent memory is a disclosed residual threat-model risk and is
   not claimed to be eliminated by SOURCE_ONLY technical controls.
+- `open_verified_session`'s evidence is project-issued by construction; it is a
+  technical-deny-verification mechanism, not a claim of cryptographic unforgeability.
 
-## 9. Still NOT implemented
+## 12. Still NOT implemented
 
 - Real `COMMON_STATISTICAL_PROFILE_V1` numeric standard (confidence method,
   minimum-event numbers, multiplicity correction, dependence thresholds);
 - a separate explicit validation authority;
 - a separate final-holdout unlock authority (deliberately absent);
 - Shadow/Forward activation;
-- wiring of the authoritative gate into every historical legacy runner call path
-  (the authoritative path exists and is fail-closed; legacy coarse grants are
-  explicitly non-authorizing);
+- full validation CAT1/CAT2/CAT3 revision event flow (explicit evidence/revision
+  events only, by design);
 - real Human Playbook claim extraction / candidate PnL.
 
-## 10. Candidate performance backtest status
+## 13. Candidate performance backtest status
 
 ```text
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 ```
 
-Exact reason it remains locked/unlocked: the single pre-outcome gate is
-implemented and fail-closed, but the real `COMMON_STATISTICAL_PROFILE_V1` is not
-yet designed or locked. Only `TEST_ONLY` profiles exist, so no real-candidate
-outcome-bearing access can pass the gate
+Exact reason it remains locked: the pre-outcome firewall is implemented,
+identity-bound, and fail-closed, but the real `COMMON_STATISTICAL_PROFILE_V1` is
+not yet designed, independently reviewed, or locked. Only `TEST_ONLY` profiles
+exist, so no real-candidate outcome-bearing access can pass the gate
 (`TEST_ONLY_PROFILE_REQUIRES_SYNTHETIC_FIXTURE`), and no candidate PnL / equity /
 expectancy / Sharpe / win-loss inspection is possible through the authoritative
 path. VALIDATION and the historical final holdout remain locked.
 
-Next step (unchanged by this package):
+Next step:
 
 ```text
 COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
 ```
 
-SOURCE_ONLY controls are implemented and verified; the project may proceed to
-controlled real claim extraction under Claim Schema v1.0. This package performed
-no real claim extraction and no real candidate outcome backtest.
+`REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED` may be recorded in `CURRENT_STATE.md`
+only after the bounded SOURCE_ONLY claim-extraction runner/context is demonstrated
+and accepted. This package implemented and unit-verified that runner with
+synthetic fixtures only; it performed no real claim extraction and no real
+candidate outcome backtest.
