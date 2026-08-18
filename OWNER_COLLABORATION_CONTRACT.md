@@ -6,6 +6,7 @@ This file defines the Owner's stable collaboration preferences for this project.
 ## Owner-facing communication
 - Use Chinese by default.
 - The Owner is not a programmer. Use plain language and explain necessary technical terms immediately.
+- When an English UI button, menu, status, warning, or prompt is relevant, always give its Chinese meaning immediately, for example `Continue（继续）` or `Try again（重试）`; do not assume the Owner can interpret English interface text without translation.
 - Lead with the conclusion. Keep responses concise unless detail is needed for a decision.
 - Do not dump routine technical operations onto the Owner when GPT/Codex can safely handle them.
 - Do not automatically end every technical task with a long list of generic next steps. The project lead decides the real next step from CURRENT_STATE and project authority.
