@@ -11,6 +11,7 @@ LAST_KNOWN_GOOD=b6d1961dca5b4c879bc7deb6406f3c63723b04d4
 BOOTSTRAP_ACCEPTANCE=GO
 BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
+CURRENT_WORK_PACKAGE=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_PILOT
 
 ## Binding research direction
 
@@ -46,16 +47,28 @@ Owner approval.
 ## Current objective
 
 The Owner-approved canonical BALANCED research dataset is COMPLETE and ACCEPTED.
-The next material stage is to design and freeze the research protocol and chronological split
-**under `RESEARCH_DIRECTION.md`** before any genuine strategy research starts.
 
-This next package must define how attributable human trading logic becomes versioned Playbook
-artifacts, how qualitative concepts may be operationalized without unlimited search, how
-family/lineage and exposure are tracked, and how development / validation / final-unseen data
-are separated.
+The next material research-semantic stage remains the Human Playbook research-protocol and
+chronological-split freeze review under `RESEARCH_DIRECTION.md`, and that freeze is still
+required before any genuine strategy research begins.
+
+However, the Owner has explicitly deferred execution of that freeze while the project completes
+a bounded preparatory package for Human Playbook source acquisition. The current work package
+is therefore to evaluate whether specialized tools are needed to ingest books/documents and
+multimodal video while preserving provenance, page/transcript/timestamp anchors, visual
+evidence, and the separation between source claims and AI interpretation.
+
+```text
+RESEARCH_PROTOCOL_FREEZE_REQUIRED_BEFORE_STRATEGY_RESEARCH=YES
+RESEARCH_PROTOCOL_FREEZE_EXECUTION_STATUS=DEFERRED_DURING_ACQUISITION_TOOL_PILOT
+STRATEGY_RESEARCH_STARTED=NO
+```
 
 No specific playbook, source creator, split dates, validation cohort design, final-unseen
 unlock, or live-AI semantics are frozen yet.
+
+Current acquisition-tool pilot authority:
+`docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`.
 
 ## Owner source/scope decision (final, recorded durably)
 
@@ -124,6 +137,13 @@ NOT_AUTHORIZED:
 - importing strategy conclusions/results/parameters from `steel-radar-lite` or any other
   project.
 
+The current acquisition-tool pilot also does NOT authorize:
+- treating a generated Skill or summary as source authority;
+- bypassing paywalls/DRM/platform permissions;
+- authenticated browser-cookie acquisition without a separate credential/data-flow review;
+- automatic installation/adoption of discovered Skills/Plugins/MCP servers;
+- redistribution of copyrighted raw source material.
+
 ## Current architecture
 
 Top-level responsibility domains:
@@ -139,15 +159,34 @@ See `ARCHITECTURE_BASELINE.md` for binding architecture details.
 `RESEARCH_DIRECTION.md` specializes the Research Loop / Strategy Catalog discovery paradigm
 without reopening Skeleton v1.0.
 
+The current source-acquisition tool pilot is a preparatory Research Loop capability package;
+it does not add a new top-level architecture domain.
+
 ## Current tools and project capabilities
 
 Current stage tool decision:
 
-TOOL_DECISION=USE_EXISTING
+```text
+TOOL_DECISION=ADD_TOOL
+TOOL_DECISION_SCOPE=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_PILOT
+```
 
-No new tool is required to design the Human Playbook research protocol / chronological split.
+Reason: repeated Human Playbook ingestion requires reproducible provenance-preserving handling
+of books/documents and multimodal video beyond ad-hoc chat/web reading.
 
-Project-local adopted capabilities:
+No source-acquisition candidate has been VERIFIED or ADOPTED yet.
+
+Current admission candidates and static status:
+- `Lum1104/video-to-skill`: CANDIDATE; static review pass; real Windows public-video probe required.
+- `virgiliojr94/book-to-skill`: CANDIDATE; static review pass with strict official-repository/commit pin requirement.
+- `docling-project/docling`: CANDIDATE document parser; stable-version real-document probe required.
+- `UKplus8HRS/video-transcribe-skill`: CANDIDATE fallback; Chinese no-caption accuracy probe required.
+- Bilibili MCP / Firecrawl / Crawl4AI / Open Notebook and related overlap candidates remain deferred until a demonstrated residual gap exists.
+
+Pilot details and acceptance contract:
+`docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`.
+
+Project-local adopted capabilities unrelated to this pending admission:
 - TqSdk 3.10.1: ADOPTED for scoped historical concrete-contract 1-minute research data only.
 - SHFE official annual raw: VERIFIED for official daily/statistical reference use only; not the
   canonical minute-data provider.
@@ -190,21 +229,29 @@ Current non-blocking items that must survive handoff:
   unresolved Owner-gated future decision; current discretionary LLM live critical path remains
   not authorized.
 
-None of these invalidate the accepted canonical corpus.
+None of these invalidate the accepted canonical corpus or block the bounded acquisition-tool
+pilot.
 
 ## Current next action
 
-CURRENT_NEXT_ACTION=RESEARCH_PROTOCOL_AND_CHRONOLOGICAL_SPLIT_FREEZE_REVIEW
-CURRENT_NEXT_ACTION_MUST_CONFORM_TO=RESEARCH_DIRECTION.md
+```text
+CURRENT_NEXT_ACTION=HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION_PILOT
+CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md
+```
 
-The review has NOT yet been executed or accepted.
+Static source review is underway/completed for the first candidate set. The next bounded step
+is a real Windows probe on the Owner's workstation using immutable upstream pins and public or
+rights-cleared source material, with evidence written back into this repository.
 
-It must not silently inherit an earlier generic-quant research assumption. In particular,
-any prior draft such as a 12/6/6 split or generic candidate-mining workflow remains only a
-proposal unless the new Human Playbook First protocol explicitly evaluates and freezes it.
+The intended first real-path checks are:
+1. `video-to-skill` on one public YouTube video and one public Bilibili video, without cookies/auth;
+2. book/document extraction using a rights-cleared document, comparing simple extraction with
+   `Docling` where layout/visual structure matters;
+3. `video-transcribe-skill` only as no-caption fallback / controlled Chinese transcription comparison.
 
-The upcoming review should produce a single Owner decision package for genuinely frozen
-research semantics rather than asking the Owner to decide routine implementation details.
+After this preparatory package is accepted or rejected, the project returns to the required
+Human Playbook research-protocol / chronological-split freeze review before genuine strategy
+research.
 
 ## Current acceptance / durable evidence
 
@@ -215,6 +262,7 @@ research semantics rather than asking the Owner to decide routine implementation
 - Canonical corpus acceptance: `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`.
 - Canonical corpus identity: `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`.
 - Full cross-source evidence: `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`.
+- Source-acquisition tool pilot: `docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md` — ACTIVE_PILOT, no tool adopted yet.
 - Historical pre-acceptance canonical package: `docs/evidence/CANONICAL_DATASET_PACKAGE.md`
   (preserved for audit; superseded for current corpus status by final acceptance evidence).
 - Known limitations/debt index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
@@ -223,9 +271,13 @@ research semantics rather than asking the Owner to decide routine implementation
 
 OWNER_ACTION=NONE
 
-The next Owner gate occurs after the project brain has designed a decision-ready Human
-Playbook research protocol / chronological-split freeze package. No repeated approval is
-needed for the already accepted canonical data/source decisions.
+No repeated Owner approval is required for the bounded source-acquisition tool-admission pilot.
+A new Owner gate is required if the work would introduce a paid commitment, irreversible
+external action, authenticated/credential-bearing acquisition with material new data-flow risk,
+change frozen research semantics, or change the live critical-path boundary.
+
+The research-protocol / chronological-split freeze itself remains a later Owner decision package
+because it will freeze research semantics.
 
 ## Owner decision gates
 
