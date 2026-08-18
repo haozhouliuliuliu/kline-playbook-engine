@@ -10,7 +10,7 @@ ADOPTED_CONTRACT_SHA256=3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650b
 BOOTSTRAP_ACCEPTANCE=GO
 BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
-CURRENT_WORK_PACKAGE=HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_FREEZE_DECISION
+CURRENT_WORK_PACKAGE=TARGETED_FINAL_PREFREEZE_ADVERSARIAL_DELTA_REVIEW
 
 ## Binding research direction
 
@@ -26,7 +26,7 @@ traceable human trading experience
 -> versioned Playbook Contract
 -> point-in-time market-scene representation / recognition
 -> historical validation of applicability and failure conditions
--> strict validation / final-unseen governance
+-> strict validation / protected-holdout governance
 -> accepted or rejected playbook
 ```
 
@@ -36,86 +36,105 @@ LIVE_AI_SCENE_RECOGNITION_MODE=UNDECIDED
 LIVE_DISCRETIONARY_LLM_CRITICAL_PATH=NOT_AUTHORIZED
 OWNER_GATE_REQUIRED_FOR_LIVE_AI_SEMANTICS=YES
 
-Skeleton v1.0 remains binding and is not reopened by the protocol work.
+Skeleton v1.0 remains binding and is not reopened by this protocol work.
 
-## Current objective / protocol state
+## Protocol state
 
 The first Human Playbook source-layer wave is COMPLETE / GO at source-only level.
 The non-frozen Claim Extraction schema exists and has NOT been applied to real trading logic.
-The protocol input package v0.1 received an independent adversarial review with:
+
+Protocol history:
+- v0.1 input package received independent adversarial review: `GO_WITH_REQUIRED_CHANGES` (3 CRITICAL, 6 HIGH);
+- project brain adjudicated that review;
+- revised freeze candidate v0.2 and Owner decision package v0.1 were created;
+- the Owner then explicitly requested one final omission/error/forgetfulness recap before automatic approval;
+- that recap found three **new material research-semantics gaps** not sufficiently covered by the first independent review.
+
+Final pre-freeze gap review:
+`docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_FINAL_PREFREEZE_GAP_REVIEW_V0_1.md`
+
+Current state:
 
 ```text
-REVIEW_VERDICT=GO_WITH_REQUIRED_CHANGES
-CRITICAL=3
-HIGH=6
-```
-
-The project brain adjudicated the review and produced revised protocol candidate v0.2 plus a minimal Owner decision package.
-
-Current protocol artifacts:
-- v0.1 original input: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_1.md`
-- independent review: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_ADVERSARIAL_REVIEW_V0_1.md`
-- project-brain adjudication: `docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_ADJUDICATION_V0_1.md`
-- revised freeze candidate: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_INPUT_PACKAGE_V0_2.md`
-- Owner decision package: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_DECISION_PACKAGE_V0_1.md`
-
-State:
-
-```text
-PROTOCOL_INPUT_V0_2_STATUS=OWNER_DECISION_CANDIDATE_NOT_FROZEN
-OWNER_DECISION_PACKAGE_STATUS=READY
+PROTOCOL_INPUT_V0_2_STATUS=SUPERSEDED_AS_IMMEDIATE_FREEZE_CANDIDATE_PENDING_DELTA_REVIEW
+OWNER_DECISION_PACKAGE_V0_1_STATUS=HOLD_PENDING_DELTA_REVIEW
+OWNER_AUTO_APPROVAL_CONDITION=NOT_SATISFIED_NEW_MATERIAL_GAPS_FOUND
 RESEARCH_PROTOCOL_FREEZE_REQUIRED_BEFORE_STRATEGY_RESEARCH=YES
 RESEARCH_PROTOCOL_FREEZE_EXECUTION_STATUS=NOT_EXECUTED
 STRATEGY_RESEARCH_STARTED=NO
 CLAIM_EXTRACTION_SCHEMA_STATUS=ACTIVE_DRAFT_NON_FROZEN_NOT_APPLIED
 ```
 
-No concrete playbook, source ranking, final-unseen unlock, live-AI semantics, or permanent risk rule is frozen by the preparation/review work.
+No concrete playbook, split, final unlock, live-AI semantics, or permanent risk rule has been frozen by the preparation/review work.
 
-## Adversarial-review adjudication result
+## New material gaps found in final recap
 
-Accepted/modified protocol safeguards in v0.2 include:
-- source claim != AI/project interpretation != machine operationalization;
-- `EXPLICIT / INFERRED / UNKNOWN` provenance-of-meaning labels;
-- exactly one source-justified PRIMARY branch before any backtest;
-- ambiguous source meaning stops before confirmatory testing rather than generating many winning definitions;
-- branch identity defined by deterministic operationalization hash and pre-backtest lock;
-- alternative branches cannot rescue a failed primary as validation of the human source claim;
-- one common acceptance contract prevents family metric shopping while allowing additional family diagnostics/constraints;
-- product count is not assumed to equal independent sample count;
-- `INSUFFICIENT_EVIDENCE` is a valid outcome;
-- source-example exposure uses effective content/version date plus example-date audit where needed;
-- lineage/mechanism identity and exposure survive renaming;
-- surrogate features require source/measurement justification before outcomes are tested;
-- validation changes use CAT1 implementation-defect vs CAT2 research-change vs CAT3 ambiguity fail-safe classification;
-- final exposure is irreversible, including implementation-defect void cases;
-- future Shadow/Forward data is the route to genuinely new evidence after exposure.
+### GAP-A — historical holdout vs exogenous human/AI knowledge
 
-The reviewer suggestion that all playbook families use one universal trading metric/threshold was only partially accepted. v0.2 instead requires the same common evidence questions and one project-wide statistical profile, while family-specific metrics may only add constraints/diagnostics and cannot substitute a convenient acceptance metric.
+The project begins in 2026 against historical 2024-2025 data. Repository locks and source-example audits do not prove that humans or current AI models lack prior knowledge of 2025 market outcomes.
 
-The reviewer estimate that six products may represent only `2-3` independent products was NOT accepted as a fact because it was not established by project evidence. The protocol instead freezes the principle that dependence must be measured and six products cannot be assumed independent.
+Required correction under review:
+- distinguish `PROJECT_GOVERNED_HISTORICAL_HOLDOUT` from `PROSPECTIVE_GENUINELY_UNSEEN_DATA`;
+- treat future Shadow/Forward data as the genuinely prospective unseen path;
+- use a source-only interpretation process with no protected-market outcome retrieval/browsing and log model/prompt/tool context;
+- explicit retrieval/citation of protected-period outcomes during claim design creates exposure;
+- latent model memory cannot be proven absent, so historical holdout evidence must not be overstated as epistemically unseen to all researchers/models.
 
-## Owner freeze decisions now required
+### GAP-B — family/claim/wave-level multiplicity
 
-The Owner decision package compresses the material decision to three choices:
+Skeleton v1.0 requires search freedom to include strategy count. v0.2 governs branch-level freedom strongly but does not explicitly freeze multiplicity across many different Human Playbooks/claims.
 
-1. governance: approve/reject revised five-bucket protocol safeguards;
-2. chronology: choose initial split, project-brain recommendation `12/6/6`, alternative `10/8/6`;
-3. evidence sufficiency: approve/reject `INSUFFICIENT_EVIDENCE` as a valid non-pass/non-fail outcome.
+Required correction under review:
+- pre-register each outcome-bearing `RESEARCH_WAVE_ID`;
+- count tested playbook families, separately testable claims, branches, instruments, timeframes, contexts and parameter/search ranges;
+- preserve rejected/failed/insufficient families in the denominator;
+- adding families/claims after outcome inspection creates a new wave/search event;
+- project-wide statistical controls must consider full wave multiplicity when material.
 
-Project-brain recommended Owner decision:
+### GAP-C — common statistical profile freeze timing
+
+v0.2 allowed the exact project-wide confidence/precision/event-sufficiency implementation to be finalized before validation. That may be too late if development performance backtests have already been observed.
+
+Required correction under review:
 
 ```text
-APPROVE GOVERNANCE=YES
-INITIAL_SPLIT=12/6/6
-ALLOW_INSUFFICIENT_EVIDENCE=YES
+COMMON_STATISTICAL_PROFILE_V1
+must be independently reviewed + versioned + locked
+BEFORE THE FIRST OUTCOME-BEARING PERFORMANCE BACKTEST
 ```
 
-Short Owner authorization to freeze the recommended package:
+Before that profile is frozen, source/claim extraction, PRIMARY interpretation, observability review, deterministic operationalization and non-outcome tests may proceed; candidate PnL/expectancy/Sharpe/win-rate/equity comparisons may not.
 
-`按推荐冻结`
+## Prior safeguards that still survive the final recap
 
-No freeze occurs until that Owner decision is received and written durably into a protocol artifact.
+Still recommended, subject to targeted delta review:
+- source claim != AI/project interpretation != machine operationalization;
+- `EXPLICIT / INFERRED / UNKNOWN`;
+- exactly one source-justified PRIMARY branch before outcome testing;
+- ambiguous source meaning stops rather than mining alternatives;
+- branch/AI-spec/scope/search identity locked before testing;
+- alternatives cannot rescue a failed primary as validation of the original claim;
+- common acceptance contract; no family metric shopping;
+- product count is not assumed equal to independent sample count;
+- `INSUFFICIENT_EVIDENCE` is valid;
+- source-example exposure uses effective content/version date plus example-date audit;
+- lineage/mechanism identity and exposure survive renaming;
+- surrogates require source/measurement justification before outcome testing;
+- validation CAT1/CAT2/CAT3 fail-safe;
+- historical final-holdout exposure is irreversible;
+- final-inspired descendants require genuinely new prospective evidence.
+
+The prior recommendation `12/6/6` is not rejected, but its semantics must distinguish historical locked holdout from genuinely prospective unseen data:
+
+```text
+DEVELOPMENT                  2024-01-01 .. 2024-12-31
+VALIDATION                   2025-01-01 .. 2025-06-30
+PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT
+                             2025-07-01 .. 2025-12-31
+PROSPECTIVE_GENUINELY_UNSEEN future Shadow/Forward cohorts
+```
+
+No split is frozen yet.
 
 ## Canonical BALANCED corpus (accepted)
 
@@ -142,7 +161,7 @@ Authority:
 - `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`
 - `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`
 
-The accepted corpus itself created no strategy-family development/validation/final-unseen exposure.
+The accepted corpus itself created no project-recorded strategy-family development/validation/final-holdout exposure.
 
 ## Source-layer state
 
@@ -174,11 +193,12 @@ NOT_AUTHORIZED:
 - concrete K-line/playbook strategy conclusions;
 - applying Claim Extraction schema to real trading logic before protocol freeze;
 - concrete buy/sell rule extraction as project claims;
+- any outcome-bearing candidate performance backtest under the unfrozen protocol;
 - large-scale strategy mining or unconstrained indicator/rule/parameter search;
-- automatic parameter optimization outside the future frozen protocol;
+- automatic parameter optimization outside a frozen protocol;
 - converting fuzzy source language into machine thresholds before protocol authority;
-- validation or final-unseen access under an unfrozen protocol;
-- final-unseen unlock;
+- validation or historical final-holdout access under an unfrozen protocol;
+- final-holdout unlock;
 - Shadow automated trading;
 - real-money trading;
 - real broker order submission;
@@ -211,10 +231,12 @@ See `ARCHITECTURE_BASELINE.md` for binding details.
 
 ```text
 TOOL_DECISION=USE_EXISTING
-TOOL_DECISION_SCOPE=HUMAN_PLAYBOOK_PROTOCOL_OWNER_DECISION
+TOOL_DECISION_SCOPE=TARGETED_FINAL_PREFREEZE_DELTA_REVIEW
 ```
 
 No new tool gap is demonstrated.
+
+A DeepSeek Flash-family model remains available in Owner VS Code and may perform the required targeted independent adversarial delta review. It may critique/propose alternatives but may NOT freeze research semantics.
 
 Source acquisition statuses remain:
 - video-to-skill: overall CANDIDATE; local multimodal pipeline VERIFIED; anonymous YouTube/Bilibili URL adapters unverified due 403/412;
@@ -227,8 +249,6 @@ Project-local adopted capabilities:
 - PyArrow/Parquet 25.0.1 — normalized canonical storage;
 - SQLite — rebuildable canonical catalog/index;
 - Raw JSON + SHA256 provenance — authoritative raw evidence mechanism.
-
-A DeepSeek Flash-family model remains available in Owner VS Code for bounded engineering/review but is not authorized to freeze research semantics.
 
 ## Known limitations / technical debt
 
@@ -243,21 +263,18 @@ Current non-blocking items:
 - SOURCE-LIMIT-001 青泽 has bibliographic provenance only;
 - SOURCE-LIMIT-002 several China-first interview leads remain derivative until provenance is pinned.
 
-None blocks the current Owner protocol decision.
+None blocks the targeted delta review.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=OWNER_DECISION_ON_HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_FREEZE
-CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_DECISION_PACKAGE_V0_1.md
-OWNER_ACTION=DECIDE_PROTOCOL_FREEZE_PACKAGE
+CURRENT_NEXT_ACTION=TARGETED_INDEPENDENT_ADVERSARIAL_DELTA_REVIEW_OF_FINAL_PREFREEZE_GAPS
+CURRENT_NEXT_ACTION_AUTHORITY=docs/reviews/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_FINAL_PREFREEZE_GAP_REVIEW_V0_1.md
+REVIEWER_ROLE=ADVISORY_NOT_AUTHORITY
+OWNER_ACTION=RUN_TARGETED_DELTA_REVIEW_IN_EXISTING_VSCODE_DEEPSEEK_FLASH
 ```
 
-If the Owner approves the recommended package, project brain must:
-1. create the binding Research Protocol v1.0 and split authority;
-2. record the Owner decision durably;
-3. update CURRENT_STATE / navigation;
-4. only then authorize controlled Human Playbook claim extraction/development under the frozen protocol.
+After the targeted review, project brain must adjudicate only these new deltas, revise the protocol/Owner decision package if needed, and then re-evaluate whether the Owner's conditional automatic approval can safely execute.
 
 ## Owner decision gates
 
