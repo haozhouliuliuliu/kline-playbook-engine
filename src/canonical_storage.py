@@ -252,7 +252,15 @@ def write_partition_table(root: Path, rows: Iterable[CanonicalRow]) -> dict:
         schema=canonical_parquet_schema(),
         existing_data_behavior="overwrite_or_ignore",
     )
-    files = sorted(p for p in root_path.rglob("*.parquet") if p.is_file())
+    # Inventory only this canonical partition's own files (the hive-style
+    # directory determined by the partition columns), NOT the entire dataset
+    # root.  Glob+hash every accumulated parquet file per partition is
+    # O(total files) per call and degrades a full build to O(n^2).
+    sample = row_list[0]
+    partition_dir = root_path
+    for column in PARTITION_COLUMNS:
+        partition_dir = partition_dir / f"{column}={sample[column]}"
+    files = sorted(p for p in partition_dir.rglob("*.parquet") if p.is_file())
     if not files:
         raise RuntimeError("no parquet files written")
     inventory = [
@@ -362,10 +370,16 @@ class CanonicalCatalog:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(str(self.path))
+        # WAL allows concurrent reader/monitor processes and short-write-lock
+        # commits from parallel per-product normalizers; busy_timeout makes
+        # contending writers wait instead of failing with 'database is locked'.
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA busy_timeout=60000")
         self._conn.executescript(_CATALOG_DDL)
         self._conn.commit()
 
     def close(self) -> None:
+        self.commit()
         self._conn.close()
 
     def set_meta(self, key: str, value: str) -> None:
@@ -379,6 +393,10 @@ class CanonicalCatalog:
         return None if row is None else row[0]
 
     def upsert_partition(self, entry: CatalogPartitionEntry) -> None:
+        self.upsert_partition_no_commit(entry)
+        self.commit()
+
+    def upsert_partition_no_commit(self, entry: CatalogPartitionEntry) -> None:
         self._conn.execute(
             """
             INSERT OR REPLACE INTO partition_entries (
@@ -409,6 +427,8 @@ class CanonicalCatalog:
                 entry.quality_status,
             ),
         )
+
+    def commit(self) -> None:
         self._conn.commit()
 
     def partition_count(self) -> int:

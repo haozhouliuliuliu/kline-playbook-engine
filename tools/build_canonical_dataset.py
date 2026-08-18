@@ -398,18 +398,27 @@ def main() -> None:
 
     # Normalize -> Parquet + SQLite catalog (per accepted partition).
     if args.phase in ("normalize", "all"):
+        normalize_partitions = manifest.partitions
+        if args.products:
+            normalize_partitions = [
+                p for p in normalize_partitions
+                if p.contract.split(".")[1][:2].lower() in selected_products
+            ]
         catalog = CanonicalCatalog(Path(args.catalog))
         catalog.set_meta("schema_version", "canonical-catalog-v1")
         catalog.set_meta("manifest_identity", manifest.identity())
         try:
-            for partition in manifest.partitions:
+            for i, partition in enumerate(normalize_partitions):
                 config = configs[partition.contract]
                 storage = normalize_and_store_partition(
                     partition, Path(args.raw_dir), Path(args.parquet_dir),
                     config.sessions, config.metadata_fact.identity_id(),
                     config.minimum_price_tick,
                 )
-                catalog.upsert_partition(storage.entry)
+                catalog.upsert_partition_no_commit(storage.entry)
+                if (i + 1) % 200 == 0:
+                    catalog.commit()
+            catalog.commit()
         finally:
             catalog.close()
         print(f"CATALOG partitions={_catalog_count(Path(args.catalog))}")

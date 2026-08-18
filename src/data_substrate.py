@@ -43,12 +43,18 @@ class SessionMetadata:
             raise ValueError("session metadata version is required")
         self.version = version
         self._windows = tuple(windows)
-        for index, left in enumerate(self._windows):
-            for right in self._windows[index + 1 :]:
+        # Overlap check is O(n log n) (group by instrument, then adjacent
+        # windows in start order) instead of O(n^2); semantically identical:
+        # any overlapping pair would appear adjacent to its earliest-starting
+        # member in the sorted order.
+        by_instrument: dict[tuple[str, str], list[SessionWindow]] = {}
+        for window in self._windows:
+            by_instrument.setdefault((window.exchange, window.instrument), []).append(window)
+        for group in by_instrument.values():
+            ordered = sorted(group, key=lambda w: (w.start, w.end))
+            for left, right in zip(ordered, ordered[1:]):
                 if (
-                    left.exchange == right.exchange
-                    and left.instrument == right.instrument
-                    and left.start < right.end
+                    left.start < right.end
                     and right.start < left.end
                 ):
                     raise ValueError("overlapping session windows are not allowed")

@@ -33,16 +33,21 @@ TQSDK_VERIFIED_RUNTIME=3.10.1
 OWNER_DATASET_SCOPE_APPROVAL=BALANCED
 PAID_CONTINUITY_AUTHORIZED=NO
 PAID_CONTINUITY_OWNER_GATE=REQUIRED_IF_NEEDED_LATER
-CANONICAL_DATASET_BUILT=NO
-CANONICAL_DATASET_ACCEPTED=NO
-CANONICAL_DATASET_STATUS=BUILD_IN_PROGRESS
+CANONICAL_DATASET_BUILT=YES
+CANONICAL_DATASET_ACCEPTED=YES
+CANONICAL_DATASET_STATUS=ACCEPTED
 SCALE_DECISION=APPROVED_FULL_BALANCED_CORPUS
 APPROVED_PROJECTED_RAW_GB=2.615
 PLAN_PARTITIONS=32980
+ACQUIRED_PARTITIONS=32980
+NORMALIZED_PARTITIONS=32980
+NORMALIZED_ROWS=15280452
+PARQUET_FILES=32980
 HISTORICAL_METADATA_EFFECTIVE_PERIODS=PASS
 NIGHT_CLOSED_DAY_AUTHORITY=PASS
 GOVERNED_METADATA=PASS (after correction)
-CANONICAL_CORPUS_IDENTITY=NONE
+CANONICAL_CORPUS_IDENTITY=1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8
+CROSS_SOURCE_SUMMARY_IDENTITY=cee702ea6cd79e62ec49bf7f1f632f70e5b0a7a577ba455e09597cce9d16d4ae
 
 Authority record: `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`,
 `docs/evidence/CANONICAL_DATASET_PACKAGE.md` (includes the correction notice).
@@ -118,13 +123,18 @@ These are environment facts, not project dependencies or adoption decisions.
 - Ponytail was found globally installed in Codex and was disabled/removed from active global discovery on 2026-08-15, with a reversible backup retained outside active discovery. A fresh Codex process/restart is required before relying on absence from runtime context.
 
 ## Current next action
-CURRENT_NEXT_ACTION=CANONICAL_CORPUS_BUILD_IN_PROGRESS (the BALANCED corpus
-definition, corrected governed metadata with historical effective periods and
-official night-closed days, storage schema, fail-closed acquisition/resume
-engine, identity, and tests are complete on `ds/canonical-dataset-build`; the
-full corpus scale is APPROVED by project lead; the resumable build is running
-in bounded batches; after acceptance, mint the canonical corpus identity and
-proceed to the research-protocol and chronological-split freeze review).
+CURRENT_NEXT_ACTION=RESEARCH_PROTOCOL_AND_CHRONOLOGICAL_SPLIT_FREEZE_REVIEW
+
+The canonical BALANCED corpus is BUILT and ACCEPTED on
+`ds/canonical-dataset-build`: 32,980/32,980 partitions acquired from TqSdk
+(all PASS), normalized to Parquet + SQLite catalog, cross-source verified
+against SHFE official daily (32,841 MATCH / 0 MISMATCH / 139 NOT_AVAILABLE
+benign), and sealed under the immutable canonical corpus identity
+`1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`
+(`docs/evidence/CANONICAL_CORPUS_IDENTITY.json`).  The next review is the
+research-protocol and chronological-split freeze, which is NOT created here.
+No partial canonical-dataset claim is exposed on `main` until the merge below
+completes.
 
 ## Current acceptance
 

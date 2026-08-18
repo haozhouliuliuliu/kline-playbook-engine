@@ -1,0 +1,55 @@
+{
+  "canonical_corpus_identity": "1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8",
+  "coverage_end": "2025-12-31",
+  "coverage_start": "2024-01-01",
+  "cross_source_summary": {
+    "compared_records": 32980,
+    "counts": {
+      "MATCH": 32841,
+      "MISMATCH": 0,
+      "NOT_AVAILABLE": 139,
+      "NOT_COMPARABLE": 0
+    },
+    "partitions_checked": 32980,
+    "summary_identity": "cee702ea6cd79e62ec49bf7f1f632f70e5b0a7a577ba455e09597cce9d16d4ae"
+  },
+  "cross_source_summary_identity": "cee702ea6cd79e62ec49bf7f1f632f70e5b0a7a577ba455e09597cce9d16d4ae",
+  "evidence_references": {
+    "cross_source": "CANONICAL_FULL_CROSS_SOURCE.json",
+    "governed_metadata": [
+      "CANONICAL_TRADING_CALENDAR.json",
+      "CANONICAL_CONTRACT_SPECS.json",
+      "CANONICAL_SESSION_SCHEDULES.json",
+      "CANONICAL_CONTRACT_UNIVERSE.json"
+    ],
+    "manifest": "data/canonical/manifest.json"
+  },
+  "governed_metadata_root_identity": "77084776830d277102e1961ba9a63a8292a762ef25651f7fb53183b2e0e37a39",
+  "governed_metadata_schema_version": "canonical-governed-metadata-v1",
+  "inventory_rule_identity": "pit-complete-listed-concrete-contract-universe-v1",
+  "normalizer_identity": "268d72c0f17045e1c2bb67c92687f55dbe08d345b2fb44617b1bbf63c38f55e5",
+  "parquet_schema_version": "canonical-normalized-bar-v1",
+  "parquet_storage_version": "parquet-partitioned-v1",
+  "partition_count": 32980,
+  "partition_identity_count": 32980,
+  "products": [
+    "ag",
+    "al",
+    "au",
+    "cu",
+    "ni",
+    "rb"
+  ],
+  "quality_summary": {
+    "all_accepted": true,
+    "by_status": {
+      "PASS": 32980
+    },
+    "total_partitions": 32980
+  },
+  "quality_summary_identity": "d9b2c2c324378127f7bb7fb3261fd3100a98aafda00e6186e4615994b5a83480",
+  "raw_manifest_root_identity": "7510a4a943e85c9be256e62971b5a64d64e9976c2b01c9f5d0fe07b1c6c8d324",
+  "schema_version": "canonical-corpus-identity-v1",
+  "source_identity_id": "e6f4280e04daec6e7909dc308a6a1bda5002bce7548261354e2eb2871a883fd3",
+  "source_provider": "TQSDK"
+}
