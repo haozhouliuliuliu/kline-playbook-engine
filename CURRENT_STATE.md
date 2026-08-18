@@ -10,10 +10,12 @@ ADOPTED_CONTRACT_SHA256=3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650b
 BOOTSTRAP_ACCEPTANCE=GO
 BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
-CURRENT_WORK_PACKAGE=HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IDENTITY_CROSS_BINDING_HARDENING
-CURRENT_WORK_PACKAGE_STATUS=COMPLETE_VERIFIED
-CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md
-CURRENT_WORK_PACKAGE_EVIDENCE=docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md
+CURRENT_WORK_PACKAGE=COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
+CURRENT_WORK_PACKAGE_STATUS=ACTIVE
+CURRENT_WORK_PACKAGE_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
+PREVIOUS_WORK_PACKAGE=HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IDENTITY_CROSS_BINDING_HARDENING
+PREVIOUS_WORK_PACKAGE_STATUS=ACCEPTED
+PREVIOUS_WORK_PACKAGE_FINAL_ACCEPTANCE=docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_FINAL_ACCEPTANCE_V1_2.md
 
 ## Binding research direction
 
@@ -62,6 +64,7 @@ CHRONOLOGICAL_SPLIT_STATUS=FROZEN_12_6_6
 OWNER_FREEZE_DECISION=APPROVED
 PERFORMANCE_RESEARCH_STARTED=NO
 REAL_CLAIM_EXTRACTION_STARTED=NO
+REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
@@ -104,34 +107,22 @@ PROSPECTIVE_GENUINELY_UNSEEN: future Shadow/Forward cohorts, NOT_AUTHORIZED
 
 The frozen split is `12/6/6`. It is an audit/governance choice and does not guarantee statistical power. Sparse families may return `INSUFFICIENT_EVIDENCE`; split boundaries may not be changed after outcomes are viewed to rescue evidence.
 
-## Pre-outcome firewall — acceptance state
+## Pre-outcome firewall — ACCEPTED
 
 Implementation evidence:
 `docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md`
 
 Acceptance history:
-- v1.0 acceptance review: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md` — found identity-binding gaps E-1..E-4;
-- hardening commit `c6eb082b36b63c19850366a14640aa9b63a5e18a` resolved the major E-1..E-4 issues;
-- final project-brain acceptance delta: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md` — found remaining E-5 PRIMARY/scope/parameter-search cross-artifact binding gap.
+- v1.0 acceptance review: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md` — found E-1..E-4;
+- hardening commit `c6eb082b36b63c19850366a14640aa9b63a5e18a` resolved E-1..E-4;
+- v1.1 acceptance delta: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md` — found E-5;
+- hardening commit `046d3e7b386c50d936285741226c3b0b26d1a6e9` resolved E-5;
+- final acceptance: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_FINAL_ACCEPTANCE_V1_2.md` — `ACCEPTED`.
 
-Verified direction from c6eb082:
-- one authoritative `ResearchFirewall` owner;
-- candidate outcome access keyed by registered hypothesis identity;
-- caller cannot assert wave/profile/session/lock booleans;
-- project-issued SOURCE_ONLY session verification path exists;
-- bounded SOURCE_ONLY claim-extraction context has no canonical market-outcome service and denies/audits protected-outcome requests;
-- RESEARCH_WAVE tested denominator is derived from immutable manifest;
-- exact statistical profile id/hash binding exists;
-- first outcome grant records wave outcome-start audit;
-- terminal outcome record cannot be silently overwritten;
-- historical final / validation / Shadow remain denied.
-
-Remaining E-5 resolved (this package):
-
-`WaveHypothesisBinding` is the immutable per-hypothesis PRIMARY/scope/parameter-search identity authority frozen by the wave manifest; `ResearchWaveRegistry.lock()` now proves every tested `OutcomeTestRegistration` has the exact PRIMARY, scope, and parameter/search identities frozen for that hypothesis, and `ResearchFirewall._resolve_binding()` only reports `PRIMARY_SCOPE_SEARCH_IDENTITIES=LOCKED` when the locked wave holds an exact binding matching the registration. Therefore:
+Verified implementation state:
 
 ```text
-PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED
+PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED_ACCEPTED
 IDENTITY_BINDING=VERIFIED
 PRIMARY_SCOPE_SEARCH_CROSS_BINDING=VERIFIED
 SOURCE_ONLY_POLICY=VERIFIED
@@ -142,9 +133,36 @@ STATISTICAL_PROFILE_INTERFACE=VERIFIED
 PRE_OUTCOME_GATE_STATUS=VERIFIED_FAIL_CLOSED
 HISTORICAL_FINAL_HOLDOUT_LOCK=ENFORCED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+FIREWALL_TESTS=54
+FULL_TESTS=235_OK
+FULL_TESTS_SKIPPED=3
 ```
 
-No frozen research semantic is affected. This was an ordinary engineering hardening issue, now resolved and verified by deterministic regression tests.
+Important boundary:
+- SOURCE_ONLY is a project-owned application control, not a cryptographic sandbox;
+- model latent historical knowledge is a disclosed residual threat-model risk;
+- in-memory registry objects are execution machinery, not the sole durable project authority; real research locks/exposures must continue to be materialized in project evidence/state artifacts.
+
+## Common Statistical Profile v1 — current package
+
+Frozen Protocol v1.0 requires a project-wide common statistical profile before the first real candidate outcome-bearing performance backtest.
+
+The current package must design and independently review a versioned numeric/method profile covering at minimum:
+- common acceptance questions/procedure;
+- uncertainty / precision method;
+- evidence-sufficiency procedure;
+- dependence handling;
+- multiplicity counting/decision rule;
+- numeric thresholds needed by the common contract;
+- exact pre-outcome lock identity and implementation requirements.
+
+Constraints:
+- no candidate PnL/outcome inspection may be used to design this profile;
+- no validation or historical-final access;
+- if outcome data is intentionally used for profile calibration in the future, that cohort is burned/exposed under Protocol v1.0;
+- profile design must not change frozen Protocol v1.0 semantics or the 12/6/6 split;
+- material independent adversarial review is required before the profile is locked;
+- exact profile implementation is not an Owner gate unless the work discovers that frozen research semantics themselves must change.
 
 ## Canonical BALANCED corpus — ACCEPTED
 
@@ -198,9 +216,15 @@ Source authorities:
 
 ## Current boundaries
 
+AUTHORIZED NOW:
+- source discovery/provenance;
+- controlled real source-faithful claim extraction inside the verified SOURCE_ONLY environment under Claim Schema v1.0;
+- deterministic non-outcome operationalization/tests;
+- design/review/implementation work for `COMMON_STATISTICAL_PROFILE_V1` without candidate outcome inspection;
+- non-candidate/dummy engine-sanity tests.
+
 NOT_AUTHORIZED:
-- real claim extraction until E-5 firewall acceptance fix is complete;
-- candidate outcome-bearing performance backtest before final firewall acceptance and real locked statistical profile/wave;
+- candidate outcome-bearing performance backtest until the real common statistical profile is independently reviewed, locked, identity-bound into a real research wave, and the frozen pre-outcome gate passes;
 - validation access before frozen prerequisites;
 - historical final-holdout unlock;
 - changing frozen 12/6/6 without a new protocol/Owner gate;
@@ -221,10 +245,10 @@ NOT_AUTHORIZED:
 
 ```text
 TOOL_DECISION=USE_EXISTING
-TOOL_DECISION_SCOPE=HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IDENTITY_CROSS_BINDING_HARDENING
+TOOL_DECISION_SCOPE=COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
 ```
 
-No new tool gap is demonstrated. Owner's existing VS Code DeepSeek Flash-family capability is appropriate for this bounded engineering fix but cannot change frozen research semantics.
+No new tool gap is demonstrated. Existing repository evidence, project code/tests, primary statistical literature, GPT project-brain synthesis, and the Owner's existing VS Code DeepSeek Flash-family capability are sufficient. DeepSeek Flash may design/review bounded implementation detail but cannot change frozen research semantics.
 
 Source-acquisition status:
 - video-to-skill overall CANDIDATE; local multimodal pipeline VERIFIED; anonymous YouTube/Bilibili adapters unverified due 403/412;
@@ -256,16 +280,15 @@ TD-001/TD-002/LIMIT-001 did not block semantic protocol freeze. They activate be
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
+CURRENT_NEXT_ACTION=DESIGN_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE
 CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
-PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED
-PRIMARY_SCOPE_SEARCH_CROSS_BINDING=VERIFIED
+TOOL_DECISION=USE_EXISTING
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED
 OWNER_ACTION=NONE
 ```
 
-The firewall package is now `COMPLETE_VERIFIED` (E-5 resolved: exact PRIMARY/scope/parameter-search cross-binding enforced at lock and access time; full suite 235 OK / 3 skipped; 54 firewall tests). The next bounded package returns to `COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW`; until the real profile is designed, reviewed, and locked, candidate outcome-bearing backtests remain `NOT_AUTHORIZED`. No repeated Owner approval is required for this ordinary engineering fix.
+The next bounded package is to create a no-outcome-data `COMMON_STATISTICAL_PROFILE_V1` candidate, obtain an independent adversarial review, adjudicate the review, then lock/implement only if it remains inside Protocol v1.0. No repeated Owner approval is required unless a proposed change would alter frozen research semantics.
 
 ## Owner decision gates
 
