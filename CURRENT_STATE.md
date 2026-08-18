@@ -2,26 +2,27 @@
 
 ## Project phase
 
+```text
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
 ADOPTED_CONTRACT_SHA256=3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650bf690101e
-BOOTSTRAP_ACCEPTANCE=GO
-BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
-CURRENT_WORK_PACKAGE=COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
-CURRENT_WORK_PACKAGE_STATUS=ACTIVE
+CURRENT_WORK_PACKAGE=COMMON_STATISTICAL_PROFILE_V1_REVISION_AFTER_PARALLEL_REVIEW
+CURRENT_WORK_PACKAGE_STATUS=ADJUDICATION_COMPLETE_REVISION_REQUIRED
 CURRENT_WORK_PACKAGE_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
-PREVIOUS_WORK_PACKAGE=HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IDENTITY_CROSS_BINDING_HARDENING
-PREVIOUS_WORK_PACKAGE_STATUS=ACCEPTED
-PREVIOUS_WORK_PACKAGE_FINAL_ACCEPTANCE=docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_FINAL_ACCEPTANCE_V1_2.md
+CURRENT_WORK_PACKAGE_ADJUDICATION=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md
+OWNER_ACTION=NONE
+```
 
 ## Binding research direction
 
+```text
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 RESEARCH_DIRECTION_AUTHORITY=RESEARCH_DIRECTION.md
+```
 
 Primary route:
 
@@ -37,15 +38,17 @@ traceable human trading experience
 
 Human sources create hypotheses, not accepted truth. Skeleton v1.0 remains binding.
 
+Live boundary remains:
+
+```text
 LIVE_AI_SCENE_RECOGNITION_MODE=UNDECIDED
 LIVE_DISCRETIONARY_LLM_CRITICAL_PATH=NOT_AUTHORIZED
 OWNER_GATE_REQUIRED_FOR_LIVE_AI_SEMANTICS=YES
+```
 
-## Research Protocol v1.0 — FROZEN
+## Research Protocol v1.0 — FROZEN / BINDING
 
-Owner decision on 2026-08-19:
-
-`按 v0.3 推荐冻结`
+Owner decision on 2026-08-19: `按 v0.3 推荐冻结`.
 
 Authorities:
 - Owner approval: `docs/evidence/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_FREEZE_2026-08-19.md`
@@ -70,33 +73,7 @@ VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 ```
 
-Material research-semantic changes require a new protocol version, material independent adversarial review, and the normal Owner research-semantic gate.
-
-## Frozen protocol safeguards
-
-Protocol v1.0 freezes:
-- `SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION`;
-- `EXPLICIT / INFERRED / UNKNOWN`;
-- exactly one source-justified PRIMARY branch before candidate outcome testing;
-- ambiguity stops instead of mining alternatives;
-- branch/scope/search identities locked before outcome testing;
-- alternatives cannot rescue a failed PRIMARY as validation of the original claim;
-- lineage/mechanism/exposure inheritance survives renaming;
-- effective-content-date source-example exposure;
-- observability/surrogate pre-justification;
-- negative/near-miss/no-trade/counterexample preservation;
-- immutable RESEARCH_WAVE denominator and whole-wave multiplicity accounting;
-- `PROJECT_GOVERNED_HISTORICAL_HOLDOUT != PROSPECTIVE_GENUINELY_UNSEEN_DATA`;
-- SOURCE_ONLY interpretation with technical denial of protected-period market outcome retrieval;
-- human/AI latent historical knowledge treated as disclosed residual threat-model risk;
-- project-wide common statistical profile locked before first candidate outcome-bearing performance backtest;
-- common acceptance contract with dependence-aware evidence sufficiency;
-- `INSUFFICIENT_EVIDENCE` as legitimate result;
-- CAT1/CAT2/CAT3 validation revision rules;
-- irreversible historical-final exposure;
-- future Shadow/Forward as the stronger prospective unseen path under later authority.
-
-## Frozen chronology
+Frozen chronology:
 
 ```text
 DEVELOPMENT: 2024-01-01 .. 2024-12-31
@@ -105,21 +82,38 @@ PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT: 2025-07-01 .. 2025-12-31
 PROSPECTIVE_GENUINELY_UNSEEN: future Shadow/Forward cohorts, NOT_AUTHORIZED
 ```
 
-The frozen split is `12/6/6`. It is an audit/governance choice and does not guarantee statistical power. Sparse families may return `INSUFFICIENT_EVIDENCE`; split boundaries may not be changed after outcomes are viewed to rescue evidence.
+The 12/6/6 split is a governance/audit choice, not a promise of statistical power. `INSUFFICIENT_EVIDENCE` is a frozen legitimate result. Historical holdout is project-governed historical evidence, not proof that humans/models had zero prior knowledge. Material changes to frozen semantics or chronology require a new protocol version, independent adversarial review, and the normal Owner gate.
 
-## Pre-outcome firewall — ACCEPTED
+## Frozen protocol safeguards — compact index
+
+Protocol v1.0 freezes at least:
+- `SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION`;
+- `EXPLICIT / INFERRED / UNKNOWN`;
+- exactly one source-justified PRIMARY branch before candidate outcome testing;
+- ambiguity stops instead of mining alternatives;
+- lineage/mechanism/exposure inheritance survives renaming;
+- effective-content-date source-example exposure;
+- observability/surrogate pre-justification;
+- negative/near-miss/no-trade/counterexample preservation;
+- immutable RESEARCH_WAVE denominator and whole-wave multiplicity accounting;
+- SOURCE_ONLY interpretation with technical denial of protected-period market outcome retrieval;
+- human/AI latent historical knowledge as disclosed residual threat-model risk;
+- common statistical profile locked before first candidate outcome-bearing performance backtest;
+- dependence-aware evidence sufficiency;
+- `INSUFFICIENT_EVIDENCE` as legitimate result;
+- CAT1/CAT2/CAT3 validation revision rules;
+- irreversible historical-final exposure;
+- future Shadow/Forward as the stronger prospective unseen path under later authority.
+
+## Pre-outcome research firewall — ACCEPTED
 
 Implementation evidence:
 `docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md`
 
-Acceptance history:
-- v1.0 acceptance review: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md` — found E-1..E-4;
-- hardening commit `c6eb082b36b63c19850366a14640aa9b63a5e18a` resolved E-1..E-4;
-- v1.1 acceptance delta: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md` — found E-5;
-- hardening commit `046d3e7b386c50d936285741226c3b0b26d1a6e9` resolved E-5;
-- final acceptance: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_FINAL_ACCEPTANCE_V1_2.md` — `ACCEPTED`.
+Acceptance:
+`docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_FINAL_ACCEPTANCE_V1_2.md`
 
-Verified implementation state:
+Accepted implementation state:
 
 ```text
 PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED_ACCEPTED
@@ -140,58 +134,102 @@ FULL_TESTS_SKIPPED=3
 
 Important boundary:
 - SOURCE_ONLY is a project-owned application control, not a cryptographic sandbox;
-- model latent historical knowledge is a disclosed residual threat-model risk;
-- in-memory registry objects are execution machinery, not the sole durable project authority; real research locks/exposures must continue to be materialized in project evidence/state artifacts.
+- model latent historical knowledge remains a disclosed residual risk;
+- in-memory registry objects are execution machinery, not the sole durable authority; real research locks/exposures must also be materialized in project evidence/state artifacts.
 
-## Common Statistical Profile v1 — current package
+## Common Statistical Profile v1 — current state
 
-Frozen Protocol v1.0 requires a project-wide common statistical profile before the first real candidate outcome-bearing performance backtest.
+Protocol v1.0 requires a project-wide common statistical profile before the first real candidate outcome-bearing performance backtest.
 
-The current package must design and independently review a versioned numeric/method profile covering at minimum:
-- common acceptance questions/procedure;
-- uncertainty / precision method;
-- evidence-sufficiency procedure;
-- dependence handling;
-- multiplicity counting/decision rule;
-- numeric thresholds needed by the common contract;
-- exact pre-outcome lock identity and implementation requirements.
-
-Constraints:
-- no candidate PnL/outcome inspection may be used to design this profile;
-- no validation or historical-final access;
-- if outcome data is intentionally used for profile calibration in the future, that cohort is burned/exposed under Protocol v1.0;
-- profile design must not change frozen Protocol v1.0 semantics or the 12/6/6 split;
-- material independent adversarial review is required before the profile is locked;
-- exact profile implementation is not an Owner gate unless the work discovers that frozen research semantics themselves must change.
-
-State (fact sync 2026-08-19):
+### Candidate design
 
 ```text
-COMMON_STATISTICAL_PROFILE_V1_STATUS=CANDIDATE_NOT_LOCKED
+COMMON_STATISTICAL_PROFILE_V1_STATUS=CANDIDATE_REVISION_REQUIRED_NOT_LOCKED
 STATISTICAL_PROFILE_DESIGN_COMMIT=6ef668fd7214fcef2f12b71cb3e9ea2a36bfcaf7
 STATISTICAL_PROFILE_DESIGN_DOC=docs/research/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE.md
-STATISTICAL_ENGINE_CAPABILITY_AUDIT=COMPLETE
-STATISTICAL_ENGINE_CAPABILITY_AUDIT_COMMIT=c34cebde4307eb2d532886ed8da94e2985323ede
-STATISTICAL_ENGINE_CAPABILITY_AUDIT_DOC=docs/evidence/HUMAN_PLAYBOOK_STATISTICAL_ENGINE_CAPABILITY_AUDIT_V1.md
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
-HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
+NO_CANDIDATE_OUTCOME_DATA_USED=YES
 ```
 
-Capability audit facts (recorded only; the statistical candidate is unchanged):
-- realized PnL / costs / contract & trading-day identity and per-order realized PnL contributions are reliable and regression-tested;
-- unrealized PnL / equity / drawdown at partial-close snapshots are polluted by TD-002 (final realized totals remain correct);
-- the round-trip ledger (open->close pairing) is NOT materialized yet (small delta);
-- day/week/instrument-day aggregates are derivable with small deltas; no-trade-day counts need `SessionMetadata` + event set-difference;
-- multi-day portfolio/equity day series requires a medium delta (no multi-day portfolio loop exists);
-- per-hypothesis/per-wave event grouping requires a join (execution records are not directly keyed by hypothesis/wave);
-- LIMIT-001 blocks (fail-closed) real historical confirmatory PnL on price-limit-bound contracts; it is not a silent error.
+The first candidate proposed a completed-round-trip net-return estimand, dependence-aware resampling, project-wide sufficiency rules, Holm whole-wave FWER control, risk/failure checks, and deterministic decision rules. It is **not accepted or locked**.
 
-## Canonical BALANCED corpus — ACCEPTED
+### Engine capability audit — integrated
 
+```text
+STATISTICAL_ENGINE_CAPABILITY_AUDIT=COMPLETE
+ORIGINAL_PARALLEL_AUDIT_COMMIT=c34cebde4307eb2d532886ed8da94e2985323ede
+MAIN_CHERRYPICK_COMMIT=4946b0db2692a06ff6965efedb242156ab52e886
+AUDIT_DOC=docs/evidence/HUMAN_PLAYBOOK_STATISTICAL_ENGINE_CAPABILITY_AUDIT_V1.md
+```
+
+Accepted engine facts:
+- realized PnL, costs, contract/instrument identity, timestamps/trading-day identity, and deterministic position lifecycle are available and tested;
+- round-trip ledger/open-close materialization is missing but is a small delta;
+- day/week/instrument-day aggregations are small deltas;
+- multi-day portfolio/equity series is a medium delta;
+- execution records require a join to hypothesis/wave identities;
+- TD-002 corrupts partial-close equity/unrealized/drawdown path snapshots but not final realized round-trip totals;
+- TD-001 requires future day/week statistics to use `SessionMetadata`, not the bootstrap calendar;
+- LIMIT-001 is a fail-closed data/governance blocker for affected real confirmatory PnL, not a silent fill error.
+
+### Parallel engine-compatibility crosswalk — COMPLETE / advisory evidence
+
+```text
+CROSSWALK_BRANCH=parallel/stat-engine-audit
+CROSSWALK_COMMIT=05ad7f9a94c1a6b885402a4417a0d095dbfa7c56
+CROSSWALK_DOC=docs/evidence/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ENGINE_COMPATIBILITY_CROSSWALK.md
+CROSSWALK_VERDICT=BROADLY_COMPATIBLE_WITH_SMALL_DELTAS_AND_DESIGN_AMBIGUITIES
+```
+
+The crosswalk did not push `main`. Its durable evidence remains addressable by branch/commit. It found no frozen-protocol conflict, but identified unresolved round-trip counting, holding-horizon, open-ratio, cost-stress, and multiplicity-counting definitions.
+
+### Independent adversarial statistical review — COMPLETE / advisory evidence
+
+```text
+ADVERSARIAL_REVIEW_BRANCH=parallel/stat-profile-review
+ADVERSARIAL_REVIEW_COMMIT=5e78605d312ee2e6c22e82dc4d91d651eacac4b2
+ADVERSARIAL_REVIEW_DOC=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADVERSARIAL_REVIEW.md
+REVIEW_VERDICT=GO_WITH_REQUIRED_CHANGES
+CRITICAL_COUNT=3
+HIGH_COUNT=6
+```
+
+The review did not push `main`, did not read the other parallel crosswalk, did not inspect candidate outcomes, and did not alter frozen authority.
+
+Main CRITICAL findings accepted by project-brain adjudication:
+1. current candidate lacks a defensible power/detectability interpretation and risks false precision;
+2. `ESS=N/max(1,2H-1)` must not remain a deterministic hard sufficiency gate;
+3. round-trip/partial-close/add/forced-liquidation/holding/block semantics are incomplete and must be pinned before lock.
+
+### Project-brain adjudication — COMPLETE
+
+Authority:
+`docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md`
+
+```text
+PROFILE_V1_CANDIDATE_DIRECTION=KEEP
+CURRENT_CANDIDATE_LOCKABLE=NO
+FROZEN_PROTOCOL_CONFLICT=NO
+OWNER_GATE_REQUIRED_NOW=NO
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+```
+
+Accepted revision requirements include:
+- separate economic materiality from statistical detectability;
+- remove the current `2H-1` ESS hard gate;
+- pin one `position_id` = one round-trip observation; aggregate adds/partial closes; forced liquidation terminal; concrete-contract roll creates separate round trips;
+- explicitly pin holding-horizon and multi-week dependence treatment;
+- justify/simplify fixed sufficiency thresholds rather than treating them as accepted facts;
+- distinguish additive fee stress from slippage/friction stress;
+- add a simple guard against one event/narrow time window carrying the edge;
+- add explicit `DATA_BLOCKED` (or equivalent) distinct from FAIL and INSUFFICIENT_EVIDENCE;
+- make statistical multiplicity counting machine-consistent with frozen Research Wave/search identities;
+- correct the Romano-Wolf description; Holm remains a leading simple candidate, not locked.
+
+## Canonical BALANCED historical corpus — ACCEPTED
+
+```text
 CANONICAL_DATASET_BUILT=YES
 CANONICAL_DATASET_ACCEPTED=YES
-CANONICAL_DATASET_STATUS=ACCEPTED
 CANONICAL_PRODUCTS=cu,al,ni,au,ag,rb
 CANONICAL_COVERAGE=2024-01-01..2025-12-31
 CANONICAL_GRANULARITY=1-minute
@@ -204,18 +242,23 @@ PARQUET_FILES=32980
 CANONICAL_CORPUS_IDENTITY=1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8
 CROSS_SOURCE_SUMMARY_IDENTITY=cee702ea6cd79e62ec49bf7f1f632f70e5b0a7a577ba455e09597cce9d16d4ae
 CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
+```
 
 Authorities:
-- `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`;
-- `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`;
-- `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`;
-- `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`.
+- `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`
+- `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
+- `docs/evidence/CANONICAL_CORPUS_IDENTITY.json`
+- `docs/evidence/CANONICAL_FULL_CROSS_SOURCE.json`
 
 The corpus itself created no project-recorded strategy-family development/validation/historical-final exposure.
 
-## Source layer
+## Human Playbook source layer
 
+```text
 FIRST_WAVE_SOURCE_LAYER_RESULT=GO
+PROJECT_LED_DISCOVERY=PRIMARY
+OWNER_SUPPLIED_MATERIAL=SUPPLEMENTAL
+```
 
 Completed source dossiers cover:
 - Peter Brandt;
@@ -226,28 +269,29 @@ Completed source dossiers cover:
 - Steidlmayer -> Dalton Market Profile lineage;
 - skeptical/counter-evidence methods: White, Sullivan/Timmermann/White, Bailey et al.
 
-China-first:
+China-first current state:
 - 青泽: identity/bibliography verified; no full dossier without authorized text/sample;
-- 期货日报实盘大赛: DISCOVERY_ONLY;
+- 期货日报实盘大赛: `DISCOVERY_ONLY`;
 - 付爱民、王少多、张亚楠: discovery leads only; provenance pinning incomplete.
 
-Source authorities:
-- `docs/research/HUMAN_PLAYBOOK_SOURCE_DOSSIER_V0_2.md`;
-- `docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md`;
-- `docs/research/HUMAN_PLAYBOOK_SOURCE_LAYER_FIRST_WAVE_CLOSEOUT.md`;
-- `docs/research/CHINA_FIRST_SOURCE_DISCOVERY_WAVE_1.md`.
+Authorities:
+- `docs/research/HUMAN_PLAYBOOK_SOURCE_DOSSIER_V0_2.md`
+- `docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md`
+- `docs/research/HUMAN_PLAYBOOK_SOURCE_LAYER_FIRST_WAVE_CLOSEOUT.md`
+- `docs/research/CHINA_FIRST_SOURCE_DISCOVERY_WAVE_1.md`
 
-## Current boundaries
+## Current authorization boundaries
 
 AUTHORIZED NOW:
 - source discovery/provenance;
 - controlled real source-faithful claim extraction inside the verified SOURCE_ONLY environment under Claim Schema v1.0;
 - deterministic non-outcome operationalization/tests;
-- design/review/implementation work for `COMMON_STATISTICAL_PROFILE_V1` without candidate outcome inspection;
-- non-candidate/dummy engine-sanity tests.
+- revision/review/implementation work for `COMMON_STATISTICAL_PROFILE_V1` without candidate outcome inspection;
+- non-candidate/dummy engine-sanity tests;
+- safe parallel engineering/review work in isolated worktrees under the Owner collaboration contract and `AGENTS.md`.
 
 NOT_AUTHORIZED:
-- candidate outcome-bearing performance backtest until the real common statistical profile is independently reviewed, locked, identity-bound into a real research wave, and the frozen pre-outcome gate passes;
+- candidate PnL/equity/expectancy/Sharpe/win-loss or equivalent candidate-quality inspection until the revised real common statistical profile is independently reviewed, locked, identity-bound into a real research wave, and the frozen pre-outcome gate passes;
 - validation access before frozen prerequisites;
 - historical final-holdout unlock;
 - changing frozen 12/6/6 without a new protocol/Owner gate;
@@ -268,28 +312,28 @@ NOT_AUTHORIZED:
 
 ```text
 TOOL_DECISION=USE_EXISTING
-TOOL_DECISION_SCOPE=COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
+TOOL_DECISION_SCOPE=COMMON_STATISTICAL_PROFILE_V1_REVISION_AFTER_PARALLEL_REVIEW
 ```
 
-No new tool gap is demonstrated. Existing repository evidence, project code/tests, primary statistical literature, GPT project-brain synthesis, and the Owner's existing VS Code DeepSeek Flash-family capability are sufficient. DeepSeek Flash may design/review bounded implementation detail but cannot change frozen research semantics.
+No new tool gap is demonstrated. Existing repository evidence/code/tests, primary statistical literature, GPT project-brain adjudication, and the Owner's VS Code DeepSeek V4 Flash capability are sufficient for the next bounded package.
 
-Source-acquisition status:
-- video-to-skill overall CANDIDATE; local multimodal pipeline VERIFIED; anonymous YouTube/Bilibili adapters unverified due 403/412;
-- book-to-skill DEFERRED / REFERENCE;
-- Docling v2.120.3 VERIFIED for Windows document/layout extraction; NOT ADOPTED;
-- video-transcribe-skill VERIFIED for local/offline Chinese no-caption fallback; NOT ADOPTED.
-
-Project-local adopted capabilities:
+Project-local adopted capabilities remain:
 - TqSdk 3.10.1 — historical concrete-contract 1-minute research data only;
 - PyArrow/Parquet 25.0.1 — normalized canonical storage;
 - SQLite — rebuildable canonical catalog/index;
 - Raw JSON + SHA256 provenance — authoritative raw evidence mechanism.
 
+Source-acquisition pilot status remains:
+- video-to-skill overall CANDIDATE; local multimodal pipeline VERIFIED; anonymous YouTube/Bilibili adapters unverified due 403/412;
+- book-to-skill DEFERRED / REFERENCE;
+- Docling v2.120.3 VERIFIED for Windows document/layout extraction; NOT ADOPTED;
+- video-transcribe-skill VERIFIED for local/offline Chinese no-caption fallback; NOT ADOPTED.
+
 ## Known limitations / technical debt
 
 Authority: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
 
-Current non-blocking items:
+Current material items:
 - TD-001 duplicate session/trading-day responsibility;
 - TD-002 partial-close unrealized-PnL simplification;
 - LIMIT-001 historical price-limit metadata incomplete;
@@ -298,13 +342,43 @@ Current non-blocking items:
 - SOURCE-LIMIT-001 青泽 bibliographic provenance only;
 - SOURCE-LIMIT-002 China-first derivative interview leads incomplete provenance.
 
-TD-001/TD-002/LIMIT-001 did not block semantic protocol freeze. They activate before affected evidence claims rely on their semantics.
+Activation boundaries:
+- TD-001 must be isolated/consolidated before new trusted day/week statistic code can accidentally consume the wrong calendar authority;
+- TD-002 must be fixed before final-quality equity/drawdown path evidence depends on partial-close snapshots;
+- LIMIT-001 must be resolved/bound before affected real confirmatory PnL claims can be generated.
+
+## Parallel-work operating state
+
+Owner collaboration now explicitly prefers safe parallelism when work is genuinely independent.
+
+Project rules:
+- isolated worktrees/branches for parallel workers;
+- one integration lane owns `main` and shared authority/state;
+- parallel workers do not push `main` or independently edit shared authority unless assigned;
+- normally keep concurrency to 2–3 high-value lanes;
+- do not parallelize tasks whose meaning depends on an unresolved research-semantic decision or Owner gate.
+
+The two statistical parallel branches may be retained as review evidence until their useful content is fully superseded/integrated; their commit SHAs are recorded above.
+
+## Verification status
+
+Last canonical code verification reported by all three statistical lanes:
+
+```text
+python -m unittest discover -s tests -v
+235 tests OK
+3 skipped
+exit 0
+```
+
+Subsequent main changes after that verification are documentation/state/authority-only; no production/test code was modified during statistical candidate design, capability audit integration, parallel crosswalk, adversarial review, or this adjudication.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=INDEPENDENT_ADVERSARIAL_REVIEW_OF_COMMON_STATISTICAL_PROFILE_V1
-CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
+CURRENT_NEXT_ACTION=REVISE_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE_FROM_ADJUDICATED_REVIEW
+CURRENT_NEXT_ACTION_AUTHORITY=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md
+PROFILE_STATUS=CANDIDATE_REVISION_REQUIRED_NOT_LOCKED
 TOOL_DECISION=USE_EXISTING
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
@@ -313,7 +387,22 @@ REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED
 OWNER_ACTION=NONE
 ```
 
-The `COMMON_STATISTICAL_PROFILE_V1` design candidate is complete (commit `6ef668f`, status `CANDIDATE_NOT_LOCKED`) and the statistical engine capability audit is integrated (commit `c34cebde`). The next bounded package is the independent adversarial review of the candidate, then adjudication, then lock/implementation only if it remains inside Protocol v1.0. The main lane stops after integration: it does not adjudicate the review, implement the statistical evaluator, or lock the profile. No repeated Owner approval is required unless a proposed change would alter frozen research semantics.
+Next package should revise the Common Statistical Profile candidate and design evidence in one coherent pass, without candidate outcomes, then run a targeted delta independent review over only the materially changed statistical definitions. Do not repeat the entire project review. Statistical evaluator/round-trip-ledger implementation should follow acceptance of the revised profile, except for purely non-semantic helpers that are independently useful and cannot bias the profile decision.
+
+## Progress estimates (engineering estimates, not evidence facts)
+
+```text
+ARCHITECTURE_BOOTSTRAP=100%
+DATA_SUBSTRATE≈90%
+STRATEGY_CATALOG≈58%
+BACKTEST_VALIDATION≈64%
+HUMAN_PLAYBOOK_RESEARCH_LOOP≈43%
+TRADING_LOOP≈15%
+LEDGER_OBSERVABILITY≈25%
+OVERALL_PROJECT≈45%
+```
+
+These percentages are deliberately conservative and do not use test counts as the denominator.
 
 ## Owner decision gates
 
