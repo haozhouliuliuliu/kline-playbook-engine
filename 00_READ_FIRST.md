@@ -12,6 +12,7 @@ Read current authority/navigation in this order:
 7. `docs/research/HUMAN_PLAYBOOK_SELECTION_FIREWALL_REQUIREMENTS_V1_0.md`
 8. `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`
 9. `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md`
+10. `KLINE_PLAYBOOK_ENGINE_HANDOFF_CURRENT_2026-08-19_V2.md` — derived continuity snapshot only
 
 Important current evidence:
 - Owner protocol freeze: `docs/evidence/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_FREEZE_2026-08-19.md`
@@ -19,8 +20,8 @@ Important current evidence:
 - Final firewall acceptance: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_FINAL_ACCEPTANCE_V1_2.md`
 - Common Statistical Profile v1 first candidate (historical candidate; NOT_LOCKED): `docs/research/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE.md`
 - Statistical engine capability audit (integrated): `docs/evidence/HUMAN_PLAYBOOK_STATISTICAL_ENGINE_CAPABILITY_AUDIT_V1.md`
-- Parallel engine compatibility crosswalk: branch `parallel/stat-engine-audit`, commit `05ad7f9a94c1a6b885402a4417a0d095dbfa7c56`
-- Parallel independent adversarial statistical review: branch `parallel/stat-profile-review`, commit `5e78605d312ee2e6c22e82dc4d91d651eacac4b2`
+- Engine compatibility crosswalk (integrated to main; original branch commit `05ad7f9a94c1a6b885402a4417a0d095dbfa7c56`; main integration `4b2c882331f855c730d125517e6b7fd563025055`): `docs/evidence/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ENGINE_COMPATIBILITY_CROSSWALK.md`
+- Independent adversarial statistical review (integrated to main; original branch commit `5e78605d312ee2e6c22e82dc4d91d651eacac4b2`; main integration `4650e5fe24e4ac50377a2e7440b81921c57c0a87`): `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADVERSARIAL_REVIEW.md`
 - Project-brain adjudication of both parallel lines: `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md`
 - Known limitations/debt: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`
 - Adopted governance: `CROSS_PROJECT_OPERATING_CONTRACT.md` Version 3.1, pinned by SHA256 in `CURRENT_STATE.md`
@@ -37,6 +38,8 @@ Current state summary:
 - Common Statistical Profile v1 first candidate = `CANDIDATE_REVISION_REQUIRED_NOT_LOCKED` after independent review/adjudication.
 - Current work package = `COMMON_STATISTICAL_PROFILE_V1_REVISION_AFTER_PARALLEL_REVIEW`.
 - Current tool decision = `USE_EXISTING`.
+- Paid ChatGPT↔DS API relay/orchestrator = NOT_ADOPTED_CURRENTLY; brittle VS Code UI relay automation = NOT_ADOPTED_CURRENTLY.
+- Current local-agent relay = Owner manual relay only when a DS/local worker is genuinely needed; GPT should do safe repo-only GitHub work directly when capable.
 - Owner action = NONE.
 
 Frozen chronology:
@@ -59,11 +62,15 @@ Current statistical-profile revision facts:
 - make multiplicity counting machine-consistent with Research Wave/search identities;
 - no candidate outcomes may be used to tune the revised profile.
 
+Do **not** treat the adversarial reviewer's `RECOMMENDED_SIMPLIFIED_V1`, illustrative volatility assumptions, suggested thresholds, 2x cost stress, Holm choice, or block-length formula as adopted/frozen project facts. The adjudication accepted revision requirements, not the reviewer's exact replacement numbers/methods.
+
 Parallel-work rule:
 - isolated worktrees/branches for independent workers;
 - one integration lane owns `main` and shared authority/state;
 - parallel workers do not push `main` or edit shared authority unless assigned;
-- normally use 2–3 high-value lanes, not many conflicting agents.
+- normally use 2–3 high-value lanes, not many conflicting agents;
+- when several independent lanes are ready, give all runnable prompts together;
+- before creating/reusing a worktree, inspect `git worktree list` and branch/remote state.
 
 Next action:
 `REVISE_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE_FROM_ADJUDICATED_REVIEW`
