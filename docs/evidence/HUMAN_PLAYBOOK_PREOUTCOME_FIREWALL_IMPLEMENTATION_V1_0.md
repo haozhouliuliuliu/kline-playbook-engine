@@ -1,12 +1,13 @@
 # HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0
 
-> Version: 1.0 (hardened)
+> Version: 1.0 (final engineering state)
 > Date: 2026-08-19
 > Status: IMPLEMENTED_AND_TESTED / ENGINEERING_VERIFIED / IDENTITY_BOUND
-> Work package: `HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IMPLEMENTATION`
+> Work package: `HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IDENTITY_CROSS_BINDING_HARDENING`
 > Tool decision: `USE_EXISTING` (no new tool adopted)
 > Acceptance review: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_0.md`
-> Review verdict: `PARTIAL_FIX_REQUIRED` -> resolved by this hardening pass
+> Final acceptance delta: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md`
+> Review verdict: v1.0 `PARTIAL_FIX_REQUIRED` and v1.1 `PARTIAL_FIX_REQUIRED` (E-5) -> resolved by this engineering package
 > Acceptance boundary: `PREOUTCOME_FIREWALL_ACCEPTANCE=COMPLETE_VERIFIED` (engineering)
 
 ## 1. Frozen authority references (do not modify)
@@ -44,6 +45,8 @@ Single owner of the pre-outcome research access rules:
   `PreOutcomeGateDecision`, `GateControl`;
 - `OutcomeTestRegistration` + `OutcomeTestRegistry` — canonical identity-bound
   hypothesis/outcome-test registration;
+- `WaveHypothesisBinding` — immutable per-hypothesis PRIMARY/scope/parameter-search
+  identity frozen by the wave (machine-comparable identity authority);
 - `SourceOnlyPolicy`, `SourceOnlySession` (project-issued verification),
   `SourceOnlyClaimExtractionContext`, `ApprovedSourceBundle`,
   `ClaimRecordOutput`, `ClaimRecordDraft`;
@@ -129,20 +132,32 @@ This does **not** claim to eliminate external model latent memory. Latent/parame
 prior market knowledge that cannot be proven absent remains a disclosed residual
 threat-model risk under the frozen protocol.
 
-### 5.2 RESEARCH_WAVE (single canonical denominator; acceptance gap E-3)
+### 5.2 RESEARCH_WAVE (single canonical denominator; acceptance gaps E-3, E-5)
 
 `ResearchWaveManifest` is immutable and directly binds the complete tested
 hypothesis identity set (`tested_hypothesis_test_ids`), plus the exact
-statistical profile id/hash and multiplicity counting-unit identity. The permanent
+statistical profile id/hash, the multiplicity counting-unit identity, and a
+`hypothesis_bindings: tuple[WaveHypothesisBinding, ...]` — the deterministic
+per-hypothesis PRIMARY/scope/parameter-search identity authority. The permanent
 denominator is **derived from the manifest** — there is no second mutable
-pre-lock list, so manifest and denominator cannot diverge.
+pre-lock list, so manifest and denominator cannot diverge. The human-readable
+`instrument_timeframe_context_scope` / `parameter_search_ranges` are retained as
+informational only; they never carry security identity authority.
+
+Manifest construction fails closed when:
+- a tested hypothesis has no binding (missing);
+- a binding exists for a hypothesis not in the tested set (extra);
+- a binding id is duplicated.
 
 `ResearchWaveRegistry.lock()` fails closed and verifies:
 - the tested set is non-empty;
 - every tested hypothesis identity has a registration;
 - each registration points to this wave;
 - each registration binds the same profile id/identity and counting-unit identity
-  as the manifest.
+  as the manifest;
+- **each registration's `primary_branch_identity`, `scope_identity`, and
+  `parameter_search_identity` exactly match the wave-frozen `WaveHypothesisBinding`
+  for that hypothesis (E-5 cross-artifact binding).**
 
 Once locked, the test set is permanently immutable. A new family/claim/branch
 requires a new wave / new search event. `FAIL` and `INSUFFICIENT_EVIDENCE`
@@ -171,9 +186,15 @@ PRIMARY_SCOPE_SEARCH_IDENTITIES = LOCKED
 
 The profile used at access must equal the exact profile id/hash bound in the wave
 manifest and the hypothesis registration (`WAVE_PROFILE_ID_MISMATCH`,
-`PROFILE_IDENTITY_MISMATCH` -> DENY). Because only `TEST_ONLY` profiles exist in
-this package, the only reachable grant is `SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY`
-(synthetic dummy fixtures); a `TEST_ONLY` profile refuses a non-synthetic fixture
+`PROFILE_IDENTITY_MISMATCH` -> DENY). `PRIMARY_SCOPE_SEARCH_IDENTITIES=LOCKED` is
+reported only after `ResearchFirewall._resolve_binding()` confirms the locked wave
+holds an exact `WaveHypothesisBinding` for the hypothesis and the registration's
+PRIMARY/scope/parameter-search identities still match it
+(`PRIMARY_BRANCH_IDENTITY_MISMATCH`, `SCOPE_IDENTITY_MISMATCH`,
+`PARAMETER_SEARCH_IDENTITY_MISMATCH` -> DENY). Because only `TEST_ONLY` profiles
+exist in this package, the only reachable grant is
+`SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY` (synthetic dummy fixtures); a `TEST_ONLY`
+profile refuses a non-synthetic fixture
 (`TEST_ONLY_PROFILE_REQUIRES_SYNTHETIC_FIXTURE`).
 
 ## 6. Durable first-look and append-only outcome audit
@@ -201,6 +222,10 @@ this package, the only reachable grant is `SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY`
 - hypothesis not in the wave tested set -> DENY;
 - wave/profile id/hash mismatch -> DENY / lock fail;
 - counting-unit identity mismatch -> DENY / lock fail;
+- hypothesis PRIMARY/scope/parameter-search identity mismatch vs wave-frozen
+  binding -> DENY / lock fail (`PRIMARY_BRANCH_IDENTITY_MISMATCH`,
+  `SCOPE_IDENTITY_MISMATCH`, `PARAMETER_SEARCH_IDENTITY_MISMATCH`,
+  `PRIMARY_SCOPE_SEARCH_BINDING_MISSING`);
 - source bundle / session identity mismatch -> DENY;
 - VALIDATION -> default DENY (no validation authority in this package);
 - PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT -> always DENY
@@ -246,8 +271,8 @@ conclusion and never restores holdout status.
 
 ## 10. Tests
 
-New: `tests/test_research_firewall.py` (46 tests) covering, among others, the 15
-required identity-binding regressions:
+New: `tests/test_research_firewall.py` (54 tests) covering the 15 identity-binding
+regressions plus the E-5 PRIMARY/scope/parameter-search cross-binding regressions:
 1. unrelated locked wave cannot authorize an experiment/hypothesis outside its
    registered test set;
 2. unrelated verified SOURCE_ONLY session cannot authorize another lineage;
@@ -271,8 +296,20 @@ required identity-binding regressions:
 14. historical final remains DENIED;
 15. Shadow/Forward remains DENIED.
 
+E-5 cross-binding regressions (E-5 tests 1-8):
+- PRIMARY identity mismatch -> wave lock fails;
+- scope identity mismatch -> wave lock fails;
+- parameter/search identity mismatch -> wave lock fails;
+- binding set missing a tested hypothesis -> manifest construction fails;
+- manifest with an extra hypothesis binding -> construction fails;
+- duplicate hypothesis binding -> construction fails;
+- exact PRIMARY + scope + search binding -> lock succeeds and
+  `PRIMARY_SCOPE_SEARCH_IDENTITIES` is locked;
+- malformed/adversarial direct registration (wave/profile/counting-unit match but
+  PRIMARY mismatch) -> cannot lock, and candidate outcome access is impossible.
+
 Canonical suite: `python -m unittest discover -s tests -v`
-Result: 227 tests OK (3 skipped), including the pre-existing suite unchanged
+Result: 235 tests OK (3 skipped), including the pre-existing suite unchanged
 (no regression).
 
 ## 11. Known limitations

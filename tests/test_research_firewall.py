@@ -35,6 +35,7 @@ from src.research_firewall import (
     ResearchWaveManifest,
     SourceOnlyClaimExtractionContext,
     SourceOnlySession,
+    WaveHypothesisBinding,
     classify_cohort,
 )
 from src.strategy_evidence import (
@@ -82,6 +83,9 @@ def make_test_only_profile(profile_id="profile-test-only-v1"):
 
 COUNTING_UNIT_IDENTITY = "counting-unit-test-v1"
 HYPOTHESIS_TEST_ID = "hypothesis-test-v1"
+PRIMARY_BRANCH_IDENTITY = "primary-branch-fixture-v1"
+SCOPE_IDENTITY = "scope-fixture-v1"
+PARAMETER_SEARCH_IDENTITY = "parameter-search-fixture-v1"
 
 
 def make_wave_manifest(
@@ -91,10 +95,21 @@ def make_wave_manifest(
     profile_identity=None,
     counting_unit_identity=COUNTING_UNIT_IDENTITY,
     tested_hypothesis_test_ids=(HYPOTHESIS_TEST_ID,),
+    bindings=None,
     created_at="2026-08-19T00:00:00Z",
 ):
     if profile_identity is None:
         profile_identity = make_test_only_profile(profile_id=profile_id).profile_identity
+    if bindings is None:
+        bindings = tuple(
+            WaveHypothesisBinding(
+                hypothesis_test_id=hypothesis_test_id,
+                primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+                scope_identity=SCOPE_IDENTITY,
+                parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            )
+            for hypothesis_test_id in tested_hypothesis_test_ids
+        )
     return ResearchWaveManifest(
         research_wave_id=wave_id,
         protocol_version="1.0",
@@ -102,7 +117,7 @@ def make_wave_manifest(
         statistical_profile_identity=profile_identity,
         multiplicity_counting_unit_identity=counting_unit_identity,
         tested_hypothesis_test_ids=tested_hypothesis_test_ids,
-        primary_branch_identities=("primary-branch-fixture-v1",),
+        hypothesis_bindings=bindings,
         declared_outcome_tested_alternatives=(),
         instrument_timeframe_context_scope="TEST_ONLY:instrument=TEST;timeframe=5m;context=TEST",
         parameter_search_ranges="TEST_ONLY:none",
@@ -131,9 +146,9 @@ def make_registered_firewall(
     profile_id="profile-test-only-v1",
     wave_id="wave-test-only-v1",
     family_claim_identity="family-claim-fixture-v1",
-    primary_branch_identity="primary-branch-fixture-v1",
-    scope_identity="scope-fixture-v1",
-    parameter_search_identity="parameter-search-fixture-v1",
+    primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+    scope_identity=SCOPE_IDENTITY,
+    parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
     strategy_obj=None,
 ):
     """Build a fully identity-bound firewall: verified session + TEST_ONLY
@@ -168,6 +183,46 @@ def make_registered_firewall(
     )
     firewall.lock_wave(wave.research_wave_id)
     return firewall, session, profile, wave, experiment
+
+
+def register_adversarial_registration(
+    firewall,
+    wave,
+    hypothesis_test_id,
+    *,
+    primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+    scope_identity=SCOPE_IDENTITY,
+    parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+):
+    """Directly register an OutcomeTestRegistration bypassing the validating
+    factory, to prove the wave-lock / gate cross-binding checks catch mismatches.
+    """
+    profile = firewall.profiles.get(wave.statistical_profile_id)
+    if profile is None:
+        raise AssertionError("wave profile must be registered first")
+    session = make_open_session(firewall.source_only, session_id=f"adversarial-{hypothesis_test_id}")
+    experiment = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+    return firewall.tests.register(
+        OutcomeTestRegistration(
+            hypothesis_test_id=hypothesis_test_id,
+            experiment_identity_id=experiment.experiment_id,
+            strategy_identity_id=strategy().identity_id,
+            research_lineage_id="research-lineage-fixture",
+            family_claim_identity="family-adv",
+            primary_branch_identity=primary_branch_identity,
+            scope_identity=scope_identity,
+            parameter_search_identity=parameter_search_identity,
+            source_only_session_id=session.session_id,
+            source_only_session_identity=session.session_identity,
+            source_bundle_identity=session.source_bundle_identity,
+            source_bundle_hash=session.source_bundle_hash,
+            research_wave_id=wave.research_wave_id,
+            statistical_profile_id=profile.profile_id,
+            statistical_profile_identity=profile.profile_identity,
+            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+            protocol_version="1.0",
+        )
+    )
 
 
 class ChronologyClassificationTests(unittest.TestCase):
@@ -301,6 +356,8 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             manifest.denominator_counting_semantics = "changed"
         with self.assertRaises(FrozenInstanceError):
             manifest.tested_hypothesis_test_ids = ("other-hypothesis",)
+        with self.assertRaises(FrozenInstanceError):
+            manifest.hypothesis_bindings = ()
 
     def test_manifest_identity_is_deterministic(self):
         firewall = ResearchFirewall(EvidenceLedger())
@@ -330,9 +387,9 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             strategy=strategy(),
             experiment=exp,
             family_claim_identity="family-1",
-            primary_branch_identity="primary-1",
-            scope_identity="scope-1",
-            parameter_search_identity="param-1",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
             source_only_session_id=session.session_id,
             research_wave_id="wave-b",
             statistical_profile_id=profile.profile_id,
@@ -389,9 +446,9 @@ class ResearchWaveRegistryTests(unittest.TestCase):
                 strategy=strategy_obj,
                 experiment=exp,
                 family_claim_identity=family,
-                primary_branch_identity="primary-1",
-                scope_identity="scope-1",
-                parameter_search_identity="param-1",
+                primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+                scope_identity=SCOPE_IDENTITY,
+                parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
                 source_only_session_id=session.session_id,
                 research_wave_id=wave.research_wave_id,
                 statistical_profile_id=profile.profile_id,
@@ -420,9 +477,9 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             strategy=strategy(),
             experiment=exp,
             family_claim_identity="family-1",
-            primary_branch_identity="primary-1",
-            scope_identity="scope-1",
-            parameter_search_identity="param-1",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
             source_only_session_id=session.session_id,
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,
@@ -441,6 +498,155 @@ class ResearchWaveRegistryTests(unittest.TestCase):
         wave = firewall.waves.register(make_wave_manifest())
         with self.assertRaisesRegex(ValueError, "unlocked wave"):
             firewall.waves.declare_outcome_test_start(wave.research_wave_id)
+
+    # -- E-5 PRIMARY/scope/parameter-search cross-binding regressions -----------
+
+    def test_primary_identity_mismatch_fails_wave_lock(self):
+        # E-5 test 1: PRIMARY mismatch -> wave lock fails.
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
+        register_adversarial_registration(
+            firewall,
+            wave,
+            "h-1",
+            primary_branch_identity="different-primary",
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+        )
+        with self.assertRaisesRegex(ValueError, "PRIMARY identity"):
+            firewall.lock_wave(wave.research_wave_id)
+        self.assertFalse(firewall.waves.is_locked(wave.research_wave_id))
+
+    def test_scope_identity_mismatch_fails_wave_lock(self):
+        # E-5 test 2: scope mismatch -> wave lock fails.
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
+        register_adversarial_registration(
+            firewall,
+            wave,
+            "h-1",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity="different-scope",
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+        )
+        with self.assertRaisesRegex(ValueError, "scope identity"):
+            firewall.lock_wave(wave.research_wave_id)
+        self.assertFalse(firewall.waves.is_locked(wave.research_wave_id))
+
+    def test_parameter_search_identity_mismatch_fails_wave_lock(self):
+        # E-5 test 3: parameter/search mismatch -> wave lock fails.
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
+        register_adversarial_registration(
+            firewall,
+            wave,
+            "h-1",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity="different-search",
+        )
+        with self.assertRaisesRegex(ValueError, "parameter/search identity"):
+            firewall.lock_wave(wave.research_wave_id)
+        self.assertFalse(firewall.waves.is_locked(wave.research_wave_id))
+
+    def test_binding_missing_a_tested_hypothesis_fails_construction(self):
+        # E-5 test 4: binding set missing a tested hypothesis -> construction fails.
+        bindings = (
+            WaveHypothesisBinding(
+                hypothesis_test_id="h-1",
+                primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+                scope_identity=SCOPE_IDENTITY,
+                parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            ),
+        )
+        with self.assertRaisesRegex(ValueError, "exactly match"):
+            make_wave_manifest(tested_hypothesis_test_ids=("h-1", "h-2"), bindings=bindings)
+
+    def test_binding_extra_hypothesis_fails_construction(self):
+        # E-5 test 5: manifest has an extra hypothesis binding -> construction fails.
+        bindings = (
+            WaveHypothesisBinding(hypothesis_test_id="h-1", primary_branch_identity="p", scope_identity="s", parameter_search_identity="q"),
+            WaveHypothesisBinding(hypothesis_test_id="h-extra", primary_branch_identity="p", scope_identity="s", parameter_search_identity="q"),
+        )
+        with self.assertRaisesRegex(ValueError, "exactly match"):
+            make_wave_manifest(tested_hypothesis_test_ids=("h-1",), bindings=bindings)
+
+    def test_duplicate_hypothesis_binding_fails_construction(self):
+        # E-5 test 6: duplicate hypothesis binding -> fails.
+        bindings = (
+            WaveHypothesisBinding(hypothesis_test_id="h-1", primary_branch_identity="p", scope_identity="s", parameter_search_identity="q"),
+            WaveHypothesisBinding(hypothesis_test_id="h-1", primary_branch_identity="p2", scope_identity="s", parameter_search_identity="q"),
+        )
+        with self.assertRaisesRegex(ValueError, "unique"):
+            make_wave_manifest(tested_hypothesis_test_ids=("h-1",), bindings=bindings)
+
+    def test_exact_primary_scope_search_binding_locks(self):
+        # E-5 test 7: exact PRIMARY + scope + search binding -> lock succeeds and
+        # access-time binding reports PRIMARY_SCOPE_SEARCH_IDENTITIES locked.
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        session = make_open_session(firewall.source_only)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
+        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        firewall.register_outcome_test(
+            hypothesis_test_id="h-1",
+            strategy=strategy(),
+            experiment=exp,
+            family_claim_identity="family-1",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            source_only_session_id=session.session_id,
+            research_wave_id=wave.research_wave_id,
+            statistical_profile_id=profile.profile_id,
+            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+        )
+        firewall.lock_wave(wave.research_wave_id)
+        self.assertTrue(firewall.waves.is_locked(wave.research_wave_id))
+        decision = firewall.evaluate_gate(
+            cohort=Cohort.DEVELOPMENT,
+            experiment=exp,
+            hypothesis_test_id="h-1",
+            synthetic_fixture=True,
+        )
+        self.assertTrue(decision.allowed)
+        control = next(c for c in decision.controls if c.name == "PRIMARY_SCOPE_SEARCH_IDENTITIES")
+        self.assertTrue(control.satisfied)
+
+    def test_adversarial_primary_mismatch_cannot_lock_nor_authorize(self):
+        # E-5 test 8: malformed/adversarial direct registration with PRIMARY
+        # mismatch (wave/profile/counting-unit all match) -> cannot lock, and
+        # candidate outcome access is impossible.
+        firewall = ResearchFirewall(EvidenceLedger())
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
+        register_adversarial_registration(
+            firewall,
+            wave,
+            "h-1",
+            primary_branch_identity="different-primary",
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+        )
+        with self.assertRaisesRegex(ValueError, "PRIMARY identity"):
+            firewall.lock_wave(wave.research_wave_id)
+        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        access = firewall.request_candidate_outcome_access(
+            cohort=Cohort.DEVELOPMENT,
+            experiment=exp,
+            hypothesis_test_id="h-1",
+            synthetic_fixture=True,
+        )
+        self.assertFalse(access.allowed)
+        self.assertIn("WAVE_NOT_LOCKED", access.record.evidence_reference)
 
 
 class StatisticalProfileRegistryTests(unittest.TestCase):
@@ -708,9 +914,9 @@ class IdentityBoundGateTests(unittest.TestCase):
             strategy=strategy(),
             experiment=exp,
             family_claim_identity="family-1",
-            primary_branch_identity="primary-1",
-            scope_identity="scope-1",
-            parameter_search_identity="param-1",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
             source_only_session_id="manual-session",
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,

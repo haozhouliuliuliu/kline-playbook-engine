@@ -385,6 +385,40 @@ class SourceOnlyClaimExtractionContext:
 
 
 @dataclass(frozen=True)
+class WaveHypothesisBinding:
+    """Immutable, machine-comparable per-hypothesis identity binding frozen by a
+    wave.
+
+    This is the deterministic security identity authority for PRIMARY / scope /
+    parameter-search for each tested hypothesis. Human-readable manifest
+    descriptions are never used for identity comparison.
+    """
+
+    hypothesis_test_id: str
+    primary_branch_identity: str
+    scope_identity: str
+    parameter_search_identity: str
+
+    def __post_init__(self) -> None:
+        required = (
+            self.hypothesis_test_id,
+            self.primary_branch_identity,
+            self.scope_identity,
+            self.parameter_search_identity,
+        )
+        if not all(required):
+            raise ValueError("wave hypothesis binding has required empty fields")
+
+    def as_dict(self) -> dict[str, str]:
+        return {
+            "hypothesis_test_id": self.hypothesis_test_id,
+            "primary_branch_identity": self.primary_branch_identity,
+            "scope_identity": self.scope_identity,
+            "parameter_search_identity": self.parameter_search_identity,
+        }
+
+
+@dataclass(frozen=True)
 class ResearchWaveManifest:
     """Immutable pre-registered research wave (Protocol v1.0 §7).
 
@@ -392,6 +426,10 @@ class ResearchWaveManifest:
     directly in this immutable manifest. The registry derives the permanent
     denominator from the manifest, so the manifest and the denominator can never
     diverge (no split-brain).
+
+    `hypothesis_bindings` is the deterministic PRIMARY/scope/parameter-search
+    identity authority per tested hypothesis; the human-readable scope/search
+    descriptions are informational only.
     """
 
     research_wave_id: str
@@ -400,7 +438,7 @@ class ResearchWaveManifest:
     statistical_profile_identity: str
     multiplicity_counting_unit_identity: str
     tested_hypothesis_test_ids: tuple[str, ...]
-    primary_branch_identities: tuple[str, ...]
+    hypothesis_bindings: tuple[WaveHypothesisBinding, ...]
     declared_outcome_tested_alternatives: tuple[str, ...]
     instrument_timeframe_context_scope: str
     parameter_search_ranges: str
@@ -425,6 +463,19 @@ class ResearchWaveManifest:
             raise ValueError("research wave must declare a non-empty tested hypothesis set")
         if len(self.tested_hypothesis_test_ids) != len(set(self.tested_hypothesis_test_ids)):
             raise ValueError("tested hypothesis identities must be unique")
+        if not self.hypothesis_bindings:
+            raise ValueError("research wave must declare hypothesis bindings")
+        binding_ids = tuple(binding.hypothesis_test_id for binding in self.hypothesis_bindings)
+        if len(binding_ids) != len(set(binding_ids)):
+            raise ValueError("wave hypothesis binding ids must be unique")
+        if set(binding_ids) != set(self.tested_hypothesis_test_ids):
+            raise ValueError("wave hypothesis bindings must exactly match the tested hypothesis set")
+
+    def binding_for(self, hypothesis_test_id: str) -> WaveHypothesisBinding | None:
+        for binding in self.hypothesis_bindings:
+            if binding.hypothesis_test_id == hypothesis_test_id:
+                return binding
+        return None
 
     @property
     def manifest_identity(self) -> str:
@@ -436,7 +487,12 @@ class ResearchWaveManifest:
                 "statistical_profile_identity": self.statistical_profile_identity,
                 "multiplicity_counting_unit_identity": self.multiplicity_counting_unit_identity,
                 "tested_hypothesis_test_ids": self.tested_hypothesis_test_ids,
-                "primary_branch_identities": self.primary_branch_identities,
+                "hypothesis_bindings": tuple(
+                    sorted(
+                        (binding.as_dict() for binding in self.hypothesis_bindings),
+                        key=lambda item: item["hypothesis_test_id"],
+                    )
+                ),
                 "declared_outcome_tested_alternatives": self.declared_outcome_tested_alternatives,
                 "instrument_timeframe_context_scope": self.instrument_timeframe_context_scope,
                 "parameter_search_ranges": self.parameter_search_ranges,
@@ -496,6 +552,15 @@ class ResearchWaveRegistry:
                 raise ValueError("tested hypothesis registration profile identity mismatches the wave manifest")
             if registration.multiplicity_counting_unit_identity != manifest.multiplicity_counting_unit_identity:
                 raise ValueError("tested hypothesis registration counting-unit identity mismatches the wave manifest")
+            binding = manifest.binding_for(hypothesis_test_id)
+            if binding is None:
+                raise ValueError(f"tested hypothesis has no wave PRIMARY/scope/search binding: {hypothesis_test_id}")
+            if registration.primary_branch_identity != binding.primary_branch_identity:
+                raise ValueError("tested hypothesis registration PRIMARY identity mismatches the wave binding")
+            if registration.scope_identity != binding.scope_identity:
+                raise ValueError("tested hypothesis registration scope identity mismatches the wave binding")
+            if registration.parameter_search_identity != binding.parameter_search_identity:
+                raise ValueError("tested hypothesis registration parameter/search identity mismatches the wave binding")
         self._locked.add(wave_id)
 
     def is_locked(self, wave_id: str) -> bool:
@@ -1064,6 +1129,15 @@ class ResearchFirewall:
             raise ValueError("wave profile identity does not match the supplied profile")
         if wave.multiplicity_counting_unit_identity != multiplicity_counting_unit_identity:
             raise ValueError("wave counting-unit identity does not match the supplied counting unit")
+        binding = wave.binding_for(hypothesis_test_id)
+        if binding is None:
+            raise ValueError(f"hypothesis has no wave PRIMARY/scope/search binding: {hypothesis_test_id}")
+        if primary_branch_identity != binding.primary_branch_identity:
+            raise ValueError("primary identity does not match the wave hypothesis binding")
+        if scope_identity != binding.scope_identity:
+            raise ValueError("scope identity does not match the wave hypothesis binding")
+        if parameter_search_identity != binding.parameter_search_identity:
+            raise ValueError("parameter/search identity does not match the wave hypothesis binding")
         session = self._source_only.get(source_only_session_id)
         if session is None:
             raise ValueError("unknown SOURCE_ONLY session id")
@@ -1143,6 +1217,15 @@ class ResearchFirewall:
             return "WAVE_PROFILE_IDENTITY_MISMATCH", None
         if registration.multiplicity_counting_unit_identity != wave.multiplicity_counting_unit_identity:
             return "MULTIPLICITY_COUNTING_UNIT_MISMATCH", None
+        binding = wave.binding_for(hypothesis_test_id)
+        if binding is None:
+            return "PRIMARY_SCOPE_SEARCH_BINDING_MISSING", None
+        if registration.primary_branch_identity != binding.primary_branch_identity:
+            return "PRIMARY_BRANCH_IDENTITY_MISMATCH", None
+        if registration.scope_identity != binding.scope_identity:
+            return "SCOPE_IDENTITY_MISMATCH", None
+        if registration.parameter_search_identity != binding.parameter_search_identity:
+            return "PARAMETER_SEARCH_IDENTITY_MISMATCH", None
         session = self._source_only.get(registration.source_only_session_id)
         if session is None:
             return "SOURCE_ONLY_SESSION_MISSING", None

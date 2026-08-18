@@ -11,8 +11,9 @@ BOOTSTRAP_ACCEPTANCE=GO
 BOOTSTRAP_ACCEPTANCE_EVIDENCE=docs/evidence/BOOTSTRAP_ACCEPTANCE.md
 CURRENT_BLOCKER=NONE
 CURRENT_WORK_PACKAGE=HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IDENTITY_CROSS_BINDING_HARDENING
-CURRENT_WORK_PACKAGE_STATUS=FIX_REQUIRED
+CURRENT_WORK_PACKAGE_STATUS=COMPLETE_VERIFIED
 CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md
+CURRENT_WORK_PACKAGE_EVIDENCE=docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md
 
 ## Binding research direction
 
@@ -125,24 +126,25 @@ Verified direction from c6eb082:
 - terminal outcome record cannot be silently overwritten;
 - historical final / validation / Shadow remain denied.
 
-Remaining E-5:
+Remaining E-5 resolved (this package):
 
-`ResearchWaveRegistry.lock()` must additionally prove that every tested `OutcomeTestRegistration` has the exact PRIMARY, scope, and parameter/search identities frozen for that hypothesis by the immutable wave artifact. The current lock path verifies wave/profile/counting-unit relationships but does not yet cross-check these three identities against the wave declaration. Therefore:
+`WaveHypothesisBinding` is the immutable per-hypothesis PRIMARY/scope/parameter-search identity authority frozen by the wave manifest; `ResearchWaveRegistry.lock()` now proves every tested `OutcomeTestRegistration` has the exact PRIMARY, scope, and parameter/search identities frozen for that hypothesis, and `ResearchFirewall._resolve_binding()` only reports `PRIMARY_SCOPE_SEARCH_IDENTITIES=LOCKED` when the locked wave holds an exact binding matching the registration. Therefore:
 
 ```text
-PREOUTCOME_FIREWALL_IMPLEMENTATION=PARTIAL_FIX_REQUIRED
-IDENTITY_BINDING=PARTIAL_E5_REMAINS
-SOURCE_ONLY_POLICY=ENGINEERING_VERIFIED_PENDING_FINAL_PACKAGE_ACCEPTANCE
-SOURCE_ONLY_CLAIM_EXTRACTION_RUNNER=ENGINEERING_VERIFIED_PENDING_FINAL_PACKAGE_ACCEPTANCE
-RESEARCH_WAVE_IDENTITY_BINDING=PARTIAL_E5_REMAINS
+PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED
+IDENTITY_BINDING=VERIFIED
+PRIMARY_SCOPE_SEARCH_CROSS_BINDING=VERIFIED
+SOURCE_ONLY_POLICY=VERIFIED
+SOURCE_ONLY_CLAIM_EXTRACTION_RUNNER=VERIFIED
+REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED
+RESEARCH_WAVE_IDENTITY_BINDING=VERIFIED
 STATISTICAL_PROFILE_INTERFACE=VERIFIED
-PRE_OUTCOME_GATE_STATUS=FAIL_CLOSED_BUT_FINAL_ACCEPTANCE_PENDING
+PRE_OUTCOME_GATE_STATUS=VERIFIED_FAIL_CLOSED
 HISTORICAL_FINAL_HOLDOUT_LOCK=ENFORCED
-REAL_CLAIM_EXTRACTION_ENVIRONMENT=HOLD_PENDING_E5_FIX
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 ```
 
-No frozen research semantic is affected. This is an ordinary engineering hardening issue.
+No frozen research semantic is affected. This was an ordinary engineering hardening issue, now resolved and verified by deterministic regression tests.
 
 ## Canonical BALANCED corpus — ACCEPTED
 
@@ -254,14 +256,16 @@ TD-001/TD-002/LIMIT-001 did not block semantic protocol freeze. They activate be
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=HARDEN_PRIMARY_SCOPE_SEARCH_CROSS_BINDING_THEN_REACCEPT
-CURRENT_NEXT_ACTION_AUTHORITY=docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_ACCEPTANCE_REVIEW_V1_1.md
+CURRENT_NEXT_ACTION=COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW
+CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
+PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED
+PRIMARY_SCOPE_SEARCH_CROSS_BINDING=VERIFIED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-REAL_CLAIM_EXTRACTION_ENVIRONMENT=HOLD_PENDING_E5_FIX
+REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED
 OWNER_ACTION=NONE
 ```
 
-After E-5 is fixed and independently checked against the frozen requirements, project brain may mark the firewall package `COMPLETE_VERIFIED`. Only then does the next bounded package return to `COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW`. No repeated Owner approval is required for this ordinary engineering fix.
+The firewall package is now `COMPLETE_VERIFIED` (E-5 resolved: exact PRIMARY/scope/parameter-search cross-binding enforced at lock and access time; full suite 235 OK / 3 skipped; 54 firewall tests). The next bounded package returns to `COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW`; until the real profile is designed, reviewed, and locked, candidate outcome-bearing backtests remain `NOT_AUTHORIZED`. No repeated Owner approval is required for this ordinary engineering fix.
 
 ## Owner decision gates
 

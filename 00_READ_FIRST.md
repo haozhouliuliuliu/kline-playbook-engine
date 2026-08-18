@@ -32,9 +32,9 @@ Project state:
 - Historical final cohort = project-governed historical holdout, not universal epistemic unseen proof
 - RESEARCH_WAVE whole-wave multiplicity governance = frozen
 - Common statistical profile must lock before first candidate outcome-bearing performance backtest
-- c6eb082 hardening resolved major firewall identity-binding gaps, but final acceptance review v1.1 found one remaining E-5 cross-artifact binding gap
+- c6eb082 hardening resolved major firewall identity-binding gaps (E-1..E-4); review v1.1 found the remaining E-5 PRIMARY/scope/parameter-search cross-binding gap, now resolved
 - **Current work package = HUMAN_PLAYBOOK_PREOUTCOME_RESEARCH_FIREWALL_IDENTITY_CROSS_BINDING_HARDENING**
-- **Current status = FIX_REQUIRED**
+- **Current status = COMPLETE_VERIFIED**
 - Current tool decision = USE_EXISTING
 
 Frozen chronology:
@@ -45,21 +45,21 @@ VALIDATION: 2025-01-01 .. 2025-06-30
 PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT: 2025-07-01 .. 2025-12-31
 ```
 
-Current E-5 engineering gap:
-- `OutcomeTestRegistration` has hypothesis-specific `primary_branch_identity`, `scope_identity`, and `parameter_search_identity`;
-- `ResearchWaveManifest` separately declares PRIMARY/scope/search information;
-- `ResearchWaveRegistry.lock()` currently verifies hypothesis/wave/profile/counting-unit binding but does not yet prove those PRIMARY/scope/search identities match the immutable wave declaration for each tested hypothesis;
-- this must be fail-closed before the firewall package is finally accepted.
+Current E-5 status — RESOLVED:
+- `WaveHypothesisBinding` is the immutable per-hypothesis PRIMARY/scope/parameter-search identity frozen by the wave manifest;
+- `ResearchWaveRegistry.lock()` proves every tested `OutcomeTestRegistration` has the exact PRIMARY, scope, and parameter/search identities frozen for that hypothesis (missing/extra/duplicate/mismatch all fail closed);
+- `ResearchFirewall._resolve_binding()` only reports `PRIMARY_SCOPE_SEARCH_IDENTITIES=LOCKED` when the locked wave holds an exact binding matching the registration;
+- human-readable `instrument_timeframe_context_scope` / `parameter_search_ranges` remain informational only; identity comparison uses deterministic hashes.
 
-Until E-5 is fixed:
-- real claim extraction remains on HOLD;
+Because only TEST_ONLY profiles exist:
+- real claim extraction is verified-ready but not started;
 - candidate PnL/equity/expectancy/Sharpe/win-loss inspection remains NOT AUTHORIZED;
 - validation remains locked;
 - historical final-holdout remains locked;
 - Shadow/live and real-money/broker actions remain NOT AUTHORIZED.
 
 Next action:
-`HARDEN_PRIMARY_SCOPE_SEARCH_CROSS_BINDING_THEN_REACCEPT`
+`COMMON_STATISTICAL_PROFILE_V1_DESIGN_AND_INDEPENDENT_REVIEW`
 
 Status authority: `CURRENT_STATE.md`.
 Frozen protocol authority: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md`.
