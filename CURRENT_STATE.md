@@ -8,16 +8,15 @@ ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
 CURRENT_BLOCKER=SECOND_PASS_FOUNDATION_REPAIRS
-CURRENT_WORK_PACKAGE=PACKAGE_A_CANDIDATE_EXECUTION_TRUST_BOUNDARY
+CURRENT_WORK_PACKAGE=PACKAGE_B_ARTIFACT_LINEAGE_SOURCE_DURABLE_GOVERNANCE_BINDING
 CURRENT_WORK_PACKAGE_STATUS=READY_FOR_SINGLE_DS_WORKER
 CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_PLAN_V0_1.md
+PACKAGE_A_INTEGRATION_REVIEW=docs/reviews/PACKAGE_A_CANDIDATE_EXECUTION_TRUST_BOUNDARY_INTEGRATION_REVIEW_V0_1.md
 SECOND_PASS_AUDIT_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md
-CURRENT_RESEARCH_POLICY=docs/research/HUMAN_PLAYBOOK_HISTORICAL_V1_EVIDENCE_POLICY_V1_0.md
-SOURCE_ACQUISITION_POLICY=docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_POLICY_V1_0.md
 OWNER_ACTION=RELAY_ONE_BOUNDED_DS_PROMPT
 ```
 
-The second-pass audit is complete and repair is now authorized. Foundational repairs are deliberately sequential; the project will not resume parallel F/G/H construction until the lower-level trust boundaries they depend on are corrected and re-audited.
+Foundational second-pass repair remains sequential. Package A is integrated; Package B is the active repair. F/G/H remain unmerged and must not be reconstructed until lower-level packages are complete.
 
 ## Binding research direction / access boundary
 
@@ -41,14 +40,45 @@ HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 ```
 
-Important second-pass distinction:
+No project-recorded real candidate outcome exposure has been established.
+
+## Package A accepted state
+
+Integrated worker commits:
 
 ```text
-VALIDATION_POLICY=LOCKED
-VALIDATION_RUNNER_TECHNICAL_LOCK=NOT_ENFORCED_YET
+PACKAGE_A_BASE=ffaecde1ca24facc871a5be66e1cdb6b8c619819
+PACKAGE_A_COMMIT=6704b4b03eed07a72bc847b58c7dec375320e960
+PACKAGE_A_CORRECTION_COMMIT=79d0d057cb694b639724ebf84bcf222edb0e5337
+PACKAGE_A_STATUS=ACCEPTED_WITH_EXPLICIT_RESIDUAL_BOUNDARY
 ```
 
-No project-recorded real candidate use of the bypass path was found.
+Accepted technical changes:
+
+```text
+VALIDATION_RUNNER_LEGACY_CANDIDATE_GRANT_BYPASS=CLOSED
+PREOUTCOME_GATE_CONNECTED_TO_CONFIRMATORY_RUNNER=YES
+RUNNER_USES_EXTERNALLY_CONFIGURED_RESEARCH_FIREWALL=YES
+CALLER_DECLARED_SECURITY_COHORT=REMOVED
+COHORT_DERIVED_FROM_INPUT_TRADING_DATES=YES
+VALIDATION_INPUT_TO_EXPERIMENT_DATA_VERSION_LABEL_BINDING=ENFORCED
+ARBITRARY_NON_TEST_PROFILE_LOCK=CLOSED_UNDER_CURRENT_POLICY
+CALLER_SYNTHETIC_FIXTURE_BOOLEAN=REMOVED
+TEST_ONLY_SYNTHETIC_DATA_VERSION_SINGLE_LABEL_AUTHORITY=YES
+PORTFOLIO_CONFIRMATORY_CANDIDATE_PATH=FAIL_CLOSED_NOT_IMPLEMENTED
+```
+
+Package A does not solve actual artifact attestation. Therefore:
+
+```text
+REAL_DATA_BYTES_TO_DATA_VERSION_ATTESTATION=NO
+REAL_CODE_BYTES_TO_CODE_HASH_ATTESTATION=NO
+REAL_ENVIRONMENT_TO_ENVIRONMENT_HASH_ATTESTATION=NO
+REAL_FEATURE_ARTIFACT_TO_FEATURE_VERSION_ATTESTATION=NO
+TEST_ONLY_SYNTHETIC_LABEL_IS_PROOF_OF_SYNTHETIC_BYTES=NO
+```
+
+Real candidate outcome access remains unauthorized.
 
 ## Statistical acceptance
 
@@ -59,13 +89,10 @@ STRONG_FWER_ACCEPTANCE_TARGET=UNCHANGED
 HISTORICAL_V1_GENERAL_DOMAIN_POSITIVE_PASS=UNAVAILABLE_CURRENTLY
 STATISTICAL_POSITIVE_ACCEPTANCE_PACKAGE=PARKED
 CURRENT_INFERENCE_CANDIDATE=NONE_ADOPTED_FOR_POSITIVE_PASS
+NON_TEST_PROFILE_LOCK=FAIL_CLOSED_UNTIL_FUTURE_FORMAL_AUTHORITY
 ```
 
-Current code can technically lock an arbitrary non-TEST-only profile object; that registry state is not proof of an adopted real profile. Package A must fail closed against that path without inventing a new statistical profile.
-
 ## Canonical data / cost boundary
-
-Recorded corpus facts remain:
 
 ```text
 CANONICAL_DATASET_ACCEPTED=YES_WITH_SECOND_PASS_QUALIFICATIONS
@@ -83,39 +110,25 @@ CONCRETE_CONTRACT_RESEARCH_MAPPING_RULE=NOT_FROZEN
 HISTORICAL_REALISTIC_MARGIN_FEE_AUTHORITY=NOT_IMPLEMENTED_FOR_CANDIDATE_QUALITY
 ```
 
-A proof/provenance gap is not evidence that the 15,280,452 stored OHLC rows are numerically wrong.
+A proof/provenance gap is not evidence that the recorded OHLC rows are numerically wrong.
 
-## Pre-outcome firewall / SOURCE_ONLY
-
-Previous `COMPLETE_VERIFIED_ACCEPTED` wording remains withdrawn.
+## Package B active findings
 
 ```text
-PREOUTCOME_FIREWALL_CORE_LOGIC=IMPLEMENTED
-PREOUTCOME_GATE_INTERNAL_IDENTITY_CHECKS=IMPLEMENTED
-PREOUTCOME_GATE_CONNECTED_TO_VALIDATION_RUNNER=NO
-COHORT_BOUND_TO_ACTUAL_DATA_ARTIFACT=NO
-ACTUAL_VALIDATION_INPUT_BOUND_TO_EXPERIMENT_DATA_VERSION=NO
-ARBITRARY_NON_TEST_PROFILE_REAL_LOCK_PATH=OPEN
+PACKAGE_B_TARGETS=F-06,F-07,F-08,F-09,F-10,F-12,F-13,P-06
 PRIMARY_SCOPE_SEARCH_BOUND_TO_ACTUAL_PLAYBOOK_STRATEGY_ARTIFACT=NO
-FIREWALL_REGISTRIES_DURABLY_RESTORED_AFTER_RESTART=NO
-SOURCE_ONLY_API_PROTECTED_OUTCOME_DENIAL=IMPLEMENTED
-SOURCE_ONLY_PROJECT_ISSUED_ATTESTATION=NOT_SECURELY_ENFORCED
-SOURCE_ONLY_PROCESS_SANDBOX=NOT_IMPLEMENTED
+SOURCE_ONLY_SESSION_BOUND_TO_TESTED_PLAYBOOK_CLAIM=NO
 LINEAGE_RENAMING_TECHNICALLY_PREVENTED=NO
-HISTORICAL_FINAL_STATE_DURABLE_ACROSS_RESTART=NO
+FIREWALL_REGISTRIES_DURABLY_RESTORED_AFTER_RESTART=NO
+SOURCE_ONLY_PROJECT_ISSUED_ATTESTATION=NOT_SECURELY_ENFORCED
+DECLARED_ALTERNATIVES_BOUND_TO_TESTED_DENOMINATOR=NO
+REPEATED_IDENTICAL_EVIDENCE_OPERATION=NOT_IDEMPOTENT_OR_OCCURRENCE_SAFE
+ACTUAL_CODE_ENVIRONMENT_DATA_FEATURE_ARTIFACT_ATTESTATION=NO
 ```
 
-Package A is restricted to the first six execution-trust-boundary findings:
-
-```text
-PACKAGE_A_TARGETS=F-01,F-02,F-03,F-04,F-05,F-11
-```
-
-Later binding/persistence/lineage/SOURCE_ONLY hardening belongs to Package B and must not be mixed into Package A unless strictly required to make Package A compile/test.
+Package B must close only the exact enforceable gaps above. Where the current project lacks an authorized artifact or semantic source of truth, fail closed instead of inventing one.
 
 ## Human Playbook research state
-
-Accepted history remains evidence subject to second-pass qualifications:
 
 ```text
 GRIMES_WAVE_1=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
@@ -123,9 +136,13 @@ STEENBARGER_WAVE_2=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
 STEENBARGER_FALSE_BREAKOUT=ACCEPTED_NEGATIVE_SEMANTIC_RESULT
 RASCHKE_NR7=ACCEPTED_NEGATIVE_SEMANTIC_RESULT
 RASCHKE_HOLY_GRAIL=SOURCE_SEMANTICALLY_DRAFTABLE_NOT_MACHINE_READY
+FAMILY=RASCHKE_HOLY_GRAIL_PULLBACK
+PRIMARY_FREEZE_READY=NO
+CURRENT_PROJECT_PRODUCT_TRANSFER=INFERRED
+NO_CANDIDATE_OUTCOME_DATA_USED=YES
 ```
 
-Exact accepted worker-evidence commits now have dedicated retention refs:
+Accepted raw worker evidence is retained independently:
 
 ```text
 WAVE1_EVIDENCE_REF=evidence/wave1-accepted-raw-20260819
@@ -134,20 +151,7 @@ WAVE2_EVIDENCE_REF=evidence/wave2-accepted-raw-20260819
 WAVE2_EVIDENCE_COMMIT=c0fef50bb3b0f5a97c7bdf472d5a9e2d9339273a
 ```
 
-Integration reviews on main remain semantic authority and override rejected worker statements. These refs repair immediate branch-reachability durability only; they do not retroactively byte-bind external sources or strengthen SOURCE_ONLY attestation.
-
-Current family:
-
-```text
-FAMILY=RASCHKE_HOLY_GRAIL_PULLBACK
-PLAYBOOK_SEMANTICALLY_DRAFTABLE=YES
-PLAYBOOK_MACHINE_READY=NO
-PRIMARY_FREEZE_READY=NO
-CURRENT_PROJECT_PRODUCT_TRANSFER=INFERRED
-NO_CANDIDATE_OUTCOME_DATA_USED=YES
-```
-
-Known semantic gaps remain unresolved; they are not part of Package A.
+These refs solve branch reachability only; they do not retroactively byte-bind external source material.
 
 ## Playbook Contract / Strategy identity
 
@@ -158,10 +162,9 @@ PROTOCOL_COMPLETE_PRIMARY_ENFORCEMENT=NO
 FIELD_LEVEL_CRITICAL_AMBIGUITY_DERIVATION=NO
 PARTIALLY_OBSERVABLE_REQUIRED_INPUT_BLOCKS_MACHINE_READY=NO
 UNKNOWN_PROJECT_TRANSFER_BLOCKS_MACHINE_READY=NO
-ACTUAL_CODE_ENVIRONMENT_DATA_ARTIFACT_ATTESTATION=NO
 ```
 
-These are Package B/C issues, not Package A scope unless an interface adaptation is strictly required for the execution trust boundary.
+Claim/field-level Protocol invariants wait for Package C after Package B artifact/governance binding.
 
 ## Execution / capital / ledger
 
@@ -176,7 +179,7 @@ MULTIPRODUCT_HETEROGENEOUS_MULTIPLIER_PORTFOLIO=UNSUPPORTED
 ROUND_TRIP_LEDGER=MERGED_IMPLEMENTED_WITH_NEW_IDENTITY_INPUT_GAPS
 ```
 
-These repairs wait for Package E after the trust boundary and contract/data foundations are corrected.
+These wait for Package E.
 
 ## Latest F/G/H
 
@@ -193,11 +196,9 @@ LANE_H=NOT_MERGED
 COMBINED_F_G_H_REGRESSION=NOT_RUN
 ```
 
-Do not patch/rebase these lanes yet. They depend on lower-level contracts being repaired first.
+Do not patch these branches yet.
 
 ## Repair orchestration
-
-Authority: `docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_PLAN_V0_1.md`.
 
 ```text
 REPAIR_EXECUTION_MODE=SINGLE_INTEGRATION_LANE_SEQUENTIAL_FOUNDATION_FIRST
@@ -207,11 +208,11 @@ TOOL_DECISION=USE_EXISTING
 NEW_TOOL_REQUIRED=NO
 ```
 
-Repair order:
+Order remains:
 
 ```text
-A candidate execution trust boundary
--> B artifact/lineage/source/durable governance binding
+A candidate execution trust boundary [INTEGRATED]
+-> B artifact/lineage/source/durable governance binding [ACTIVE]
 -> C Playbook Contract protocol invariants
 -> D canonical completeness/provenance
 -> E execution/capital/portfolio/round-trip
@@ -219,7 +220,7 @@ A candidate execution trust boundary
 -> G latest F/G/H correction + combined regression
 ```
 
-`E-06` historical realistic fees/margins and `E-07` concrete-contract research mapping remain separate governed research/evidence prerequisites rather than ordinary bug fixes.
+`E-06` realistic historical fees/margins and `E-07` concrete-contract research mapping remain separate governed prerequisites rather than ordinary bug fixes.
 
 ## Progress estimate
 
@@ -231,7 +232,7 @@ NEW_PROGRESS_ESTIMATE=NOT_REISSUED_DURING_FOUNDATION_REPAIR
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=RUN_ONE_BOUNDED_DS_PACKAGE_A_AND_RETURN_COMMIT_TEST_EVIDENCE_FOR_PROJECT_BRAIN_REVIEW
+CURRENT_NEXT_ACTION=RUN_ONE_BOUNDED_DS_PACKAGE_B_AND_RETURN_COMMIT_TEST_EVIDENCE_FOR_PROJECT_BRAIN_REVIEW
 OWNER_ACTION=RELAY_ONE_BOUNDED_DS_PROMPT
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
