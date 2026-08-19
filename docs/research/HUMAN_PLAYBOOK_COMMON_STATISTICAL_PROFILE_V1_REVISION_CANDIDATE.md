@@ -8,7 +8,7 @@
 > Adjudication authority: `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md`
 
 ```text
-COMMON_STATISTICAL_PROFILE_V1_REVISION_VERSION=v1.0-revision-candidate-0.2
+COMMON_STATISTICAL_PROFILE_V1_REVISION_VERSION=v1.0-revision-candidate-0.3
 NO_CANDIDATE_OUTCOME_DATA_USED=YES
 NO_VALIDATION_ACCESS=YES
 NO_HISTORICAL_FINAL_HOLDOUT_ACCESS=YES
@@ -23,6 +23,12 @@ PRIMARY-branch semantics, Research Wave semantics, or any access state. No real 
 candidate outcome, candidate PnL, equity, expectancy, Sharpe, win/loss, VALIDATION result, or
 historical-final result was inspected or used.
 
+The prior revision draft (`candidate-0.2`) briefly proposed a weekly moving-block bootstrap. A
+synthetic-only methodological smoke test found unacceptable short-sample sensitivity under simple
+serial-dependence fixtures, so that method was rejected **before independent review and before any
+candidate outcome**. `candidate-0.3` replaces it with a tuning-parameter-free self-normalized test
+over the complete authoritative trading-day sequence.
+
 ---
 
 ## 1. Design objective
@@ -32,15 +38,15 @@ The profile must answer the frozen common contract for every registered Human Pl
 1. **Economic edge:** is the PRIMARY branch positively profitable after the exact pre-registered
    base execution costs/slippage, with uncertainty treated explicitly?
 2. **Evidence sufficiency:** is there enough temporally distributed governed evidence for the
-   chosen dependence-aware inference to be credible?
+   dependence-aware inference to be credible?
 3. **Risk/failure:** did mandatory execution/risk failure conditions occur, and is the apparent
-   edge robust to one trade or one time window carrying the sign?
+   edge robust to one trade or one narrow time window carrying the sign?
 4. **Integrity:** were chronology, exposure, PRIMARY, scope/search identity, Research Wave and
    multiplicity rules preserved?
 
-The revised v1 objective is deliberately narrower than the first candidate: use the smallest
-common statistical machinery that can falsify weak evidence without introducing a large set of
-arbitrary hard thresholds.
+The revised v1 objective is deliberately narrow: use the smallest common statistical machinery
+that can distinguish positive evidence, negative evidence and unresolved evidence without a large
+set of arbitrary hard thresholds.
 
 ---
 
@@ -49,23 +55,25 @@ arbitrary hard thresholds.
 The following first-candidate rules are **removed** from the lock candidate:
 
 - `ESS=N/max(1,2H-1)` as a hard sufficiency gate;
-- fixed hard `N>=60`, `D_days>=30`, `W_active>=8`, 50% day concentration, 75% week
-  concentration and `open_ratio<=0.25` as a combined sufficiency system;
+- hard `N>=60`, `D_days>=30`, `W_active>=8`, 50% day concentration, 75% week concentration and
+  `open_ratio<=0.25` as an interacting sufficiency system;
 - `MIN_ECONOMIC_EDGE=2 bp` as an extra universal economic floor;
 - `2x cost` as a universal hard execution-friction gate;
 - the claim that Romano-Wolf stepdown matters only for argmax/best-of reporting;
-- circular first/last-cohort block wrapping.
+- circular/non-circular block-bootstrap choice and all block-length tuning.
 
 The revised candidate replaces them with:
 
 - one explicit round-trip identity and cohort-boundary rule;
-- a weekly influence representation plus non-circular moving-block bootstrap;
-- a small set of minimum support/algorithmic floors, clearly labeled governance choices rather
-  than statistical laws;
-- a no-outcome standardized power/detectability envelope;
-- a three-way evidence interpretation (`PASS / FAIL / INSUFFICIENT_EVIDENCE`) plus separate
-  `DATA_BLOCKED` and `INTEGRITY_FAIL` states;
-- leave-one-trade and leave-one-week robustness guards instead of arbitrary PnL concentration
+- a complete trading-day score process including zero-exit days;
+- Shao-style scalar self-normalization for a ratio estimand, which requires no bandwidth/block
+  length;
+- a small set of support floors explicitly labeled governance choices rather than statistical
+  laws;
+- a no-outcome standardized detectability envelope;
+- `PASS / FAIL / INSUFFICIENT_EVIDENCE` evidence interpretation plus separate `DATA_BLOCKED` and
+  `INTEGRITY_FAIL` states;
+- leave-one-trade and leave-one-week robustness guards instead of tuned PnL concentration
   percentages;
 - base-cost inference plus break-even diagnostics instead of a universal `2x` hard gate;
 - a machine-consistent one-`hypothesis_test_id` multiplicity taxonomy.
@@ -94,7 +102,8 @@ Rules:
   separate round trips with separate `position_id`s;
 - a new flat -> open cycle is a new observation even on the same instrument/day.
 
-This is the exact identity already compatible with the existing deterministic engine lifecycle.
+This is compatible with the existing deterministic engine lifecycle recorded by the accepted
+engine audit/crosswalk.
 
 ### 3.2 Per-round-trip quantities
 
@@ -107,36 +116,36 @@ entry_notional_i = sum over OPEN/ADD legs of
 gross_realized_i = sum of CapitalTransition.realized_pnl_change
                    over all REDUCE/CLOSE/FORCED_LIQUIDATION legs
 
-additive_fee_i    = sum of CapitalTransition.required_cost exactly once
+additive_fee_i    = sum of one authoritative charged/required-cost source exactly once
                    over the round-trip transitions
 
 r_i               = (gross_realized_i - additive_fee_i) / entry_notional_i
 ```
 
-`entry_notional_i` must be positive. A zero/invalid denominator is `DATA_BLOCKED`, not silently
-repaired.
+`entry_notional_i` must be positive. Missing/invalid denominator, cost or contract identity is
+`DATA_BLOCKED`; it is never silently imputed.
 
-**Cost-source guard:** the ledger consumes one authoritative additive-fee source. It must not sum
-both `ExecutionOutcome.total_cost` and capital charged-cost deltas for the same fill.
+**Cost-source guard:** the ledger must not sum both `ExecutionOutcome.total_cost` and
+capital charged-cost deltas for the same fill.
 
-**Slippage is not additive fee.** In the current engine, synthetic slippage changes the fill price
-and is therefore already embedded in `gross_realized_i`. It must never be described as part of the
-post-hoc additive `additive_fee_i` term.
+**Slippage is not additive fee.** In the current engine, synthetic slippage changes fill price and
+is already embedded in `gross_realized_i`. It must not be mislabeled as part of the post-hoc
+additive fee term.
 
 ### 3.3 Primary estimand
 
 ```text
-PRIMARY_ESTIMAND = theta = mean_i(r_i)
+PRIMARY_ESTIMAND = theta = E[sum of net normalized round-trip returns / number of round trips]
+SAMPLE_ESTIMATE  = theta_hat = sum_i(r_i) / N
 ```
 
-Equal weighting is per completed round trip, after each trade is normalized by its own gross entry
-notional. This is a **per-decision quality estimand**: it asks whether taken trades have positive
-net edge after pre-registered base friction. It is not a capital-productivity, annualized-return,
-turnover, opportunity-cost or portfolio-growth estimand. Those may be diagnostics later but do not
-replace the common v1 estimand.
+Equal weighting is per completed round trip after notional normalization. This is a **per-decision
+quality estimand**: it asks whether taken trades have positive net edge after pre-registered base
+friction. It is not a capital-productivity, annualized-return, turnover, opportunity-cost or
+portfolio-growth estimand. Those may be diagnostics later but do not replace common v1.
 
-Zero-trade days are not fabricated as 0% trades. Inactivity is instead represented in the weekly
-inference series in §6.
+Zero-trade days are not fabricated as 0% trades. They enter the time-series inference correctly
+through a zero daily trade count and zero daily return sum in §6.
 
 ---
 
@@ -157,13 +166,12 @@ Boundary rules:
 - a position opened before cohort start is left-censored and excluded from the cohort estimator;
 - a position opened inside the cohort but still open at cohort end is right-censored;
 - **any right-censored in-cohort position makes the cohort `INSUFFICIENT_EVIDENCE`** for that
-  hypothesis under v1, because selecting only completed positions could create outcome-dependent
-  completion bias;
+  hypothesis in v1, because selecting only completed positions can create completion bias;
 - no post-cohort price/outcome may be read merely to finish a cohort trade;
-- no validation/final data may be borrowed backward into an earlier cohort.
+- no Validation/final data may be borrowed backward into an earlier cohort.
 
 This zero-right-censor rule is intentionally strict and has no percentage knob. A future profile
-may adopt a formally justified censoring method, but v1 does not invent one.
+may adopt a formally justified censoring procedure; v1 does not invent one.
 
 ---
 
@@ -179,148 +187,202 @@ span_weeks_i = number of distinct ISO calendar weeks touched by those authoritat
                inclusive
 ```
 
-Report:
+Mandatory structural diagnostics:
 
 ```text
 H_days_median
 H_days_p90
+H_days_max
 span_weeks_p90
+span_weeks_max
 ```
 
-Percentiles use deterministic nearest-rank ordering. Holding horizon is a structural diagnostic;
-it is **not** converted into a guessed effective sample size.
+Percentiles use deterministic nearest-rank ordering. Holding horizon is not converted into a guessed
+ESS and does not select a bootstrap block length. Multi-day positions can induce dependence in the
+daily score process; the self-normalizer in §6 is chosen specifically to avoid pretending that a
+fixed horizon-to-ESS conversion is exact.
 
-For the primary point statistic, the full round-trip return is attributed to the ISO week of the
-**terminal close trading day** (`exit_week`). This is an accounting attribution, not a claim that
-all economic dependence arose in the exit week.
-
-Dependence inference therefore uses a block length tied to observed structural holding span:
-
-```text
-L_weeks = max(1, span_weeks_p90)
-```
-
-This directly replaces the first candidate's `2H-1` ESS heuristic and the `H/5` approximation.
-It uses actual project trading-day/week identity and makes the remaining limitation explicit:
-trades in the longest 10% holding-span tail may exceed the chosen block length. `H_days_max` and
-`span_weeks_max` are mandatory diagnostics so that tail dependence is visible rather than hidden.
+For day/week concentration diagnostics and leave-one-window robustness, the full round-trip `r_i`
+is attributed to the authoritative terminal-close trading day/week. This is an accounting
+attribution, not a claim that all economic dependence arose at exit.
 
 ---
 
-## 6. Dependence-aware uncertainty: weekly influence moving-block bootstrap
+## 6. Dependence-aware inference: complete trading-day score + self-normalization
 
-### 6.1 Weekly influence series
+### 6.1 Complete daily score process
 
-Let `W` be the complete ordered sequence of ISO calendar weeks intersecting the cohort, including
-weeks with zero completed exits. Let `N` be the number of eligible completed round trips.
+Let `D` be the full ordered sequence of authoritative trading days in the evaluated cohort,
+including days with no completed exits.
 
-For each week `w`:
-
-```text
-x_w = (W / N) * sum(r_i for eligible trades whose terminal close is in week w)
-```
-
-Then exactly:
+For each trading day `d`:
 
 ```text
-mean_w(x_w) = mean_i(r_i) = theta_hat
+C_d = number of eligible round trips whose terminal close trading day is d
+S_d = sum(r_i for those eligible round trips)
 ```
 
-This representation preserves the per-trade point estimand while forcing time concentration and
-zero-exit weeks into the uncertainty calculation. Cross-product exits in the same week remain in
-one time cluster rather than being treated as independent products.
-
-### 6.2 Non-circular moving-block bootstrap
-
-Use a standard moving-block bootstrap over the ordered weekly influence series:
-
-1. `theta_hat = mean(x_w)`.
-2. Null-center the weekly series: `y_w = x_w - theta_hat`.
-3. Form every contiguous **non-circular** block of length `L_weeks`.
-4. For each bootstrap replication, draw blocks with replacement, concatenate in draw order, and
-   truncate to exactly `W` weeks.
-5. `delta_b = mean(resampled y_w)` is one null-centered sampling-error draw.
-6. Use a deterministic project seed:
+No-exit trading day:
 
 ```text
-seed = sha256("CSPV1R02|profile_identity|hypothesis_test_id|cohort") -> uint32
+C_d = 0
+S_d = 0
 ```
 
-7. Use `B=49,999` replications. This is an engineering Monte-Carlo budget, not a claim of exact
-   p-value precision. Report `B`, seed and the integer exceedance count.
-
-One-sided positive-edge p-value:
+Then:
 
 ```text
-p_plus = (1 + count(delta_b >= theta_hat)) / (B + 1)
+N = sum_d C_d
+sum_d S_d = sum_i r_i
+theta_hat = sum_d S_d / sum_d C_d
 ```
 
-Basic bootstrap intervals from the same centered error distribution:
+This is a ratio-of-means representation. It preserves the per-trade point estimand without treating
+products as independent samples, while the complete chronological day sequence retains inactivity
+and time clustering.
+
+### 6.2 Score process for testing any candidate theta0
+
+For a candidate value `theta0`, define the scalar daily score:
 
 ```text
-one-sided 95% lower bound: LB95 = theta_hat - q_0.95(delta)
-one-sided 95% upper bound: UB95 = theta_hat - q_0.05(delta)
-two-sided 95% interval:     [theta_hat - q_0.975(delta), theta_hat - q_0.025(delta)]
+Z_d(theta0) = S_d - theta0 * C_d
 ```
 
-Quantiles use one deterministic nearest-rank definition in the eventual machine profile.
+If the ratio estimand equals `theta0` and the long-run mean daily trade count is positive, then the
+population mean of `Z_d(theta0)` is zero. This avoids treating the realized `N` as a fixed design
+quantity inside the time-series variance calculation.
 
-This is an asymptotic dependence-aware procedure, not a finite-sample proof. Targeted independent
-review must specifically attack the weekly influence construction, null centering, p-value and
-interval construction, and `L_weeks=span_weeks_p90` choice before lock.
+For the positive-edge null `H0: theta <= 0`, the boundary test uses `theta0=0`, so:
 
-### 6.3 Minimum support / algorithmic sufficiency floors
+```text
+Z_d(0) = S_d
+```
+
+### 6.3 Scalar self-normalized statistic
+
+For the ordered score series `Z_1,...,Z_D` at a fixed `theta0`:
+
+```text
+Z_bar(theta0) = D^-1 * sum_d Z_d(theta0)
+
+A_t(theta0) = sum_{j=1}^t [Z_j(theta0) - Z_bar(theta0)]
+
+V_D(theta0) = D^-2 * sum_{t=1}^D A_t(theta0)^2
+
+T_SN(theta0) = sqrt(D) * Z_bar(theta0) / sqrt(V_D(theta0))
+```
+
+If `V_D(theta0) <= 0`, non-finite, or numerically degenerate, the result is
+`INSUFFICIENT_EVIDENCE`, not a fabricated infinite t-statistic.
+
+For the simple sample-mean score, the linearization remainder is exactly zero. The required
+statistical assumption is therefore the functional central-limit behavior / weak-dependence
+condition for the daily score process plus positive long-run variance; this is an assumption of the
+inference method, not something the project can certify from a short cohort.
+
+Under the corrected Shao (2010) self-normalization result for the scalar mean case, the limiting
+signed pivotal variable is:
+
+```text
+T_infinity = B(1) / sqrt( integral_0^1 [B(r) - r B(1)]^2 dr )
+```
+
+and `T_infinity^2 = U_1` in the paper's notation. The distribution is symmetric and does not
+contain an estimated long-run variance or user-chosen bandwidth/block length.
+
+### 6.4 Pivotal calibration artifact
+
+Holm needs ordinary per-hypothesis p-values. Before profile lock, the project must create and
+independently verify a **candidate-outcome-free immutable pivotal calibration artifact** for the
+signed `T_infinity` distribution.
+
+The locked artifact must record at least:
+
+```text
+PIVOTAL_LAW = Brownian-motion functional above
+CALIBRATION_GENERATOR_VERSION
+RNG_ALGORITHM_AND_VERSION
+SEED
+BROWNIAN_GRID_RESOLUTION
+MONTE_CARLO_REPLICATIONS
+EMPIRICAL_CDF / TAIL LOOKUP REPRESENTATION
+MONTE_CARLO_ERROR_POLICY
+SHA256
+```
+
+For observed `T_SN(0)`:
+
+```text
+p_plus = P(T_infinity >= T_SN(0))
+```
+
+computed only from the locked calibration artifact. Runtime must not regenerate a different
+calibration or tune simulation settings per hypothesis.
+
+Two-sided and one-sided confidence bounds for `theta` are obtained by deterministic inversion of
+`T_SN(theta0)` against the same locked signed-pivotal CDF. Because `V_D(theta0)` changes with
+`theta0`, bounds are solved numerically by a deterministic bracket/root rule that is also part of
+the eventual machine profile identity.
+
+`candidate-0.3` does **not** pretend the calibration artifact already exists. Its exact numerical
+generation/error policy is a pre-lock statistical implementation detail that the targeted
+independent review must approve before profile lock.
+
+### 6.5 Minimum support / algorithmic floors
 
 All must hold before a cohort may return a statistical `PASS` or evidence-based `FAIL`:
 
 ```text
 S1  N_completed_round_trips >= 20
 S2  distinct_active_exit_weeks >= 6
-S3  W_calendar_weeks >= 4 * L_weeks
-S4  right_censored_in_cohort_positions == 0
-S5  bootstrap_error_distribution is finite and non-degenerate
+S3  right_censored_in_cohort_positions == 0
+S4  V_D(0) is finite and strictly positive
+S5  locked pivotal calibration artifact is present and identity-matched
 ```
 
-Failure of S1-S5 => `INSUFFICIENT_EVIDENCE`, not `FAIL`.
+Failure of S1-S5 => `INSUFFICIENT_EVIDENCE` except a missing/mismatched required governed artifact,
+which is `DATA_BLOCKED` when the missing object is infrastructure/data authority rather than sample
+support.
 
-**Interpretation of 20 / 6 / 4:** these are deliberately small v1 governance/algorithmic support
-floors to prevent a handful of observations or fewer than several dependence-length blocks from
-being packaged as strong evidence. They are **not CLT thresholds, not power guarantees, and not
-claims that 20 trades or 6 weeks are statistically sufficient in general**. Detectability is
-handled by the actual resampled uncertainty and the capacity envelope in §7. These three numbers
-remain candidate choices until the targeted delta review accepts or replaces them.
+**Interpretation of 20 / 6:** these are deliberately small v1 governance support floors intended to
+prevent a handful of completed observations or a few isolated weeks from being packaged as strong
+evidence. They are **not CLT thresholds, power guarantees, or claims of general statistical
+sufficiency**. They remain candidate choices until targeted review accepts/removes/replaces them.
+Actual uncertainty comes from the daily score path and self-normalization; detectability is reported
+separately in §7.
 
-No fixed `D_days`, count-concentration percentage, `open_ratio`, or ESS threshold survives from the
-first candidate.
+No fixed distinct-day minimum, count-concentration percentage, open-ratio percentage, ESS threshold
+or block-count threshold survives from the first candidate.
 
 ---
 
-## 7. Detectability / power capacity — separate from economic materiality
+## 7. Detectability / capacity — separate from economic materiality
 
 ### 7.1 Economic materiality
 
-For common v1, economic materiality is defined narrowly and audibly:
+For common v1, economic materiality is defined narrowly:
 
-> **positive expected net per-round-trip return after the exact pre-registered base execution
-> costs and slippage.**
+> **positive expected net per-round-trip return after the exact pre-registered base execution costs
+> and slippage.**
 
-There is no extra universal `2 bp` floor in the revised candidate. A tiny positive edge is not
-accepted merely because its point estimate is positive; it must survive dependence-aware inference,
-whole-wave multiplicity, and the robustness guards in §9. Economic magnitude in bp/trade and
-break-even cost margin are always reported.
+There is no extra universal `2 bp` floor in this revision. A tiny positive point estimate cannot
+pass merely by being positive; it must survive the dependence-aware test, whole-wave multiplicity
+and robustness guards. Economic magnitude in bp/trade and break-even cost margins are mandatory
+reports.
 
-### 7.2 No-outcome standardized capacity envelope
+### 7.2 No-outcome standardized planning envelope
 
-Before any candidate outcome is inspected, the project can state an **optimistic IID normal
-approximation** for planning only:
+Before candidate outcomes, an **optimistic IID normal approximation** can be published for capacity
+planning only:
 
 ```text
-MDE_80 / sigma ~= [ z_(1 - 0.05/M) + z_0.80 ] / sqrt(N)
+MDE_80 / sigma ~= [z_(1 - 0.05/M) + z_0.80] / sqrt(N)
 ```
 
-where `M` is the locked Research Wave hypothesis count. This uses the most stringent first Holm
-threshold `0.05/M`, ignores time dependence, and therefore is an optimistic lower-bound style
-planning diagnostic rather than the acceptance test.
+where `M` is the locked Research Wave hypothesis count. It uses the most stringent first Holm
+threshold `0.05/M` and ignores serial dependence, time clustering, censoring and robustness guards;
+it therefore describes an optimistic planning envelope, not the acceptance test.
 
 | N | M=1 | M=5 | M=20 |
 | ---: | ---: | ---: | ---: |
@@ -330,17 +392,16 @@ planning diagnostic rather than the acceptance test.
 | 120 | 0.227 sigma | 0.289 sigma | 0.333 sigma |
 | 240 | 0.161 sigma | 0.204 sigma | 0.236 sigma |
 
-The table intentionally uses **standardized effect / sigma**, not invented project volatility
-values. Real block dependence, sparse weeks and robustness constraints can only make detection
-harder.
+The table intentionally uses standardized effect / sigma, not invented project volatility values.
+Real dependence can make detection harder.
 
 Consequences:
 
-- `INSUFFICIENT_EVIDENCE` means the governed evidence/profile cannot resolve the required claim;
-  it never means "edge proven absent";
-- a large Research Wave can materially reduce power before any outcomes are seen;
-- if a planned wave has obviously unacceptable capacity, redesign must occur **before** outcome
-  exposure; outcomes may never be used to tune this profile or its thresholds.
+- `INSUFFICIENT_EVIDENCE` means the governed cohort/profile cannot resolve the claim; it never
+  means edge proven absent;
+- larger Research Waves reduce capacity before any outcomes are seen;
+- if a planned wave has obviously inadequate capacity, redesign must occur **before** outcome
+  exposure; candidate outcomes may never tune this profile or its thresholds.
 
 ---
 
@@ -354,22 +415,21 @@ FAMILY = all outcome-registered hypothesis_test_id values in one locked RESEARCH
 DECISION_TARGET = individual playbook/hypothesis acceptance, not merely "at least one winner"
 ```
 
-### 8.2 v1 method: Holm step-down
+### 8.2 v1 candidate method: Holm step-down
 
-The revised candidate keeps **Holm step-down** as the v1 candidate method because it:
+`candidate-0.3` keeps **Holm step-down** as the v1 candidate because it:
 
-- strongly controls FWER without requiring independence among hypotheses;
-- is deterministic and easy to audit;
-- consumes ordinary per-hypothesis p-values;
-- does not require a joint cross-hypothesis resampling implementation before the project has
-  evidence that the extra complexity is necessary.
+- strongly controls FWER without requiring independent hypothesis tests;
+- is deterministic and auditable once ordinary p-values exist;
+- avoids a joint cross-hypothesis resampling implementation before the project has evidence that
+  the extra complexity is worth it.
 
-Holm is still **not locked** until targeted review passes.
+Holm is still **not locked** until targeted independent review passes.
 
-Corrected Romano-Wolf statement: Romano-Wolf stepdown is a valid resampling-based multiple-testing
-approach for a family of hypotheses and can exploit dependence among test statistics; it is not
-limited to argmax/best-of reporting. It may be more powerful than Holm for correlated hypotheses.
-It remains a future refinement candidate, not a current v1 requirement.
+Corrected Romano-Wolf statement: Romano-Wolf stepdown is a resampling-based multiple-testing method
+for a family of hypotheses that can exploit dependence among test statistics while controlling
+FWER; it is not limited to argmax/best-of reporting. It may be more powerful than Holm for strongly
+correlated hypotheses. It remains a future refinement candidate, not a current v1 requirement.
 
 ### 8.3 Machine-consistent counting taxonomy
 
@@ -387,15 +447,14 @@ Count separately:
 
 - each PRIMARY branch outcome test;
 - each outcome-tested alternative interpretation;
-- each instrument/timeframe/context variant if it is outcome-tested and can be separately
-  accepted/rejected;
+- each instrument/timeframe/context variant if outcome-tested and separately decidable;
 - each parameterization whose candidate outcome is inspected separately.
 
-A parameter grid/search is **not** laundering-safe merely because it has one
-`parameter_search_identity`. For v1 simplicity, if candidate outcomes for multiple parameter points
-are inspected, each inspected point must be represented by a counted hypothesis unless a separate
-pre-registered within-search max-statistic correction is explicitly designed and identity-bound.
-No such within-grid correction is part of v1.
+A parameter grid/search is **not** laundering-safe merely because it shares one
+`parameter_search_identity`. For v1 simplicity, if multiple parameter-point candidate outcomes are
+inspected, each inspected point must be represented by a counted hypothesis unless a separate
+pre-registered within-search max-statistic/multiple-testing correction is designed and
+identity-bound. No such within-grid correction is part of v1.
 
 Do not count:
 
@@ -403,7 +462,7 @@ Do not count:
 - nuisance code refactors proven outcome-equivalent under the same frozen artifact identity.
 
 Any outcome-informed new branch/scope/parameterization after first look is a new wave/search event
-under the frozen protocol. `FAIL`, `INSUFFICIENT_EVIDENCE` and `DATA_BLOCKED` registrations remain
+under frozen Protocol v1.0. `FAIL`, `INSUFFICIENT_EVIDENCE` and `DATA_BLOCKED` registrations remain
 in the immutable wave denominator.
 
 ---
@@ -425,14 +484,14 @@ final-quality until TD-002 is repaired and a multi-day portfolio/equity path exi
 
 ### 9.2 One-event / one-window edge fragility
 
-A hypothesis may not `PASS` if its positive mean changes sign when one event or one exit week is
-removed.
+A hypothesis may not `PASS` if its positive sample mean changes sign when one event or one exit week
+is removed.
 
 Compute:
 
 ```text
-LOTO_MIN_MEAN = minimum mean(r) after deleting each single trade once
-LOWO_MIN_MEAN = minimum mean(r) after deleting each active exit week once
+LOTO_MIN_MEAN = minimum mean(r) after deleting each single round trip once
+LOWO_MIN_MEAN = minimum mean(r) after deleting each active terminal-close ISO week once
 ```
 
 For `PASS`:
@@ -442,13 +501,13 @@ LOTO_MIN_MEAN > 0
 LOWO_MIN_MEAN > 0
 ```
 
-If the statistical positive-edge test would otherwise pass but either robustness condition fails,
-return `INSUFFICIENT_EVIDENCE`, not `FAIL`: the evidence is too concentrated to resolve a durable
-positive-edge claim.
+If the multiplicity-adjusted positive-edge test would otherwise pass but either robustness
+condition fails, return `INSUFFICIENT_EVIDENCE`, not `FAIL`: the available evidence is too
+concentrated to resolve a durable positive-edge claim.
 
 This replaces the first candidate's arbitrary 40% single-trade PnL concentration threshold and the
-reviewer's proposed but unaccepted time-window percentage threshold. It has no tuned concentration
-percentage.
+prior reviewer's proposed-but-unaccepted time-window percentage threshold. It has no tuned
+concentration percentage.
 
 ---
 
@@ -457,21 +516,21 @@ percentage.
 ### 10.1 Base acceptance path
 
 Every outcome evaluation uses the exact pre-registered execution/capital/offset-cost assumption
-identities. Base net return already includes:
+identities. Base net return includes:
 
 - additive fees/offset costs through `additive_fee_i`;
-- slippage through the executed fill prices embedded in `gross_realized_i`.
+- slippage through executed fill prices embedded in `gross_realized_i`.
 
 Changing base fee/slippage assumptions after outcome exposure creates a new outcome-affecting
 artifact/search event under existing frozen rules.
 
 ### 10.2 No universal `2x friction` hard gate
 
-The revised candidate removes the universal `2x cost` hard gate because additive fees and slippage
-are structurally different and the first candidate had no measurement basis for treating fee
-doubling as universal friction doubling.
+This revision removes the universal `2x cost` hard gate because additive fees and slippage are
+structurally different and no measurement basis justified treating fee doubling as universal
+friction doubling.
 
-Mandatory economic diagnostics instead include:
+Mandatory diagnostics:
 
 ```text
 gross_return_mean = mean(gross_realized_i / entry_notional_i)
@@ -479,24 +538,24 @@ fee_return_mean   = mean(additive_fee_i / entry_notional_i)
 net_return_mean   = gross_return_mean - fee_return_mean
 ```
 
-If `fee_return_mean > 0`, report the analytic additive-fee break-even multiplier:
+If `fee_return_mean > 0`, report:
 
 ```text
 fee_break_even_multiplier = gross_return_mean / fee_return_mean
 ```
 
-This is a diagnostic margin, not a hard threshold.
+This is an economic-margin diagnostic, not a hard pass threshold.
 
 Any slippage stress must be a separately identity-bound execution rerun because slippage changes
-fill prices and can change fill eligibility/trade count. It cannot be emulated by multiplying the
-additive fee term. Such sensitivity runs are diagnostic unless a future pre-outcome profile version
-explicitly makes one a hard gate.
+fill prices and can alter fills/trade count. It cannot be emulated by multiplying additive fees.
+Such sensitivity runs are diagnostics unless a future pre-outcome profile version explicitly makes
+one a hard gate.
 
 ---
 
 ## 11. Decision states and fixed decision order
 
-The evaluator uses the following ordered states:
+The evaluator uses:
 
 ```text
 DATA_BLOCKED
@@ -509,19 +568,18 @@ PASS
 ### Step 0 — DATA / ENGINE GOVERNANCE
 
 Return `DATA_BLOCKED` before statistical evaluation if a required governed fact or trusted engine
-primitive is unavailable. Current concrete examples:
+primitive is unavailable. Current examples:
 
 - LIMIT-001 blocks affected real confirmatory execution when required historical price-limit facts
   are missing;
-- wrong/non-authoritative trading-day semantics are not silently substituted for
-  `SessionMetadata`;
-- invalid/missing round-trip denominator/cost/contract identity cannot be guessed.
+- wrong/non-authoritative trading-day semantics are not substituted for `SessionMetadata`;
+- invalid/missing round-trip denominator/cost/contract identity is not guessed;
+- required locked pivotal-calibration identity is missing/mismatched.
 
-`DATA_BLOCKED` is not evidence against the playbook and remains in the pre-registered wave
-accounting.
+`DATA_BLOCKED` is not evidence against the playbook and remains in Research Wave accounting.
 
 TD-002 does **not** block the revised primary trade-level estimand because final realized round-trip
-PnL is not polluted; it does block any final-quality diagnostic that depends on the corrupted
+PnL is not polluted; it does block final-quality diagnostics that depend on the corrupted
 partial-close equity/unrealized path.
 
 ### Step 1 — INTEGRITY
@@ -531,7 +589,7 @@ Any frozen chronology/exposure/PRIMARY/scope/search/wave/profile identity violat
 
 ### Step 2 — MINIMUM SUPPORT / CENSORING
 
-Any S1-S5 failure from §6.3 -> `INSUFFICIENT_EVIDENCE`.
+Any sample-support S1-S4 failure from §6.5 -> `INSUFFICIENT_EVIDENCE`.
 
 ### Step 3 — MANDATORY RISK
 
@@ -539,35 +597,37 @@ Any R1 forced-liquidation/maintenance breach -> `FAIL`.
 
 ### Step 4 — POSITIVE-EDGE INFERENCE
 
-Compute each hypothesis `p_plus`, then apply Holm over the complete locked wave.
+For every hypothesis, compute raw one-sided `p_plus` from the locked signed-SN pivotal calibration;
+then apply Holm across the complete locked wave.
 
 If Holm rejects `H0: theta <= 0`, continue to Step 5.
 
 If Holm does not reject:
 
-- if the one-sided 95% upper bound `UB95 <= 0`, return `FAIL` (evidence supports non-positive
-  mean net edge under the common estimand);
+- if the unadjusted one-sided 95% upper confidence bound for `theta` is `<=0`, return `FAIL`
+  (the cohort provides evidence for non-positive mean net edge under this estimand);
 - otherwise return `INSUFFICIENT_EVIDENCE` (the cohort/profile cannot resolve the sign).
 
-This is the central semantic correction from the first candidate: **failure to prove positive edge
-is not automatically evidence of no edge.**
+Failure to prove positive edge is therefore **not automatically FAIL**.
 
 ### Step 5 — CONCENTRATION ROBUSTNESS
 
 If `LOTO_MIN_MEAN <= 0` or `LOWO_MIN_MEAN <= 0` -> `INSUFFICIENT_EVIDENCE`.
 
-Otherwise -> `PASS` for the statistical common contract of that cohort.
+Otherwise -> `PASS` for the common statistical contract of that cohort.
 
 Mandatory reporting for any evaluated hypothesis:
 
 - `theta_hat` in raw return and bp/trade;
-- one-sided LB95 / UB95 and two-sided 95% interval;
+- self-normalized one-sided lower/upper bounds and two-sided 95% interval;
 - raw `p_plus`, Holm rank/threshold/adjusted result;
-- `N`, active exit weeks, `L_weeks`, holding-span diagnostics;
+- `N`, active exit days/weeks, all cohort trading days;
+- holding-horizon/span diagnostics;
 - right-censored count;
 - LOTO/LOWO minima;
 - forced-liquidation/margin-breach facts;
 - gross/fee/net return means and fee break-even multiplier;
+- pivotal calibration identity;
 - full wave denominator `M` and every registered terminal/disposition state.
 
 ---
@@ -606,16 +666,17 @@ After acceptance, the ordinary engineering package should provide:
 
 1. deterministic round-trip ledger keyed by `position_id`;
 2. exact entry-notional/gross-realized/additive-fee attribution with one cost source;
-3. `SessionMetadata`-only holding-day/week helpers and TD-001 isolation;
+3. `SessionMetadata`-only cohort trading-day sequence and TD-001 isolation;
 4. cohort boundary/censoring classification;
-5. weekly influence-series materialization;
-6. deterministic non-circular moving-block bootstrap + seed/quantile implementation;
-7. Holm step-down over the locked `hypothesis_test_id` denominator;
-8. LOTO/LOWO robustness calculations;
-9. `DATA_BLOCKED / INTEGRITY_FAIL / INSUFFICIENT_EVIDENCE / FAIL / PASS` evaluator;
-10. canonical machine-readable profile document whose exact content hash is bound into
+5. daily `(S_d,C_d)` score materialization including zero-exit trading days;
+6. deterministic self-normalized statistic + confidence-bound inversion;
+7. immutable signed-pivotal calibration artifact + generator/evidence + identity binding;
+8. Holm step-down over locked `hypothesis_test_id` denominator;
+9. LOTO/LOWO robustness calculations;
+10. `DATA_BLOCKED / INTEGRITY_FAIL / INSUFFICIENT_EVIDENCE / FAIL / PASS` evaluator;
+11. canonical machine-readable profile whose exact content/calibration hashes bind into
     `CommonStatisticalProfile.profile_identity`;
-11. synthetic/non-candidate tests only until a real profile is locked and the pre-outcome gate
+12. synthetic/non-candidate tests only until a real profile is locked and the pre-outcome gate
     authorizes candidate DEVELOPMENT outcomes.
 
 LIMIT-001 governed historical price-limit facts remain a separate data/governance prerequisite for
@@ -626,52 +687,77 @@ No new statistics framework or external runtime dependency is required by this c
 
 ---
 
-## 14. Primary statistical references and exact claims
+## 14. Statistical references and exact claims
 
-- **Künsch (1989), The Annals of Statistics 17(3), 1217–1241, DOI
-  `10.1214/aos/1176347265`** — foundational block-bootstrap treatment for dependent stationary
-  observations. Supports contiguous-block resampling as a dependence-aware approach; does not
-  prescribe this project's weekly representation or block length.
-- **Politis & Romano (1992), A Circular Block-Resampling Procedure for Stationary Data** — supports
-  block resampling for stationary dependent data and the circular variant. This revision deliberately
-  uses **non-circular** blocks to avoid joining the frozen cohort's first and last weeks.
-- **Holm (1979), Scandinavian Journal of Statistics 6(2), 65–70** — sequentially rejective
-  multiple testing with family-wise type-I error protection. Supports the simple v1 whole-wave FWER
-  method; does not solve power limitations.
-- **Romano & Wolf (2005), Econometrica 73(4), 1237–1282, DOI
-  `10.1111/j.1468-0262.2005.00615.x`** — stepwise multiple testing with FWER control that can use
-  the joint dependence structure and is not limited to argmax/best-of reporting. Supports correcting
-  the first candidate's description and retaining Romano-Wolf as a potential more-powerful future
-  refinement.
-- **Lahiri (2003), Resampling Methods for Dependent Data, Springer** — general reference for
-  bootstrap/resampling under dependent observations; does not make the small 24-month project sample
-  magically large or validate any project-specific threshold.
+### Shao 2010 + corrigendum
 
-References justify method families, not project-specific numeric choices. The targeted delta review
-must still decide whether the v1 weekly influence/bootstrap construction and small support floors are
-acceptable for this project.
+Xiaofeng Shao, **A Self-Normalized Approach to Confidence Interval Construction in Time Series**,
+*Journal of the Royal Statistical Society Series B* 72(3), 343–366, DOI
+`10.1111/j.1467-9868.2009.00737.x`; corrigendum 72(5), 695–696, DOI
+`10.1111/j.1467-9868.2010.00754.x`.
+
+Relevant claim: the method forms a random normalization from recursive/cumulative estimates and
+obtains an asymptotically pivotal limit without direct long-run-variance estimation or a chosen
+bandwidth. In the scalar sample-mean case the normalizer reduces to the cumulative-demeaned-sum
+formula used in §6. The corrigendum strengthens the remainder condition needed for the general
+theorem. In this revision's direct sample-mean score application the linearization remainder is
+zero, but the functional-CLT/weak-dependence and positive-long-run-variance assumptions still
+matter.
+
+This reference does **not** prove that the project's six-month score process is stationary, that
+finite-sample size is exact, or that the candidate support floors are correct.
+
+### Holm 1979
+
+Sture Holm, **A Simple Sequentially Rejective Multiple Test Procedure**, *Scandinavian Journal of
+Statistics* 6(2), 65–70.
+
+Supports the simple sequentially rejective FWER procedure without an independence requirement among
+hypotheses. It does not solve power limitations.
+
+### Romano & Wolf 2005
+
+Joseph P. Romano and Michael Wolf, **Stepwise Multiple Testing as Formalized Data Snooping**,
+*Econometrica* 73(4), 1237–1282, DOI `10.1111/j.1468-0262.2005.00615.x`.
+
+Supports the correction that resampling stepdown applies to a family of hypotheses and can exploit
+joint dependence; it is not argmax-only. This revision does not adopt Romano-Wolf.
+
+### Block-bootstrap literature retained as rejected-alternative context
+
+Künsch (1989) and Politis/Romano block-resampling work remain relevant references for dependent
+resampling, but `candidate-0.3` does not use block bootstrap because its block-length choice was an
+avoidable free knob in this short-cohort setting and the synthetic-only smoke test did not justify
+the drafted weekly MBB path.
+
+References justify method families, not project-specific numerical support floors.
 
 ---
 
 ## 15. Targeted-delta review questions
 
-The next independent reviewer should focus only on the materially changed definitions:
+The next independent reviewer should focus only on materially changed definitions:
 
-1. Is `x_w=(W/N)*sum(exit-week r_i)` a defensible way to retain the per-trade estimand while
-   putting inactivity/time clustering into inference?
-2. Is null-centered non-circular moving-block bootstrap as specified a valid enough v1 test/CI path,
-   or is a studentized/restricted alternative necessary?
-3. Is `L_weeks=span_weeks_p90` defensible, and is `W>=4L` enough/too much/too little?
-4. Are the minimal `N>=20` and six-active-week floors acceptable as explicit governance floors, or
-   should one/both be removed/replaced?
-5. Does zero right-censoring avoid more bias than it creates for multi-day playbooks?
-6. Is the three-way evidence interpretation correct: positive evidence -> PASS, sufficiently
-   negative evidence -> FAIL, unresolved sign -> INSUFFICIENT_EVIDENCE?
-7. Does LOTO/LOWO sign robustness adequately replace arbitrary concentration percentages for v1?
-8. Is removing both the 2 bp universal floor and the universal 2x hard cost gate defensible given
-   that base returns are already net of pre-registered realistic execution friction?
-9. Is the v1 counting taxonomy sufficiently conservative against parameter-grid/search laundering?
-10. Is Holm the correct simplest v1 choice given the corrected Romano-Wolf interpretation?
+1. Is the ratio estimand represented correctly by the complete daily `(S_d,C_d)` process?
+2. Is testing `Z_d(theta0)=S_d-theta0*C_d` with scalar self-normalization a valid enough v1 path
+   for the expected weak-dependence conditions, including the 2010 corrigendum?
+3. Does the candidate overclaim stationarity/FCLT plausibility for a six-month futures score
+   process, and what fail-closed/diagnostic boundary is needed if not?
+4. Is the signed pivotal calibration/p-value approach statistically and numerically defensible,
+   and what Monte-Carlo error policy must be frozen?
+5. Are `N>=20` and six active exit weeks acceptable as explicit support floors, or should one/both
+   be removed/replaced?
+6. Does zero right-censoring avoid more bias than it creates for multi-day playbooks?
+7. Is the evidence interpretation sound: positive multiplicity-adjusted evidence -> candidate
+   PASS; sufficiently negative evidence -> FAIL; unresolved sign -> INSUFFICIENT_EVIDENCE?
+8. Does LOTO/LOWO sign robustness adequately replace arbitrary concentration percentages for v1?
+9. Is removing both the extra 2 bp universal floor and universal 2x hard-cost gate defensible when
+   base outcomes are already net of identity-bound execution friction?
+10. Is the v1 parameter/search counting taxonomy conservative enough against grid/search
+    laundering?
+11. Is Holm the correct simplest v1 choice given the corrected Romano-Wolf interpretation?
+12. Do synthetic size/pathology tests reveal a failure mode large enough to reject self-normalized
+    v1 before any candidate outcome access?
 
 The reviewer must not treat the prior reviewer's `RECOMMENDED_SIMPLIFIED_V1` as authority and must
 not inspect candidate outcomes.
@@ -685,6 +771,8 @@ COMMON_STATISTICAL_PROFILE_V1=REVISION_CANDIDATE_NOT_LOCKED
 PROFILE_DIRECTION=KEEP
 ADJUDICATED_CRITICALS_ADDRESSED_IN_DESIGN=YES
 ADJUDICATED_HIGHS_ADDRESSED_IN_DESIGN=YES
+WEEKLY_MBB_DRAFT=REJECTED_PRE_OUTCOME_AFTER_SYNTHETIC_SMOKE_TEST
+CURRENT_INFERENCE_CANDIDATE=DAILY_SCORE_SELF_NORMALIZATION
 NO_CANDIDATE_OUTCOME_DATA_USED=YES
 FROZEN_PROTOCOL_CONFLICT=NO
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
@@ -693,6 +781,5 @@ HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 NEXT_STAGE=TARGETED_INDEPENDENT_DELTA_REVIEW
 ```
 
-This document is not project acceptance and does not lock a statistical profile. It is the bounded
-revision candidate that now requires independent targeted review before any lock/implementation
-acceptance decision.
+This document is not project acceptance and does not lock a statistical profile. It now requires a
+bounded independent targeted review before any lock or evaluator-implementation acceptance decision.
