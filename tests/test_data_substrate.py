@@ -35,6 +35,21 @@ class DataSubstrateTests(unittest.TestCase):
     def test_night_session_has_explicit_next_trading_day(self):
         self.assertEqual(self.metadata.trading_day_at("SHFE", "AD", at(21, 30, date(2025, 6, 13))), DAY)
 
+    def test_trading_week_uses_official_trading_day_identity(self):
+        # Night session on Friday 2025-06-13 21:30 opens for Monday 2025-06-16
+        # (ISO week 25); the civil Friday is ISO week 24.  Weekly attribution
+        # must follow the official trading-day identity.
+        self.assertEqual(
+            self.metadata.trading_week_at("SHFE", "AD", at(21, 30, date(2025, 6, 13))),
+            (2025, 25),
+        )
+        self.assertEqual(
+            self.metadata.trading_week_at("SHFE", "AD", at(0, 30, date(2025, 6, 14))),
+            (2025, 25),
+        )
+        self.assertEqual(self.metadata.trading_week_at("SHFE", "AD", at(9, 5)), (2025, 25))
+        self.assertIsNone(self.metadata.trading_week_at("SHFE", "AD", at(10, 0, date(2025, 6, 14))))
+
     def test_scheduled_recess_is_not_reported_as_gap(self):
         observed = [at(9, 0), at(9, 5), at(10, 30), at(10, 35)]
         self.assertEqual(self.day_metadata.missing_bar_starts("SHFE", "AD", DAY, FIVE_MINUTES, observed), ())

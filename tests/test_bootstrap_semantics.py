@@ -12,6 +12,7 @@ from src.bootstrap_semantics import (
     TradingSession,
     TradingState,
 )
+from src.data_substrate import SessionMetadata, SessionWindow
 
 CN = ZoneInfo("Asia/Shanghai")
 
@@ -47,6 +48,107 @@ class SessionSemanticsTests(unittest.TestCase):
         self.assertIsNone(
             self.calendar.trading_day_at("SHFE", "AD", datetime(2025, 6, 14, 10, 0, tzinfo=CN))
         )
+
+
+class TradingDayAuthorityTests(unittest.TestCase):
+    """TD-001: one timestamp maps to exactly one official trading day/week.
+
+    The bootstrap feasibility calendar must delegate trading-day and weekly
+    attribution to the authoritative ``SessionMetadata`` semantics, so no
+    second, competing trading-day algorithm exists anywhere in the trusted
+    path.
+    """
+
+    def setUp(self):
+        td = date(2025, 6, 16)  # Monday trading day fixture
+        sessions = [
+            TradingSession("SHFE", "AD", td, datetime(2025, 6, 13, 21, 0, tzinfo=CN), datetime(2025, 6, 14, 1, 0, tzinfo=CN), "continuous"),
+            TradingSession("SHFE", "AD", td, datetime(2025, 6, 16, 9, 0, tzinfo=CN), datetime(2025, 6, 16, 10, 15, tzinfo=CN), "day"),
+            TradingSession("SHFE", "AD", td, datetime(2025, 6, 16, 10, 30, tzinfo=CN), datetime(2025, 6, 16, 11, 30, tzinfo=CN), "day"),
+            TradingSession("SHFE", "AD", td, datetime(2025, 6, 16, 13, 30, tzinfo=CN), datetime(2025, 6, 16, 15, 0, tzinfo=CN), "day"),
+        ]
+        self.calendar = NormalizedSessionCalendar(sessions)
+        # The same session facts expressed directly through the authoritative
+        # SessionMetadata, used to prove there is no second truth source.
+        self.authoritative = SessionMetadata(
+            "bootstrap-feasibility-fixture-v1",
+            [
+                SessionWindow("SHFE", "AD", td, datetime(2025, 6, 13, 21, 0, tzinfo=CN), datetime(2025, 6, 14, 1, 0, tzinfo=CN), "continuous"),
+                SessionWindow("SHFE", "AD", td, datetime(2025, 6, 16, 9, 0, tzinfo=CN), datetime(2025, 6, 16, 10, 15, tzinfo=CN), "day"),
+                SessionWindow("SHFE", "AD", td, datetime(2025, 6, 16, 10, 30, tzinfo=CN), datetime(2025, 6, 16, 11, 30, tzinfo=CN), "day"),
+                SessionWindow("SHFE", "AD", td, datetime(2025, 6, 16, 13, 30, tzinfo=CN), datetime(2025, 6, 16, 15, 0, tzinfo=CN), "day"),
+            ],
+        )
+
+    def test_normal_daytime_session_maps_to_its_own_trading_day(self):
+        self.assertEqual(
+            self.calendar.trading_day_at("SHFE", "AD", datetime(2025, 6, 16, 9, 30, tzinfo=CN)),
+            date(2025, 6, 16),
+        )
+
+    def test_night_session_crossing_civil_midnight_is_deterministic(self):
+        # 21:30 civil Friday and 00:30 civil Saturday both belong to the
+        # official trading day Monday 2025-06-16, never to their civil dates.
+        self.assertEqual(
+            self.calendar.trading_day_at("SHFE", "AD", datetime(2025, 6, 13, 21, 30, tzinfo=CN)),
+            date(2025, 6, 16),
+        )
+        self.assertEqual(
+            self.calendar.trading_day_at("SHFE", "AD", datetime(2025, 6, 14, 0, 30, tzinfo=CN)),
+            date(2025, 6, 16),
+        )
+
+    def test_transition_into_official_next_trading_day_is_deterministic(self):
+        # The night window ends at 01:00 civil Saturday (end-exclusive), so at
+        # 01:00 the timestamp no longer maps to the night session and no other
+        # window claims the civil date.
+        self.assertEqual(
+            self.calendar.trading_day_at("SHFE", "AD", datetime(2025, 6, 13, 23, 59, tzinfo=CN)),
+            date(2025, 6, 16),
+        )
+        self.assertIsNone(
+            self.calendar.trading_day_at("SHFE", "AD", datetime(2025, 6, 14, 1, 0, tzinfo=CN))
+        )
+        self.assertIsNone(
+            self.calendar.trading_day_at("SHFE", "AD", datetime(2025, 6, 14, 10, 0, tzinfo=CN))
+        )
+
+    def test_week_attribution_uses_official_trading_day_identity(self):
+        # Civil Friday 2025-06-13 is ISO week 24, but the night session opens
+        # for Monday 2025-06-16 (ISO week 25).  Weekly attribution must follow
+        # the official trading-day identity, so it is week 25 everywhere.
+        self.assertEqual(
+            self.calendar.trading_week_at("SHFE", "AD", datetime(2025, 6, 13, 21, 30, tzinfo=CN)),
+            (2025, 25),
+        )
+        self.assertEqual(
+            self.calendar.trading_week_at("SHFE", "AD", datetime(2025, 6, 14, 0, 30, tzinfo=CN)),
+            (2025, 25),
+        )
+        self.assertEqual(
+            self.calendar.trading_week_at("SHFE", "AD", datetime(2025, 6, 16, 9, 30, tzinfo=CN)),
+            (2025, 25),
+        )
+        self.assertIsNone(
+            self.calendar.trading_week_at("SHFE", "AD", datetime(2025, 6, 14, 10, 0, tzinfo=CN))
+        )
+
+    def test_same_event_receives_same_trading_day_everywhere(self):
+        timestamps = (
+            datetime(2025, 6, 13, 21, 30, tzinfo=CN),
+            datetime(2025, 6, 14, 0, 30, tzinfo=CN),
+            datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            datetime(2025, 6, 16, 14, 0, tzinfo=CN),
+        )
+        for ts in timestamps:
+            with self.subTest(ts=ts):
+                fixture_day = self.calendar.trading_day_at("SHFE", "AD", ts)
+                authority_day = self.authoritative.trading_day_at("SHFE", "AD", ts)
+                self.assertEqual(fixture_day, authority_day)
+                self.assertEqual(
+                    self.calendar.trading_week_at("SHFE", "AD", ts),
+                    self.authoritative.trading_week_at("SHFE", "AD", ts),
+                )
 
 
 class BrokerEventSemanticsTests(unittest.TestCase):
