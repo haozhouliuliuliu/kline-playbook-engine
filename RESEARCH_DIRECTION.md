@@ -29,8 +29,8 @@ the project should learn from mature, attributable human trading logic, make tha
 explicit and testable, and determine when a playbook does or does not fit the market.
 
 The primary research engine is therefore **not** an unconstrained search over indicators,
-rule combinations, or parameter grids whose objective is to discover the best historical
-equity curve.
+rule combinations, chart/K-line patterns, or parameter grids whose objective is to discover
+the best historical equity curve.
 
 ## 2. Candidate knowledge sources
 
@@ -115,7 +115,7 @@ support it.
 The following is **not** the project's default strategy-discovery route:
 
 ```text
-large indicator/rule/parameter universe
+large indicator/rule/K-line-pattern/parameter universe
 -> brute-force or automated search
 -> rank by historical PnL/Sharpe/etc.
 -> report the best survivor as the strategy
@@ -125,6 +125,17 @@ Bounded parameterization, robustness checks, feature interpretation, and control
 may be used when they are necessary to formalize or test an already identified playbook.
 They must remain evidence-governed, recorded as search freedom, and must not silently turn
 back into unrestricted strategy mining.
+
+### Anti-regression interpretation guard
+
+This section is a binding interpretation guard for later conversations and implementation work:
+
+- Generic language in `ARCHITECTURE_BASELINE.md` such as "AI may find candidate ideas" does **not** re-authorize data-first automatic K-line/chart-pattern/indicator discovery. This Owner-approved Human Playbook First direction specializes that broader architecture language.
+- The existence of normalized OHLCV/bar data does not create authority to mine shapes, indicators, rules, or parameter combinations first and then retrofit a human narrative afterward.
+- `MVP does not require automatic pattern discovery` in the architecture baseline must not be interpreted as "automatic pattern discovery is an equally authorized current route". It is not the current research route.
+- Tool availability, model capability, API quota, implementation convenience, or a promising backtest cannot silently change the research paradigm.
+- Results, parameters, strategies, failure histories, or route judgments from other projects cannot be imported as evidence for changing this route.
+- Any future move from Human Playbook First back toward data-first automatic strategy/pattern mining is a material research-direction change and requires explicit Owner approval plus formal authority updates before execution.
 
 ## 7. Relationship to Skeleton v1.0
 
@@ -160,37 +171,38 @@ a frozen classifier/model, or a more flexible AI component). Any design that cha
 current Skeleton v1.0 live-critical-path boundary requires a separate architecture/research
 review and Owner approval before activation.
 
-## 9. Implication for the next research-protocol freeze
+## 9. Relationship to the now-frozen Research Protocol
 
-`CURRENT_NEXT_ACTION=RESEARCH_PROTOCOL_AND_CHRONOLOGICAL_SPLIT_FREEZE_REVIEW`
-must be designed **under this Human Playbook First direction**.
+The protocol-design work that was the next step when this direction was first approved has since been completed.
 
-Before strategy research begins, that review should determine at minimum:
+Current binding authorities are:
+- `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md` — FROZEN / BINDING;
+- `docs/research/HUMAN_PLAYBOOK_CHRONOLOGICAL_SPLIT_V1_0.md` — FROZEN 12/6/6;
+- `CURRENT_STATE.md` — the only authority for the project's **current** work package / next action.
 
+Do **not** infer a current next action from historical wording in this research-direction document. This file defines direction, not mutable project state.
+
+The frozen protocol now governs at minimum:
 - admissible source/provenance rules;
-- how natural-language playbooks become versioned testable artifacts;
-- how ambiguous qualitative concepts may be operationalized without unlimited search;
-- playbook family / lineage semantics;
-- search-budget accounting for reinterpretations, parameters, instruments, timeframes,
-  and market-context variants;
-- development / validation / final-unseen chronology and access rules;
-- what validation feedback may or may not be used to revise a playbook;
-- how rejected ideas and negative evidence are preserved;
-- acceptance criteria before any final-unseen unlock.
+- natural-language claim separation and PRIMARY interpretation rules;
+- lineage/exposure inheritance;
+- search-freedom / whole-wave multiplicity;
+- SOURCE_ONLY interpretation controls;
+- development / validation / historical-final chronology;
+- validation revision categories;
+- common statistical-profile freeze before candidate outcomes;
+- historical-final access governance.
 
 ## 10. What is not frozen by this file
 
-This decision does **not** yet freeze:
+This research-direction decision itself does **not** freeze:
 
 - specific books, creators, videos, traders, or playbooks;
 - any concrete K-line strategy conclusion;
-- exact development/validation/final-unseen dates;
-- any 12/6/6 or other split proposal;
 - parameter ranges;
 - strategy ranking metrics;
-- final-unseen unlock rules beyond existing authority;
 - live scene-recognition implementation;
 - broker/execution framework;
 - permanent RiskGate rules.
 
-Those remain future protocol/architecture decisions under the normal Owner-gate process.
+Some research semantics that were intentionally left open when this file was first approved were later frozen by separate binding authority. In particular, Research Protocol v1.0 and the 12/6/6 chronology are now frozen elsewhere. This section must not be used to undo those later authorities.
