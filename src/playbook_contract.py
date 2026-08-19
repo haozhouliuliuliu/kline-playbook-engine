@@ -204,8 +204,11 @@ class MachineOperationalization:
 
     Holds the identity facts required by `StrategyIdentity`: implementation
     reference, code hash, environment hash, required feature versions and
-    declared parameter identities. A draft may leave identity fields empty;
-    `validate_contract` fails closed when they are absent.
+    declared parameter identities. Empty `required_feature_versions` and
+    `parameter_identities` are legitimate (zero-parameter fixed-rule strategies,
+    or strategies with no separately versioned derived features); the mandatory
+    scalar identity fields (`operationalization_reference`, `code_hash`,
+    `environment_hash`) must still be present for machine readiness.
     """
 
     operationalization_reference: str
@@ -419,6 +422,10 @@ def _collect_blockers(contract: PlaybookContract) -> tuple[str, ...]:
         blockers.append("PRIMARY_MISSING")
 
     # 7. Machine identities required for StrategyIdentity must be present.
+    # Empty `parameter_identities` / `required_feature_versions` are legitimate
+    # values (zero-parameter fixed-rule strategies, or strategies with no
+    # separately versioned derived features), not missing identity. Only the
+    # mandatory scalar machine identity facts are required here.
     machine = contract.machine
     if machine is None:
         blockers.append("MACHINE_OPERATIONALIZATION_MISSING")
@@ -426,8 +433,6 @@ def _collect_blockers(contract: PlaybookContract) -> tuple[str, ...]:
         machine.operationalization_reference
         and machine.code_hash
         and machine.environment_hash
-        and machine.required_feature_versions
-        and machine.parameter_identities
     ):
         blockers.append("MACHINE_IDENTITIES_MISSING")
 
@@ -474,7 +479,11 @@ def bridge_to_strategy_identity(
     Fail-closed rules:
     - the contract must already validate as MACHINE_READY (a draft never bridges);
     - every supplied machine input must match the contract's machine layer;
-    - the caller-supplied parameters must match the declared parameter identities.
+    - the caller-supplied parameters must match the declared parameter identities
+      exactly. Empty `parameters` and/or `required_feature_versions` are
+      legitimate exact matches (zero-parameter fixed-rule strategies, or
+      strategies with no separately versioned derived features); a non-empty vs
+      empty mismatch still fails closed.
 
     This function never registers into a StrategyCatalog and never grants any
     candidate outcome access. Registration/authorization remain explicit caller
@@ -495,8 +504,6 @@ def bridge_to_strategy_identity(
     canonical_features = tuple(sorted(set(required_feature_versions)))
     if machine.required_feature_versions != canonical_features:
         raise ValueError("required feature versions do not match the contract machine layer")
-    if not parameters:
-        raise ValueError("machine-ready conversion requires at least one parameter")
     caller_parameter_ids = tuple(sorted({parameter_identity(p) for p in parameters}))
     if caller_parameter_ids != machine.parameter_identities:
         raise ValueError("parameters do not match the contract parameter identities")

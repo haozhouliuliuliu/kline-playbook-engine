@@ -402,8 +402,13 @@ class PlaybookContractFailClosedValidationTests(unittest.TestCase):
             "MACHINE_IDENTITIES_MISSING",
         )
         self.assert_not_ready(
-            contract(machine=machine(parameter_identities=())),
+            contract(machine=machine(environment_hash="")),
             "MACHINE_IDENTITIES_MISSING",
+        )
+        # Empty parameter/feature sets are legitimate values, not missing identity.
+        self.assertTrue(validate_contract(contract(machine=machine(parameter_identities=()))).ready)
+        self.assertTrue(
+            validate_contract(contract(machine=machine(required_feature_versions=()))).ready
         )
 
     def test_missing_scope_blocks(self):
@@ -494,6 +499,108 @@ class PlaybookContractStrategyBridgeTests(unittest.TestCase):
         forged = replace(identity, parameters=(TypedParameter("window", "int", 9),))
         with self.assertRaisesRegex(ValueError, "cannot be reused"):
             catalog.register(forged)
+
+    def test_zero_parameter_fixed_rule_strategy_bridges(self):
+        instance = contract(machine=machine(parameter_identities=()))
+        self.assertTrue(validate_contract(instance).ready)
+        identity = bridge_to_strategy_identity(
+            instance,
+            **bridge_kwargs((), code_hash="code-hash-v1"),
+        )
+        self.assertEqual(identity.parameters, ())
+        self.assertEqual(identity.required_feature_versions, ("feature-v1",))
+
+    def test_zero_required_feature_version_strategy_bridges(self):
+        instance = contract(
+            machine=machine(
+                required_feature_versions=(),
+                parameter_identities=self.machine_ids,
+            )
+        )
+        self.assertTrue(validate_contract(instance).ready)
+        identity = bridge_to_strategy_identity(
+            instance,
+            parameters=self.parameters,
+            code_hash="code-hash-v1",
+            environment_hash="env-hash-v1",
+            required_feature_versions=(),
+            data_exposure_history_reference="exposure-fixture-v1",
+        )
+        self.assertEqual(identity.required_feature_versions, ())
+        self.assertEqual(identity.parameters, self.parameters)
+
+    def test_zero_parameters_and_zero_feature_versions_bridge(self):
+        instance = contract(
+            machine=machine(required_feature_versions=(), parameter_identities=())
+        )
+        self.assertTrue(validate_contract(instance).ready)
+        identity = bridge_to_strategy_identity(
+            instance,
+            parameters=(),
+            code_hash="code-hash-v1",
+            environment_hash="env-hash-v1",
+            required_feature_versions=(),
+            data_exposure_history_reference="exposure-fixture-v1",
+        )
+        self.assertEqual(identity.parameters, ())
+        self.assertEqual(identity.required_feature_versions, ())
+
+    def test_empty_machine_parameter_set_rejects_nonempty_caller_parameters(self):
+        instance = contract(machine=machine(parameter_identities=()))
+        self.assertTrue(validate_contract(instance).ready)
+        with self.assertRaisesRegex(ValueError, "parameters do not match"):
+            bridge_to_strategy_identity(
+                instance,
+                parameters=(TypedParameter("window", "int", 3),),
+                code_hash="code-hash-v1",
+                environment_hash="env-hash-v1",
+                required_feature_versions=("feature-v1",),
+                data_exposure_history_reference="exposure-fixture-v1",
+            )
+
+    def test_nonempty_machine_parameter_set_rejects_empty_caller_parameters(self):
+        instance = contract(machine=machine(parameter_identities=self.machine_ids))
+        self.assertTrue(validate_contract(instance).ready)
+        with self.assertRaisesRegex(ValueError, "parameters do not match"):
+            bridge_to_strategy_identity(
+                instance,
+                parameters=(),
+                code_hash="code-hash-v1",
+                environment_hash="env-hash-v1",
+                required_feature_versions=("feature-v1",),
+                data_exposure_history_reference="exposure-fixture-v1",
+            )
+
+    def test_empty_machine_feature_set_rejects_nonempty_caller_features(self):
+        instance = contract(
+            machine=machine(
+                required_feature_versions=(),
+                parameter_identities=self.machine_ids,
+            )
+        )
+        self.assertTrue(validate_contract(instance).ready)
+        with self.assertRaisesRegex(ValueError, "required feature versions do not match"):
+            bridge_to_strategy_identity(
+                instance,
+                parameters=self.parameters,
+                code_hash="code-hash-v1",
+                environment_hash="env-hash-v1",
+                required_feature_versions=("feature-v1",),
+                data_exposure_history_reference="exposure-fixture-v1",
+            )
+
+    def test_nonempty_machine_feature_set_rejects_empty_caller_features(self):
+        instance = contract(machine=machine(parameter_identities=self.machine_ids))
+        self.assertTrue(validate_contract(instance).ready)
+        with self.assertRaisesRegex(ValueError, "required feature versions do not match"):
+            bridge_to_strategy_identity(
+                instance,
+                parameters=self.parameters,
+                code_hash="code-hash-v1",
+                environment_hash="env-hash-v1",
+                required_feature_versions=(),
+                data_exposure_history_reference="exposure-fixture-v1",
+            )
 
     def test_playbook_module_cannot_authorize_research_firewall_access(self):
         import src.playbook_contract as playbook_contract
