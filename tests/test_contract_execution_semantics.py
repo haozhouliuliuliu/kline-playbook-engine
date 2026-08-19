@@ -15,15 +15,7 @@ from src.contract_semantics import (
     PriceLimitFact,
 )
 from src.data_substrate import CompletedBar, SessionMetadata, SessionWindow
-from src.strategy_evidence import (
-    DatasetClass,
-    EvidenceLedger,
-    ExperimentIdentity,
-    FinalUnseenFirewall,
-    LifecycleState,
-    StrategyIdentity,
-    TypedParameter,
-)
+from src.strategy_evidence import DatasetClass, EvidenceLedger
 from src.validation_runner import (
     CapitalMarginAssumptions,
     CapitalSnapshot,
@@ -35,23 +27,29 @@ from src.validation_runner import (
     MarkObservation,
     OrderSpecification,
     ValidationDisposition,
-    ValidationInput,
     ValidationMode,
+)
+from tests.synthetic_fixture import (
+    SYNTHETIC_DATA_VERSION,
+    build_synthetic_firewall,
+    make_experiment,
+    make_strategy,
+    make_validation_input,
 )
 
 
 CN = ZoneInfo("Asia/Shanghai")
-DAY_1 = date(2025, 6, 16)
-DAY_2 = date(2025, 6, 17)
-DAY_3 = date(2025, 6, 18)
+DAY_1 = date(2024, 6, 17)
+DAY_2 = date(2024, 6, 18)
+DAY_3 = date(2024, 6, 19)
 
 
 def at(day, hour, minute):
     return datetime(day.year, day.month, day.day, hour, minute, tzinfo=CN)
 
 
-def make_input(request_id, symbol, trading_day, decision_at):
-    return ValidationInput(
+def make_input(request_id, symbol, trading_day, decision_at, data_version=SYNTHETIC_DATA_VERSION):
+    return make_validation_input(
         request_id,
         CompletedBar(
             symbol,
@@ -61,33 +59,25 @@ def make_input(request_id, symbol, trading_day, decision_at):
             decision_at,
         ),
         decision_at,
-    )
-
-
-def make_strategy():
-    return StrategyIdentity(
-        research_lineage_id="contract-lifecycle-lineage-fixture",
-        family_id="neutral-contract-lifecycle-family",
-        strategy_version="1.0",
-        source="deterministic-synthetic-contract-fixture",
-        applicable_instruments=("A", "B", "SYNTH_MAIN"),
-        timeframe="5m",
-        parameters=(TypedParameter("window", "int", 3),),
-        code_hash="contract-lifecycle-code-fixture-v1",
-        environment_hash="contract-lifecycle-environment-fixture-v1",
-        required_feature_versions=("contract-context-fixture-v1",),
-        lifecycle_state=LifecycleState.DRAFT,
-        data_exposure_history_reference="contract-exposure-fixture-v1",
+        data_version=data_version,
     )
 
 
 class ContractExecutionSemanticsTests(unittest.TestCase):
     def setUp(self):
-        self.strategy = make_strategy()
-        self.experiment = ExperimentIdentity.from_strategy(
+        self.strategy = make_strategy(
+            research_lineage_id="contract-lifecycle-lineage-fixture",
+            family_id="neutral-contract-lifecycle-family",
+            source="deterministic-synthetic-contract-fixture",
+            applicable_instruments=("A", "B", "SYNTH_MAIN"),
+            code_hash="contract-lifecycle-code-fixture-v1",
+            environment_hash="contract-lifecycle-environment-fixture-v1",
+            required_feature_versions=("contract-context-fixture-v1",),
+            data_exposure_history_reference="contract-exposure-fixture-v1",
+        )
+        self.experiment = make_experiment(
             self.strategy,
-            "contract-data-fixture-v1",
-            "contract-exposure-fixture-v1",
+            dataset_exposure_reference="contract-exposure-fixture-v1",
         )
         self.execution_assumptions = ExecutionAssumptions(
             "synthetic-contract-execution-v1",
@@ -206,12 +196,15 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
         schedule=None,
         sessions=None,
         limit_facts=None,
-        dataset=DatasetClass.VALIDATION,
+        dataset=DatasetClass.DEVELOPMENT,
         mark_observations=(),
         forced_liquidation_observations=(),
     ):
         ledger = EvidenceLedger()
-        runner = ChronologicalValidationRunner(ledger, FinalUnseenFirewall(ledger))
+        firewall, hypothesis_test_id = build_synthetic_firewall(
+            ledger, self.strategy, self.experiment
+        )
+        runner = ChronologicalValidationRunner(ledger, firewall)
         result = runner.run(
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
@@ -221,6 +214,8 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
             dataset_class=dataset,
             inputs=inputs,
             disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=hypothesis_test_id,
+            synthetic_fixture=True,
             execution_observations=observations,
             execution_cutoff_at=inputs[-1].decision_at + timedelta(minutes=30),
             execution_assumptions=self.execution_assumptions,

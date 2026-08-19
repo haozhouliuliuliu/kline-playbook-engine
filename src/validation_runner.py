@@ -22,13 +22,12 @@ from src.contract_semantics import (
     PriceLimitFact,
 )
 from src.data_substrate import CompletedBar, SessionMetadata
+from src.research_firewall import Cohort, ResearchFirewall
 from src.strategy_evidence import (
-    AccessResult,
     DatasetClass,
     EvidenceLedger,
     EvidenceRecord,
     ExperimentIdentity,
-    FinalUnseenFirewall,
     StrategyIdentity,
 )
 
@@ -493,10 +492,13 @@ class ValidationInput:
     request_id: str
     bar: CompletedBar
     decision_at: datetime
+    data_version_id: str
 
     def __post_init__(self) -> None:
         if not self.request_id:
             raise ValueError("validation request_id is required")
+        if not self.data_version_id:
+            raise ValueError("validation input data_version_id is required")
         if self.decision_at.tzinfo is None:
             raise ValueError("decision timestamp must be timezone-aware")
 
@@ -543,7 +545,7 @@ class ChronologicalValidationRunner:
         "FORCED_LIQUIDATION_NOT_FILLED": 10,
     }
 
-    def __init__(self, ledger: EvidenceLedger, firewall: FinalUnseenFirewall) -> None:
+    def __init__(self, ledger: EvidenceLedger, firewall: ResearchFirewall) -> None:
         self._ledger = ledger
         self._firewall = firewall
 
@@ -558,22 +560,17 @@ class ChronologicalValidationRunner:
             raise ValueError("strategy artifact does not match strategy identity")
         experiment.validate_strategy(strategy)
 
-    def _validate_authorized_access(
-        self,
-        access: AccessResult,
+    @staticmethod
+    def _validate_data_version_binding(
         experiment: ExperimentIdentity,
-        dataset_class: DatasetClass,
+        inputs: tuple[ValidationInput, ...],
     ) -> None:
-        record = access.record
-        if (
-            not access.allowed
-            or record.event_type != "DATASET_ACCESS_GRANTED"
-            or record.outcome != "GRANTED"
-            or record.experiment != experiment
-            or record.dataset_class is not dataset_class
-            or record.record_id not in {item.record_id for item in self._ledger.records}
-        ):
-            raise ValueError("authorized dataset access must be an existing matching firewall grant")
+        """F-05: every actual input must be bound to the experiment data version."""
+        for item in inputs:
+            if item.data_version_id != experiment.data_version:
+                raise ValueError(
+                    "validation input data_version does not match the experiment data version"
+                )
 
     @classmethod
     def _ordered_events(cls, inputs: Iterable[ValidationInput]) -> tuple[ExecutionEvent, ...]:
@@ -1387,6 +1384,8 @@ class ChronologicalValidationRunner:
         dataset_class: DatasetClass,
         inputs: Iterable[ValidationInput],
         disposition: ValidationDisposition | None = None,
+        hypothesis_test_id: str | None = None,
+        synthetic_fixture: bool = False,
         execution_observations: Iterable[ExecutionObservation] = (),
         execution_cutoff_at: datetime | None = None,
         execution_assumptions: ExecutionAssumptions | None = None,
@@ -1400,14 +1399,13 @@ class ChronologicalValidationRunner:
         session_metadata: SessionMetadata | None = None,
         price_limit_facts: Iterable[PriceLimitFact] = (),
         offset_cost_assumptions: OffsetCostAssumptions | None = None,
-        authorized_access: AccessResult | None = None,
         defer_confirmation: bool = False,
     ) -> ValidationRunResult:
         self._validate_binding(strategy, experiment, artifact_identity_id, artifact_code_hash)
         if mode is ValidationMode.FAST and disposition is ValidationDisposition.CONFIRMED:
             raise ValueError("FAST mode cannot establish confirmatory validity")
         if dataset_class is DatasetClass.FINAL_UNSEEN:
-            access = self._firewall.request_access(experiment, dataset_class)
+            access = self._firewall.legacy_request_access(experiment, dataset_class)
             return ValidationRunResult(False, (), access.record, None)
         inputs = tuple(inputs)
         order_specifications = tuple(order_specifications)
@@ -1426,11 +1424,29 @@ class ChronologicalValidationRunner:
             if capital_snapshot.position_quantity != 0:
                 raise ValueError("initial offline capital snapshot must be flat; a position requires a valid fill")
 
-        if authorized_access is None:
-            access = self._firewall.request_access(experiment, dataset_class)
+        if mode is ValidationMode.FAST:
+            # FAST remains a reject-only fixture / engine-sanity path. It uses the
+            # same firewall's legacy coarse access (never a candidate grant) and
+            # cannot establish CONFIRMED validity (guarded above).
+            access = self._firewall.legacy_request_access(experiment, dataset_class)
         else:
-            self._validate_authorized_access(authorized_access, experiment, dataset_class)
-            access = authorized_access
+            # CONFIRMATORY: the authoritative candidate pre-outcome gate.
+            # F-05: bind every actual input to the experiment data version first.
+            self._validate_data_version_binding(experiment, inputs)
+            # F-04: the security cohort is derived from the actual input dates;
+            # dataset_class is only a declaration used for consistency, never an
+            # access authority.
+            data_dates = tuple(item.bar.trading_day for item in inputs)
+            derived_cohort = self._firewall.cohort_for_dates(data_dates)
+            if derived_cohort is not Cohort.OUT_OF_SCOPE:
+                if self._firewall.dataset_class_for_cohort(derived_cohort) is not dataset_class:
+                    raise ValueError("caller dataset_class does not match the actual input data cohort")
+            access = self._firewall.request_candidate_outcome_access(
+                data_dates=data_dates,
+                experiment=experiment,
+                hypothesis_test_id=hypothesis_test_id,
+                synthetic_fixture=synthetic_fixture,
+            )
         if not access.allowed:
             return ValidationRunResult(False, (), access.record, None)
 

@@ -4,15 +4,7 @@ from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from src.data_substrate import CompletedBar
-from src.strategy_evidence import (
-    DatasetClass,
-    EvidenceLedger,
-    ExperimentIdentity,
-    FinalUnseenFirewall,
-    LifecycleState,
-    StrategyIdentity,
-    TypedParameter,
-)
+from src.strategy_evidence import DatasetClass, EvidenceLedger
 from src.validation_runner import (
     ChronologicalValidationRunner,
     CapitalMarginAssumptions,
@@ -23,43 +15,43 @@ from src.validation_runner import (
     FillStatus,
     OrderSpecification,
     ValidationDisposition,
-    ValidationInput,
     ValidationMode,
+)
+from tests.synthetic_fixture import (
+    DEVELOPMENT_DAY,
+    build_synthetic_firewall,
+    make_experiment,
+    make_strategy,
+    make_validation_input,
 )
 
 
 CN = ZoneInfo("Asia/Shanghai")
-DAY = date(2025, 6, 16)
+DAY = DEVELOPMENT_DAY
 
 
 def at(hour, minute):
     return datetime(DAY.year, DAY.month, DAY.day, hour, minute, tzinfo=CN)
 
 
-def make_strategy():
-    return StrategyIdentity(
-        research_lineage_id="execution-lineage-fixture",
-        family_id="neutral-execution-family",
-        strategy_version="1.0",
-        source="deterministic-fixture",
-        applicable_instruments=("TEST",),
-        timeframe="5m",
-        parameters=(TypedParameter("window", "int", 3),),
-        code_hash="code-fixture-v1",
-        environment_hash="environment-fixture-v1",
-        required_feature_versions=("context-fixture-v1",),
-        lifecycle_state=LifecycleState.DRAFT,
-        data_exposure_history_reference="exposure-fixture-v1",
-    )
-
-
 class ExecutionRealismTests(unittest.TestCase):
     def setUp(self):
-        self.strategy = make_strategy()
-        self.experiment = ExperimentIdentity.from_strategy(self.strategy, "data-fixture-v1", "exposure-fixture-v1")
+        self.strategy = make_strategy(
+            research_lineage_id="execution-lineage-fixture",
+            family_id="neutral-execution-family",
+        )
+        self.experiment = make_experiment(self.strategy)
         self.ledger = EvidenceLedger()
-        self.runner = ChronologicalValidationRunner(self.ledger, FinalUnseenFirewall(self.ledger))
-        self.input = ValidationInput("request-1", CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5)), at(9, 5))
+        self.firewall, self.hypothesis_test_id = build_synthetic_firewall(
+            self.ledger, self.strategy, self.experiment
+        )
+        self.runner = ChronologicalValidationRunner(self.ledger, self.firewall)
+        self.input = make_validation_input(
+            "request-1",
+            CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5)),
+            at(9, 5),
+            data_version=self.experiment.data_version,
+        )
         self.assumptions = ExecutionAssumptions("synthetic-v1", Decimal("1.5"), Decimal("0.25"))
         self.capital_assumptions = CapitalMarginAssumptions("capital-fixture-v1", Decimal("1"), Decimal("0.1"), "SYNTH")
         self.capital_snapshot = CapitalSnapshot(Decimal("100"))
@@ -71,9 +63,11 @@ class ExecutionRealismTests(unittest.TestCase):
             experiment=self.experiment,
             artifact_identity_id=self.strategy.identity_id,
             artifact_code_hash=self.strategy.code_hash,
-            dataset_class=DatasetClass.VALIDATION,
+            dataset_class=DatasetClass.DEVELOPMENT,
             inputs=(self.input,),
             disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=self.hypothesis_test_id,
+            synthetic_fixture=True,
             execution_observations=observations,
             execution_cutoff_at=cutoff,
             execution_assumptions=assumptions or self.assumptions,
@@ -95,7 +89,10 @@ class ExecutionRealismTests(unittest.TestCase):
         with self.assertRaisesRegex(ChronologyError, "independently available"):
             self.confirm((ExecutionObservation("request-1", at(9, 5), at(9, 5), Decimal("100")),))
         self.ledger = EvidenceLedger()
-        self.runner = ChronologicalValidationRunner(self.ledger, FinalUnseenFirewall(self.ledger))
+        self.firewall, self.hypothesis_test_id = build_synthetic_firewall(
+            self.ledger, self.strategy, self.experiment
+        )
+        self.runner = ChronologicalValidationRunner(self.ledger, self.firewall)
         with self.assertRaisesRegex(ChronologyError, "cutoff cannot precede"):
             self.confirm(cutoff=at(9, 4))
 
@@ -111,16 +108,19 @@ class ExecutionRealismTests(unittest.TestCase):
         self.assertEqual(no_observation.execution_outcomes[0].reason, "NO_OBSERVATION")
 
         ledger = EvidenceLedger()
-        runner = ChronologicalValidationRunner(ledger, FinalUnseenFirewall(ledger))
+        firewall, hypothesis_test_id = build_synthetic_firewall(ledger, self.strategy, self.experiment)
+        runner = ChronologicalValidationRunner(ledger, firewall)
         result = runner.run(
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
             experiment=self.experiment,
             artifact_identity_id=self.strategy.identity_id,
             artifact_code_hash=self.strategy.code_hash,
-            dataset_class=DatasetClass.VALIDATION,
+            dataset_class=DatasetClass.DEVELOPMENT,
             inputs=(self.input,),
             disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=hypothesis_test_id,
+            synthetic_fixture=True,
             execution_observations=(ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100"), tradable=False),),
             execution_cutoff_at=at(9, 10),
             execution_assumptions=self.assumptions,
@@ -152,16 +152,21 @@ class ExecutionRealismTests(unittest.TestCase):
         observation = (ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100")),)
         first = self.confirm(observation)
         second_ledger = EvidenceLedger()
-        second_runner = ChronologicalValidationRunner(second_ledger, FinalUnseenFirewall(second_ledger))
+        second_firewall, second_hypothesis = build_synthetic_firewall(
+            second_ledger, self.strategy, self.experiment
+        )
+        second_runner = ChronologicalValidationRunner(second_ledger, second_firewall)
         second = second_runner.run(
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
             experiment=self.experiment,
             artifact_identity_id=self.strategy.identity_id,
             artifact_code_hash=self.strategy.code_hash,
-            dataset_class=DatasetClass.VALIDATION,
+            dataset_class=DatasetClass.DEVELOPMENT,
             inputs=(self.input,),
             disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=second_hypothesis,
+            synthetic_fixture=True,
             execution_observations=observation,
             execution_cutoff_at=at(9, 10),
             execution_assumptions=self.assumptions,

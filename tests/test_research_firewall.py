@@ -611,7 +611,7 @@ class ResearchWaveRegistryTests(unittest.TestCase):
         firewall.lock_wave(wave.research_wave_id)
         self.assertTrue(firewall.waves.is_locked(wave.research_wave_id))
         decision = firewall.evaluate_gate(
-            cohort=Cohort.DEVELOPMENT,
+            data_dates=(date(2024, 6, 16),),
             experiment=exp,
             hypothesis_test_id="h-1",
             synthetic_fixture=True,
@@ -640,7 +640,7 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             firewall.lock_wave(wave.research_wave_id)
         exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
         access = firewall.request_candidate_outcome_access(
-            cohort=Cohort.DEVELOPMENT,
+            data_dates=(date(2024, 6, 16),),
             experiment=exp,
             hypothesis_test_id="h-1",
             synthetic_fixture=True,
@@ -663,6 +663,83 @@ class StatisticalProfileRegistryTests(unittest.TestCase):
         registry = ResearchFirewall(EvidenceLedger()).profiles
         with self.assertRaisesRegex(ValueError, "unknown"):
             registry.lock("missing-profile")
+
+    def test_test_only_profile_can_lock(self):
+        # A8: a TEST_ONLY profile is the only lockable profile (synthetic engine
+        # fixtures only).
+        registry = ResearchFirewall(EvidenceLedger()).profiles
+        profile = registry.register(make_test_only_profile())
+        self.assertTrue(profile.is_test_only)
+        registry.lock(profile.profile_id)
+        self.assertTrue(registry.is_locked(profile.profile_id))
+
+    def test_non_test_only_profile_cannot_be_locked_nor_grant_real_access(self):
+        # A9 / F-11: an arbitrary real-looking (non-TEST_ONLY) profile cannot be
+        # locked, and therefore cannot produce a real candidate grant.
+        real = CommonStatisticalProfile(
+            profile_id="profile-real-v1",
+            profile_version="1.0",
+            uncertainty_precision_method="METHOD_NOT_SPECIFIED",
+            evidence_sufficiency_procedure="PROCEDURE_NOT_SPECIFIED",
+            dependence_handling="HANDLING_NOT_SPECIFIED",
+            multiplicity_decision_rule="RULE_NOT_SPECIFIED",
+            common_acceptance_procedure="PROCEDURE_NOT_SPECIFIED",
+        )
+        self.assertFalse(real.is_test_only)
+        registry = ResearchFirewall(EvidenceLedger()).profiles
+        registry.register(real)
+        with self.assertRaisesRegex(ValueError, "REAL_STATISTICAL_PROFILE_NOT_ADOPTED"):
+            registry.lock(real.profile_id)
+        self.assertFalse(registry.is_locked(real.profile_id))
+
+        # Even a fully-constructed wave referencing this profile cannot yield a
+        # candidate outcome grant once the profile cannot be locked.
+        ledger = EvidenceLedger()
+        firewall = ResearchFirewall(ledger)
+        real2 = CommonStatisticalProfile(
+            profile_id="profile-real-v2",
+            profile_version="1.0",
+            uncertainty_precision_method="METHOD_NOT_SPECIFIED",
+            evidence_sufficiency_procedure="PROCEDURE_NOT_SPECIFIED",
+            dependence_handling="HANDLING_NOT_SPECIFIED",
+            multiplicity_decision_rule="RULE_NOT_SPECIFIED",
+            common_acceptance_procedure="PROCEDURE_NOT_SPECIFIED",
+        )
+        firewall.profiles.register(real2)
+        with self.assertRaisesRegex(ValueError, "REAL_STATISTICAL_PROFILE_NOT_ADOPTED"):
+            firewall.profiles.lock(real2.profile_id)
+        session = make_open_session(firewall.source_only)
+        wave = firewall.waves.register(
+            make_wave_manifest(
+                wave_id="wave-real",
+                profile_id=real2.profile_id,
+                profile_identity=real2.profile_identity,
+                tested_hypothesis_test_ids=("h-real",),
+            )
+        )
+        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        firewall.register_outcome_test(
+            hypothesis_test_id="h-real",
+            strategy=strategy(),
+            experiment=exp,
+            family_claim_identity="family-real",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            source_only_session_id=session.session_id,
+            research_wave_id=wave.research_wave_id,
+            statistical_profile_id=real2.profile_id,
+            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+        )
+        firewall.lock_wave(wave.research_wave_id)
+        access = firewall.request_candidate_outcome_access(
+            data_dates=(date(2024, 6, 16),),
+            experiment=exp,
+            hypothesis_test_id="h-real",
+            synthetic_fixture=True,
+        )
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:PROFILE_NOT_LOCKED")
 
     def test_real_profile_fields_are_not_invented(self):
         # The interface binds method names only; it must not freeze numeric standards.
@@ -713,9 +790,9 @@ class IdentityBoundGateTests(unittest.TestCase):
         self.ledger = EvidenceLedger()
         self.firewall, self.session, self.profile, self.wave, self.experiment = make_registered_firewall(self.ledger)
 
-    def _grant(self, *, cohort=Cohort.DEVELOPMENT, hypothesis_test_id=HYPOTHESIS_TEST_ID, experiment=None, synthetic_fixture=True):
+    def _grant(self, *, data_dates=(date(2024, 6, 16),), hypothesis_test_id=HYPOTHESIS_TEST_ID, experiment=None, synthetic_fixture=True):
         return self.firewall.request_candidate_outcome_access(
-            cohort=cohort,
+            data_dates=data_dates,
             experiment=experiment if experiment is not None else self.experiment,
             hypothesis_test_id=hypothesis_test_id,
             synthetic_fixture=synthetic_fixture,
@@ -758,7 +835,8 @@ class IdentityBoundGateTests(unittest.TestCase):
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:EXPERIMENT_IDENTITY_MISMATCH")
 
-    # 4. authoritative API has no caller-controlled lock booleans
+    # 4. authoritative API has no caller-controlled lock booleans and no
+    # caller-supplied cohort (F-04)
     def test_no_caller_controlled_lock_booleans(self):
         access_params = set(inspect.signature(self.firewall.request_candidate_outcome_access).parameters)
         for forbidden in (
@@ -767,11 +845,15 @@ class IdentityBoundGateTests(unittest.TestCase):
             "wave_id",
             "profile_id",
             "source_only_session_id",
+            "cohort",
         ):
             self.assertNotIn(forbidden, access_params)
+        self.assertIn("data_dates", access_params)
         gate_params = set(inspect.signature(self.firewall.evaluate_gate).parameters)
         self.assertNotIn("multiplicity_counting_unit_locked", gate_params)
         self.assertNotIn("primary_scope_search_identities_locked", gate_params)
+        self.assertNotIn("cohort", gate_params)
+        self.assertIn("data_dates", gate_params)
 
     # 5. wave/profile identity mismatch -> DENY (adversarial direct registration)
     def test_profile_identity_mismatch_blocks_wave_lock(self):
@@ -810,7 +892,7 @@ class IdentityBoundGateTests(unittest.TestCase):
     # 8. exact registered binding -> only synthetic DEVELOPMENT may pass
     def test_exact_registered_binding_permits_synthetic_development_only(self):
         decision = self.firewall.evaluate_gate(
-            cohort=Cohort.DEVELOPMENT,
+            data_dates=(date(2024, 6, 16),),
             experiment=self.experiment,
             hypothesis_test_id=HYPOTHESIS_TEST_ID,
             synthetic_fixture=True,
@@ -860,21 +942,40 @@ class IdentityBoundGateTests(unittest.TestCase):
         self.assertEqual(final_legacy.record.event_type, "DATASET_ACCESS_DENIED")
         self.assertNotIn(DatasetClass.FINAL_UNSEEN, ledger.exposures_for(parent.research_lineage_id))
 
-    # 13. VALIDATION remains DENIED
+    # 13. VALIDATION remains DENIED (derived from actual input dates)
     def test_validation_remains_denied(self):
-        access = self._grant(cohort=Cohort.VALIDATION)
+        access = self._grant(data_dates=(date(2025, 1, 15),))
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "VALIDATION_DEFAULT_DENY_NO_VALIDATION_AUTHORITY")
 
+    # A5: a 2025 validation date cannot be claimed as DEVELOPMENT even on a fully
+    # locked synthetic DEVELOPMENT wave; the cohort is derived from the actual
+    # date and DENIED.
+    def test_validation_date_cannot_be_claimed_as_development(self):
+        access = self._grant(data_dates=(date(2025, 1, 15),), synthetic_fixture=True)
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "VALIDATION_DEFAULT_DENY_NO_VALIDATION_AUTHORITY")
+
+    # A6: one confirmatory request spanning DEVELOPMENT + VALIDATION dates must
+    # fail closed.
+    def test_mixed_cohort_dates_fail_closed(self):
+        with self.assertRaisesRegex(ValueError, "multiple research cohorts"):
+            self.firewall.request_candidate_outcome_access(
+                data_dates=(date(2024, 6, 16), date(2025, 1, 15)),
+                experiment=self.experiment,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                synthetic_fixture=True,
+            )
+
     # 14. historical final remains DENIED
     def test_historical_final_remains_denied(self):
-        access = self._grant(cohort=Cohort.PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT)
+        access = self._grant(data_dates=(date(2025, 7, 1),))
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "FINAL_HISTORICAL_HOLDOUT_ALWAYS_LOCKED")
 
     # 15. Shadow/Forward remains DENIED
     def test_shadow_forward_remains_denied(self):
-        access = self._grant(cohort=Cohort.SHADOW_FORWARD)
+        access = self._grant(data_dates=(date(2026, 1, 2),))
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "SHADOW_FORWARD_NOT_AUTHORIZED")
 
@@ -883,7 +984,7 @@ class IdentityBoundGateTests(unittest.TestCase):
         firewall = ResearchFirewall(EvidenceLedger())
         experiment = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
         access = firewall.request_candidate_outcome_access(
-            cohort=Cohort.DEVELOPMENT,
+            data_dates=(date(2024, 6, 16),),
             experiment=experiment,
             hypothesis_test_id="never-registered",
             synthetic_fixture=False,
@@ -924,7 +1025,7 @@ class IdentityBoundGateTests(unittest.TestCase):
         )
         firewall.lock_wave(wave.research_wave_id)
         access = firewall.request_candidate_outcome_access(
-            cohort=Cohort.DEVELOPMENT,
+            data_dates=(date(2024, 6, 16),),
             experiment=exp,
             hypothesis_test_id="h-1",
             synthetic_fixture=True,
@@ -952,7 +1053,7 @@ class IdentityBoundGateTests(unittest.TestCase):
         coarse = firewall.legacy_request_access(experiment, DatasetClass.DEVELOPMENT)
         self.assertTrue(coarse.allowed)
         candidate = firewall.request_candidate_outcome_access(
-            cohort=Cohort.DEVELOPMENT,
+            data_dates=(date(2024, 6, 16),),
             experiment=experiment,
             hypothesis_test_id="never-registered",
             synthetic_fixture=False,

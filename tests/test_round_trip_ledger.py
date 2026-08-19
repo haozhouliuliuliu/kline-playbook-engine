@@ -17,15 +17,7 @@ from src.round_trip_ledger import (
     RoundTripLedger,
     RoundTripMaterializer,
 )
-from src.strategy_evidence import (
-    DatasetClass,
-    EvidenceLedger,
-    ExperimentIdentity,
-    FinalUnseenFirewall,
-    LifecycleState,
-    StrategyIdentity,
-    TypedParameter,
-)
+from src.strategy_evidence import DatasetClass, EvidenceLedger
 from src.validation_runner import (
     CapitalMarginAssumptions,
     CapitalSnapshot,
@@ -37,34 +29,23 @@ from src.validation_runner import (
     MarkObservation,
     OrderSpecification,
     ValidationDisposition,
-    ValidationInput,
     ValidationMode,
+)
+from tests.synthetic_fixture import (
+    DEVELOPMENT_DAY,
+    build_synthetic_firewall,
+    make_experiment,
+    make_strategy,
+    make_validation_input,
 )
 
 
 CN = ZoneInfo("Asia/Shanghai")
-DAY = date(2025, 6, 16)
+DAY = DEVELOPMENT_DAY
 
 
 def at(hour, minute, day=DAY):
     return datetime(day.year, day.month, day.day, hour, minute, tzinfo=CN)
-
-
-def make_strategy():
-    return StrategyIdentity(
-        research_lineage_id="round-trip-ledger-lineage-fixture",
-        family_id="neutral-round-trip-ledger-family",
-        strategy_version="1.0",
-        source="deterministic-synthetic-fixture",
-        applicable_instruments=("TEST",),
-        timeframe="5m",
-        parameters=(TypedParameter("window", "int", 3),),
-        code_hash="round-trip-ledger-code-fixture-v1",
-        environment_hash="round-trip-ledger-environment-fixture-v1",
-        required_feature_versions=("round-trip-context-fixture-v1",),
-        lifecycle_state=LifecycleState.DRAFT,
-        data_exposure_history_reference="round-trip-exposure-fixture-v1",
-    )
 
 
 def run_lifecycle(
@@ -107,11 +88,19 @@ def run_lifecycle(
         close_today_fee,
         close_previous_fee,
     )
-    strategy = make_strategy()
-    experiment = ExperimentIdentity.from_strategy(
+    strategy = make_strategy(
+        research_lineage_id="round-trip-ledger-lineage-fixture",
+        family_id="neutral-round-trip-ledger-family",
+        source="deterministic-synthetic-fixture",
+        code_hash="round-trip-ledger-code-fixture-v1",
+        environment_hash="round-trip-ledger-environment-fixture-v1",
+        required_feature_versions=("round-trip-context-fixture-v1",),
+        data_exposure_history_reference="round-trip-exposure-fixture-v1",
+    )
+    experiment = make_experiment(
         strategy,
-        "round-trip-data-fixture-v1",
-        "round-trip-exposure-fixture-v1",
+        data_version="round-trip-data-fixture-v1",
+        dataset_exposure_reference="round-trip-exposure-fixture-v1",
     )
     directions = list(directions or [PositionDirection.LONG] * len(quantities))
     offsets = list(offsets or [None] * len(quantities))
@@ -124,7 +113,7 @@ def run_lifecycle(
         request_id = f"request-{index + 1}"
         decision_at = at(9, 5) + timedelta(minutes=2 * index)
         inputs.append(
-            ValidationInput(
+            make_validation_input(
                 request_id,
                 CompletedBar(
                     "TEST",
@@ -134,6 +123,7 @@ def run_lifecycle(
                     decision_at,
                 ),
                 decision_at,
+                data_version=experiment.data_version,
             )
         )
         observations.append(
@@ -154,16 +144,19 @@ def run_lifecycle(
             )
         )
     ledger = EvidenceLedger()
-    runner = ChronologicalValidationRunner(ledger, FinalUnseenFirewall(ledger))
+    firewall, hypothesis_test_id = build_synthetic_firewall(ledger, strategy, experiment)
+    runner = ChronologicalValidationRunner(ledger, firewall)
     result = runner.run(
         mode=ValidationMode.CONFIRMATORY,
         strategy=strategy,
         experiment=experiment,
         artifact_identity_id=strategy.identity_id,
         artifact_code_hash=strategy.code_hash,
-        dataset_class=DatasetClass.VALIDATION,
+        dataset_class=DatasetClass.DEVELOPMENT,
         inputs=tuple(inputs),
         disposition=ValidationDisposition.CONFIRMED,
+        hypothesis_test_id=hypothesis_test_id,
+        synthetic_fixture=True,
         execution_observations=tuple(observations),
         execution_cutoff_at=at(9, 30),
         execution_assumptions=execution_assumptions,
@@ -680,8 +673,8 @@ class RoundTripDayWeekTests(unittest.TestCase):
                     "SHFE",
                     "TEST",
                     DAY,
-                    datetime(2025, 6, 16, 9, 0, tzinfo=CN),
-                    datetime(2025, 6, 16, 15, 30, tzinfo=CN),
+                    at(9, 0),
+                    at(15, 30),
                     "DAY",
                 ),
             ),

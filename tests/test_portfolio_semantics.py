@@ -15,7 +15,7 @@ from src.contract_semantics import (
 )
 from src.data_substrate import CompletedBar, SessionMetadata, SessionWindow
 from src.portfolio_semantics import (
-    CandidateDecision,
+    AttributedPosition,
     PortfolioCandidate,
     PortfolioConflictPolicy,
     PortfolioCoordinator,
@@ -26,6 +26,7 @@ from src.portfolio_semantics import (
     PositionDirection,
     SharedCapitalState,
     SharedCapitalPolicy,
+    StrategySleeve,
     reconcile_portfolio,
 )
 from src.strategy_evidence import (
@@ -41,7 +42,6 @@ from src.validation_runner import (
     CapitalMarginAssumptions,
     ExecutionAssumptions,
     ExecutionObservation,
-    FillStatus,
     OrderSpecification,
     ValidationInput,
     ValidationMode,
@@ -157,6 +157,7 @@ class PortfolioSemanticsTests(unittest.TestCase):
                 decision_at,
             ),
             decision_at,
+            member.experiment.data_version,
         )
         return PortfolioCandidate(
             member.strategy.identity_id,
@@ -245,46 +246,22 @@ class PortfolioSemanticsTests(unittest.TestCase):
         self.assertEqual(first.member_bindings, reordered.member_bindings)
         self.assertNotEqual(first.identity_id, changed_policy.identity_id)
 
-    def test_same_contract_opposing_intents_are_order_independent_and_loser_never_executes(self):
+    def test_confirmatory_portfolio_opposing_intent_path_is_closed(self):
+        # F-02: the CONFIRMATORY portfolio candidate-outcome path is closed; no
+        # order-independent arbitration or loser-execution can occur.
         member_a = self.make_member("a", "MAIN_A")
         member_b = self.make_member("b", "MAIN_B")
         candidate_a = self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG)
         candidate_b = self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.SHORT)
 
-        first, first_ledger = self.run_portfolio((member_a, member_b), (candidate_a, candidate_b))
-        second, second_ledger = self.run_portfolio((member_b, member_a), (candidate_b, candidate_a))
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            self.run_portfolio((member_a, member_b), (candidate_a, candidate_b))
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            self.run_portfolio((member_b, member_a), (candidate_b, candidate_a))
 
-        first_summary = tuple(
-            (outcome.request_id, outcome.decision, outcome.reason)
-            for outcome in first.candidate_outcomes
-        )
-        second_summary = tuple(
-            (outcome.request_id, outcome.decision, outcome.reason)
-            for outcome in second.candidate_outcomes
-        )
-        self.assertEqual(first_summary, second_summary)
-        self.assertEqual(first.evaluation_identity.identity_id, second.evaluation_identity.identity_id)
-        self.assertEqual(first.conflicts, second.conflicts)
-        self.assertEqual(
-            [record.record_id for record in first_ledger.records],
-            [record.record_id for record in second_ledger.records],
-        )
-        self.assertEqual({item.resolution.concrete_instrument_id for item in first.candidate_outcomes}, {"A"})
-        accepted = [item for item in first.candidate_outcomes if item.decision is CandidateDecision.ACCEPTED]
-        rejected = [item for item in first.candidate_outcomes if item.decision is CandidateDecision.REJECTED_CONFLICT]
-        self.assertEqual(len(accepted), 1)
-        self.assertEqual(len(rejected), 1)
-        self.assertEqual(accepted[0].execution_outcome.status, FillStatus.FILLED)
-        expected_fill_price = (
-            Decimal("100.5")
-            if accepted[0].direction is PositionDirection.LONG
-            else Decimal("99.5")
-        )
-        self.assertEqual(accepted[0].execution_outcome.fill_price, expected_fill_price)
-        self.assertIsNone(rejected[0].execution_outcome)
-        self.assertIsNone(rejected[0].capital_transition)
-
-    def test_same_direction_candidates_keep_separate_strategy_attribution_and_reconcile(self):
+    def test_confirmatory_portfolio_same_direction_path_is_closed(self):
+        # F-02: no strategy attribution / shared-capital reconciliation can be
+        # produced through the closed CONFIRMATORY portfolio path.
         member_a = self.make_member("a", "MAIN_A")
         member_b = self.make_member("b", "MAIN_B")
         candidates = (
@@ -292,56 +269,12 @@ class PortfolioSemanticsTests(unittest.TestCase):
             self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG),
         )
 
-        result, ledger = self.run_portfolio((member_a, member_b), candidates)
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            self.run_portfolio((member_a, member_b), candidates)
 
-        self.assertTrue(result.confirmed)
-        self.assertEqual(result.conflicts, ())
-        self.assertTrue(
-            all(item.execution_outcome.status is FillStatus.FILLED for item in result.candidate_outcomes)
-        )
-        self.assertEqual(len(result.sleeves), 2)
-        self.assertEqual({len(sleeve.positions) for sleeve in result.sleeves}, {1})
-        self.assertEqual(
-            {position.strategy_identity_id for sleeve in result.sleeves for position in sleeve.positions},
-            {member_a.strategy.identity_id, member_b.strategy.identity_id},
-        )
-        self.assertEqual(
-            {position.concrete_contract_id for sleeve in result.sleeves for position in sleeve.positions},
-            {"A"},
-        )
-        self.assertEqual(
-            {position.execution_assumption_id for sleeve in result.sleeves for position in sleeve.positions},
-            {self.execution_assumptions.identity_id},
-        )
-        self.assertEqual(
-            {position.capital_assumption_id for sleeve in result.sleeves for position in sleeve.positions},
-            {self.capital_assumptions.identity_id},
-        )
-        self.assertEqual(result.shared_capital.reserved_margin, Decimal("20.10"))
-        self.assertEqual(result.shared_capital.charged_costs, Decimal("0.50"))
-        self.assertEqual(
-            result.reconciliation.shared_reserved_margin,
-            result.reconciliation.sleeve_reserved_margin,
-        )
-        self.assertEqual(
-            result.reconciliation.shared_charged_costs,
-            result.reconciliation.sleeve_charged_costs,
-        )
-        self.assertEqual(
-            result.reconciliation.shared_realized_pnl,
-            result.reconciliation.sleeve_realized_pnl,
-        )
-        self.assertEqual(
-            result.reconciliation.shared_unrealized_pnl,
-            result.reconciliation.sleeve_unrealized_pnl,
-        )
-        self.assertNotIn("VALIDATION_CONFIRMED", [record.event_type for record in ledger.records])
-        self.assertEqual(
-            [record.event_type for record in ledger.records].count("PORTFOLIO_CONFIRMED"),
-            2,
-        )
-
-    def test_shared_capital_makes_later_candidate_unaffordable_without_double_spending(self):
+    def test_confirmatory_portfolio_shared_capital_path_is_closed(self):
+        # F-02: the shared-capital execution path cannot run through the closed
+        # CONFIRMATORY portfolio path.
         member_a = self.make_member("a", "MAIN_A")
         member_b = self.make_member("b", "MAIN_B")
         candidates = (
@@ -349,42 +282,12 @@ class PortfolioSemanticsTests(unittest.TestCase):
             self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG),
         )
 
-        result, ledger = self.run_portfolio(
-            (member_a, member_b),
-            reversed(candidates),
-            starting_capital=Decimal("15"),
-        )
-        repeated, repeated_ledger = self.run_portfolio(
-            (member_b, member_a),
-            candidates,
-            starting_capital=Decimal("15"),
-        )
-
-        filled = [
-            item
-            for item in result.candidate_outcomes
-            if item.execution_outcome.status is FillStatus.FILLED
-        ]
-        denied = [
-            item
-            for item in result.candidate_outcomes
-            if item.execution_outcome.reason == "INSUFFICIENT_MARGIN"
-        ]
-        self.assertEqual(len(filled), 1)
-        self.assertEqual(len(denied), 1)
-        self.assertEqual(result.shared_capital.reserved_margin, Decimal("10.050"))
-        self.assertEqual(result.shared_capital.charged_costs, Decimal("0.25"))
-        self.assertEqual(result.reconciliation.position_count, 1)
-        self.assertEqual(
-            [record.event_type for record in ledger.records].count("PORTFOLIO_CAPITAL_DENIED"),
-            1,
-        )
-        self.assertEqual(result.candidate_outcomes, repeated.candidate_outcomes)
-        self.assertEqual(result.shared_capital, repeated.shared_capital)
-        self.assertEqual(
-            [record.record_id for record in ledger.records],
-            [record.record_id for record in repeated_ledger.records],
-        )
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            self.run_portfolio(
+                (member_a, member_b),
+                reversed(candidates),
+                starting_capital=Decimal("15"),
+            )
 
     def test_member_binding_duplicate_membership_and_duplicate_request_fail_closed(self):
         member_a = self.make_member("a", "MAIN_A")
@@ -449,7 +352,9 @@ class PortfolioSemanticsTests(unittest.TestCase):
                 (unknown_candidate, valid_b),
             )
 
-    def test_final_unseen_cannot_be_laundered_through_portfolio_identity(self):
+    def test_final_unseen_portfolio_path_is_closed(self):
+        # F-02: even for FINAL_UNSEEN the CONFIRMATORY portfolio outcome path
+        # fails closed instead of running a legacy grant path.
         member_a = self.make_member("a", "MAIN_A")
         member_b = self.make_member("b", "MAIN_B")
         candidates = (
@@ -457,23 +362,12 @@ class PortfolioSemanticsTests(unittest.TestCase):
             self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG),
         )
 
-        result, ledger = self.run_portfolio(
-            (member_a, member_b),
-            candidates,
-            dataset_class=DatasetClass.FINAL_UNSEEN,
-        )
-
-        self.assertFalse(result.allowed)
-        self.assertFalse(result.confirmed)
-        self.assertEqual(result.candidate_outcomes, ())
-        self.assertEqual(
-            [record.event_type for record in ledger.records],
-            ["DATASET_ACCESS_DENIED", "DATASET_ACCESS_DENIED"],
-        )
-        self.assertEqual(
-            {record.experiment.experiment_id for record in ledger.records},
-            {member_a.experiment.experiment_id, member_b.experiment.experiment_id},
-        )
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            self.run_portfolio(
+                (member_a, member_b),
+                candidates,
+                dataset_class=DatasetClass.FINAL_UNSEEN,
+            )
 
     def test_fast_portfolio_path_cannot_emit_confirmation(self):
         member_a = self.make_member("a", "MAIN_A")
@@ -489,60 +383,90 @@ class PortfolioSemanticsTests(unittest.TestCase):
             )
 
     def test_reconciliation_mismatch_fails_closed(self):
-        member_a = self.make_member("a", "MAIN_A")
-        member_b = self.make_member("b", "MAIN_B")
-        result, _ = self.run_portfolio(
-            (member_a, member_b),
-            (
-                self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG),
-                self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG),
-            ),
+        # The reconciliation invariant is unit-tested directly now that the
+        # CONFIRMATORY portfolio outcome path is closed (Package A / F-02).
+        position = AttributedPosition(
+            "strategy-a-id",
+            "experiment-a-id",
+            "request-1",
+            "A",
+            "contract-a-id",
+            PositionDirection.LONG,
+            Decimal("1"),
+            Decimal("10"),
+            Decimal("0.25"),
+            Decimal("0"),
+            Decimal("0"),
+            "exec-a",
+            "cap-a",
+            "snap-a",
         )
+        sleeve = StrategySleeve.from_positions("strategy-a-id", "experiment-a-id", (position,))
+        state = SharedCapitalState(
+            Decimal("100"),
+            reserved_margin=Decimal("10"),
+            charged_costs=Decimal("0.25"),
+        )
+        reconciled = reconcile_portfolio(state, (sleeve,), ())
+        self.assertEqual(reconciled.position_count, 1)
+
         corrupted_state = SharedCapitalState(
-            result.shared_capital.starting_capital,
-            result.shared_capital.reserved_margin + Decimal("1"),
-            result.shared_capital.charged_costs,
-            result.shared_capital.realized_pnl,
-            result.shared_capital.unrealized_pnl,
+            Decimal("100"),
+            reserved_margin=Decimal("11"),
+            charged_costs=Decimal("0.25"),
         )
-
         with self.assertRaisesRegex(ValueError, "does not reconcile"):
-            reconcile_portfolio(corrupted_state, result.sleeves, result.candidate_outcomes)
+            reconcile_portfolio(corrupted_state, (sleeve,), ())
 
-        first_sleeve, second_sleeve = result.sleeves
         with self.assertRaisesRegex(ValueError, "another strategy"):
-            replace(first_sleeve, strategy_identity_id=second_sleeve.strategy_identity_id)
+            replace(sleeve, strategy_identity_id="strategy-b-id")
 
-    def test_portfolio_evidence_binds_members_policies_candidates_and_reconciliation(self):
+    def test_portfolio_evidence_path_is_closed(self):
+        # F-02: no PORTFOLIO_* outcome evidence records can be produced through
+        # the closed CONFIRMATORY portfolio path.
         member_a = self.make_member("a", "MAIN_A")
         member_b = self.make_member("b", "MAIN_B")
-        result, ledger = self.run_portfolio(
-            (member_a, member_b),
-            (
-                self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG),
-                self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG),
-            ),
+        candidates = (
+            self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG),
+            self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG),
         )
 
-        portfolio_records = [
-            record for record in ledger.records if record.event_type.startswith("PORTFOLIO_")
-        ]
-        self.assertTrue(portfolio_records)
-        self.assertEqual(
-            {record.experiment.experiment_id for record in portfolio_records},
-            {member_a.experiment.experiment_id, member_b.experiment.experiment_id},
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            self.run_portfolio((member_a, member_b), candidates)
+
+    def test_portfolio_legacy_coarse_grant_path_is_closed(self):
+        # A10 / F-02: the portfolio legacy coarse-grant path is closed; no
+        # execution outcome, capital mutation, or PORTFOLIO_CONFIRMED can occur.
+        member_a = self.make_member("a", "MAIN_A")
+        member_b = self.make_member("b", "MAIN_B")
+        candidates = (
+            self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG),
+            self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG),
         )
-        self.assertTrue(
-            all(result.evaluation_identity.identity_id in record.evidence_reference for record in portfolio_records)
-        )
-        self.assertTrue(
-            all(self.conflict_policy.identity_id in record.evidence_reference for record in portfolio_records)
-        )
-        reconciled = [record for record in portfolio_records if record.event_type == "PORTFOLIO_RECONCILED"]
-        self.assertEqual(len(reconciled), 2)
-        self.assertTrue(
-            all(record.fact_reference == result.reconciliation.reference_id for record in reconciled)
-        )
+        ledger = EvidenceLedger()
+        coordinator = PortfolioCoordinator(ledger, FinalUnseenFirewall(ledger))
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            coordinator.evaluate(
+                PortfolioRequest(
+                    ValidationMode.CONFIRMATORY,
+                    DatasetClass.DEVELOPMENT,
+                    (member_a, member_b),
+                    candidates,
+                    Decimal("100"),
+                    self.conflict_policy,
+                    self.shared_policy,
+                    self.master,
+                    self.schedule,
+                    self.sessions,
+                    (self.limit_fact,),
+                    self.execution_assumptions,
+                    self.capital_assumptions,
+                    self.offset_costs,
+                    at(9, 30),
+                )
+            )
+        # No legacy coarse grant, no execution, no capital mutation, no confirmation.
+        self.assertEqual(ledger.records, ())
 
 
 if __name__ == "__main__":

@@ -4,15 +4,7 @@ from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from src.data_substrate import CompletedBar
-from src.strategy_evidence import (
-    DatasetClass,
-    EvidenceLedger,
-    ExperimentIdentity,
-    FinalUnseenFirewall,
-    LifecycleState,
-    StrategyIdentity,
-    TypedParameter,
-)
+from src.strategy_evidence import DatasetClass, EvidenceLedger
 from src.validation_runner import (
     CapitalMarginAssumptions,
     CapitalSnapshot,
@@ -22,50 +14,48 @@ from src.validation_runner import (
     FillStatus,
     OrderSpecification,
     ValidationDisposition,
-    ValidationInput,
     ValidationMode,
+)
+from tests.synthetic_fixture import (
+    DEVELOPMENT_DAY,
+    build_synthetic_firewall,
+    make_experiment,
+    make_strategy,
+    make_validation_input,
 )
 
 
 CN = ZoneInfo("Asia/Shanghai")
-DAY = date(2025, 6, 16)
+DAY = DEVELOPMENT_DAY
 
 
 def at(hour, minute):
     return datetime(DAY.year, DAY.month, DAY.day, hour, minute, tzinfo=CN)
 
 
-def make_strategy():
-    return StrategyIdentity(
-        research_lineage_id="capital-lineage-fixture",
-        family_id="neutral-capital-family",
-        strategy_version="1.0",
-        source="deterministic-fixture",
-        applicable_instruments=("TEST",),
-        timeframe="5m",
-        parameters=(TypedParameter("window", "int", 3),),
-        code_hash="code-fixture-v1",
-        environment_hash="environment-fixture-v1",
-        required_feature_versions=("context-fixture-v1",),
-        lifecycle_state=LifecycleState.DRAFT,
-        data_exposure_history_reference="exposure-fixture-v1",
-    )
-
-
 class CapitalMarginConstraintTests(unittest.TestCase):
     def setUp(self):
-        self.strategy = make_strategy()
-        self.experiment = ExperimentIdentity.from_strategy(self.strategy, "data-fixture-v1", "exposure-fixture-v1")
+        self.strategy = make_strategy(
+            research_lineage_id="capital-lineage-fixture",
+            family_id="neutral-capital-family",
+        )
+        self.experiment = make_experiment(self.strategy)
         self.execution_assumptions = ExecutionAssumptions("synthetic-v1", Decimal("1.5"), Decimal("0.25"))
         self.capital_assumptions = CapitalMarginAssumptions("capital-v1", Decimal("1"), Decimal("0.1"), "SYNTH")
-        self.input = ValidationInput("request-1", CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5)), at(9, 5))
+        self.input = make_validation_input(
+            "request-1",
+            CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5)),
+            at(9, 5),
+            data_version=self.experiment.data_version,
+        )
 
     def runner(self):
         ledger = EvidenceLedger()
-        return ChronologicalValidationRunner(ledger, FinalUnseenFirewall(ledger)), ledger
+        firewall, hypothesis_test_id = build_synthetic_firewall(ledger, self.strategy, self.experiment)
+        return ChronologicalValidationRunner(ledger, firewall), ledger, hypothesis_test_id
 
-    def confirm(self, snapshot, inputs=None, observations=None, specifications=None, dataset=DatasetClass.VALIDATION):
-        runner, ledger = self.runner()
+    def confirm(self, snapshot, inputs=None, observations=None, specifications=None, dataset=DatasetClass.DEVELOPMENT):
+        runner, ledger, hypothesis_test_id = self.runner()
         inputs = inputs or (self.input,)
         observations = observations if observations is not None else (ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100")),)
         specifications = specifications or tuple(OrderSpecification(item.request_id, Decimal("1")) for item in inputs)
@@ -78,6 +68,8 @@ class CapitalMarginConstraintTests(unittest.TestCase):
             dataset_class=dataset,
             inputs=inputs,
             disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=hypothesis_test_id,
+            synthetic_fixture=True,
             execution_observations=observations,
             execution_cutoff_at=at(9, 15),
             execution_assumptions=self.execution_assumptions,
@@ -108,7 +100,9 @@ class CapitalMarginConstraintTests(unittest.TestCase):
 
     def test_sequential_fills_use_prior_capital_snapshot(self):
         second_bar = CompletedBar("TEST", DAY, at(9, 5), at(9, 10), at(9, 10))
-        second_input = ValidationInput("request-2", second_bar, at(9, 10))
+        second_input = make_validation_input(
+            "request-2", second_bar, at(9, 10), data_version=self.experiment.data_version
+        )
         inputs = (self.input, second_input)
         observations = (
             ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100")),

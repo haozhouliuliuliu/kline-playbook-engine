@@ -802,8 +802,23 @@ class StatisticalProfileRegistry:
         return self._profiles.get(profile_id)
 
     def lock(self, profile_id: str) -> None:
+        """Fail-closed profile lock.
+
+        Current project policy (`HUMAN_PLAYBOOK_HISTORICAL_V1_EVIDENCE_POLICY_V1_0`)
+        has no adopted real (non-TEST_ONLY) statistical profile:
+        ``STATISTICAL_POSITIVE_ACCEPTANCE_PACKAGE=PARKED`` and
+        ``CURRENT_INFERENCE_CANDIDATE=NONE_ADOPTED_FOR_POSITIVE_PASS``. Therefore
+        only explicitly TEST_ONLY profiles may be locked (for synthetic engine
+        fixtures). An arbitrary real-looking profile is rejected instead of being
+        silently treated as a locked acceptance profile.
+        """
         if profile_id not in self._profiles:
             raise ValueError("unknown statistical profile id")
+        profile = self._profiles[profile_id]
+        if not profile.is_test_only:
+            raise ValueError(
+                "REAL_STATISTICAL_PROFILE_NOT_ADOPTED: only TEST_ONLY profiles can be locked"
+            )
         self._locked.add(profile_id)
 
     def is_locked(self, profile_id: str) -> bool:
@@ -1169,7 +1184,22 @@ class ResearchFirewall:
     # -- authoritative candidate-outcome path -----------------------------------
 
     @staticmethod
-    def _dataset_class_for_cohort(cohort: Cohort) -> DatasetClass:
+    def cohort_for_dates(data_dates: tuple[date, ...]) -> Cohort:
+        """Derive the security cohort from the actual input dates (F-04).
+
+        This is the only way the authoritative candidate API learns its cohort:
+        the caller never declares it. Empty input or a mixed-cohort input set
+        fails closed.
+        """
+        if not data_dates:
+            raise ValueError("candidate outcome access requires at least one input date")
+        cohorts = {classify_cohort(day) for day in data_dates}
+        if len(cohorts) != 1:
+            raise ValueError("candidate outcome access spans multiple research cohorts")
+        return cohorts.pop()
+
+    @staticmethod
+    def dataset_class_for_cohort(cohort: Cohort) -> DatasetClass:
         mapping = {
             Cohort.DEVELOPMENT: DatasetClass.DEVELOPMENT,
             Cohort.VALIDATION: DatasetClass.VALIDATION,
@@ -1252,12 +1282,17 @@ class ResearchFirewall:
     def evaluate_gate(
         self,
         *,
-        cohort: Cohort,
+        data_dates: tuple[date, ...],
         experiment: ExperimentIdentity,
         hypothesis_test_id: str,
         synthetic_fixture: bool,
     ) -> PreOutcomeGateDecision:
-        """Authoritative gate evaluation, fully derived from project registries."""
+        """Authoritative gate evaluation, fully derived from project registries.
+
+        The cohort is derived from the actual input dates (F-04); the caller never
+        declares a cohort.
+        """
+        cohort = self.cohort_for_dates(data_dates)
         mismatch, controls = self._resolve_binding(hypothesis_test_id, experiment)
         if cohort in (
             Cohort.PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT,
@@ -1305,24 +1340,27 @@ class ResearchFirewall:
     def request_candidate_outcome_access(
         self,
         *,
-        cohort: Cohort,
+        data_dates: tuple[date, ...],
         experiment: ExperimentIdentity,
         hypothesis_test_id: str,
         synthetic_fixture: bool,
     ) -> AccessResult:
         """Authoritative candidate outcome-bearing access. Fail closed by default.
 
-        Only accepts a registered hypothesis/test identity plus cohort/fixture
-        information. Every other fact is resolved and verified from the registries.
-        On the first grant, the wave's outcome-test-start is recorded durably.
+        Only accepts a registered hypothesis/test identity plus the actual input
+        dates and fixture information. The security cohort is derived from the
+        input dates (F-04), never declared by the caller. Every other fact is
+        resolved and verified from the registries. On the first grant, the wave's
+        outcome-test-start is recorded durably.
         """
+        cohort = self.cohort_for_dates(data_dates)
         decision = self.evaluate_gate(
-            cohort=cohort,
+            data_dates=data_dates,
             experiment=experiment,
             hypothesis_test_id=hypothesis_test_id,
             synthetic_fixture=synthetic_fixture,
         )
-        dataset_class = self._dataset_class_for_cohort(cohort)
+        dataset_class = self.dataset_class_for_cohort(cohort)
         if decision.allowed:
             registration = self._tests.get(hypothesis_test_id)
             profile = self._profiles.get(registration.statistical_profile_id)

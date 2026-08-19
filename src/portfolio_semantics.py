@@ -22,7 +22,6 @@ from src.contract_semantics import (
 )
 from src.data_substrate import SessionMetadata
 from src.strategy_evidence import (
-    AccessResult,
     DatasetClass,
     EvidenceLedger,
     EvidenceRecord,
@@ -32,15 +31,12 @@ from src.strategy_evidence import (
 )
 from src.validation_runner import (
     CapitalMarginAssumptions,
-    CapitalSnapshot,
     CapitalTransition,
-    ChronologicalValidationRunner,
     ExecutionAssumptions,
     ExecutionObservation,
     ExecutionOutcome,
     FillStatus,
     OrderSpecification,
-    ValidationDisposition,
     ValidationInput,
     ValidationMode,
 )
@@ -804,241 +800,10 @@ class PortfolioCoordinator:
         )
         members = tuple(sorted(request.members, key=lambda item: item.strategy.identity_id))
         members_by_strategy = self._members_by_strategy(members)
-        state = SharedCapitalState(request.starting_capital)
-        if request.dataset_class is DatasetClass.FINAL_UNSEEN:
-            for member in members:
-                self._firewall.request_access(member.experiment, request.dataset_class)
-            return PortfolioEvaluationResult(
-                False,
-                False,
-                evaluation_identity,
-                (),
-                (),
-                (),
-                state,
-                None,
-            )
-        access_by_experiment: dict[str, AccessResult] = {}
-        for member in members:
-            access = self._firewall.request_access(member.experiment, request.dataset_class)
-            if not access.allowed:
-                return PortfolioEvaluationResult(
-                    False,
-                    False,
-                    evaluation_identity,
-                    (),
-                    (),
-                    (),
-                    state,
-                    None,
-                )
-            access_by_experiment[member.experiment.experiment_id] = access
-            evaluation_reference = (
-                f"portfolio:{evaluation_identity.identity_id};"
-                f"conflict_policy:{request.conflict_policy.identity_id};"
-                f"shared_capital_policy:{request.shared_capital_policy.identity_id}"
-            )
-            self._record(
-                "PORTFOLIO_EVALUATION_STARTED",
-                member,
-                request.dataset_class,
-                "STARTED",
-                evaluation_reference,
-                evaluation_identity.identity_id,
-            )
-
-        resolved = self._resolve_candidates(request, members_by_strategy)
-        decisions, conflicts = self._arbitrate(resolved, request.conflict_policy)
-        conflict_by_request = {
-            request_id: conflict
-            for conflict in conflicts
-            for request_id in conflict.accepted_request_ids + conflict.rejected_request_ids
-        }
-        positions_by_strategy: dict[str, list[AttributedPosition]] = {
-            member.strategy.identity_id: [] for member in members
-        }
-        outcomes: list[CandidateOutcome] = []
-        for item in resolved:
-            candidate = item.candidate
-            member = item.member
-            decision = decisions[candidate.request_id]
-            reference = (
-                f"portfolio:{evaluation_identity.identity_id};"
-                f"policy:{request.conflict_policy.identity_id};"
-                f"shared_capital_policy:{request.shared_capital_policy.identity_id};"
-                f"strategy:{candidate.strategy_identity_id};request:{candidate.request_id};"
-                f"resolution:{item.resolution.identity_id}"
-            )
-            conflict = conflict_by_request.get(candidate.request_id)
-            if conflict is not None:
-                self._record(
-                    "PORTFOLIO_CONFLICT_DETECTED",
-                    member,
-                    request.dataset_class,
-                    "CONFLICT",
-                    reference,
-                    conflict.reference_id,
-                )
-            if decision is CandidateDecision.REJECTED_CONFLICT:
-                outcome = CandidateOutcome(
-                    candidate.strategy_identity_id,
-                    candidate.experiment_id,
-                    candidate.request_id,
-                    candidate.direction,
-                    decision,
-                    "OPPOSING_OPEN_CONFLICT",
-                    item.resolution,
-                )
-                outcomes.append(outcome)
-                self._record(
-                    "PORTFOLIO_CANDIDATE_REJECTED",
-                    member,
-                    request.dataset_class,
-                    outcome.reason,
-                    reference,
-                    outcome.reference_id,
-                )
-                continue
-            self._record(
-                "PORTFOLIO_CANDIDATE_ACCEPTED",
-                member,
-                request.dataset_class,
-                "ACCEPTED",
-                reference,
-                item.resolution.identity_id,
-            )
-            runner = ChronologicalValidationRunner(self._ledger, self._firewall)
-            validation_result = runner.run(
-                mode=ValidationMode.CONFIRMATORY,
-                strategy=member.strategy,
-                experiment=member.experiment,
-                artifact_identity_id=member.strategy.identity_id,
-                artifact_code_hash=member.strategy.code_hash,
-                dataset_class=request.dataset_class,
-                inputs=(candidate.validation_input,),
-                disposition=ValidationDisposition.CONFIRMED,
-                execution_observations=(
-                    (candidate.execution_observation,)
-                    if candidate.execution_observation is not None
-                    else ()
-                ),
-                execution_cutoff_at=request.execution_cutoff_at,
-                execution_assumptions=request.execution_assumptions,
-                order_specifications=(candidate.order_specification,),
-                capital_snapshot=CapitalSnapshot(state.available_capital),
-                capital_margin_assumptions=request.capital_assumptions,
-                contract_master=request.contract_master,
-                contract_mapping_schedule=request.contract_mapping_schedule,
-                session_metadata=request.session_metadata,
-                price_limit_facts=request.price_limit_facts,
-                offset_cost_assumptions=request.offset_cost_assumptions,
-                authorized_access=access_by_experiment[candidate.experiment_id],
-                defer_confirmation=True,
-            )
-            if validation_result.contract_resolutions != (item.resolution,):
-                raise ValueError("portfolio and execution contract resolution identities disagree")
-            execution_outcome = validation_result.execution_outcomes[0]
-            transition = validation_result.capital_transitions[0]
-            outcome = CandidateOutcome(
-                candidate.strategy_identity_id,
-                candidate.experiment_id,
-                candidate.request_id,
-                candidate.direction,
-                decision,
-                execution_outcome.reason,
-                item.resolution,
-                execution_outcome,
-                transition,
-            )
-            outcomes.append(outcome)
-            if execution_outcome.status is not FillStatus.FILLED:
-                event_type = (
-                    "PORTFOLIO_CAPITAL_DENIED"
-                    if execution_outcome.reason == "INSUFFICIENT_MARGIN"
-                    else "PORTFOLIO_CANDIDATE_NOT_FILLED"
-                )
-                self._record(
-                    event_type,
-                    member,
-                    request.dataset_class,
-                    execution_outcome.reason,
-                    reference,
-                    outcome.reference_id,
-                )
-                continue
-            snapshot = transition.after
-            position = AttributedPosition(
-                candidate.strategy_identity_id,
-                candidate.experiment_id,
-                candidate.request_id,
-                snapshot.concrete_contract_id,
-                snapshot.contract_identity_id,
-                candidate.direction,
-                snapshot.position_quantity,
-                snapshot.reserved_margin,
-                snapshot.charged_costs,
-                snapshot.realized_pnl,
-                snapshot.unrealized_pnl,
-                snapshot.execution_assumption_id,
-                snapshot.capital_assumption_id,
-                snapshot.reference_id,
-            )
-            positions_by_strategy[candidate.strategy_identity_id].append(position)
-            state = SharedCapitalState(
-                state.starting_capital,
-                state.reserved_margin + position.reserved_margin,
-                state.charged_costs + position.charged_costs,
-                state.realized_pnl + position.realized_pnl,
-                state.unrealized_pnl + position.unrealized_pnl,
-            )
-            self._record(
-                "PORTFOLIO_FILL_ATTRIBUTED",
-                member,
-                request.dataset_class,
-                "FILLED",
-                reference,
-                position.reference_id,
-            )
-
-        sleeves = tuple(
-            StrategySleeve.from_positions(
-                member.strategy.identity_id,
-                member.experiment.experiment_id,
-                positions_by_strategy[member.strategy.identity_id],
-            )
-            for member in members
-        )
-        reconciliation = reconcile_portfolio(state, sleeves, outcomes)
-        for member in members:
-            reference = (
-                f"portfolio:{evaluation_identity.identity_id};"
-                f"reconciliation:{reconciliation.reference_id};"
-                f"policy:{request.conflict_policy.identity_id};"
-                f"shared_capital_policy:{request.shared_capital_policy.identity_id}"
-            )
-            self._record(
-                "PORTFOLIO_RECONCILED",
-                member,
-                request.dataset_class,
-                "RECONCILED",
-                reference,
-                reconciliation.reference_id,
-            )
-            self._record(
-                "PORTFOLIO_CONFIRMED",
-                member,
-                request.dataset_class,
-                "CONFIRMED",
-                reference,
-                evaluation_identity.identity_id,
-            )
-        return PortfolioEvaluationResult(
-            True,
-            True,
-            evaluation_identity,
-            tuple(outcomes),
-            conflicts,
-            sleeves,
-            state,
-            reconciliation,
-        )
+        # Structural request validation still fails closed with its precise cause.
+        self._resolve_candidates(request, members_by_strategy)
+        # Package A: the CONFIRMATORY portfolio candidate-outcome path is closed.
+        # There is no identity-bound portfolio candidate authority yet, and the
+        # legacy coarse-grant route is a removed bypass. Fail closed before any
+        # execution / candidate outcome / reconciliation-confirmed record exists.
+        raise ValueError("PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED")

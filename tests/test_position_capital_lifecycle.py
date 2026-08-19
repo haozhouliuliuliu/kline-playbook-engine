@@ -5,15 +5,7 @@ from zoneinfo import ZoneInfo
 
 from src.contract_semantics import CloseOffset, OffsetCostAssumptions, OrderAction, PositionDirection
 from src.data_substrate import CompletedBar
-from src.strategy_evidence import (
-    DatasetClass,
-    EvidenceLedger,
-    ExperimentIdentity,
-    FinalUnseenFirewall,
-    LifecycleState,
-    StrategyIdentity,
-    TypedParameter,
-)
+from src.strategy_evidence import DatasetClass, EvidenceLedger
 from src.validation_runner import (
     CapitalMarginAssumptions,
     CapitalSnapshot,
@@ -25,43 +17,40 @@ from src.validation_runner import (
     MarkObservation,
     OrderSpecification,
     ValidationDisposition,
-    ValidationInput,
     ValidationMode,
+)
+from tests.synthetic_fixture import (
+    DEVELOPMENT_DAY,
+    build_synthetic_firewall,
+    make_experiment,
+    make_strategy,
+    make_validation_input,
 )
 
 
 CN = ZoneInfo("Asia/Shanghai")
-DAY = date(2025, 6, 16)
+DAY = DEVELOPMENT_DAY
 
 
 def at(hour, minute):
     return datetime(DAY.year, DAY.month, DAY.day, hour, minute, tzinfo=CN)
 
 
-def make_strategy():
-    return StrategyIdentity(
-        research_lineage_id="position-lifecycle-lineage-fixture",
-        family_id="neutral-position-lifecycle-family",
-        strategy_version="1.0",
-        source="deterministic-synthetic-fixture",
-        applicable_instruments=("TEST",),
-        timeframe="5m",
-        parameters=(TypedParameter("window", "int", 3),),
-        code_hash="position-lifecycle-code-fixture-v1",
-        environment_hash="position-lifecycle-environment-fixture-v1",
-        required_feature_versions=("position-context-fixture-v1",),
-        lifecycle_state=LifecycleState.DRAFT,
-        data_exposure_history_reference="position-exposure-fixture-v1",
-    )
-
-
 class PositionCapitalLifecycleTests(unittest.TestCase):
     def setUp(self):
-        self.strategy = make_strategy()
-        self.experiment = ExperimentIdentity.from_strategy(
+        self.strategy = make_strategy(
+            research_lineage_id="position-lifecycle-lineage-fixture",
+            family_id="neutral-position-lifecycle-family",
+            source="deterministic-synthetic-fixture",
+            code_hash="position-lifecycle-code-fixture-v1",
+            environment_hash="position-lifecycle-environment-fixture-v1",
+            required_feature_versions=("position-context-fixture-v1",),
+            data_exposure_history_reference="position-exposure-fixture-v1",
+        )
+        self.experiment = make_experiment(
             self.strategy,
-            "position-data-fixture-v1",
-            "position-exposure-fixture-v1",
+            data_version="position-data-fixture-v1",
+            dataset_exposure_reference="position-exposure-fixture-v1",
         )
         self.execution_assumptions = ExecutionAssumptions(
             "synthetic-position-execution-v1",
@@ -75,10 +64,11 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             "SYNTH",
             Decimal("0.05"),
         )
-        self.validation_input = ValidationInput(
+        self.validation_input = make_validation_input(
             "request-1",
             CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5)),
             at(9, 5),
+            data_version=self.experiment.data_version,
         )
 
     def run_case(
@@ -87,13 +77,16 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
         mark=None,
         initial_tradable=True,
         liquidation_observations=(),
-        dataset=DatasetClass.VALIDATION,
+        dataset=DatasetClass.DEVELOPMENT,
         capital_assumptions=None,
         initial_snapshot=None,
         direction=PositionDirection.LONG,
     ):
         ledger = EvidenceLedger()
-        runner = ChronologicalValidationRunner(ledger, FinalUnseenFirewall(ledger))
+        firewall, hypothesis_test_id = build_synthetic_firewall(
+            ledger, self.strategy, self.experiment
+        )
+        runner = ChronologicalValidationRunner(ledger, firewall)
         result = runner.run(
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
@@ -103,6 +96,8 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             dataset_class=dataset,
             inputs=(self.validation_input,),
             disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=hypothesis_test_id,
+            synthetic_fixture=True,
             execution_observations=(
                 ExecutionObservation(
                     "request-1",
@@ -198,7 +193,7 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             request_id = f"request-{index + 1}"
             decision_at = at(9, 5) + timedelta(minutes=2 * index)
             inputs.append(
-                ValidationInput(
+                make_validation_input(
                     request_id,
                     CompletedBar(
                         "TEST",
@@ -208,6 +203,7 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
                         decision_at,
                     ),
                     decision_at,
+                    data_version=self.experiment.data_version,
                 )
             )
             observations.append(
@@ -228,16 +224,21 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
                 )
             )
         ledger = EvidenceLedger()
-        runner = ChronologicalValidationRunner(ledger, FinalUnseenFirewall(ledger))
+        firewall, hypothesis_test_id = build_synthetic_firewall(
+            ledger, self.strategy, self.experiment
+        )
+        runner = ChronologicalValidationRunner(ledger, firewall)
         result = runner.run(
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
             experiment=self.experiment,
             artifact_identity_id=self.strategy.identity_id,
             artifact_code_hash=self.strategy.code_hash,
-            dataset_class=DatasetClass.VALIDATION,
+            dataset_class=DatasetClass.DEVELOPMENT,
             inputs=tuple(inputs),
             disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=hypothesis_test_id,
+            synthetic_fixture=True,
             execution_observations=tuple(observations),
             execution_cutoff_at=at(9, 30),
             execution_assumptions=execution_assumptions,
