@@ -553,11 +553,12 @@ class ChronologicalValidationRunner:
     def _validate_binding(
         strategy: StrategyIdentity,
         experiment: ExperimentIdentity,
-        artifact_identity_id: str,
-        artifact_code_hash: str,
     ) -> None:
-        if artifact_identity_id != strategy.identity_id or artifact_code_hash != strategy.code_hash:
-            raise ValueError("strategy artifact does not match strategy identity")
+        """Experiment/strategy identity binding.
+
+        Real artifact attestation is owned by the outcome-test registration
+        (P-06); the runner holds no caller-supplied artifact self-attestation.
+        """
         experiment.validate_strategy(strategy)
 
     @staticmethod
@@ -1379,8 +1380,6 @@ class ChronologicalValidationRunner:
         mode: ValidationMode,
         strategy: StrategyIdentity,
         experiment: ExperimentIdentity,
-        artifact_identity_id: str,
-        artifact_code_hash: str,
         dataset_class: DatasetClass,
         inputs: Iterable[ValidationInput],
         disposition: ValidationDisposition | None = None,
@@ -1400,7 +1399,7 @@ class ChronologicalValidationRunner:
         offset_cost_assumptions: OffsetCostAssumptions | None = None,
         defer_confirmation: bool = False,
     ) -> ValidationRunResult:
-        self._validate_binding(strategy, experiment, artifact_identity_id, artifact_code_hash)
+        self._validate_binding(strategy, experiment)
         if mode is ValidationMode.FAST and disposition is ValidationDisposition.CONFIRMED:
             raise ValueError("FAST mode cannot establish confirmatory validity")
         if dataset_class is DatasetClass.FINAL_UNSEEN:

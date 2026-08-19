@@ -31,14 +31,20 @@ from datetime import date
 from enum import Enum
 from hashlib import sha256
 import json
+import os
+import secrets
 from typing import Any
 
+from src.playbook_contract import PlaybookContract
 from src.strategy_evidence import (
     AccessResult,
+    ArtifactBinding,
     DatasetClass,
     EvidenceLedger,
     EvidenceRecord,
     ExperimentIdentity,
+    LifecycleState,
+    OutcomeArtifactBindings,
     StrategyIdentity,
 )
 
@@ -181,7 +187,12 @@ class SourceOnlyPolicy:
     def __init__(self) -> None:
         self._sessions: dict[str, SourceOnlySession] = {}
         self._denials: list[ProtectedOutcomeRequestResult] = []
-        self._issuer_nonce = _canonical_hash(("SOURCE_ONLY_PROJECT_ISSUER_V1",))
+        # Project-issued verified sessions: session_id -> the session identity
+        # that was issued. Only `open_verified_session()` (and trusted state
+        # restore) writes here; `record_session()` can never promote a session to
+        # verified. Verification is therefore not reproducible from a public fixed
+        # formula.
+        self._issued_verified: dict[str, str] = {}
 
     @property
     def sessions(self) -> tuple[SourceOnlySession, ...]:
@@ -191,8 +202,13 @@ class SourceOnlyPolicy:
     def denial_records(self) -> tuple[ProtectedOutcomeRequestResult, ...]:
         return tuple(self._denials)
 
-    def _expected_evidence(self, session: SourceOnlySession) -> str:
-        return _canonical_hash((self._issuer_nonce, session.session_identity))
+    @property
+    def issued_verified_identities(self) -> dict[str, str]:
+        return dict(self._issued_verified)
+
+    @property
+    def issued_verified_session_ids(self) -> tuple[str, ...]:
+        return tuple(sorted(self._issued_verified))
 
     def open_verified_session(
         self,
@@ -208,7 +224,9 @@ class SourceOnlyPolicy:
         """Project-owned verified-session creation path.
 
         Builds a session whose `protected_market_access_mode` is
-        `TECHNICALLY_DENIED` and stamps project-issued verification evidence.
+        `TECHNICALLY_DENIED`, stamps an opaque diagnostic token, and records the
+        session in the internal issued-verified registry. This is the ONLY normal
+        API path that marks a session verified.
         """
         if session_id in self._sessions:
             raise ValueError("duplicate SOURCE_ONLY session id")
@@ -222,15 +240,17 @@ class SourceOnlyPolicy:
             protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
             researcher_model_exposure_note=researcher_model_exposure_note,
         )
-        session = replace(base, verification_evidence=self._expected_evidence(base))
+        session = replace(base, verification_evidence=secrets.token_hex(32))
         self._sessions[session_id] = session
+        self._issued_verified[session_id] = session.session_identity
         return session
 
     def record_session(self, session: SourceOnlySession) -> SourceOnlySession:
-        """Compatibility/test recording path.
+        """Compatibility recording path.
 
-        Records a session as supplied. It is NOT verified unless it carries valid
-        project-issued verification evidence.
+        Records a session exactly as supplied for compatibility/unverified
+        scenarios. It is never marked verified, regardless of any copied or
+        recomputed `verification_evidence` string.
         """
         if session.session_id in self._sessions:
             raise ValueError("duplicate SOURCE_ONLY session id")
@@ -241,15 +261,17 @@ class SourceOnlyPolicy:
         return self._sessions.get(session_id)
 
     def is_verified(self, session_id: str) -> bool:
-        """A session is verified only with project-issued technical-denial evidence."""
+        """A session is verified only if it is in the internal issued set and its
+        stored identity exactly matches the identity that was project-issued."""
+        issued_identity = self._issued_verified.get(session_id)
+        if issued_identity is None:
+            return False
         session = self._sessions.get(session_id)
         if session is None:
             return False
         if session.protected_market_access_mode is not ProtectedMarketAccessMode.TECHNICALLY_DENIED:
             return False
-        if not session.verification_evidence:
-            return False
-        return session.verification_evidence == self._expected_evidence(session)
+        return session.session_identity == issued_identity
 
     def request_protected_market_outcome(self, session_id: str | None) -> ProtectedOutcomeRequestResult:
         """Technical denial surface: any attempt to obtain project market outcomes
@@ -471,6 +493,11 @@ class ResearchWaveManifest:
             raise ValueError("research wave must declare a non-empty tested hypothesis set")
         if len(self.tested_hypothesis_test_ids) != len(set(self.tested_hypothesis_test_ids)):
             raise ValueError("tested hypothesis identities must be unique")
+        # F-12: declared outcome-tested alternatives are a machine field holding the
+        # exact hypothesis_test_id values, sorted and unique. Human descriptions
+        # belong in the scope/search/denominator description fields, not here.
+        if tuple(sorted(set(self.declared_outcome_tested_alternatives))) != self.declared_outcome_tested_alternatives:
+            raise ValueError("declared outcome-tested alternatives must be sorted and unique")
         if not self.hypothesis_bindings:
             raise ValueError("research wave must declare hypothesis bindings")
         binding_ids = tuple(binding.hypothesis_test_id for binding in self.hypothesis_bindings)
@@ -523,6 +550,18 @@ class ResearchWaveRegistry:
     def wave_ids(self) -> tuple[str, ...]:
         return tuple(self._manifests)
 
+    @property
+    def manifests(self) -> tuple[ResearchWaveManifest, ...]:
+        return tuple(self._manifests.values())
+
+    @property
+    def locked_wave_ids(self) -> tuple[str, ...]:
+        return tuple(sorted(self._locked))
+
+    @property
+    def outcome_started_wave_ids(self) -> tuple[str, ...]:
+        return tuple(sorted(self._outcome_started))
+
     def register(self, manifest: ResearchWaveManifest) -> ResearchWaveManifest:
         if manifest.research_wave_id in self._manifests:
             raise ValueError("duplicate research wave id")
@@ -548,6 +587,12 @@ class ResearchWaveRegistry:
         manifest = self._manifests[wave_id]
         if not manifest.tested_hypothesis_test_ids:
             raise ValueError("cannot lock a wave with an empty tested denominator")
+        # F-12: the declared outcome-tested alternatives must exactly equal the
+        # tested denominator. Missing or extra declared points fail the lock.
+        if set(manifest.declared_outcome_tested_alternatives) != set(manifest.tested_hypothesis_test_ids):
+            raise ValueError(
+                "declared outcome-tested alternatives must exactly equal the tested hypothesis set"
+            )
         for hypothesis_test_id in manifest.tested_hypothesis_test_ids:
             registration = outcome_registry.get(hypothesis_test_id)
             if registration is None:
@@ -649,6 +694,7 @@ class OutcomeTestRegistration:
     experiment_identity_id: str
     strategy_identity_id: str
     research_lineage_id: str
+    playbook_contract_identity: str
     family_claim_identity: str
     primary_branch_identity: str
     scope_identity: str
@@ -657,6 +703,10 @@ class OutcomeTestRegistration:
     source_only_session_identity: str
     source_bundle_identity: str
     source_bundle_hash: str
+    code_artifact_identity: str
+    environment_artifact_identity: str
+    data_artifact_identity: str
+    feature_artifact_identities: tuple[str, ...]
     research_wave_id: str
     statistical_profile_id: str
     statistical_profile_identity: str
@@ -669,6 +719,7 @@ class OutcomeTestRegistration:
             self.experiment_identity_id,
             self.strategy_identity_id,
             self.research_lineage_id,
+            self.playbook_contract_identity,
             self.family_claim_identity,
             self.primary_branch_identity,
             self.scope_identity,
@@ -677,6 +728,9 @@ class OutcomeTestRegistration:
             self.source_only_session_identity,
             self.source_bundle_identity,
             self.source_bundle_hash,
+            self.code_artifact_identity,
+            self.environment_artifact_identity,
+            self.data_artifact_identity,
             self.research_wave_id,
             self.statistical_profile_id,
             self.statistical_profile_identity,
@@ -685,6 +739,8 @@ class OutcomeTestRegistration:
         )
         if not all(required):
             raise ValueError("outcome test registration has required empty fields")
+        if tuple(sorted(set(self.feature_artifact_identities))) != self.feature_artifact_identities:
+            raise ValueError("feature artifact identities must be sorted and unique")
 
     @property
     def registration_identity(self) -> str:
@@ -694,6 +750,7 @@ class OutcomeTestRegistration:
                 "experiment_identity_id": self.experiment_identity_id,
                 "strategy_identity_id": self.strategy_identity_id,
                 "research_lineage_id": self.research_lineage_id,
+                "playbook_contract_identity": self.playbook_contract_identity,
                 "family_claim_identity": self.family_claim_identity,
                 "primary_branch_identity": self.primary_branch_identity,
                 "scope_identity": self.scope_identity,
@@ -702,6 +759,10 @@ class OutcomeTestRegistration:
                 "source_only_session_identity": self.source_only_session_identity,
                 "source_bundle_identity": self.source_bundle_identity,
                 "source_bundle_hash": self.source_bundle_hash,
+                "code_artifact_identity": self.code_artifact_identity,
+                "environment_artifact_identity": self.environment_artifact_identity,
+                "data_artifact_identity": self.data_artifact_identity,
+                "feature_artifact_identities": self.feature_artifact_identities,
                 "research_wave_id": self.research_wave_id,
                 "statistical_profile_id": self.statistical_profile_id,
                 "statistical_profile_identity": self.statistical_profile_identity,
@@ -800,6 +861,14 @@ class StatisticalProfileRegistry:
     def profile_ids(self) -> tuple[str, ...]:
         return tuple(self._profiles)
 
+    @property
+    def profiles(self) -> tuple[CommonStatisticalProfile, ...]:
+        return tuple(self._profiles.values())
+
+    @property
+    def locked_profile_ids(self) -> tuple[str, ...]:
+        return tuple(sorted(self._locked))
+
     def register(self, profile: CommonStatisticalProfile) -> CommonStatisticalProfile:
         if profile.profile_id in self._profiles:
             raise ValueError("duplicate statistical profile id")
@@ -883,6 +952,10 @@ class HistoricalFinalHoldoutStateMachine:
     @property
     def is_exposed(self) -> bool:
         return self._state is FinalHoldoutState.FINAL_HISTORICAL_HOLDOUT_EXPOSED
+
+    @property
+    def unlock_authority(self) -> str | None:
+        return self._unlock_authority
 
     def register_unlock_authority(self, authority_id: str) -> None:
         if not authority_id:
@@ -1057,6 +1130,14 @@ class ResearchFirewall:
         self._profiles = StatisticalProfileRegistry()
         self._gate = PreOutcomeGate()
         self._final_state = HistoricalFinalHoldoutStateMachine()
+        # F-08: derived family-claim identity -> research lineage. Established on
+        # the first valid artifact-bound registration; later registrations with
+        # the same derived family-claim identity must use the same lineage.
+        self._family_claim_lineage: dict[str, str] = {}
+
+    @property
+    def family_claim_lineage(self) -> dict[str, str]:
+        return dict(self._family_claim_lineage)
 
     @property
     def source_only(self) -> SourceOnlyPolicy:
@@ -1116,25 +1197,92 @@ class ResearchFirewall:
 
     # -- outcome-test registration (identity-bound) -----------------------------
 
+    @staticmethod
+    def derive_primary_branch_identity(contract: PlaybookContract) -> str:
+        """F-06: derive PRIMARY identity from the actual PlaybookContract.
+
+        Package B keeps the current one-contract-primary model: the contract must
+        have exactly one ``primary_selected`` branch, otherwise registration fails
+        closed. (Package C later replaces this with Protocol-complete claim-level
+        PRIMARY semantics.)
+        """
+        primary_branches = [branch for branch in contract.interpretations if branch.primary_selected]
+        if len(primary_branches) != 1:
+            raise ValueError("playbook contract must have exactly one primary_selected branch")
+        return primary_branches[0].branch_identity
+
+    @staticmethod
+    def derive_scope_identity(contract: PlaybookContract, strategy: StrategyIdentity) -> str:
+        """F-06: derive scope identity from the actual contract/strategy scope facts."""
+        return _canonical_hash(
+            {
+                "playbook_contract_identity": contract.contract_identity,
+                "family_id": contract.family_id,
+                "applicable_instruments": tuple(sorted(set(strategy.applicable_instruments))),
+                "timeframe": strategy.timeframe,
+                "instrument_scope": tuple(sorted(set(contract.instrument_scope))),
+                "timeframe_scope": tuple(sorted(set(contract.timeframe_scope))),
+                "project_transfer_status": contract.project_transfer_status.value,
+            }
+        )
+
+    @staticmethod
+    def derive_parameter_search_identity(
+        parameter_search_ranges: str, strategy: StrategyIdentity
+    ) -> str:
+        """F-06: derive parameter/search identity from the exact wave declaration
+        plus the actual StrategyIdentity typed parameters."""
+        return _canonical_hash(
+            {
+                "parameter_search_ranges": parameter_search_ranges,
+                "parameters": [
+                    parameter.as_dict()
+                    for parameter in sorted(strategy.parameters, key=lambda item: item.name)
+                ],
+            }
+        )
+
+    @staticmethod
+    def derive_family_claim_identity(contract: PlaybookContract) -> str:
+        """F-07/F-08: derive a family-claim identity from source evidence only.
+
+        Canonical hash of the sorted ``(source_id, source_anchor, claim_status)``
+        tuples from the contract's source claims. ``claim_id`` and ``family_id``
+        are deliberately excluded so a cosmetic display rename or claim
+        renumbering cannot launder lineage.
+        """
+        return _canonical_hash(
+            tuple(
+                sorted(
+                    (claim.source_id, claim.source_anchor, claim.claim_status.value)
+                    for claim in contract.source_claims
+                )
+            )
+        )
+
     def register_outcome_test(
         self,
         *,
         hypothesis_test_id: str,
+        contract: PlaybookContract,
         strategy: StrategyIdentity,
         experiment: ExperimentIdentity,
-        family_claim_identity: str,
-        primary_branch_identity: str,
-        scope_identity: str,
-        parameter_search_identity: str,
+        artifact_bindings: OutcomeArtifactBindings,
         source_only_session_id: str,
         research_wave_id: str,
         statistical_profile_id: str,
         multiplicity_counting_unit_identity: str,
     ) -> OutcomeTestRegistration:
-        """Create and register a canonical identity-bound outcome-test registration.
+        """Create and register a canonical artifact-bound outcome-test registration.
 
-        All referenced identities are resolved and validated against the
-        project-owned registries at registration time.
+        PRIMARY/scope/search/family-claim identities are derived from the actual
+        PlaybookContract + StrategyIdentity + ResearchWaveManifest artifacts
+        (F-06/F-07); the caller never supplies them. The strategy must be
+        explicitly bound to this PlaybookContract (F-07), the referenced
+        SOURCE_ONLY session must be verified and bundle-matched, the supplied
+        artifact bindings must match the strategy/experiment identity facts
+        (P-06), and the derived family-claim identity binds the research lineage
+        (F-08).
         """
         if experiment.strategy_identity_id != strategy.identity_id:
             raise ValueError("experiment does not bind the supplied strategy identity")
@@ -1152,23 +1300,75 @@ class ResearchFirewall:
             raise ValueError("wave profile identity does not match the supplied profile")
         if wave.multiplicity_counting_unit_identity != multiplicity_counting_unit_identity:
             raise ValueError("wave counting-unit identity does not match the supplied counting unit")
+        session = self._source_only.get(source_only_session_id)
+        if session is None:
+            raise ValueError("unknown SOURCE_ONLY session id")
+        if not self._source_only.is_verified(source_only_session_id):
+            raise ValueError("SOURCE_ONLY session must be verified")
+
+        # F-07: bind SOURCE_ONLY -> Playbook -> Strategy.
+        if contract.research_lineage_id != strategy.research_lineage_id:
+            raise ValueError("playbook contract research lineage does not match the strategy")
+        if contract.family_id != strategy.family_id:
+            raise ValueError("playbook contract family id does not match the strategy")
+        if contract.source_bundle_identity != session.source_bundle_identity:
+            raise ValueError("playbook contract source bundle identity does not match the SOURCE_ONLY session")
+        if contract.source_bundle_hash != session.source_bundle_hash:
+            raise ValueError("playbook contract source bundle hash does not match the SOURCE_ONLY session")
+        if contract.source_only_session_identity != session.session_identity:
+            raise ValueError("playbook contract SOURCE_ONLY session identity does not match the session")
+        if strategy.playbook_contract_identity != contract.contract_identity:
+            raise ValueError("strategy is not bound to this playbook contract")
+
+        # P-06: artifact binding checks.
+        if artifact_bindings.code_artifact.sha256 != strategy.code_hash:
+            raise ValueError("code artifact sha256 does not match the strategy code hash")
+        if artifact_bindings.environment_artifact.sha256 != strategy.environment_hash:
+            raise ValueError("environment artifact sha256 does not match the strategy environment hash")
+        if artifact_bindings.data_artifact.declared_version != experiment.data_version:
+            raise ValueError("data artifact declared version does not match the experiment data version")
+        feature_versions = tuple(
+            artifact.declared_version for artifact in artifact_bindings.feature_artifacts
+        )
+        if feature_versions != strategy.required_feature_versions:
+            raise ValueError(
+                "feature artifact versions do not exactly cover the strategy required feature versions"
+            )
+
+        # F-06: derive PRIMARY/scope/search from the actual artifacts and require
+        # the pre-registered wave binding to match exactly.
+        primary_branch_identity = self.derive_primary_branch_identity(contract)
+        scope_identity = self.derive_scope_identity(contract, strategy)
+        parameter_search_identity = self.derive_parameter_search_identity(
+            wave.parameter_search_ranges, strategy
+        )
         binding = wave.binding_for(hypothesis_test_id)
         if binding is None:
             raise ValueError(f"hypothesis has no wave PRIMARY/scope/search binding: {hypothesis_test_id}")
         if primary_branch_identity != binding.primary_branch_identity:
-            raise ValueError("primary identity does not match the wave hypothesis binding")
+            raise ValueError("derived primary identity does not match the wave hypothesis binding")
         if scope_identity != binding.scope_identity:
-            raise ValueError("scope identity does not match the wave hypothesis binding")
+            raise ValueError("derived scope identity does not match the wave hypothesis binding")
         if parameter_search_identity != binding.parameter_search_identity:
-            raise ValueError("parameter/search identity does not match the wave hypothesis binding")
-        session = self._source_only.get(source_only_session_id)
-        if session is None:
-            raise ValueError("unknown SOURCE_ONLY session id")
+            raise ValueError("derived parameter/search identity does not match the wave hypothesis binding")
+
+        # F-07/F-08: derive family-claim identity from source evidence and bind lineage.
+        family_claim_identity = self.derive_family_claim_identity(contract)
+        existing_lineage = self._family_claim_lineage.get(family_claim_identity)
+        if existing_lineage is not None:
+            if existing_lineage != strategy.research_lineage_id:
+                raise ValueError(
+                    "derived family-claim identity is already bound to a different research lineage"
+                )
+        else:
+            self._family_claim_lineage[family_claim_identity] = strategy.research_lineage_id
+
         registration = OutcomeTestRegistration(
             hypothesis_test_id=hypothesis_test_id,
             experiment_identity_id=experiment.experiment_id,
             strategy_identity_id=strategy.identity_id,
             research_lineage_id=strategy.research_lineage_id,
+            playbook_contract_identity=contract.contract_identity,
             family_claim_identity=family_claim_identity,
             primary_branch_identity=primary_branch_identity,
             scope_identity=scope_identity,
@@ -1177,6 +1377,12 @@ class ResearchFirewall:
             source_only_session_identity=session.session_identity,
             source_bundle_identity=session.source_bundle_identity,
             source_bundle_hash=session.source_bundle_hash,
+            code_artifact_identity=artifact_bindings.code_artifact.identity_id,
+            environment_artifact_identity=artifact_bindings.environment_artifact.identity_id,
+            data_artifact_identity=artifact_bindings.data_artifact.identity_id,
+            feature_artifact_identities=tuple(
+                artifact.identity_id for artifact in artifact_bindings.feature_artifacts
+            ),
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,
             statistical_profile_identity=profile.profile_identity,
@@ -1407,3 +1613,320 @@ class ResearchFirewall:
             )
         self._ledger.append(record)
         return AccessResult(decision.allowed, record)
+
+    # -- durable state (F-09) --------------------------------------------------
+
+    STATE_SCHEMA_VERSION = "v1"
+
+    def to_state_dict(self) -> dict[str, Any]:
+        """Serialize all firewall governance state to a plain JSON-ready dict.
+
+        This is project state durability, not tamper-proof storage: a local actor
+        who can edit the state file can edit anything on disk.
+        """
+        return {
+            "state_schema_version": self.STATE_SCHEMA_VERSION,
+            "ledger": [_evidence_record_to_state(record) for record in self._ledger.records],
+            "source_only_sessions": [
+                _source_only_session_to_state(session) for session in self._source_only.sessions
+            ],
+            "source_only_issued_verified": self._source_only.issued_verified_identities,
+            "source_only_denials": [
+                {"session_id": item.session_id, "outcome": item.outcome, "reason": item.reason}
+                for item in self._source_only.denial_records
+            ],
+            "outcome_registrations": [
+                _registration_to_state(registration) for registration in self._tests.registrations
+            ],
+            "wave_manifests": [
+                _wave_manifest_to_state(manifest) for manifest in self._waves.manifests
+            ],
+            "wave_locked": list(self._waves.locked_wave_ids),
+            "wave_outcome_started": list(self._waves.outcome_started_wave_ids),
+            "wave_outcomes": {
+                wave_id: dict(self._waves.outcome_records(wave_id))
+                for wave_id in self._waves.wave_ids
+            },
+            "statistical_profiles": [
+                _profile_to_state(profile) for profile in self._profiles.profiles
+            ],
+            "statistical_profile_locked": list(self._profiles.locked_profile_ids),
+            "final_holdout_state": self._final_state.state.value,
+            "final_holdout_unlock_authority": self._final_state.unlock_authority,
+            "family_claim_lineage": dict(self._family_claim_lineage),
+        }
+
+    @classmethod
+    def from_state_dict(cls, data: dict[str, Any]) -> "ResearchFirewall":
+        """Rebuild a ResearchFirewall from a serialized state dict.
+
+        Unknown ``state_schema_version`` fails closed. Irreversible facts are
+        restored as-is: locked waves/profiles stay locked, started first-looks
+        stay started, terminal outcomes stay recorded, exposures stay recorded,
+        final-holdout exposure/terminal state stays, and issued SOURCE_ONLY
+        sessions remain the sessions that were originally issued.
+        """
+        schema_version = data.get("state_schema_version")
+        if schema_version != cls.STATE_SCHEMA_VERSION:
+            raise ValueError(f"unknown state schema version: {schema_version!r}")
+        ledger = EvidenceLedger()
+        for record_data in data.get("ledger", ()):
+            ledger.append(_evidence_record_from_state(record_data))
+        firewall = cls(ledger)
+        policy = firewall._source_only
+        for session_data in data.get("source_only_sessions", ()):
+            policy.record_session(_source_only_session_from_state(session_data))
+        policy._issued_verified = dict(data.get("source_only_issued_verified", {}))
+        for denial in data.get("source_only_denials", ()):
+            policy._denials.append(
+                ProtectedOutcomeRequestResult(denial["session_id"], denial["outcome"], denial["reason"])
+            )
+        for registration_data in data.get("outcome_registrations", ()):
+            firewall._tests.register(_registration_from_state(registration_data))
+        for manifest_data in data.get("wave_manifests", ()):
+            firewall._waves.register(_wave_manifest_from_state(manifest_data))
+        firewall._waves._locked = set(data.get("wave_locked", ()))
+        firewall._waves._outcome_started = set(data.get("wave_outcome_started", ()))
+        firewall._waves._outcomes = {
+            wave_id: dict(outcomes) for wave_id, outcomes in data.get("wave_outcomes", {}).items()
+        }
+        for profile_data in data.get("statistical_profiles", ()):
+            firewall._profiles.register(_profile_from_state(profile_data))
+        firewall._profiles._locked = set(data.get("statistical_profile_locked", ()))
+        firewall._final_state._state = FinalHoldoutState(data["final_holdout_state"])
+        firewall._final_state._unlock_authority = data.get("final_holdout_unlock_authority")
+        firewall._family_claim_lineage = dict(data.get("family_claim_lineage", {}))
+        return firewall
+
+    def save_state(self, path: str) -> None:
+        """Write state atomically (temp file + os.replace)."""
+        payload = json.dumps(self.to_state_dict(), ensure_ascii=False, sort_keys=True)
+        directory = os.path.dirname(os.path.abspath(path))
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        temp_path = f"{path}.tmp"
+        with open(temp_path, "w", encoding="utf-8") as handle:
+            handle.write(payload)
+        os.replace(temp_path, path)
+
+    @classmethod
+    def load_state(cls, path: str) -> "ResearchFirewall":
+        """Load and reconstruct a ResearchFirewall from a JSON state file."""
+        with open(path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+        return cls.from_state_dict(data)
+
+
+# ---------------------------------------------------------------------------
+# STATE SERIALIZATION HELPERS (F-09)
+# ---------------------------------------------------------------------------
+
+
+def _experiment_identity_to_state(experiment: ExperimentIdentity) -> dict[str, Any]:
+    return {
+        "research_lineage_id": experiment.research_lineage_id,
+        "strategy_identity_id": experiment.strategy_identity_id,
+        "family_id": experiment.family_id,
+        "strategy_version": experiment.strategy_version,
+        "code_hash": experiment.code_hash,
+        "parameter_hash": experiment.parameter_hash,
+        "environment_hash": experiment.environment_hash,
+        "data_version": experiment.data_version,
+        "feature_versions": list(experiment.feature_versions),
+        "dataset_exposure_reference": experiment.dataset_exposure_reference,
+    }
+
+
+def _experiment_identity_from_state(data: dict[str, Any]) -> ExperimentIdentity:
+    return ExperimentIdentity(
+        research_lineage_id=data["research_lineage_id"],
+        strategy_identity_id=data["strategy_identity_id"],
+        family_id=data["family_id"],
+        strategy_version=data["strategy_version"],
+        code_hash=data["code_hash"],
+        parameter_hash=data["parameter_hash"],
+        environment_hash=data["environment_hash"],
+        data_version=data["data_version"],
+        feature_versions=tuple(data["feature_versions"]),
+        dataset_exposure_reference=data["dataset_exposure_reference"],
+    )
+
+
+def _evidence_record_to_state(record: EvidenceRecord) -> dict[str, Any]:
+    return {
+        "event_type": record.event_type,
+        "experiment": _experiment_identity_to_state(record.experiment),
+        "dataset_class": record.dataset_class.value,
+        "outcome": record.outcome,
+        "lifecycle_state": record.lifecycle_state.value if record.lifecycle_state else None,
+        "evidence_reference": record.evidence_reference,
+        "fact_reference": record.fact_reference,
+    }
+
+
+def _evidence_record_from_state(data: dict[str, Any]) -> EvidenceRecord:
+    return EvidenceRecord(
+        event_type=data["event_type"],
+        experiment=_experiment_identity_from_state(data["experiment"]),
+        dataset_class=DatasetClass(data["dataset_class"]),
+        outcome=data["outcome"],
+        lifecycle_state=(
+            LifecycleState(data["lifecycle_state"]) if data.get("lifecycle_state") else None
+        ),
+        evidence_reference=data.get("evidence_reference"),
+        fact_reference=data.get("fact_reference"),
+    )
+
+
+def _source_only_session_to_state(session: SourceOnlySession) -> dict[str, Any]:
+    return {
+        "session_id": session.session_id,
+        "model_identity": session.model_identity,
+        "prompt_spec_version": session.prompt_spec_version,
+        "source_bundle_identity": session.source_bundle_identity,
+        "source_bundle_hash": session.source_bundle_hash,
+        "tool_retrieval_mode": session.tool_retrieval_mode,
+        "protected_market_access_mode": session.protected_market_access_mode.value,
+        "researcher_model_exposure_note": session.researcher_model_exposure_note,
+        "verification_evidence": session.verification_evidence,
+    }
+
+
+def _source_only_session_from_state(data: dict[str, Any]) -> SourceOnlySession:
+    return SourceOnlySession(
+        session_id=data["session_id"],
+        model_identity=data["model_identity"],
+        prompt_spec_version=data["prompt_spec_version"],
+        source_bundle_identity=data["source_bundle_identity"],
+        source_bundle_hash=data["source_bundle_hash"],
+        tool_retrieval_mode=data["tool_retrieval_mode"],
+        protected_market_access_mode=ProtectedMarketAccessMode(data["protected_market_access_mode"]),
+        researcher_model_exposure_note=data.get("researcher_model_exposure_note"),
+        verification_evidence=data.get("verification_evidence"),
+    )
+
+
+def _wave_binding_to_state(binding: WaveHypothesisBinding) -> dict[str, str]:
+    return binding.as_dict()
+
+
+def _wave_binding_from_state(data: dict[str, str]) -> WaveHypothesisBinding:
+    return WaveHypothesisBinding(**data)
+
+
+def _wave_manifest_to_state(manifest: ResearchWaveManifest) -> dict[str, Any]:
+    return {
+        "research_wave_id": manifest.research_wave_id,
+        "protocol_version": manifest.protocol_version,
+        "statistical_profile_id": manifest.statistical_profile_id,
+        "statistical_profile_identity": manifest.statistical_profile_identity,
+        "multiplicity_counting_unit_identity": manifest.multiplicity_counting_unit_identity,
+        "tested_hypothesis_test_ids": list(manifest.tested_hypothesis_test_ids),
+        "hypothesis_bindings": [
+            _wave_binding_to_state(binding) for binding in manifest.hypothesis_bindings
+        ],
+        "declared_outcome_tested_alternatives": list(manifest.declared_outcome_tested_alternatives),
+        "instrument_timeframe_context_scope": manifest.instrument_timeframe_context_scope,
+        "parameter_search_ranges": manifest.parameter_search_ranges,
+        "denominator_counting_semantics": manifest.denominator_counting_semantics,
+        "created_at": manifest.created_at,
+    }
+
+
+def _wave_manifest_from_state(data: dict[str, Any]) -> ResearchWaveManifest:
+    return ResearchWaveManifest(
+        research_wave_id=data["research_wave_id"],
+        protocol_version=data["protocol_version"],
+        statistical_profile_id=data["statistical_profile_id"],
+        statistical_profile_identity=data["statistical_profile_identity"],
+        multiplicity_counting_unit_identity=data["multiplicity_counting_unit_identity"],
+        tested_hypothesis_test_ids=tuple(data["tested_hypothesis_test_ids"]),
+        hypothesis_bindings=tuple(
+            _wave_binding_from_state(binding) for binding in data["hypothesis_bindings"]
+        ),
+        declared_outcome_tested_alternatives=tuple(data["declared_outcome_tested_alternatives"]),
+        instrument_timeframe_context_scope=data["instrument_timeframe_context_scope"],
+        parameter_search_ranges=data["parameter_search_ranges"],
+        denominator_counting_semantics=data["denominator_counting_semantics"],
+        created_at=data["created_at"],
+    )
+
+
+def _registration_to_state(registration: OutcomeTestRegistration) -> dict[str, Any]:
+    return {
+        "hypothesis_test_id": registration.hypothesis_test_id,
+        "experiment_identity_id": registration.experiment_identity_id,
+        "strategy_identity_id": registration.strategy_identity_id,
+        "research_lineage_id": registration.research_lineage_id,
+        "playbook_contract_identity": registration.playbook_contract_identity,
+        "family_claim_identity": registration.family_claim_identity,
+        "primary_branch_identity": registration.primary_branch_identity,
+        "scope_identity": registration.scope_identity,
+        "parameter_search_identity": registration.parameter_search_identity,
+        "source_only_session_id": registration.source_only_session_id,
+        "source_only_session_identity": registration.source_only_session_identity,
+        "source_bundle_identity": registration.source_bundle_identity,
+        "source_bundle_hash": registration.source_bundle_hash,
+        "code_artifact_identity": registration.code_artifact_identity,
+        "environment_artifact_identity": registration.environment_artifact_identity,
+        "data_artifact_identity": registration.data_artifact_identity,
+        "feature_artifact_identities": list(registration.feature_artifact_identities),
+        "research_wave_id": registration.research_wave_id,
+        "statistical_profile_id": registration.statistical_profile_id,
+        "statistical_profile_identity": registration.statistical_profile_identity,
+        "multiplicity_counting_unit_identity": registration.multiplicity_counting_unit_identity,
+        "protocol_version": registration.protocol_version,
+    }
+
+
+def _registration_from_state(data: dict[str, Any]) -> OutcomeTestRegistration:
+    return OutcomeTestRegistration(
+        hypothesis_test_id=data["hypothesis_test_id"],
+        experiment_identity_id=data["experiment_identity_id"],
+        strategy_identity_id=data["strategy_identity_id"],
+        research_lineage_id=data["research_lineage_id"],
+        playbook_contract_identity=data["playbook_contract_identity"],
+        family_claim_identity=data["family_claim_identity"],
+        primary_branch_identity=data["primary_branch_identity"],
+        scope_identity=data["scope_identity"],
+        parameter_search_identity=data["parameter_search_identity"],
+        source_only_session_id=data["source_only_session_id"],
+        source_only_session_identity=data["source_only_session_identity"],
+        source_bundle_identity=data["source_bundle_identity"],
+        source_bundle_hash=data["source_bundle_hash"],
+        code_artifact_identity=data["code_artifact_identity"],
+        environment_artifact_identity=data["environment_artifact_identity"],
+        data_artifact_identity=data["data_artifact_identity"],
+        feature_artifact_identities=tuple(data["feature_artifact_identities"]),
+        research_wave_id=data["research_wave_id"],
+        statistical_profile_id=data["statistical_profile_id"],
+        statistical_profile_identity=data["statistical_profile_identity"],
+        multiplicity_counting_unit_identity=data["multiplicity_counting_unit_identity"],
+        protocol_version=data["protocol_version"],
+    )
+
+
+def _profile_to_state(profile: CommonStatisticalProfile) -> dict[str, Any]:
+    return {
+        "profile_id": profile.profile_id,
+        "profile_version": profile.profile_version,
+        "uncertainty_precision_method": profile.uncertainty_precision_method,
+        "evidence_sufficiency_procedure": profile.evidence_sufficiency_procedure,
+        "dependence_handling": profile.dependence_handling,
+        "multiplicity_decision_rule": profile.multiplicity_decision_rule,
+        "common_acceptance_procedure": profile.common_acceptance_procedure,
+        "test_only_marker": profile.test_only_marker,
+    }
+
+
+def _profile_from_state(data: dict[str, Any]) -> CommonStatisticalProfile:
+    return CommonStatisticalProfile(
+        profile_id=data["profile_id"],
+        profile_version=data["profile_version"],
+        uncertainty_precision_method=data["uncertainty_precision_method"],
+        evidence_sufficiency_procedure=data["evidence_sufficiency_procedure"],
+        dependence_handling=data["dependence_handling"],
+        multiplicity_decision_rule=data["multiplicity_decision_rule"],
+        common_acceptance_procedure=data["common_acceptance_procedure"],
+        test_only_marker=data.get("test_only_marker"),
+    )

@@ -60,6 +60,7 @@ class StrategyIdentity:
     lifecycle_state: LifecycleState
     data_exposure_history_reference: str
     parent_identity_id: str | None = None
+    playbook_contract_identity: str | None = None
 
     def __post_init__(self) -> None:
         required = (
@@ -103,6 +104,7 @@ class StrategyIdentity:
                 "lifecycle_state": self.lifecycle_state.value,
                 "data_exposure_history_reference": self.data_exposure_history_reference,
                 "parent_identity_id": self.parent_identity_id,
+                "playbook_contract_identity": self.playbook_contract_identity,
             }
         )
 
@@ -241,21 +243,32 @@ class EvidenceRecord:
 
 
 class EvidenceLedger:
-    """Append-only facts. It contains no mutable trading state or protected data."""
+    """Append-only facts. It contains no mutable trading state or protected data.
+
+    Appending is idempotent by canonical ``record_id``: an exact re-append returns
+    the already-stored canonical record without duplicating it, and repeated
+    identical access/deny calls never crash or inflate the ledger. An impossible
+    internal corruption (same record id mapping to non-equal content) still fails
+    closed.
+    """
 
     def __init__(self) -> None:
         self._records: list[EvidenceRecord] = []
-        self._record_ids: set[str] = set()
+        self._record_by_id: dict[str, EvidenceRecord] = {}
 
     @property
     def records(self) -> tuple[EvidenceRecord, ...]:
         return tuple(self._records)
 
     def append(self, record: EvidenceRecord) -> EvidenceRecord:
-        if record.record_id in self._record_ids:
-            raise ValueError("duplicate evidence record")
+        record_id = record.record_id
+        existing = self._record_by_id.get(record_id)
+        if existing is not None:
+            if existing == record:
+                return existing
+            raise ValueError("internal evidence corruption: record id maps to non-equal content")
         self._records.append(record)
-        self._record_ids.add(record.record_id)
+        self._record_by_id[record_id] = record
         return record
 
     def exposures_for(self, research_lineage_id: str) -> tuple[DatasetClass, ...]:
@@ -270,6 +283,123 @@ class EvidenceLedger:
 class AccessResult:
     allowed: bool
     record: EvidenceRecord
+
+
+@dataclass(frozen=True, init=False)
+class ArtifactBinding:
+    """Immutable artifact hash binding (P-06).
+
+    ``sha256`` is always computed internally from the actual content bytes; there
+    is no public constructor that accepts an arbitrary caller-supplied digest. Use
+    ``from_bytes`` (or ``from_file``) as the only construction path. Identity
+    covers kind/reference/sha256/byte_size/declared_version.
+    """
+
+    artifact_kind: str
+    artifact_reference: str
+    sha256: str
+    byte_size: int
+    declared_version: str | None = None
+
+    @classmethod
+    def from_bytes(
+        cls,
+        *,
+        artifact_kind: str,
+        artifact_reference: str,
+        content: bytes,
+        declared_version: str | None = None,
+    ) -> "ArtifactBinding":
+        if not isinstance(content, bytes):
+            raise ValueError("artifact content must be bytes")
+        digest = sha256(content).hexdigest()
+        return cls._build(artifact_kind, artifact_reference, digest, len(content), declared_version)
+
+    @classmethod
+    def from_file(
+        cls,
+        *,
+        artifact_kind: str,
+        artifact_reference: str,
+        path: str,
+        declared_version: str | None = None,
+    ) -> "ArtifactBinding":
+        with open(path, "rb") as handle:
+            content = handle.read()
+        return cls.from_bytes(
+            artifact_kind=artifact_kind,
+            artifact_reference=artifact_reference,
+            content=content,
+            declared_version=declared_version,
+        )
+
+    @classmethod
+    def _build(
+        cls,
+        artifact_kind: str,
+        artifact_reference: str,
+        digest: str,
+        byte_size: int,
+        declared_version: str | None,
+    ) -> "ArtifactBinding":
+        obj = object.__new__(cls)
+        object.__setattr__(obj, "artifact_kind", artifact_kind)
+        object.__setattr__(obj, "artifact_reference", artifact_reference)
+        object.__setattr__(obj, "sha256", digest)
+        object.__setattr__(obj, "byte_size", byte_size)
+        object.__setattr__(obj, "declared_version", declared_version)
+        obj.__post_init__()
+        return obj
+
+    def __post_init__(self) -> None:
+        if not self.artifact_kind or not self.artifact_reference:
+            raise ValueError("artifact kind and reference are required")
+        if type(self.sha256) is not str or len(self.sha256) != 64:
+            raise ValueError("artifact sha256 must be a 64-character hex digest")
+        if type(self.byte_size) is not int or self.byte_size < 0:
+            raise ValueError("artifact byte size must be a non-negative integer")
+
+    @property
+    def identity_id(self) -> str:
+        return _canonical_hash(
+            {
+                "artifact_kind": self.artifact_kind,
+                "artifact_reference": self.artifact_reference,
+                "sha256": self.sha256,
+                "byte_size": self.byte_size,
+                "declared_version": self.declared_version,
+            }
+        )
+
+
+@dataclass(frozen=True)
+class OutcomeArtifactBindings:
+    """Immutable container of the artifact bindings for one outcome test.
+
+    ``feature_artifacts`` may be empty (a strategy with no separately versioned
+    derived features). Registration verifies these artifacts against the strategy
+    and experiment identity facts.
+    """
+
+    code_artifact: ArtifactBinding
+    environment_artifact: ArtifactBinding
+    data_artifact: ArtifactBinding
+    feature_artifacts: tuple[ArtifactBinding, ...]
+
+    def __post_init__(self) -> None:
+        if self.code_artifact.artifact_kind != "code":
+            raise ValueError("code artifact must use artifact_kind 'code'")
+        if self.environment_artifact.artifact_kind != "environment":
+            raise ValueError("environment artifact must use artifact_kind 'environment'")
+        if self.data_artifact.artifact_kind != "data":
+            raise ValueError("data artifact must use artifact_kind 'data'")
+        if any(artifact.artifact_kind != "feature" for artifact in self.feature_artifacts):
+            raise ValueError("feature artifacts must use artifact_kind 'feature'")
+        versions = tuple(artifact.declared_version for artifact in self.feature_artifacts)
+        if any(version is None for version in versions):
+            raise ValueError("feature artifacts must declare a version")
+        if tuple(sorted(set(versions))) != versions:
+            raise ValueError("feature artifact versions must be sorted and unique")
 
 
 class FinalUnseenFirewall:

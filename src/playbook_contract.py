@@ -522,4 +522,5 @@ def bridge_to_strategy_identity(
         required_feature_versions=canonical_features,
         lifecycle_state=lifecycle_state,
         data_exposure_history_reference=data_exposure_history_reference,
+        playbook_contract_identity=contract.contract_identity,
     )
