@@ -69,6 +69,25 @@ class SessionMetadata:
             return None
         return matches[0].trading_day
 
+    def window_at(self, exchange: str, instrument: str, timestamp: datetime) -> SessionWindow | None:
+        """The explicit session window containing ``timestamp``, or ``None``.
+
+        The metadata is validated to be non-overlapping per instrument, so at
+        most one window can contain any timestamp.  Callers that must align
+        intraday buckets from the session-window start use this accessor; no
+        exchange session is ever inferred from weekday/civil time here.
+        """
+        if timestamp.tzinfo is None:
+            raise ValueError("timestamp must be timezone-aware")
+        matches = [
+            window
+            for window in self._windows
+            if window.exchange == exchange and window.instrument == instrument and window.contains(timestamp)
+        ]
+        if not matches:
+            return None
+        return matches[0]
+
     def trading_week_at(self, exchange: str, instrument: str, timestamp: datetime) -> tuple[int, int] | None:
         """ISO (year, week) of the official trading day containing the timestamp.
 
