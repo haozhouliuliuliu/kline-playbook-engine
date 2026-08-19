@@ -1,3 +1,4 @@
+import inspect
 import unittest
 from dataclasses import FrozenInstanceError
 
@@ -155,6 +156,36 @@ class ArtifactBindingHashTests(unittest.TestCase):
         self.assertEqual(binding.sha256, ArtifactBinding.from_bytes(
             artifact_kind="environment", artifact_reference="env-v1", content=b"env", declared_version="v1"
         ).sha256)
+
+
+class PreIntegrationCorrectionArtifactBindingTests(unittest.TestCase):
+    """B-C01: no callable ArtifactBinding path accepts a caller digest."""
+
+    # BC01-A: the old private builder (and any renamed variant) must not exist,
+    # and no constructor may accept digest/sha256 as caller input.
+    def test_bc01_a_no_caller_digest_construction_path(self):
+        for name in ("_build", "_from_digest", "from_digest"):
+            self.assertFalse(hasattr(ArtifactBinding, name), f"caller-digest path {name!r} must not exist")
+        for name in ("from_bytes", "from_file"):
+            params = set(inspect.signature(getattr(ArtifactBinding, name)).parameters)
+            self.assertNotIn("digest", params)
+            self.assertNotIn("sha256", params)
+
+    # BC01-B: from_bytes computes the digest from the actual bytes; same bytes
+    # -> same digest, changed bytes -> changed digest (B08/B09 remain green).
+    def test_bc01_b_from_bytes_digest_deterministic(self):
+        same_a = ArtifactBinding.from_bytes(
+            artifact_kind="code", artifact_reference="r", content=b"same bytes", declared_version="v1"
+        )
+        same_b = ArtifactBinding.from_bytes(
+            artifact_kind="code", artifact_reference="r", content=b"same bytes", declared_version="v1"
+        )
+        changed = ArtifactBinding.from_bytes(
+            artifact_kind="code", artifact_reference="r", content=b"changed bytes", declared_version="v1"
+        )
+        self.assertEqual(same_a.sha256, same_b.sha256)
+        self.assertEqual(same_a.byte_size, len(b"same bytes"))
+        self.assertNotEqual(same_a.sha256, changed.sha256)
 
 
 if __name__ == "__main__":

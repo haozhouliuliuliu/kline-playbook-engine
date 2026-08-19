@@ -1254,8 +1254,10 @@ class ResearchFirewall:
         return _canonical_hash(
             tuple(
                 sorted(
-                    (claim.source_id, claim.source_anchor, claim.claim_status.value)
-                    for claim in contract.source_claims
+                    set(
+                        (claim.source_id, claim.source_anchor, claim.claim_status.value)
+                        for claim in contract.source_claims
+                    )
                 )
             )
         )
@@ -1283,9 +1285,13 @@ class ResearchFirewall:
         artifact bindings must match the strategy/experiment identity facts
         (P-06), and the derived family-claim identity binds the research lineage
         (F-08).
+
+        B-C02: the experiment is validated against the supplied strategy with
+        the full existing authority `ExperimentIdentity.validate_strategy`
+        (research lineage, identity, family, version, code/parameter/environment
+        hashes, feature versions) before any registration or governance mutation.
         """
-        if experiment.strategy_identity_id != strategy.identity_id:
-            raise ValueError("experiment does not bind the supplied strategy identity")
+        experiment.validate_strategy(strategy)
         wave = self._waves.get(research_wave_id)
         if wave is None:
             raise ValueError("unknown research wave id")
@@ -1352,7 +1358,10 @@ class ResearchFirewall:
         if parameter_search_identity != binding.parameter_search_identity:
             raise ValueError("derived parameter/search identity does not match the wave hypothesis binding")
 
-        # F-07/F-08: derive family-claim identity from source evidence and bind lineage.
+        # F-07/F-08: derive family-claim identity from source evidence. Bind the
+        # family-claim -> lineage mapping ONLY after the registry accepts the
+        # registration (B-C05: a registration that fails at the registry must not
+        # permanently mutate the lineage mapping).
         family_claim_identity = self.derive_family_claim_identity(contract)
         existing_lineage = self._family_claim_lineage.get(family_claim_identity)
         if existing_lineage is not None:
@@ -1360,8 +1369,6 @@ class ResearchFirewall:
                 raise ValueError(
                     "derived family-claim identity is already bound to a different research lineage"
                 )
-        else:
-            self._family_claim_lineage[family_claim_identity] = strategy.research_lineage_id
 
         registration = OutcomeTestRegistration(
             hypothesis_test_id=hypothesis_test_id,
@@ -1380,8 +1387,11 @@ class ResearchFirewall:
             code_artifact_identity=artifact_bindings.code_artifact.identity_id,
             environment_artifact_identity=artifact_bindings.environment_artifact.identity_id,
             data_artifact_identity=artifact_bindings.data_artifact.identity_id,
+            # B-C04: registration stores feature artifact identities in canonical
+            # lexical identity order, independent of declared-version order, so a
+            # valid multi-feature binding never depends on hash lexical luck.
             feature_artifact_identities=tuple(
-                artifact.identity_id for artifact in artifact_bindings.feature_artifacts
+                sorted(artifact.identity_id for artifact in artifact_bindings.feature_artifacts)
             ),
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,
@@ -1389,7 +1399,10 @@ class ResearchFirewall:
             multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
             protocol_version=FrozenResearchProtocol.RESEARCH_PROTOCOL_VERSION,
         )
-        return self._tests.register(registration)
+        registered = self._tests.register(registration)
+        if existing_lineage is None:
+            self._family_claim_lineage[family_claim_identity] = strategy.research_lineage_id
+        return registered
 
     def lock_wave(self, wave_id: str) -> None:
         """Fail-closed wave lock with cross-registry identity validation."""

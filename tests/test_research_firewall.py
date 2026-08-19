@@ -20,7 +20,9 @@ import tempfile
 import unittest
 from dataclasses import FrozenInstanceError, replace
 from datetime import date
+from unittest.mock import patch
 
+from src.playbook_contract import ClaimStatus, SourceClaimRef
 from src.research_firewall import (
     ApprovedSourceBundle,
     ClaimRecordDraft,
@@ -1902,6 +1904,231 @@ class PackageBArtifactLineageGovernanceTests(unittest.TestCase):
         # portfolio confirmatory path remains closed (no outcome retrieval surface)
         self.assertFalse(hasattr(firewall, "portfolio"))
         self.assertFalse(hasattr(firewall, "candidate_outcomes"))
+
+
+# Synthetic feature bytes chosen so that the identity hash lexical order is
+# REVERSED relative to the declared-version order ("feature-a" < "feature-b" but
+# identity_id(feature-a) > identity_id(feature-b)). This makes the B-C04 test
+# reproduce the hash-luck failure on the pre-correction implementation.
+FEATURE_A_BYTES = b"f0"
+FEATURE_B_BYTES = b"f2"
+
+
+class PackageBPreIntegrationCorrectionTests(unittest.TestCase):
+    """Pre-integration correction regressions B-C02..B-C05 (B-C01 lives in
+    test_strategy_evidence.PreIntegrationCorrectionArtifactBindingTests).
+
+    All fixtures synthetic. No canonical candidate data.
+    """
+
+    def setUp(self):
+        self.ledger = EvidenceLedger()
+
+    # -- B-C02: register_outcome_test must fully validate experiment/strategy. ---
+
+    def test_bc02_tampered_experiment_fields_fail_closed(self):
+        firewall, session, profile, wave, experiment, contract, strategy_obj = build_package_b_context(
+            EvidenceLedger()
+        )
+        family_claim = ResearchFirewall.derive_family_claim_identity(contract)
+        tampered_experiments = (
+            ("code_hash", "tampered-code-hash-00000000000000000000000000000000"),
+            ("feature_versions", ("feature-other",)),
+            ("parameter_hash", "tampered-parameter-hash-0000000000000000000000"),
+        )
+        for field, tamper in tampered_experiments:
+            bad = replace(experiment, **{field: tamper})
+            self.assertEqual(bad.strategy_identity_id, strategy_obj.identity_id)
+            with self.assertRaisesRegex(ValueError, "does not bind"):
+                register_package_b(
+                    firewall,
+                    hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                    contract=contract,
+                    strategy_obj=strategy_obj,
+                    experiment=bad,
+                    wave=wave,
+                    profile=profile,
+                    session=session,
+                )
+            # No lineage mutation, no registration, no wave first-look before or
+            # after the failed attempt.
+            self.assertNotIn(family_claim, firewall.family_claim_lineage)
+            self.assertIsNone(firewall.tests.get(HYPOTHESIS_TEST_ID))
+            self.assertFalse(firewall.waves.has_outcome_test_started(wave.research_wave_id))
+            # The bad experiment cannot obtain a candidate outcome grant.
+            access = firewall.request_candidate_outcome_access(
+                data_dates=(date(2024, 6, 16),),
+                experiment=bad,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            )
+            self.assertFalse(access.allowed)
+
+    # -- B-C03: exact duplicate source claims are idempotent for lineage root. ---
+
+    def test_bc03_duplicate_claim_identity_idempotent(self):
+        claim = SourceClaimRef(
+            claim_id="c1",
+            source_id="bundle-fixture-v1",
+            source_anchor="fixture:book:p1",
+            claim_status=ClaimStatus.EXPLICIT,
+        )
+        contract_a = make_contract(contract_id="pb-dup-a", source_claims=(claim,))
+        contract_b = make_contract(contract_id="pb-dup-b", source_claims=(claim, claim))
+        self.assertEqual(
+            ResearchFirewall.derive_family_claim_identity(contract_a),
+            ResearchFirewall.derive_family_claim_identity(contract_b),
+        )
+        # Duplicate claims cannot mint a new research lineage root.
+        firewall = ResearchFirewall(EvidenceLedger())
+        session = make_open_session(firewall.source_only)
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        lineage_a_contract = make_contract(
+            contract_id="pb-lin-a",
+            research_lineage_id="lineage-dup-a",
+            source_claims=(claim,),
+        )
+        strategy_a = make_strategy(lineage_a_contract)
+        lineage_b_contract = make_contract(
+            contract_id="pb-lin-b",
+            research_lineage_id="lineage-dup-b",
+            source_claims=(claim, claim),
+        )
+        strategy_b = make_strategy(lineage_b_contract)
+        self.assertEqual(
+            ResearchFirewall.derive_family_claim_identity(lineage_a_contract),
+            ResearchFirewall.derive_family_claim_identity(lineage_b_contract),
+        )
+        bindings = (
+            WaveHypothesisBinding(
+                hypothesis_test_id="h-1",
+                primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(lineage_a_contract),
+                scope_identity=ResearchFirewall.derive_scope_identity(lineage_a_contract, strategy_a),
+                parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                    "TEST_ONLY:none", strategy_a
+                ),
+            ),
+            WaveHypothesisBinding(
+                hypothesis_test_id="h-2",
+                primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(lineage_b_contract),
+                scope_identity=ResearchFirewall.derive_scope_identity(lineage_b_contract, strategy_b),
+                parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                    "TEST_ONLY:none", strategy_b
+                ),
+            ),
+        )
+        wave = firewall.waves.register(
+            make_wave_manifest(
+                wave_id="wave-bc03",
+                tested_hypothesis_test_ids=("h-1", "h-2"),
+                bindings=bindings,
+                profile_id=profile.profile_id,
+                profile_identity=profile.profile_identity,
+            )
+        )
+        register_package_b(
+            firewall,
+            hypothesis_test_id="h-1",
+            contract=lineage_a_contract,
+            strategy_obj=strategy_a,
+            experiment=make_experiment(strategy_a),
+            wave=wave,
+            profile=profile,
+            session=session,
+        )
+        # Same family-claim evidence under a different lineage is rejected.
+        with self.assertRaisesRegex(ValueError, "already bound to a different research lineage"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id="h-2",
+                contract=lineage_b_contract,
+                strategy_obj=strategy_b,
+                experiment=make_experiment(strategy_b),
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+
+    # -- B-C04: multi-feature identities stored in canonical identity order. -----
+
+    def test_bc04_feature_identities_stored_in_canonical_identity_order(self):
+        contract = make_contract()
+        strategy_obj = make_strategy(
+            contract, required_feature_versions=("feature-a", "feature-b")
+        )
+        experiment = make_experiment(strategy_obj)
+        feature_a = ArtifactBinding.from_bytes(
+            artifact_kind="feature",
+            artifact_reference="feature-ref",
+            content=FEATURE_A_BYTES,
+            declared_version="feature-a",
+        )
+        feature_b = ArtifactBinding.from_bytes(
+            artifact_kind="feature",
+            artifact_reference="feature-ref",
+            content=FEATURE_B_BYTES,
+            declared_version="feature-b",
+        )
+        # Sanity: version order and identity-hash lexical order must disagree so
+        # the test reproduces the B-C04 hash-luck risk (not just pass by luck).
+        self.assertLess("feature-a", "feature-b")
+        self.assertGreater(feature_a.identity_id, feature_b.identity_id)
+        bindings = OutcomeArtifactBindings(
+            code_artifact=make_code_artifact(),
+            environment_artifact=make_environment_artifact(),
+            data_artifact=make_data_artifact(),
+            feature_artifacts=(feature_a, feature_b),
+        )
+        firewall, session, profile, wave, _, _, _ = build_package_b_context(
+            EvidenceLedger(), contract=contract, strategy_obj=strategy_obj
+        )
+        registered = register_package_b(
+            firewall,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            contract=contract,
+            strategy_obj=strategy_obj,
+            experiment=experiment,
+            wave=wave,
+            profile=profile,
+            session=session,
+            artifact_bindings=bindings,
+        )
+        self.assertEqual(
+            registered.feature_artifact_identities,
+            tuple(sorted((feature_a.identity_id, feature_b.identity_id))),
+        )
+        # Explicitly prove the stored order is NOT the version order.
+        self.assertNotEqual(
+            registered.feature_artifact_identities,
+            (feature_a.identity_id, feature_b.identity_id),
+        )
+
+    # -- B-C05: a registry-rejected registration must not mutate lineage. --------
+
+    def test_bc05_failed_registration_does_not_mutate_lineage_mapping(self):
+        firewall, session, profile, wave, experiment, contract, strategy_obj = build_package_b_context(
+            EvidenceLedger()
+        )
+        family_claim = ResearchFirewall.derive_family_claim_identity(contract)
+        self.assertNotIn(family_claim, firewall.family_claim_lineage)
+        with patch.object(
+            firewall.tests, "register", side_effect=ValueError("synthetic registration failure")
+        ):
+            with self.assertRaisesRegex(ValueError, "synthetic registration failure"):
+                register_package_b(
+                    firewall,
+                    hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                    contract=contract,
+                    strategy_obj=strategy_obj,
+                    experiment=experiment,
+                    wave=wave,
+                    profile=profile,
+                    session=session,
+                )
+        # No lineage mapping, no registration, no wave first-look.
+        self.assertNotIn(family_claim, firewall.family_claim_lineage)
+        self.assertIsNone(firewall.tests.get(HYPOTHESIS_TEST_ID))
+        self.assertFalse(firewall.waves.has_outcome_test_started(wave.research_wave_id))
 
 
 if __name__ == "__main__":

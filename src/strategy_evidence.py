@@ -312,8 +312,18 @@ class ArtifactBinding:
     ) -> "ArtifactBinding":
         if not isinstance(content, bytes):
             raise ValueError("artifact content must be bytes")
+        # B-C01: the digest is computed ONLY here from the actual content bytes;
+        # there is no caller-digest construction path. The frozen fields are
+        # initialized with object.__setattr__.
         digest = sha256(content).hexdigest()
-        return cls._build(artifact_kind, artifact_reference, digest, len(content), declared_version)
+        obj = object.__new__(cls)
+        object.__setattr__(obj, "artifact_kind", artifact_kind)
+        object.__setattr__(obj, "artifact_reference", artifact_reference)
+        object.__setattr__(obj, "sha256", digest)
+        object.__setattr__(obj, "byte_size", len(content))
+        object.__setattr__(obj, "declared_version", declared_version)
+        obj.__post_init__()
+        return obj
 
     @classmethod
     def from_file(
@@ -332,24 +342,6 @@ class ArtifactBinding:
             content=content,
             declared_version=declared_version,
         )
-
-    @classmethod
-    def _build(
-        cls,
-        artifact_kind: str,
-        artifact_reference: str,
-        digest: str,
-        byte_size: int,
-        declared_version: str | None,
-    ) -> "ArtifactBinding":
-        obj = object.__new__(cls)
-        object.__setattr__(obj, "artifact_kind", artifact_kind)
-        object.__setattr__(obj, "artifact_reference", artifact_reference)
-        object.__setattr__(obj, "sha256", digest)
-        object.__setattr__(obj, "byte_size", byte_size)
-        object.__setattr__(obj, "declared_version", declared_version)
-        obj.__post_init__()
-        return obj
 
     def __post_init__(self) -> None:
         if not self.artifact_kind or not self.artifact_reference:
