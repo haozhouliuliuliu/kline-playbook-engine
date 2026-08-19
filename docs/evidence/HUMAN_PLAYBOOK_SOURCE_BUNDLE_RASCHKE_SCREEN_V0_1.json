@@ -1,0 +1,223 @@
+{
+  "access_state": {
+    "all_effective_content_dates_before_2024_01_01": true,
+    "all_urls_accessible": true,
+    "all_urls_free_public_unauthenticated": true,
+    "note": "URLs verified via direct HTTP fetch; PDFs are %PDF- with 200 status; no authentication/cookies used.",
+    "verified_at": "2026-08-19"
+  },
+  "artifact": "HUMAN_PLAYBOOK_SOURCE_BUNDLE_RASCHKE_SCREEN",
+  "bundle_id": "SB-RASCHKE-PUBLIC-SCREEN-V1",
+  "bundle_name": "Official free/public Linda Bradford Raschke source screen bundle - official lindaraschke.net free article/text material (price/volume/session compatibility screen)",
+  "canonical_bundle_hash": "7b11a8f1516696e2e54f9dc0ee4d7785f8f1cd9dad06d52abe15378edd2633bd",
+  "copyright_boundary": "Store traceability, not a redistribution archive. Only short excerpts and concise paraphrases are recorded; full copyrighted articles are not stored in the repository.",
+  "image_only_excluded": [
+    {
+      "canonical_title": "Multi-Market Traders Rule",
+      "material_id": "SR-V0-M06",
+      "reason_excluded": "image-only scan; no embedded text layer; no OCR tool installed; profile/interview piece not needed for the family screen",
+      "source_publication": "Financial Trader",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/ftrader.pdf"
+    },
+    {
+      "canonical_title": "Trade Trends (interview/profile)",
+      "material_id": "SR-V0-M07",
+      "reason_excluded": "image-only scan; no embedded text layer; no OCR tool installed; profile/interview piece not needed for the family screen",
+      "source_publication": "Futures",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/upstairs.pdf"
+    },
+    {
+      "canonical_title": "Trading Insights (interview/profile)",
+      "material_id": "SR-V0-M08",
+      "reason_excluded": "image-only scan; no embedded text layer; no OCR tool installed; profile/interview piece not needed for the family screen",
+      "source_publication": "Omega Research",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/Omega.pdf"
+    }
+  ],
+  "manifest_version": "1.0",
+  "materials": [
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Short Term Trading Strategies",
+      "content_note": "AIQ Opening Bell, Vol 6, Issue 8, August 1997. Interview by David Vomund. Covers: 'the worst thing you can do in terms of market timing is to buy in the middle of a trading range. Either buy new highs, or buy pullbacks, but don't put your capital to work in the middle of a trading range'; moves often start 'with an impulse and a thrust ... range expansion, an increase in standard deviation, a breakaway gap, or even a failure to make a lower low'; Holy Grail buy rules (14-period ADX > 30 and rising; retracement to 20-period EMA; buy stop above high of previous bar; protective sell stop at newly formed swing low; trail); Three-Day Unfilled Gap Reversal rules; Wolfe Wave construction rules; stop strategy ('most often, I'll get out if the market fails to do what I thought it would do'); failure example Eaton Corp (no reason to be in the trade).",
+      "content_note_hash": "cc8bc86779cd4020098667b8712e167a8017ec80cdf798dc15ebd68cfecf57ed",
+      "content_type": "official interview (Linda Bradford Raschke; patterns: Holy Grail, Three-Day Unfilled Gap Reversal, Wolfe Wave; timing; stops)",
+      "diversity_role": "market timing rules; no-trade (middle of range); Holy Grail; gap reversal; Wolfe Wave; stop process; failure/counterexample (Eaton Corp)",
+      "effective_content_date": "1997-08",
+      "language": "EN",
+      "material_id": "SR-V0-M01",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "1997-08",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "AIQ Opening Bell",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/august1997.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "The Discerning Trader: Linda Bradford Raschke",
+      "content_note": "Stocks & Commodities V.11:9 (360-366), 1993, interview by Thom Hartle. Covers: prior day's high and low as 'the most important reference points when I'm entering a position the next day'; determining the day before whether in breakout mode or swing-trading mode; NR7 day definition and 'buying the breakout of an NR7 day ... going with the volatility' (cocoa example figure: 'The low volatility leads to a trend'); 'you have to have some method of measuring the amount of contraction in the market ... that tells me to switch to a breakout mode'; ADX rules (avoid ADX below 20 and declining; do not fade a market with ADX above 32 and rising); 'if there is a trend, buying the pullback to a moving average ... 20-period exponential moving average on all my markets'; 3-10 oscillator; short-term momentum precedes long-term momentum; three-day trade structure (test of prior low, middle trend day, third day peters out; carry overnight after a good trend day); failure/risk visibility (worst-case scenarios, fat tails).",
+      "content_note_hash": "009e7ef641522fba1536f07deb3efd9cb27cbae2b6217aa4789368359e9f3ac5",
+      "content_type": "official interview (Thom Hartle; NR7 breakout; prior-day levels; breakout vs swing mode; ADX rules; 3-10 oscillator; contraction)",
+      "diversity_role": "NR7/contraction->trend; prior-day high/low reference points; breakout vs swing mode; ADX no-trade rules; pullback to 20 EMA; 3-10 oscillator; trend-day 3-day structure; failure/no-trade visibility",
+      "effective_content_date": "1993-09",
+      "language": "EN",
+      "material_id": "SR-V0-M02",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "1993-09",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Technical Analysis of Stocks & Commodities (V.11:9)",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/Discerning-trader.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Trading Style and Daily Market Regimen",
+      "content_note": "Active Trader, February 2004, interview by Mark Etzkorn (a day with Linda Raschke, Nov 2003). Key material for the selected family: NR7 day (a bar with the narrowest range of the past seven bars) as a trend-day precursor; trend day definition ('opens on one end of its range and closes on the opposite end, has range expansion, and makes a steady pattern of higher highs and higher lows'); 'Something I'll almost always do the day after an NR7 day is bracket stops around the early morning range ... it didn't matter whether you bracketed the first 45 minutes range or the first hour's range. If there's going to be a trend day, you're going to catch it'; trend-day confirmation (large opening 15-min bar attributed to Toby Crabel; volume increase; leadership; trendiness 10-10:30/10:45; trend in breadth = advancing minus declining); wide-range bar reversal ('If today has the widest range of the past four days and an up close, the odds the low of the bar will be taken out in the next two days is the least-probable scenario'; down-closing wide-range bar + high taken out within two days = buy signal); two-period ROC momentum; flags + volatility filter; 'In a down-trending market, an early gap up is a short 95 percent of the time'; 'If I try to guess a breakout, I'm wrong 90 percent of the time'; session windows 10-11:30am and 2-3pm for flags; scalping execution.",
+      "content_note_hash": "10533bcbe69ea8150226be864b9895213c3b2ee87fdffee36a9272ef99ff7b4c",
+      "content_type": "official interview (Mark Etzkorn; trend days; NR7 bracket; wide-range bar; two-period ROC; flags + volatility filter; scalping vs position)",
+      "diversity_role": "trend-day definition/setup/confirmation; NR7 + early-morning-range bracket; wide-range bar reversal; two-period ROC; flags + volatility filter; session windows; no-trade; invalidation; instrument/timeframe scope",
+      "effective_content_date": "2004-02",
+      "language": "EN",
+      "material_id": "SR-V0-M03",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2004-02",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Active Trader",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/raschke0204.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "The Rituals of Trading",
+      "content_note": "Active Trader, August 2000, interview by Mark Etzkorn. Covers: 'Ninety percent of what I do is price-based. Indicators are just derivatives of price'; 'When a market breaks out and there's some momentum, there are usually three pushes up'; 'The minute the market gives back more than it should, you get out on the first reaction or pause'; 'If the market reaches a price objective, and you're really not sure if it's going to continue, you have to at least take half the position off'; trading in two pieces; no averaging (bad habit); bull/bear flags as 'the best risk-reward ratios of any technique out there'; 30-, 60- and 120-minute charts as intraday road map; TICK used like a momentum oscillator; execution accounts for at least 50 percent of the bottom line; initial risk point ($500/contract general rule; S&P scalp risk 3 points, position risk up to 10 points); four areas (trade methodology, execution, money management, psychology).",
+      "content_note_hash": "7d0ebf6872fb27765257c87ed9f468f898100b29b11aeb62433cba5f3f0fb548",
+      "content_type": "official interview (Mark Etzkorn; price-based trading; flags; three pushes; management; risk; execution; money management; psychology)",
+      "diversity_role": "price-based emphasis; three pushes; continuation patterns; management (take half, get out when giving back too much); risk framing; execution; bull/bear flags as best risk-reward; 30/60/120-min road map",
+      "effective_content_date": "2000-08",
+      "language": "EN",
+      "material_id": "SR-V0-M04",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2000-08",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Active Trader",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/rituals.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Traders Toolbox",
+      "content_note": "Active Trader, March 2004, interview by Mark Etzkorn (follow-up). Indicator checklist: 3-10 oscillator (3-day minus 10-day SMA plus 16-period SMA), 14-period ADX, Keltner Channels (2.5 ATR around 20-period EMA), two-period ROC on daily charts, TICK/TIKI highs and lows, closing breadth (10-period SMA of NYSE advancers minus decliners), put-call ratio (5-period SMA). Holy Grail setup detail: 'When the market breaks out of an extended trading range and makes new momentum highs, there is a sequence that typically unfolds. Price first pulls back to the 20-bar EMA ... then the same retracement will occur on the 30-minute chart, then the 60-minute chart, then the 120-minute time frame. By then you should be looking for a top. But each retracement has to be preceded by a 14-bar ADX reading above 30 on that time frame'; tendency: a daily S&P bar closing in the upper 20% of its range has approximately 75% odds the next bar trades above the high but only 50% odds it closes above it. Cross-market: DAX/EuroStoxx leading the US (unavailable cross-market surface for this project).",
+      "content_note_hash": "e26b03c1ed582baaf70d487d5b60754a96de55ca5fa97808ad595e2337c44dc7",
+      "content_type": "official interview part 2 (Mark Etzkorn; 3-10 oscillator; 14-period ADX; Keltner channels; two-period ROC; Holy Grail across time frames; bar-close-position tendency)",
+      "diversity_role": "indicator checklist (3-10 oscillator, 14 ADX, Keltner, 2p ROC, TICK/TIKI, closing breadth, put-call); Holy Grail setup across time frames; daily close-in-upper-20% tendency; cross-market leading (DAX/EuroStoxx) as unavailable-input boundary",
+      "effective_content_date": "2004-03",
+      "language": "EN",
+      "material_id": "SR-V0-M05",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2004-03",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Active Trader",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/03/raschke_pt2_0304.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Maintain your Mindset Using the Three R's of Positive Thinking",
+      "content_note": "SFO Magazine, July 2004. Mindset/psychology article (Three R's of positive thinking). Process material only; not a market-scene strategy input. Retained for the record; no market-scene claims extracted from it.",
+      "content_note_hash": "473ca0f0cc4f6e0863d8a2cab41c6237f802539a0532032c2c736965d88324ae",
+      "content_type": "official article (mindset/psychology; process)",
+      "diversity_role": "psychology/process boundary (not a market-scene observable)",
+      "effective_content_date": "2004-07",
+      "language": "EN",
+      "material_id": "SR-V0-M09",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2004-07",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Stock Futures & Options",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/SFO_July04.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Who are You? Zoom in on Personal Trading Behavior and Profit from it!",
+      "content_note": "SFO Magazine, August/September 2003, article by Linda Bradford Raschke. Behavioral process: bottom lines suffer from marginal trades, game plans not followed, unforced errors; identify personal behavioral patterns; have a trading plan each day as insurance against marginal spontaneous trades; always have a resting stop in the market until able to recognize personal signs of being in a bad trade; GREEN LIGHT GO - add to a winning position when the trade feels in sync. Process layer, not a market-scene observable.",
+      "content_note_hash": "b555070a7af7c45380a676cc8c096c8ed3e793f674b51f756fca6e965a132701",
+      "content_type": "official article (behavior/psychology; process)",
+      "diversity_role": "behavioral/process claims; unforced errors; game plan; resting stop; add to winners (GREEN LIGHT GO)",
+      "effective_content_date": "2003-08",
+      "language": "EN",
+      "material_id": "SR-V0-M10",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2003-08",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Stock Futures & Options",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/SFO_raschke_0803.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Everything You Wanted to Know about Electronic Trading but were Afraid to Ask",
+      "content_note": "SFO Magazine, April 2006, article by Linda Bradford Raschke. Execution/process: electronic order routing, execution platforms, resting stops at exchange level, working a bid first and executing at market if not filled, avoid being reactive, place initial stop well outside the noise. Execution layer; not a market-scene strategy input for this screen.",
+      "content_note_hash": "b1e189dbc21029159bbbe0f6f7eb8f1d397dbbf4c0eb62c08c9434c023f4ead6",
+      "content_type": "official article (execution/process; order routing; execution skills)",
+      "diversity_role": "execution/process boundary (order routing, resting stops, working bids/offers)",
+      "effective_content_date": "2006-04",
+      "language": "EN",
+      "material_id": "SR-V0-M11",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2006-04",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Stock Futures & Options",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/Rashke_0406.pdf"
+    }
+  ],
+  "optional_paid_candidates": [
+    {
+      "access_class": "PAID_BOOK (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "Potential additional explicit setup/entry/invalidation/exit language for the selected family.",
+      "source_identity": "Trading Sardines: Lessons in the Markets from a Lifelong Trader (Linda Bradford Raschke; 2015 book, ISBN 9781532395622)",
+      "why_it_might_matter": "Raschke's own book may contain deeper, more complete trading-loop semantics than the short official free articles."
+    },
+    {
+      "access_class": "PAID_BOOK (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "Deeper source-pinned semantics for the pattern-specific claims.",
+      "source_identity": "Street Smarts: High Probability Short-Term Trading Strategies (Raschke & Connors; book)",
+      "why_it_might_matter": "The 1997 AIQ interview references the Holy Grail / Three-Day Unfilled Gap Reversal / Wolfe Wave patterns from this book with more detail than the free article."
+    },
+    {
+      "access_class": "PAID_OR_SUBSCRIPTION_DATA (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "Breadth/TICK surfaces for the trend-day confirmation handicap.",
+      "source_identity": "NYSE TICK / TRIN / advance-decline breadth data (US market internals) referenced throughout the interviews",
+      "why_it_might_matter": "The source's trend-day confirmation and TICK-momentum read use NYSE breadth/TICK; these surfaces are not in the Chinese-futures corpus."
+    },
+    {
+      "access_class": "PAID_SOFTWARE (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "Not a data gap; the indicators are computable from owned OHLCV. Listed only for source-tool awareness.",
+      "source_identity": "Keltner Channel / ADX / 3-10 oscillator charting packages (e.g., TradeStation) referenced for the indicator checklist",
+      "why_it_might_matter": "The Holy Grail setup uses ADX and 20-period EMA; these are computable from OHLC but the source's own charting tools are commercial."
+    }
+  ],
+  "package": "RASCHKE_FREE_PUBLIC_CURRENT_DATA_SCREEN_AND_CLAIM_EXTRACTION_V0_1",
+  "paid_candidates_note": "Listed for awareness only. No purchase or subscription is authorized. PAID_SOURCE_PURCHASE_DEFAULT=NO. Free/public alternatives were sufficient for this screen.",
+  "raw_material_retention_boundary": "Raw PDFs and full extracted article text were processed only in a local temp directory OUTSIDE the repository and were not committed. Only attributable short excerpts and concise paraphrases needed for claim traceability are recorded. Anchors point to the canonical official public URLs on lindaraschke.net.",
+  "retrieval_mode": "LOCAL_FREE_PUBLIC_RASCHKE_SOURCE_SCREEN_ONLY",
+  "selected_on": "2026-08-19",
+  "selection_basis_note": "Selection based on provenance + free/public access + source-anchor quality + direct relevance to a price/volume/session trading family. NEVER based on expected trading performance, backtest quality, or ease of producing a strategy.",
+  "selection_criteria": [
+    "official lindaraschke.net free/public article archive / TRACEABLE_ORIGINAL",
+    "free/public/unauthenticated access state (verified by direct fetch on 2026-08-19)",
+    "effective content date before 2024-01-01 (before the frozen corpus start)",
+    "official video surface is YouTube-hosted and blocked by 403 in the recorded environment; no circumvention; official free article/text material used instead",
+    "stable attributable official URL, title, and publication date",
+    "material materially improves exact anchors for a price/volume/session trading family (trend day / NR7 / contraction-expansion / range-breakout / pullback / session context)",
+    "not broadened into unrelated third-party summaries or paid material",
+    "not selected by expected historical performance"
+  ],
+  "source": "SRC-RASCHKE",
+  "source_admission_reference": "docs/research/source_dossiers/SOURCE_DOSSIER_RASCHKE_V0_1.md; docs/research/HUMAN_PLAYBOOK_CLAIM_CORPUS_TRIAGE_V0_2.md",
+  "source_substitution": {
+    "note": "Official videos are YouTube-hosted and blocked by 403 in the recorded environment; no circumvention was attempted. Per source-acquisition policy, the screen switched to official free article/text material (the task's stated fallback). All bundled materials are official lindaraschke.net free/public PDFs; no paid or third-party-substitute material was used.",
+    "occurred": "PARTIAL_SURFACE_SUBSTITUTION"
+  },
+  "video_surface": {
+    "acquisition_state": "BLOCKED_BY_403_IN_RECORDED_ENV",
+    "circumvention_attempted": "NO",
+    "fallback": "official free article/text material used",
+    "hosting": "YouTube channel @lindaraschke6565 only (no direct embeds/mp4)",
+    "official_video_index": "https://lindaraschke.net/linda-videos/"
+  }
+}
