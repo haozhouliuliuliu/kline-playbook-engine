@@ -13,8 +13,14 @@ CURRENT_WORK_PACKAGE=COMMON_STATISTICAL_PROFILE_V1_REVISION_AFTER_PARALLEL_REVIE
 CURRENT_WORK_PACKAGE_STATUS=ADJUDICATION_COMPLETE_REVISION_REQUIRED
 CURRENT_WORK_PACKAGE_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
 CURRENT_WORK_PACKAGE_ADJUDICATION=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md
+CONVERSATION_HANDOFF_STATUS=THIRD_PASS_READY_AWAITING_OWNER_ACCEPTANCE
+FRESH_CONVERSATION_FIRST_TURN=READ_ONLY_TAKEOVER_VERIFICATION
+PROJECT_EXECUTION_DURING_TAKEOVER_CHECK=PROHIBITED
+THIRD_PASS_HANDOFF_REVIEW=docs/reviews/HANDOFF_THIRD_PASS_FAILURE_MODE_REVIEW_2026-08-19.md
 OWNER_ACTION=NONE
 ```
+
+`OWNER_ACTION=NONE` means no new research/product semantic decision is currently required. Separately, the fresh-conversation handoff is intentionally waiting for the Owner to verify the new conversation's takeover report before normal execution resumes.
 
 ## Binding research direction
 
@@ -22,6 +28,8 @@ OWNER_ACTION=NONE
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 RESEARCH_DIRECTION_AUTHORITY=RESEARCH_DIRECTION.md
+RESEARCH_ROUTE_ANTI_REGRESSION=HUMAN_PLAYBOOK_FIRST_NO_DATA_FIRST_KLINE_MINING
+PROHIBITED_DEFAULT_RESEARCH_ROUTE=UNCONSTRAINED_KLINE_INDICATOR_PATTERN_PARAMETER_MINING
 ```
 
 Primary route:
@@ -36,7 +44,7 @@ traceable human trading experience
 -> accepted or rejected playbook
 ```
 
-Human sources create hypotheses, not accepted truth. Skeleton v1.0 remains binding.
+Human sources create hypotheses, not accepted truth. Skeleton v1.0 remains binding, but its broad Research Loop language is specialized by the later Owner-approved Human Playbook First direction. Generic architecture wording such as "AI may find candidate ideas" does **not** authorize automatic data-first K-line/chart-pattern/indicator mining.
 
 Live boundary remains:
 
@@ -227,6 +235,8 @@ Accepted revision requirements include:
 - make statistical multiplicity counting machine-consistent with frozen Research Wave/search identities;
 - correct the Romano-Wolf description; Holm remains a leading simple candidate, not locked.
 
+Reviewer replacement methods/numbers are advisory evidence, not accepted project semantics. In particular, do not treat `N>=60`, exact day/week minima, a `2x` cost gate, Holm as final method, the review block-length formula, illustrative volatility/sigma values, or any exact ESS replacement as frozen/accepted facts.
+
 ## Canonical BALANCED historical corpus — ACCEPTED
 
 ```text
@@ -293,6 +303,7 @@ AUTHORIZED NOW:
 - safe parallel engineering/review work in isolated worktrees under the Owner collaboration contract and `AGENTS.md`.
 
 NOT_AUTHORIZED:
+- data-first automatic K-line/chart-pattern/indicator/rule/parameter strategy mining as the project's research route;
 - candidate PnL/equity/expectancy/Sharpe/win-loss or equivalent candidate-quality inspection until the revised real common statistical profile is independently reviewed, locked, identity-bound into a real research wave, and the frozen pre-outcome gate passes;
 - validation access before frozen prerequisites;
 - historical final-holdout unlock;
@@ -309,6 +320,8 @@ NOT_AUTHORIZED:
 - bypassing paywalls/DRM/platform permissions;
 - authenticated browser-cookie acquisition without separate review;
 - redistribution of copyrighted raw source material.
+
+During the current fresh-conversation takeover check, **all project advancement is additionally paused**. The new conversation may read/verify/report only until the Owner accepts the takeover.
 
 ## Tools / capability / current execution workflow
 
@@ -385,7 +398,7 @@ python -m unittest discover -s tests -v
 exit 0
 ```
 
-All main changes after that verification, including second-pass handoff/state corrections and the two review-evidence integrations, are documentation/state/authority-only; no production/test code changed. Therefore `235 OK / 3 skipped` remains the latest code-bearing verification baseline, not a claim that a new code suite was required after doc-only merges.
+All main changes after that verification, including second/third-pass handoff/state corrections and the two review-evidence integrations, are documentation/state/authority-only; no production/test code changed. Therefore `235 OK / 3 skipped` remains the latest code-bearing verification baseline, not a claim that a new code suite was required after doc-only merges.
 
 ## Current next action
 
@@ -401,7 +414,9 @@ REAL_CLAIM_EXTRACTION_ENVIRONMENT=VERIFIED
 OWNER_ACTION=NONE
 ```
 
-Next package should revise the Common Statistical Profile candidate and design evidence in one coherent pass, without candidate outcomes, then run a targeted delta independent review over only the materially changed statistical definitions. Do not repeat the entire project review. Statistical evaluator/round-trip-ledger implementation should follow acceptance of the revised profile, except for purely non-semantic helpers that are independently useful and cannot bias the profile decision.
+This is the recorded next project package **after conversation takeover is accepted**. During the current takeover-verification turn it must not be executed.
+
+After takeover acceptance, the next package should revise the Common Statistical Profile candidate and design evidence in one coherent pass, without candidate outcomes, then run a targeted delta independent review over only the materially changed statistical definitions. Do not repeat the entire project review. Statistical evaluator/round-trip-ledger implementation should follow acceptance of the revised profile, except for purely non-semantic helpers that are independently useful and cannot bias the profile decision.
 
 ## Progress estimates (engineering estimates, not evidence facts)
 
