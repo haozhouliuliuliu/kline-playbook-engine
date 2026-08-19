@@ -7,13 +7,14 @@ PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
-CURRENT_BLOCKER=PER_HYPOTHESIS_INFERENCE_FINITE_SAMPLE_VALIDITY
-CURRENT_WORK_PACKAGE=COMMON_STATISTICAL_PROFILE_V1_INFERENCE_RESOLUTION_AFTER_TWO_REVIEWS
-CURRENT_WORK_PACKAGE_STATUS=PARALLEL_REVIEWS_ADJUDICATED_INFERENCE_RESOLUTION_REQUIRED
+CURRENT_BLOCKER=OWNER_RESEARCH_DESIGN_DECISION_AFTER_NO_DEFENSIBLE_LOCKABLE_V1_PASS_INFERENCE
+CURRENT_WORK_PACKAGE=COMMON_STATISTICAL_PROFILE_V1_ACCEPTANCE_PATH_OWNER_GATE
+CURRENT_WORK_PACKAGE_STATUS=INFERENCE_RESOLUTION_COMPLETE_OWNER_DECISION_REQUIRED
 CURRENT_WORK_PACKAGE_AUTHORITY=docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md
-CURRENT_WORK_PACKAGE_ADJUDICATION=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_PARALLEL_REVIEW_ADJUDICATION_V0_2.md
+CURRENT_WORK_PACKAGE_ADJUDICATION=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_INFERENCE_RESOLUTION_ADJUDICATION_V0_3.md
 CONVERSATION_HANDOFF_STATUS=TAKEOVER_ACCEPTED
-OWNER_ACTION=NONE
+OWNER_ACTION=REQUIRED
+OWNER_DECISION_REQUIRED=OPTION_A_OR_OPTION_B
 ```
 
 ## Binding direction / anti-regression
@@ -74,7 +75,7 @@ FULL_TESTS_BASELINE=235_OK_3_SKIPPED
 
 `src/research_firewall.py` remains the single owner of new pre-outcome access rules.
 
-## Common Statistical Profile v1
+## Common Statistical Profile v1 — current state
 
 Historical first candidate remains superseded and not locked.
 
@@ -83,10 +84,13 @@ Revision candidate 0.3:
 ```text
 REVISION_CANDIDATE_VERSION=v1.0-revision-candidate-0.3
 REVISION_CANDIDATE_DOC=docs/research/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_REVISION_CANDIDATE.md
-REVISION_CANDIDATE_STATUS=KEEP_BUT_REVISE_NOT_LOCKABLE
+REVISION_CANDIDATE_STATUS=NOT_LOCKABLE
+PROFILE_0_4_DRAFTABLE=NO
 NO_CANDIDATE_OUTCOME_DATA_USED=YES
-CURRENT_INFERENCE_CANDIDATE=DAILY_SCORE_SELF_NORMALIZATION
+CURRENT_INFERENCE_CANDIDATE=DAILY_SCORE_SELF_NORMALIZATION_REJECTED_AS_PASS_BASIS
 ```
+
+### Parallel review history
 
 Two independent review lanes completed from main baseline `6823d8f73d69def126e22482960e00b85543f570`:
 
@@ -99,31 +103,102 @@ SECOND_SN_REVIEW_COMMIT=a4008dfaf6996d13f269077f8e4c537857d18ab9
 SECOND_SN_REVIEW_VERDICT=GO_WITH_REQUIRED_CHANGES
 ```
 
-Project-brain adjudication:
+Project-brain adjudication v0.2 remains binding:
 
 ```text
-PARALLEL_REVIEW_ADJUDICATION=COMPLETE
-PARALLEL_REVIEW_ADJUDICATION_DOC=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_PARALLEL_REVIEW_ADJUDICATION_V0_2.md
-PROFILE_0_3_LOCKABLE=NO
-FROZEN_PROTOCOL_CONFLICT=NO
 COUNT_RETURN_CRITICAL=REJECTED_AS_FIXTURE_TARGET_ERROR
 STRONG_PERSISTENCE_RISK=ACCEPTED
 LEFT_SKEW_SIZE_RISK=ACCEPTED
 PRIMARY_BLOCKER=PER_HYPOTHESIS_INFERENCE_FINITE_SAMPLE_VALIDITY
 ```
 
-The rejected count-return finding used the wrong sampling measure: under the reviewer's own process `C|L ~ Poisson(lambda*exp(aL))`, `E[r|L]=bL`, a uniformly sampled trade has mean `E[C*bL]/E[C]=a*b`, not zero. Count-return independence is therefore not added as a project requirement. Candidate 0.4 must state the estimand precisely as the event-weighted per-trade mean `theta=E[S_d]/E[C_d]` and pin `C_d` as count / `S_d` as sum of already normalized per-trade returns.
+The rejected count-return finding used the wrong sampling measure: under the reviewer's own process `C|L ~ Poisson(lambda*exp(aL))`, `E[r|L]=bL`, a uniformly sampled realized trade has mean `E[C*bL]/E[C]=a*b`, not zero. Count-return independence is not a project requirement. The estimand is the event-weighted per-trade mean `theta=E[S_d]/E[C_d]`, with `C_d` equal to completed-round-trip count and `S_d` equal to the sum of already normalized per-trade returns.
 
-The actual blocker is finite-sample p-value anti-conservatism at six-month cohort lengths under strong persistence and left-skewed daily-score processes. Holm cannot repair invalid input p-values. The project does not weaken its strong-FWER acceptance target and does not adopt reviewer-proposed numeric shape/autocorrelation thresholds without separate pre-outcome justification.
+### Third-lane inference resolution
 
-Other accepted revision requirements:
+```text
+INFERENCE_RESOLUTION_BRANCH=parallel/stat-profile-inference-resolution-r04
+INFERENCE_RESOLUTION_COMMIT=dd84dba7d37a2dd00ab8480c7f79ccfd37b7b118
+INFERENCE_RESOLUTION_RECOMMENDATION=NO_LOCKABLE_V1_INFERENCE
+INFERENCE_RESOLUTION_PROFILE_0_4_DRAFTABLE=NO
+INFERENCE_RESOLUTION_NO_CANDIDATE_OUTCOME_DATA_USED=YES
+INFERENCE_RESOLUTION_FROZEN_PROTOCOL_CONFLICT=NO
+PROJECT_BRAIN_ADJUDICATION_DOC=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_INFERENCE_RESOLUTION_ADJUDICATION_V0_3.md
+GENERAL_DOMAIN_POSITIVE_PASS_INFERENCE=NO_DEFENSIBLE_LOCKABLE_METHOD_IDENTIFIED
+```
+
+Project-brain wording is intentionally narrower than an impossibility theorem: the evidence establishes that no defensible lockable method was identified among the investigated inference families under the current frozen constraints; it does not prove that no conceivable method can ever exist.
+
+Accepted inference-resolution facts:
+- Shao-style self-normalization is not lockable as a PASS basis at approximately 117/126 trading days because finite-sample type-I error is materially anti-conservative under strong persistence and left-skewed score processes, including Holm-relevant tails;
+- Holm cannot repair invalid per-hypothesis p-values;
+- tested wild-bootstrap self-normalization does not solve the same problem;
+- examined block-bootstrap, weekly/grouped and subsampling alternatives are not adopted because they fail current size/resolution/short-sample/no-arbitrary-knob requirements;
+- no independently justified operational cutoff was identified for a guarded/admissible-domain self-normalization design;
+- extending the window alone is not demonstrated sufficient;
+- the project's strong-FWER acceptance target is not weakened.
+
+Methods/status not adopted:
+
+```text
+ASYMPTOTIC_SELF_NORMALIZATION=REJECTED_AS_PASS_BASIS
+WILD_BOOTSTRAP_SELF_NORMALIZATION=REJECTED_AS_PASS_BASIS
+MOVING_BLOCK_BOOTSTRAP=NOT_ADOPTED
+WEEKLY_GROUPED_INFERENCE=NOT_ADOPTED
+SUBSAMPLING=NOT_ADOPTED_FOR_HOLM_PASS
+ARBITRARY_SHAPE_OR_AUTOCORRELATION_GATE=NOT_ADOPTED
+WEAKENED_NOMINAL_ERROR_RATE=NOT_ADOPTED
+```
+
+These are current-package decisions, not permanent universal bans.
+
+Other adjudicated profile facts remain unchanged:
 - confidence-bound inversion must be deterministic and fail closed on missing/non-unique roots;
 - parameter-search identity is not a multiplicity count unit; every separately outcome-inspected point/branch/scope capable of its own conclusion needs its own counted `hypothesis_test_id` unless a pre-registered within-search correction exists;
-- PASS/Holm vs negative FAIL-bound asymmetry must be explicit;
+- PASS/Holm vs negative FAIL-bound asymmetry must be explicit if any future valid inference uses it;
 - LOTO/LOWO remain non-statistical conservative robustness guards;
-- zero right-censoring remains the current safe v1 candidate rule and must be disclosed as a coverage limitation yielding `INSUFFICIENT_EVIDENCE`, not evidence against a playbook;
-- base execution assumptions and unavailable execution facts must be evidence-bound/fail-closed; no universal 2bp or 2x threshold is reinstated;
-- exact pivotal calibration constants remain open until the inference procedure is resolved.
+- zero right-censoring remains the current safe v1 candidate rule and is a coverage limitation yielding `INSUFFICIENT_EVIDENCE`;
+- base execution assumptions and unavailable execution facts remain evidence-bound/fail-closed;
+- no universal 2bp or 2x threshold is reinstated.
+
+## Owner research-design gate
+
+The current statistical package has exhausted the safe technical next step and now requires an Owner decision.
+
+### OPTION_A — preserve 12/6/6 and accept IE-only historical v1
+
+```text
+OPTION_A=PRESERVE_FROZEN_12_6_6_ACCEPT_IE_ONLY_HISTORICAL_V1
+```
+
+Meaning:
+- keep Protocol v1.0 and 12/6/6 unchanged;
+- do not claim a statistically defensible positive PASS from the six-month historical cohorts under the current general-domain profile;
+- continue Human Playbook source extraction, deterministic operationalization and engineering;
+- positive acceptance requires a later separately authorized evidence path, most plausibly genuinely prospective Shadow/Forward evidence or another future Owner-approved design.
+
+This is protocol-consistent because `INSUFFICIENT_EVIDENCE` is already a frozen legitimate result, but intentionally making historical v1 IE-only is a material research-policy choice and is not silently adopted.
+
+### OPTION_B — authorize redesign of positive-acceptance evidence path
+
+```text
+OPTION_B=AUTHORIZE_NEW_POSITIVE_ACCEPTANCE_EVIDENCE_DESIGN_PACKAGE
+```
+
+Meaning:
+- authorize a new bounded research-design package aimed at restoring a defensible positive-acceptance path;
+- it may investigate longer/prospective evidence windows or a rigorously justified admissible-domain design;
+- this authorization does not approve any specific pooling rule, longer window, threshold or prospective trading mode;
+- any frozen chronology/semantic change still requires new protocol version, material independent review and Owner approval.
+
+### Project-brain recommendation
+
+```text
+PROJECT_BRAIN_RECOMMENDATION=OPTION_A
+PROJECT_BRAIN_RECOMMENDATION_CONFIDENCE=MEDIUM_HIGH
+```
+
+Reason: preserve the frozen governance and statistical integrity rather than manufacture a PASS path using arbitrary knobs. This recommendation does not authorize future Shadow/Forward execution.
 
 ## Canonical historical corpus
 
@@ -146,11 +221,12 @@ AUTHORIZED NOW:
 - source discovery/provenance;
 - controlled source-faithful claim extraction in verified SOURCE_ONLY;
 - deterministic non-outcome operationalization/tests;
-- Common Statistical Profile design/review work without candidate outcomes;
-- synthetic/non-candidate statistical and engine sanity tests;
-- isolated independent review.
+- non-candidate engineering/evidence work that cannot bias the Owner acceptance-path decision;
+- synthetic/non-candidate statistical reproducibility inspection.
 
 NOT AUTHORIZED:
+- locking an IE-only Common Statistical Profile v1 before Owner approval;
+- drafting candidate 0.4 with invented inference semantics;
 - data-first K-line/chart-pattern/indicator/rule/parameter mining as project route;
 - candidate PnL/equity/expectancy/Sharpe/win-loss or equivalent candidate-quality inspection;
 - Validation access;
@@ -166,9 +242,10 @@ TOOL_DECISION=USE_EXISTING
 PAID_CHAT_RELAY_ORCHESTRATOR=NOT_ADOPTED_CURRENTLY
 BRITTLE_VSCODE_UI_CHAT_AUTOMATION=NOT_ADOPTED_CURRENTLY
 CURRENT_DS_RELAY_MODE=OWNER_MANUAL_RELAY_WHEN_LOCAL_AGENT_IS_NEEDED
+ADDITIONAL_STATISTICAL_REVIEW_LANE=NOT_JUSTIFIED_BEFORE_OWNER_DECISION
 ```
 
-No new framework/API is justified. A third independent lane is now justified narrowly as an inference-resolution/tie-break lane because the first two reviews disagreed on one mathematical finding and jointly exposed a real finite-sample validity blocker. Main remains the sole integration lane.
+No new framework/API is justified. The blocker is now a research-design decision, not lack of another reviewer.
 
 ## Known limitations / tech debt
 
@@ -177,11 +254,11 @@ No new framework/API is justified. A third independent lane is now justified nar
 - `LIMIT-001`: missing governed historical price-limit facts fail closed for affected confirmatory execution.
 - `DECISION-001`: live AI scene-recognition mode remains Owner-gated/unresolved.
 
-Round-trip ledger, holding/day aggregation and hypothesis/wave joins remain small engineering deltas. Full evaluator implementation still waits until the statistical profile survives inference resolution and targeted final review.
+Round-trip ledger, holding/day aggregation and hypothesis/wave joins remain small engineering deltas. Full evaluator implementation waits for the Owner acceptance-path decision and a subsequently lockable profile design.
 
 ## Verification status
 
-Latest code-bearing baseline remains:
+Latest code-bearing baseline in main remains:
 
 ```text
 python -m unittest discover -s tests -v
@@ -190,22 +267,23 @@ python -m unittest discover -s tests -v
 exit 0
 ```
 
-The second independent review separately reported the same 235 OK / 3 skipped baseline in its isolated worktree. No production/test code has changed in this statistical adjudication package.
+The inference-resolution lane independently reported `235 OK / 3 skipped`, exit 0, from its isolated worktree. Its commit `dd84dba7...` is exactly one commit ahead of baseline `83e8aa4...` and adds only the review artifact and synthetic support script. No production/test code changed.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=RESOLVE_COMMON_STATISTICAL_PROFILE_V1_PER_HYPOTHESIS_INFERENCE
-CURRENT_NEXT_ACTION_AUTHORITY=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_PARALLEL_REVIEW_ADJUDICATION_V0_2.md
-PROFILE_STATUS=REVISION_REQUIRED_NOT_LOCKED
+CURRENT_NEXT_ACTION=OWNER_DECISION_COMMON_STATISTICAL_PROFILE_V1_ACCEPTANCE_PATH
+CURRENT_NEXT_ACTION_AUTHORITY=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_INFERENCE_RESOLUTION_ADJUDICATION_V0_3.md
+OWNER_DECISION_REQUIRED=OPTION_A_OR_OPTION_B
+PROFILE_STATUS=BLOCKED_AT_RESEARCH_DESIGN_GATE
 TOOL_DECISION=USE_EXISTING
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
-OWNER_ACTION=NONE
+OWNER_ACTION=REQUIRED
 ```
 
-The next bounded package must decide the smallest pre-outcome inference procedure or deterministic fail-closed validity envelope that preserves the event-weighted per-trade estimand and strong-FWER acceptance target at the frozen cohort lengths. It must not tune against candidate outcomes. After that, project brain will write candidate 0.4 and request only a final targeted attack on materially changed inference definitions.
+No additional statistical reviewer lane should be opened before the Owner decision.
 
 ## Progress estimates — engineering estimates, not evidence facts
 
@@ -214,10 +292,8 @@ The next bounded package must decide the smallest pre-outcome inference procedur
 | Architecture / Bootstrap | Skeleton v1.0 accepted | 100% |
 | Data Substrate | canonical corpus accepted | ~90% |
 | Strategy Catalog | identity/playbook foundations; real extracted playbooks not yet built | ~58% |
-| Backtest & Validation | engine/firewall substantial; profile inference blocker identified | ~66% |
+| Backtest & Validation | engine/firewall substantial; acceptance-path Owner gate | ~66% |
 | Human Playbook Research Loop | protocol/source/firewall ready; real claim extraction not started | ~44% |
 | Trading Loop | early deterministic foundations | ~15% |
 | Ledger / Observability | foundational pieces only | ~25% |
 | Overall project | research-foundation stage | ~46% |
-
-Owner approval remains required only for the established major gates. No new Owner decision is required for the current inference-resolution package.
