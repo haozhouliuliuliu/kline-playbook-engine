@@ -1,0 +1,154 @@
+{
+  "access_state": {
+    "all_effective_content_dates_before_2024_01_01": true,
+    "all_urls_accessible": true,
+    "all_urls_free_public_unauthenticated": true,
+    "note": "Official Articles index and Holy Grail article URLs (august1997.pdf, raschke_pt2_0304.pdf) re-verified via direct HTTP fetch on 2026-08-20 (HTTP 200, application/pdf); no authentication/cookies used. Raw content was not committed.",
+    "verified_at": "2026-08-20"
+  },
+  "artifact": "HUMAN_PLAYBOOK_SOURCE_BUNDLE_RASCHKE_HOLY_GRAIL",
+  "base_bundle_reference": {
+    "base_bundle_hash": "7b11a8f1516696e2e54f9dc0ee4d7785f8f1cd9dad06d52abe15378edd2633bd",
+    "base_bundle_id": "SB-RASCHKE-PUBLIC-SCREEN-V1",
+    "note": "This semantic-completion bundle reuses the exact accepted source screen bundle materials that anchor the Holy Grail / pullback family. The official Articles index (lindaraschke.net/articles/), re-verified with HTTP 200 on 2026-08-20, enumerates exactly the same free/public PDFs already in the accepted bundle (Trade Trends, Trading Insights, Traders Toolbox, Multi-Market Traders Rule, The Rituals of Trading, Short Term Trading Strategies, Maintain your Mindset, Who are You?, Everything About Electronic Trading, The Discerning Trader, Trading Style and Daily Market Regimen); no additional official free/public pre-2024 Raschke article directly resolves an open semantic field (notably the EMA price input, which is NOT_PINNED). Official videos/interviews are YouTube-hosted and blocked by 403 in the recorded environment (no circumvention). Therefore no new material is added."
+  },
+  "bundle_id": "SB-RASCHKE-HOLY-GRAIL-SEMANTIC-V1",
+  "bundle_name": "Official free/public Linda Bradford Raschke Holy Grail targeted semantic-completion bundle - reuses the accepted Raschke screen materials that anchor the RASCHKE_HOLY_GRAIL_PULLBACK family (strong-trend / ADX context + pullback to 20-period EMA); no new material added",
+  "canonical_bundle_hash": "7e6cd5cf02eefa7ba7483eeda9a036433e5a07320455c0594971fc2e37bf882c",
+  "copyright_boundary": "Store traceability, not a redistribution archive. Only short excerpts and concise paraphrases are recorded; full copyrighted articles are not stored in the repository.",
+  "manifest_version": "1.0",
+  "materials": [
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Short Term Trading Strategies",
+      "content_note": "AIQ Opening Bell, Vol 6, Issue 8, August 1997. Interview by David Vomund. Holy Grail buy rules (sells reversed): 1. The 14-period ADX must initially be greater than 30 and rising. 2. Look for a retracement in price to the 20-period exponential moving average, usually accompanied by a turndown in ADX. 3. When price touches the 20-period moving average, put a buy stop above the high of the previous bar. 4. Once filled, enter a protective sell stop at the newly formed swing low. Trail stops as profits grow. Also: 'The worst thing you can do in terms of market timing is to buy in the middle of a trading range. Either buy new highs, or buy pullbacks...'; 'Moves often start in either direction with an impulse and a thrust. It may be a range expansion, an increase in standard deviation, a breakaway gap, or even a failure to make a lower low'; stop process ('Most often, I'll get out if the market fails to do what I thought it would do'); failure example Eaton Corp ('no reason to be in this trade'). The interview references the Holy Grail pattern from the Raschke & Connors book 'Street Smarts'; the pattern lineage is shared with Larry Connors, not independent confirmation.",
+      "content_note_hash": "a87745063a355998b5eb3618068f1cd5bb379aa4accc587d13d814cef73b0b0a",
+      "content_type": "official interview (Linda Bradford Raschke; patterns: Holy Grail, Three-Day Unfilled Gap Reversal, Wolfe Wave; timing; stops)",
+      "diversity_role": "PRIMARY material for the Holy Grail 4-step buy rules; no-trade (middle of range); impulse/thrust cue list; stop process; failure example (Eaton Corp); lineage reference to the Raschke & Connors 'Street Smarts' book",
+      "effective_content_date": "1997-08",
+      "language": "EN",
+      "material_id": "SR-V0-M01",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "1997-08",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "AIQ Opening Bell",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/august1997.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "The Discerning Trader: Linda Bradford Raschke",
+      "content_note": "Stocks & Commodities V.11:9 (360-366), 1993, interview by Thom Hartle. Raschke's own stated pullback framework: 'If there is a trend, I'll try to always look for buying a pullback to a moving average... I personally use a 20-period exponential moving average on all my markets.' ADX no-trade/fade rules: 'I avoid the markets where the ADX falls below 20 and is declining... I will not fade a market... where the ADX is above 32 and rising.' Prior-day high/low as reference points. This material supplies the 20-period EMA usage statement and the ADX-based no-trade constraints for the Holy Grail family.",
+      "content_note_hash": "d79c712abaac189e5312897a045ae6b27f064924283c14668b8be968967c4b4a",
+      "content_type": "official interview (Thom Hartle; pullback to 20-period EMA; ADX no-trade rules; prior-day levels)",
+      "diversity_role": "Raschke's own stated pullback-in-trend framework: 'If there is a trend, I'll try to always look for buying a pullback to a moving average... I personally use a 20-period exponential moving average on all my markets'; ADX no-trade/fade rules (ADX<20 declining avoid; ADX>32 rising do not fade)",
+      "effective_content_date": "1993-09",
+      "language": "EN",
+      "material_id": "SR-V0-M02",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "1993-09",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Technical Analysis of Stocks & Commodities (V.11:9)",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/Discerning-trader.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Trading Style and Daily Market Regimen",
+      "content_note": "Active Trader, February 2004, interview by Mark Etzkorn (a day with Linda Raschke, Nov 2003). Used for NO_TRADE / FAILURE_OR_COUNTEREXAMPLE context for the Holy Grail family: 'If I try to guess a breakout, I'm wrong 90 percent of the time. I'm a perfect contrary indicator. ... I just know if it's a low ADX, I'm going to be wrong if I try to guess.' Also: 'In a down-trending market, an early gap up is a short 95 percent of the time.' These are no-trade / failure constraints, not entry rules for the Holy Grail pullback.",
+      "content_note_hash": "20a0bdddf869755f28aef65ee090835ae7099af9055f67e46d56aebf75402074",
+      "content_type": "official interview (Mark Etzkorn; trend days; no-trade; failure context)",
+      "diversity_role": "no-trade / failure context for the Holy Grail family: 'If I try to guess a breakout, I'm wrong 90 percent of the time' (guess-breakout failure, low-ADX warning)",
+      "effective_content_date": "2004-02",
+      "language": "EN",
+      "material_id": "SR-V0-M03",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2004-02",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Active Trader",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/raschke0204.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "The Rituals of Trading",
+      "content_note": "Active Trader, August 2000, interview by Mark Etzkorn. Used for EXIT_TRIGGER / PROFIT_TARGET / POST_ENTRY_INVALIDATION management context for the Holy Grail family: 'The minute the market gives back more than it should, you get out on the first reaction or pause'; 'If the market reaches a price objective, and you're really not sure if it's going to continue, you have to at least take half the position off'; 'Ninety percent of what I do is price-based. Indicators are just derivatives of price.' These are qualitative management principles; no numeric exit is pinned.",
+      "content_note_hash": "2ab53e75e062a7be913f4a74fe959af962f08b97ecdf5355977652c954e0c884",
+      "content_type": "official interview (Mark Etzkorn; management/exit; price-based emphasis)",
+      "diversity_role": "management/exit principles for held positions: give-back exit on first reaction/pause; take at least half off at a price objective when continuation uncertain; price-based emphasis ('Ninety percent of what I do is price-based')",
+      "effective_content_date": "2000-08",
+      "language": "EN",
+      "material_id": "SR-V0-M04",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2000-08",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Active Trader",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/01/rituals.pdf"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "canonical_title": "Traders Toolbox",
+      "content_note": "Active Trader, March 2004, interview by Mark Etzkorn (follow-up). PRIMARY material for the Holy Grail setup across time frames: 'When the market breaks out of an extended trading range and makes new momentum highs, there is a sequence that typically unfolds. Price first pulls back to the 20-bar EMA... then the same retracement will occur on the 30-minute chart, then the 60-minute chart, then the 120-minute time frame. By then you should be looking for a top. But each retracement has to be preceded by a 14-bar ADX reading above 30 on that time frame.' Indicator checklist includes 14-period ADX and 20-period EMA; closing breadth (10-period SMA of NYSE advancers minus decliners), TICK/TIKI, and put-call ratio are US internals NOT owned by the Chinese-futures corpus (unavailable-input boundary, not proxied).",
+      "content_note_hash": "77f00ccf1c7624842aa5c33540bb547f69ba6e9587e0105cdae71e1223481fe8",
+      "content_type": "official interview part 2 (Mark Etzkorn; Holy Grail setup across time frames; indicator checklist)",
+      "diversity_role": "PRIMARY material for the Holy Grail setup across time frames: 'When the market breaks out of an extended trading range and makes new momentum highs, there is a sequence that typically unfolds. Price first pulls back to the 20-bar EMA... then the same retracement will occur on the 30-minute chart, then the 60-minute chart, then the 120-minute time frame. By then you should be looking for a top. But each retracement has to be preceded by a 14-bar ADX reading above 30 on that time frame'; indicator checklist (14-period ADX; 20-period EMA; closing breadth / TICK / put-call as unavailable-input boundaries)",
+      "effective_content_date": "2004-03",
+      "language": "EN",
+      "material_id": "SR-V0-M05",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publication_date": "2004-03",
+      "source_example_date_status": "PRE_2024_VERIFIED_NO_PROTECTED_WINDOW_EXAMPLES",
+      "source_publication": "Active Trader",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/03/raschke_pt2_0304.pdf"
+    }
+  ],
+  "no_additional_source_added": {
+    "checked_on": "2026-08-20",
+    "finding": "The official Articles index (re-verified with HTTP 200 on 2026-08-20) enumerates exactly the same free/public PDFs already in the accepted screen bundle (Trade Trends, Trading Insights, Traders Toolbox, Multi-Market Traders Rule, The Rituals of Trading, Short Term Trading Strategies, Maintain your Mindset, Who are You?, Everything About Electronic Trading, The Discerning Trader, Trading Style and Daily Market Regimen). No additional official free/public pre-2024 Raschke article directly resolves an open semantic field (notably the EMA price input, which is NOT_PINNED). Official videos/interviews are YouTube-hosted and blocked by 403 in the recorded environment (no circumvention). Therefore no new material is added.",
+    "official_articles_index": "https://lindaraschke.net/articles/"
+  },
+  "optional_paid_candidates": [
+    {
+      "access_class": "PAID_BOOK (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "Potential additional explicit EMA price-input / trailing-mechanics / exit language for the Holy Grail pullback family.",
+      "source_identity": "Trading Sardines: Lessons in the Markets from a Lifelong Trader (Linda Bradford Raschke; 2015 book, ISBN 9781532395622)",
+      "why_it_might_matter": "Raschke's own book may contain deeper trading-loop semantics than the short official free articles."
+    },
+    {
+      "access_class": "PAID_BOOK (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "Deeper source-pinned semantics for the Holy Grail pattern referenced in the 1997 AIQ interview (lineage shared with Larry Connors; not independent confirmation).",
+      "source_identity": "Street Smarts: High Probability Short-Term Trading Strategies (Raschke & Connors; book)",
+      "why_it_might_matter": "The 1997 AIQ interview references the Holy Grail pattern from this book with more detail than the free article."
+    },
+    {
+      "access_class": "PAID_OR_SUBSCRIPTION_DATA (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "TICK-based pullback-buying context ('If the TICKs are making new highs, I'll look to buy the pullbacks'); NOT part of the source-pinned 4-step Holy Grail rules.",
+      "source_identity": "NYSE TICK / advance-decline breadth data (US market internals) referenced throughout the interviews",
+      "why_it_might_matter": "The source's TICK/breadth momentum read is not in the Chinese-futures corpus; it is not an OHLCV proxy and is not required by the 4-step rules."
+    }
+  ],
+  "package": "RASCHKE_HOLY_GRAIL_TARGETED_SEMANTIC_COMPLETION_V0_1",
+  "paid_candidates_note": "Listed for awareness only. No purchase or subscription is authorized. PAID_SOURCE_PURCHASE_DEFAULT=NO. Free/public alternatives were sufficient for this semantic completion.",
+  "raw_material_retention_boundary": "Raw PDFs and full extracted article text were processed only in a local temp directory OUTSIDE the repository and were not committed. Only attributable short excerpts and concise paraphrases needed for claim traceability are recorded. Anchors point to the canonical official public URLs on lindaraschke.net. On 2026-08-20 the official Articles index and the Holy Grail article URLs were re-verified as free/public unauthenticated (HTTP 200); no raw content was committed.",
+  "retrieval_mode": "LOCAL_FREE_PUBLIC_RASCHKE_HOLY_GRAIL_SEMANTIC_ONLY",
+  "selected_on": "2026-08-20",
+  "selection_basis_note": "Reuses the accepted Raschke screen bundle materials that anchor the RASCHKE_HOLY_GRAIL_PULLBACK family (strong-trend / ADX context + pullback to a 20-period EMA). Selection based on provenance + free/public access + source-anchor quality + direct relevance to the required semantic fields. NEVER based on expected trading performance.",
+  "selection_criteria": [
+    "reuses the exact accepted Raschke screen bundle (SB-RASCHKE-PUBLIC-SCREEN-V1) materials that anchor the RASCHKE_HOLY_GRAIL_PULLBACK family",
+    "official lindaraschke.net free/public article archive / TRACEABLE_ORIGINAL",
+    "free/public/unauthenticated access state (re-verified by direct HTTP 200 fetch on 2026-08-20)",
+    "effective content date before 2024-01-01 (before the frozen corpus start)",
+    "official Articles index re-checked on 2026-08-20 (HTTP 200): enumerates exactly the same free/public PDFs already in the accepted bundle; no additional official free/public pre-2024 article directly resolves an open semantic field, so no new material is added",
+    "official videos/interviews are YouTube-hosted and blocked by 403 in the recorded environment; no circumvention; official free article/text material used",
+    "stable attributable official URL, title, and publication date",
+    "material materially anchors a required semantic field of the Holy Grail / pullback family (trend/ADX context, 20-period EMA, pullback touch, entry trigger, initial stop at swing low, trail/exit, no-trade/failure, timeframe/instrument scope)",
+    "not broadened into unrelated third-party summaries or paid material",
+    "not selected by expected historical performance"
+  ],
+  "source": "SRC-RASCHKE",
+  "source_admission_reference": "docs/research/source_dossiers/SOURCE_DOSSIER_RASCHKE_V0_1.md; docs/reviews/HUMAN_PLAYBOOK_RASCHKE_FREE_PUBLIC_CURRENT_DATA_SCREEN_INTEGRATION_REVIEW_V0_1.md",
+  "video_surface": {
+    "acquisition_state": "BLOCKED_BY_403_IN_RECORDED_ENV",
+    "circumvention_attempted": "NO",
+    "fallback": "official free article/text material used",
+    "hosting": "YouTube channel @lindaraschke6565 only (no direct embeds/mp4)",
+    "official_video_index": "https://lindaraschke.net/linda-videos/"
+  }
+}
