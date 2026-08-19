@@ -99,7 +99,6 @@ def run_lifecycle(
     )
     experiment = make_experiment(
         strategy,
-        data_version="round-trip-data-fixture-v1",
         dataset_exposure_reference="round-trip-exposure-fixture-v1",
     )
     directions = list(directions or [PositionDirection.LONG] * len(quantities))
@@ -156,7 +155,6 @@ def run_lifecycle(
         inputs=tuple(inputs),
         disposition=ValidationDisposition.CONFIRMED,
         hypothesis_test_id=hypothesis_test_id,
-        synthetic_fixture=True,
         execution_observations=tuple(observations),
         execution_cutoff_at=at(9, 30),
         execution_assumptions=execution_assumptions,

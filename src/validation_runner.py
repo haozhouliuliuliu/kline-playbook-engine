@@ -1385,7 +1385,6 @@ class ChronologicalValidationRunner:
         inputs: Iterable[ValidationInput],
         disposition: ValidationDisposition | None = None,
         hypothesis_test_id: str | None = None,
-        synthetic_fixture: bool = False,
         execution_observations: Iterable[ExecutionObservation] = (),
         execution_cutoff_at: datetime | None = None,
         execution_assumptions: ExecutionAssumptions | None = None,
@@ -1435,7 +1434,9 @@ class ChronologicalValidationRunner:
             self._validate_data_version_binding(experiment, inputs)
             # F-04: the security cohort is derived from the actual input dates;
             # dataset_class is only a declaration used for consistency, never an
-            # access authority.
+            # access authority. Whether this run is a TEST_ONLY synthetic engine
+            # fixture is decided by the firewall from the experiment's governed
+            # data version, never by a caller boolean.
             data_dates = tuple(item.bar.trading_day for item in inputs)
             derived_cohort = self._firewall.cohort_for_dates(data_dates)
             if derived_cohort is not Cohort.OUT_OF_SCOPE:
@@ -1445,7 +1446,6 @@ class ChronologicalValidationRunner:
                 data_dates=data_dates,
                 experiment=experiment,
                 hypothesis_test_id=hypothesis_test_id,
-                synthetic_fixture=synthetic_fixture,
             )
         if not access.allowed:
             return ValidationRunResult(False, (), access.record, None)

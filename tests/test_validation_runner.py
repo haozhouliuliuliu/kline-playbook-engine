@@ -1,9 +1,11 @@
+import inspect
 import unittest
 from decimal import Decimal
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 from src.data_substrate import CompletedBar
+from src.research_firewall import TEST_ONLY_SYNTHETIC_DATA_VERSION
 from src.strategy_evidence import DatasetClass, EvidenceLedger, ExperimentIdentity
 from src.validation_runner import (
     ChronologicalValidationRunner,
@@ -51,7 +53,7 @@ class ValidationRunnerTests(unittest.TestCase):
         self.capital_assumptions = CapitalMarginAssumptions("capital-fixture-v1", Decimal("1"), Decimal("0.1"), "SYNTH")
         self.capital_snapshot = CapitalSnapshot(Decimal("100"))
 
-    def execute(self, mode=ValidationMode.CONFIRMATORY, dataset=DatasetClass.DEVELOPMENT, inputs=None, disposition=None, observations=(), cutoff=None, assumptions=None, specifications=(), capital_snapshot=None, capital_assumptions=None, hypothesis_test_id=None, synthetic_fixture=True):
+    def execute(self, mode=ValidationMode.CONFIRMATORY, dataset=DatasetClass.DEVELOPMENT, inputs=None, disposition=None, observations=(), cutoff=None, assumptions=None, specifications=(), capital_snapshot=None, capital_assumptions=None, hypothesis_test_id=None):
         return self.runner.run(
             mode=mode,
             strategy=self.strategy,
@@ -62,7 +64,6 @@ class ValidationRunnerTests(unittest.TestCase):
             inputs=inputs or (make_validation_input("request-1", self.bar, at(9, 5), data_version=self.experiment.data_version),),
             disposition=disposition,
             hypothesis_test_id=hypothesis_test_id if hypothesis_test_id is not None else self.hypothesis_test_id,
-            synthetic_fixture=synthetic_fixture,
             execution_observations=observations,
             execution_cutoff_at=cutoff,
             execution_assumptions=assumptions,
@@ -107,7 +108,6 @@ class ValidationRunnerTests(unittest.TestCase):
             dataset_class=DatasetClass.DEVELOPMENT,
             inputs=(make_validation_input("request-1", self.bar, at(9, 5), data_version=self.experiment.data_version),),
             hypothesis_test_id=second_hypothesis,
-            synthetic_fixture=True,
         )
         self.assertEqual(first.events, second.events)
         self.assertEqual(first.access_record.record_id, second.access_record.record_id)
@@ -248,6 +248,46 @@ class ValidationRunnerTests(unittest.TestCase):
                 experiment=self.experiment,
                 artifact_identity_id=self.strategy.identity_id,
                 artifact_code_hash=self.strategy.code_hash,
+                dataset_class=DatasetClass.DEVELOPMENT,
+                inputs=(mismatched,),
+                disposition=ValidationDisposition.CONFIRMED,
+                execution_observations=(ExecutionObservation("request-1", at(9, 6), at(9, 6), Decimal("100")),),
+                execution_cutoff_at=at(9, 10),
+                execution_assumptions=self.assumptions,
+                order_specifications=(OrderSpecification("request-1", Decimal("1")),),
+                capital_snapshot=self.capital_snapshot,
+                capital_margin_assumptions=self.capital_assumptions,
+            )
+        # No gate record, no execution record, no confirmation.
+        self.assertEqual(self.ledger.records, ())
+
+    # A12: ChronologicalValidationRunner.run no longer accepts a caller-supplied
+    # synthetic_fixture boolean.
+    def test_runner_run_has_no_caller_synthetic_boolean(self):
+        params = set(inspect.signature(self.runner.run).parameters)
+        self.assertNotIn("synthetic_fixture", params)
+
+    # A16: input.data_version_id == TEST_ONLY_SYNTHETIC_DATA_VERSION while
+    # experiment.data_version is an ordinary value must fail closed before any
+    # execution (the governed synthetic version cannot mask a real experiment).
+    def test_synthetic_input_version_with_ordinary_experiment_fails_closed(self):
+        ordinary_strategy = make_strategy(
+            research_lineage_id="validation-lineage-fixture",
+            family_id="neutral-validation-family",
+        )
+        ordinary_experiment = make_experiment(ordinary_strategy, data_version="real-development-data-v1")
+        mismatched = make_validation_input(
+            "request-1", self.bar, at(9, 5), data_version=TEST_ONLY_SYNTHETIC_DATA_VERSION
+        )
+        self.assertEqual(mismatched.data_version_id, TEST_ONLY_SYNTHETIC_DATA_VERSION)
+        self.assertNotEqual(mismatched.data_version_id, ordinary_experiment.data_version)
+        with self.assertRaisesRegex(ValueError, "data_version"):
+            self.runner.run(
+                mode=ValidationMode.CONFIRMATORY,
+                strategy=ordinary_strategy,
+                experiment=ordinary_experiment,
+                artifact_identity_id=ordinary_strategy.identity_id,
+                artifact_code_hash=ordinary_strategy.code_hash,
                 dataset_class=DatasetClass.DEVELOPMENT,
                 inputs=(mismatched,),
                 disposition=ValidationDisposition.CONFIRMED,

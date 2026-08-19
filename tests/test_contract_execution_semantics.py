@@ -15,6 +15,7 @@ from src.contract_semantics import (
     PriceLimitFact,
 )
 from src.data_substrate import CompletedBar, SessionMetadata, SessionWindow
+from src.research_firewall import TEST_ONLY_SYNTHETIC_DATA_VERSION
 from src.strategy_evidence import DatasetClass, EvidenceLedger
 from src.validation_runner import (
     CapitalMarginAssumptions,
@@ -30,7 +31,6 @@ from src.validation_runner import (
     ValidationMode,
 )
 from tests.synthetic_fixture import (
-    SYNTHETIC_DATA_VERSION,
     build_synthetic_firewall,
     make_experiment,
     make_strategy,
@@ -48,7 +48,7 @@ def at(day, hour, minute):
     return datetime(day.year, day.month, day.day, hour, minute, tzinfo=CN)
 
 
-def make_input(request_id, symbol, trading_day, decision_at, data_version=SYNTHETIC_DATA_VERSION):
+def make_input(request_id, symbol, trading_day, decision_at, data_version=TEST_ONLY_SYNTHETIC_DATA_VERSION):
     return make_validation_input(
         request_id,
         CompletedBar(
@@ -215,7 +215,6 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
             inputs=inputs,
             disposition=ValidationDisposition.CONFIRMED,
             hypothesis_test_id=hypothesis_test_id,
-            synthetic_fixture=True,
             execution_observations=observations,
             execution_cutoff_at=inputs[-1].decision_at + timedelta(minutes=30),
             execution_assumptions=self.execution_assumptions,

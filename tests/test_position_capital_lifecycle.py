@@ -49,7 +49,6 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
         )
         self.experiment = make_experiment(
             self.strategy,
-            data_version="position-data-fixture-v1",
             dataset_exposure_reference="position-exposure-fixture-v1",
         )
         self.execution_assumptions = ExecutionAssumptions(
@@ -97,7 +96,6 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             inputs=(self.validation_input,),
             disposition=ValidationDisposition.CONFIRMED,
             hypothesis_test_id=hypothesis_test_id,
-            synthetic_fixture=True,
             execution_observations=(
                 ExecutionObservation(
                     "request-1",
@@ -238,7 +236,6 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             inputs=tuple(inputs),
             disposition=ValidationDisposition.CONFIRMED,
             hypothesis_test_id=hypothesis_test_id,
-            synthetic_fixture=True,
             execution_observations=tuple(observations),
             execution_cutoff_at=at(9, 30),
             execution_assumptions=execution_assumptions,

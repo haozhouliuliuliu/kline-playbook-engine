@@ -21,6 +21,7 @@ from src.research_firewall import (
     CommonStatisticalProfile,
     ResearchFirewall,
     ResearchWaveManifest,
+    TEST_ONLY_SYNTHETIC_DATA_VERSION,
     WaveHypothesisBinding,
 )
 from src.strategy_evidence import (
@@ -32,7 +33,6 @@ from src.strategy_evidence import (
 )
 from src.validation_runner import ValidationInput
 
-SYNTHETIC_DATA_VERSION = "data-fixture-v1"
 SYNTHETIC_EXPOSURE_REFERENCE = "exposure-fixture-v1"
 SYNTHETIC_HYPOTHESIS_TEST_ID = "hypothesis-test-v1"
 SYNTHETIC_SESSION_ID = "source-only-session-1"
@@ -65,7 +65,7 @@ def make_strategy(**overrides):
 def make_experiment(
     strategy: StrategyIdentity,
     *,
-    data_version: str = SYNTHETIC_DATA_VERSION,
+    data_version: str = TEST_ONLY_SYNTHETIC_DATA_VERSION,
     dataset_exposure_reference: str = SYNTHETIC_EXPOSURE_REFERENCE,
 ) -> ExperimentIdentity:
     return ExperimentIdentity.from_strategy(strategy, data_version, dataset_exposure_reference)
@@ -154,7 +154,7 @@ def make_validation_input(
     request_id: str,
     bar,
     decision_at,
-    data_version: str = SYNTHETIC_DATA_VERSION,
+    data_version: str = TEST_ONLY_SYNTHETIC_DATA_VERSION,
 ) -> ValidationInput:
     """Build a ValidationInput bound to the experiment data version (F-05)."""
     return ValidationInput(request_id, bar, decision_at, data_version)

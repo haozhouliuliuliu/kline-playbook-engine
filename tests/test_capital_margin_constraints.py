@@ -69,7 +69,6 @@ class CapitalMarginConstraintTests(unittest.TestCase):
             inputs=inputs,
             disposition=ValidationDisposition.CONFIRMED,
             hypothesis_test_id=hypothesis_test_id,
-            synthetic_fixture=True,
             execution_observations=observations,
             execution_cutoff_at=at(9, 15),
             execution_assumptions=self.execution_assumptions,

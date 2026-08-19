@@ -35,6 +35,7 @@ from src.research_firewall import (
     ResearchWaveManifest,
     SourceOnlyClaimExtractionContext,
     SourceOnlySession,
+    TEST_ONLY_SYNTHETIC_DATA_VERSION,
     WaveHypothesisBinding,
     classify_cohort,
 )
@@ -155,7 +156,9 @@ def make_registered_firewall(
     profile + wave + one registered outcome test, with the wave locked."""
     if strategy_obj is None:
         strategy_obj = strategy()
-    experiment = ExperimentIdentity.from_strategy(strategy_obj, "data-fixture-v1", "exposure-fixture-v1")
+    experiment = ExperimentIdentity.from_strategy(
+        strategy_obj, TEST_ONLY_SYNTHETIC_DATA_VERSION, "exposure-fixture-v1"
+    )
     firewall = ResearchFirewall(ledger)
     session = make_open_session(firewall.source_only, session_id=session_id)
     profile = firewall.profiles.register(make_test_only_profile(profile_id=profile_id))
@@ -594,7 +597,7 @@ class ResearchWaveRegistryTests(unittest.TestCase):
         firewall.profiles.lock(profile.profile_id)
         session = make_open_session(firewall.source_only)
         wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
-        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        exp = ExperimentIdentity.from_strategy(strategy(), TEST_ONLY_SYNTHETIC_DATA_VERSION, "exposure-fixture-v1")
         firewall.register_outcome_test(
             hypothesis_test_id="h-1",
             strategy=strategy(),
@@ -614,7 +617,6 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             data_dates=(date(2024, 6, 16),),
             experiment=exp,
             hypothesis_test_id="h-1",
-            synthetic_fixture=True,
         )
         self.assertTrue(decision.allowed)
         control = next(c for c in decision.controls if c.name == "PRIMARY_SCOPE_SEARCH_IDENTITIES")
@@ -643,7 +645,6 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             data_dates=(date(2024, 6, 16),),
             experiment=exp,
             hypothesis_test_id="h-1",
-            synthetic_fixture=True,
         )
         self.assertFalse(access.allowed)
         self.assertIn("WAVE_NOT_LOCKED", access.record.evidence_reference)
@@ -736,7 +737,6 @@ class StatisticalProfileRegistryTests(unittest.TestCase):
             data_dates=(date(2024, 6, 16),),
             experiment=exp,
             hypothesis_test_id="h-real",
-            synthetic_fixture=True,
         )
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:PROFILE_NOT_LOCKED")
@@ -790,12 +790,11 @@ class IdentityBoundGateTests(unittest.TestCase):
         self.ledger = EvidenceLedger()
         self.firewall, self.session, self.profile, self.wave, self.experiment = make_registered_firewall(self.ledger)
 
-    def _grant(self, *, data_dates=(date(2024, 6, 16),), hypothesis_test_id=HYPOTHESIS_TEST_ID, experiment=None, synthetic_fixture=True):
+    def _grant(self, *, data_dates=(date(2024, 6, 16),), hypothesis_test_id=HYPOTHESIS_TEST_ID, experiment=None):
         return self.firewall.request_candidate_outcome_access(
             data_dates=data_dates,
             experiment=experiment if experiment is not None else self.experiment,
             hypothesis_test_id=hypothesis_test_id,
-            synthetic_fixture=synthetic_fixture,
         )
 
     # 1. unrelated locked wave cannot authorize an experiment outside its test set
@@ -895,15 +894,10 @@ class IdentityBoundGateTests(unittest.TestCase):
             data_dates=(date(2024, 6, 16),),
             experiment=self.experiment,
             hypothesis_test_id=HYPOTHESIS_TEST_ID,
-            synthetic_fixture=True,
         )
         self.assertTrue(decision.allowed)
         self.assertEqual(decision.reason, "SYNTHETIC_DEVELOPMENT_OUTCOME_ONLY")
         self.assertTrue(decision.synthetic_only)
-        # TEST_ONLY profile refuses a non-synthetic fixture.
-        real = self._grant(synthetic_fixture=False)
-        self.assertFalse(real.allowed)
-        self.assertEqual(real.record.evidence_reference, "TEST_ONLY_PROFILE_REQUIRES_SYNTHETIC_FIXTURE")
 
     # 9. first granted outcome marks the wave outcome-start durably
     def test_first_grant_marks_wave_outcome_start_durably(self):
@@ -952,7 +946,7 @@ class IdentityBoundGateTests(unittest.TestCase):
     # locked synthetic DEVELOPMENT wave; the cohort is derived from the actual
     # date and DENIED.
     def test_validation_date_cannot_be_claimed_as_development(self):
-        access = self._grant(data_dates=(date(2025, 1, 15),), synthetic_fixture=True)
+        access = self._grant(data_dates=(date(2025, 1, 15),))
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "VALIDATION_DEFAULT_DENY_NO_VALIDATION_AUTHORITY")
 
@@ -964,8 +958,91 @@ class IdentityBoundGateTests(unittest.TestCase):
                 data_dates=(date(2024, 6, 16), date(2025, 1, 15)),
                 experiment=self.experiment,
                 hypothesis_test_id=HYPOTHESIS_TEST_ID,
-                synthetic_fixture=True,
             )
+
+    # A11: the authoritative candidate API no longer accepts a caller-supplied
+    # synthetic_fixture boolean (synthetic status is derived from the governed
+    # data version only).
+    def test_candidate_api_has_no_caller_synthetic_boolean(self):
+        access_params = set(inspect.signature(self.firewall.request_candidate_outcome_access).parameters)
+        self.assertNotIn("synthetic_fixture", access_params)
+        gate_params = set(inspect.signature(self.firewall.evaluate_gate).parameters)
+        self.assertNotIn("synthetic_fixture", gate_params)
+
+    # A13: a full legal TEST_ONLY fixture whose experiment data_version equals the
+    # governed TEST_ONLY_SYNTHETIC_DATA_VERSION yields PRE_OUTCOME_GATE_GRANTED.
+    def test_governed_synthetic_data_version_grants(self):
+        self.assertEqual(self.experiment.data_version, TEST_ONLY_SYNTHETIC_DATA_VERSION)
+        access = self._grant()
+        self.assertTrue(access.allowed)
+        self.assertEqual(access.record.event_type, "PRE_OUTCOME_GATE_GRANTED")
+        self.assertEqual(access.record.outcome, "GRANTED")
+
+    # A14: a TEST_ONLY profile with an ordinary (non-governed) data version is
+    # DENIED even when every other gate control is satisfied.
+    def test_test_only_profile_with_ordinary_data_version_is_denied(self):
+        ledger = EvidenceLedger()
+        firewall = ResearchFirewall(ledger)
+        session = make_open_session(firewall.source_only)
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-real-data",)))
+        strategy_obj = strategy()
+        exp = ExperimentIdentity.from_strategy(strategy_obj, "real-development-data-v1", "exposure-fixture-v1")
+        firewall.register_outcome_test(
+            hypothesis_test_id="h-real-data",
+            strategy=strategy_obj,
+            experiment=exp,
+            family_claim_identity="family-1",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            source_only_session_id=session.session_id,
+            research_wave_id=wave.research_wave_id,
+            statistical_profile_id=profile.profile_id,
+            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+        )
+        firewall.lock_wave(wave.research_wave_id)
+        access = firewall.request_candidate_outcome_access(
+            data_dates=(date(2024, 6, 16),),
+            experiment=exp,
+            hypothesis_test_id="h-real-data",
+        )
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "TEST_ONLY_PROFILE_REQUIRES_SYNTHETIC_FIXTURE")
+
+    # A15: a near-match data-version string is not recognized as the governed
+    # synthetic data version (exact equality only) -> DENY.
+    def test_near_match_synthetic_version_is_not_recognized(self):
+        ledger = EvidenceLedger()
+        firewall = ResearchFirewall(ledger)
+        session = make_open_session(firewall.source_only)
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-fake-syn",)))
+        strategy_obj = strategy()
+        exp = ExperimentIdentity.from_strategy(strategy_obj, "TEST_ONLY_SYNTHETIC_DATA_V1_FAKE", "exposure-fixture-v1")
+        firewall.register_outcome_test(
+            hypothesis_test_id="h-fake-syn",
+            strategy=strategy_obj,
+            experiment=exp,
+            family_claim_identity="family-1",
+            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
+            scope_identity=SCOPE_IDENTITY,
+            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            source_only_session_id=session.session_id,
+            research_wave_id=wave.research_wave_id,
+            statistical_profile_id=profile.profile_id,
+            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+        )
+        firewall.lock_wave(wave.research_wave_id)
+        access = firewall.request_candidate_outcome_access(
+            data_dates=(date(2024, 6, 16),),
+            experiment=exp,
+            hypothesis_test_id="h-fake-syn",
+        )
+        self.assertFalse(access.allowed)
+        self.assertEqual(access.record.evidence_reference, "TEST_ONLY_PROFILE_REQUIRES_SYNTHETIC_FIXTURE")
 
     # 14. historical final remains DENIED
     def test_historical_final_remains_denied(self):
@@ -987,7 +1064,6 @@ class IdentityBoundGateTests(unittest.TestCase):
             data_dates=(date(2024, 6, 16),),
             experiment=experiment,
             hypothesis_test_id="never-registered",
-            synthetic_fixture=False,
         )
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:UNREGISTERED_HYPOTHESIS_TEST")
@@ -1028,7 +1104,6 @@ class IdentityBoundGateTests(unittest.TestCase):
             data_dates=(date(2024, 6, 16),),
             experiment=exp,
             hypothesis_test_id="h-1",
-            synthetic_fixture=True,
         )
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:SOURCE_ONLY_NOT_VERIFIED")
@@ -1056,7 +1131,6 @@ class IdentityBoundGateTests(unittest.TestCase):
             data_dates=(date(2024, 6, 16),),
             experiment=experiment,
             hypothesis_test_id="never-registered",
-            synthetic_fixture=False,
         )
         self.assertFalse(candidate.allowed)
         self.assertEqual(candidate.record.event_type, "PRE_OUTCOME_GATE_DENIED")

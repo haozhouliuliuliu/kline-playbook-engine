@@ -90,6 +90,14 @@ def classify_cohort(day: date) -> Cohort:
     return Cohort.SHADOW_FORWARD
 
 
+# Single governed TEST_ONLY synthetic data-version identity. The authoritative
+# candidate-outcome API derives synthetic status ONLY from exact equality with
+# this constant (never from a caller-supplied boolean, prefix/suffix match, or
+# any other truthy marker). A future version change requires a formal protocol
+# version change.
+TEST_ONLY_SYNTHETIC_DATA_VERSION = "TEST_ONLY_SYNTHETIC_DATA_V1"
+
+
 # ---------------------------------------------------------------------------
 # SOURCE_ONLY
 # ---------------------------------------------------------------------------
@@ -1285,14 +1293,15 @@ class ResearchFirewall:
         data_dates: tuple[date, ...],
         experiment: ExperimentIdentity,
         hypothesis_test_id: str,
-        synthetic_fixture: bool,
     ) -> PreOutcomeGateDecision:
         """Authoritative gate evaluation, fully derived from project registries.
 
-        The cohort is derived from the actual input dates (F-04); the caller never
-        declares a cohort.
+        The cohort is derived from the actual input dates (F-04) and the TEST_ONLY
+        synthetic status is derived from the governed data version (exact
+        equality only). The caller never declares either security fact.
         """
         cohort = self.cohort_for_dates(data_dates)
+        synthetic_fixture = experiment.data_version == TEST_ONLY_SYNTHETIC_DATA_VERSION
         mismatch, controls = self._resolve_binding(hypothesis_test_id, experiment)
         if cohort in (
             Cohort.PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT,
@@ -1343,14 +1352,14 @@ class ResearchFirewall:
         data_dates: tuple[date, ...],
         experiment: ExperimentIdentity,
         hypothesis_test_id: str,
-        synthetic_fixture: bool,
     ) -> AccessResult:
         """Authoritative candidate outcome-bearing access. Fail closed by default.
 
         Only accepts a registered hypothesis/test identity plus the actual input
-        dates and fixture information. The security cohort is derived from the
-        input dates (F-04), never declared by the caller. Every other fact is
-        resolved and verified from the registries. On the first grant, the wave's
+        dates. The security cohort is derived from the input dates (F-04) and the
+        TEST_ONLY synthetic status from the governed data version (exact equality
+        only) — the caller never declares either. Every other fact is resolved and
+        verified from the registries. On the first grant, the wave's
         outcome-test-start is recorded durably.
         """
         cohort = self.cohort_for_dates(data_dates)
@@ -1358,7 +1367,6 @@ class ResearchFirewall:
             data_dates=data_dates,
             experiment=experiment,
             hypothesis_test_id=hypothesis_test_id,
-            synthetic_fixture=synthetic_fixture,
         )
         dataset_class = self.dataset_class_for_cohort(cohort)
         if decision.allowed:
