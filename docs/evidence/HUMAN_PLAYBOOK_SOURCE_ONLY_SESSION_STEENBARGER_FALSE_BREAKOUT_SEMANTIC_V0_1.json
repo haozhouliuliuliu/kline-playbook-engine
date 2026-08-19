@@ -1,0 +1,205 @@
+{
+  "artifact": "HUMAN_PLAYBOOK_SOURCE_ONLY_SESSION_STEENBARGER_FALSE_BREAKOUT_SEMANTIC",
+  "claim_status_semantics": "For these semantic-completion records, claim_status carries the source resolution classification (EXPLICITLY_PINNED / PARTIALLY_PINNED / NOT_PINNED / REQUIRES_UNAVAILABLE_INPUT). This is a semantic-completion artifact type distinct from the claim-extraction EXPLICIT/INFERRED/UNKNOWN status of the Claim Schema v1.0.",
+  "denial_path_result": {
+    "outcome": "DENIED",
+    "reason": "SOURCE_ONLY_TECHNICAL_DENIAL",
+    "request_reference": "ENGINEERING_PROOF_ONLY_NO_RETRIEVAL",
+    "run_once": true
+  },
+  "exposure_note": "Model latent historical knowledge cannot be proven absent; this is a disclosed residual threat-model risk under the frozen protocol. Project protected-period outcomes (DEVELOPMENT 2024, VALIDATION 2025H1, FINAL_HOLDOUT 2025H2) are technically unavailable to this SOURCE_ONLY runner: it exposes no project protected-period market-outcome retrieval surface, and any such request is technically DENIED and audited. No canonical market data repository, validation surface, or historical-final surface was exposed to this session. All selected source materials have effective content dates before 2024-01-01 (before the frozen corpus start), so no source-example date audit is required for the protected windows under Protocol v1.0 section 4. The bundled posts are source-process/market-read teaching material only; they are not accepted trading truth and were never selected by expected profitability. This session resolves source semantics only; it does not draft a Playbook Contract.",
+  "is_verified": true,
+  "recorded_resolution_count": 19,
+  "recorded_resolution_ids": [
+    "S-SC-01-GENERAL_MARKET_DIRECTION",
+    "S-SC-02-TRADING_RANGE_BOUNDARY",
+    "S-SC-03-CANDIDATE_HIGH_OR_LOW",
+    "S-SC-04-MORNING_RANGE_BOUNDARY",
+    "S-SC-05-FALSE_BREAKOUT_DEFINITION",
+    "S-SC-06-FAILED_BREAKOUT_CONDITION",
+    "S-SC-07-RETURN_TO_RANGE_CONDITION",
+    "S-SC-08-NEW_HIGH_OR_LOW_INVALIDATION_REFERENCE",
+    "S-SC-09-VWAP_DEFINITION_OR_SESSION_REFERENCE",
+    "S-SC-10-ENTRY_PERMISSION",
+    "S-SC-11-TARGET_BOUNDARY",
+    "S-SC-12-BREAKOUT_VS_RANGE_REVERSION_SEPARATION",
+    "S-SC-13-VOLUME_ROLE",
+    "S-SC-14-PARTICIPATION_ROLE",
+    "S-SC-15-TICK_ROLE",
+    "S-SC-16-MARKET_DELTA_ROLE",
+    "S-SC-17-SECTOR_OR_CROSS_MARKET_CONFIRMATION_ROLE",
+    "S-SC-18-INSTRUMENT_SCOPE",
+    "S-SC-19-TIMEFRAME_SCOPE"
+  ],
+  "semantic_fields": [
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "GENERAL_MARKET_DIRECTION",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:closing:MULTI_TIMEFRAME; SB-SC-M1:walking-through-trade-setup:step:5_NO_TRADE_WAIT_RALLY; SB-SC-M1:walking-through-trade-setup:step:7_STOP_AND_TARGET",
+      "source_context_note": "General direction is used as directional context, not a defined trigger. In the example it was assessed partly with net volume (Market Delta) and TICK, which the project does not own; no operational measure is given by the source.",
+      "source_evidence": "The source lists 'the market's general direction' as focus element 1 and refers to 'the direction of the general market trend' and 'the market's longer-term (day session) direction' as the direction in which the reversion trade intends to resume movement.",
+      "source_vs_project": "SOURCE: qualitative 'general direction' of the market. PROJECT: any measure (e.g., a moving average or higher-timeframe trend proxy) would be an INFERRED interpretation, not an EXPLICIT source semantic."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "TRADING_RANGE_BOUNDARY",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:6_CANDIDATE_HIGHS; SB-SC-M2:three-basic-trade-setups:section:1_REVERSAL_TRADES; SB-SC-M5:failed-opening-range:body:PREOPENING_RANGE; SB-SC-M4:catching-false-breakouts:body:FALSE_BREAKOUT_DEFINITION",
+      "source_context_note": "The concept of a trading range is explicit, but the source gives no general rule for fixing range boundaries; the walk-through boundary is a discretionary bar-level example. The prior-day value-area variant is a Market Profile construct not derivable from 1-minute OHLCV.",
+      "source_evidence": "'I now view the market as in a trading range defined by the 13:30 lows and the 13:39 highs' (example-specific); reversal trades occur at 'the edges of a trading range (a consolidation area, the value area from the prior day)'; false breakout is 'new highs or lows following an extended trading range'; preopening/opening ranges 'locate the market's estimate of value'.",
+      "source_vs_project": "SOURCE: range boundaries left to trader discretion / example-specific bars, or value area. PROJECT: any fixed boundary rule would be an INFERRED interpretation; no arbitrary boundary may be promoted to source semantics."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "CANDIDATE_HIGH_OR_LOW",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:6_CANDIDATE_HIGHS; SB-SC-M1:walking-through-trade-setup:closing:MULTI_TIMEFRAME",
+      "source_context_note": "The concept is explicit, but what makes a bar a 'candidate' high/low (selection rule) is the trader's real-time discretionary declaration, not a defined procedure. In the example it was supported by TICK/volume/offer-volume non-expansion, which the project does not own.",
+      "source_evidence": "'I declare to myself that the highs of the 13:39 bar are my 'candidate highs' for this bounce'; closing lists 'a candidate price high or low' as focus element 3 and 'an entry that leans on this candidate high or low' as element 4.",
+      "source_vs_project": "SOURCE: candidate high/low is a discretionary label. PROJECT: any rule for identifying candidate highs/lows would be an INFERRED operationalization, not an EXPLICIT source semantic."
+    },
+    {
+      "classification": "NOT_PINNED",
+      "semantic_field": "MORNING_RANGE_BOUNDARY",
+      "source_anchor": "SB-SC-M3:making-hard-trade:body:FAILED_BREAKOUT_REVERSION; SB-SC-M5:failed-opening-range:body:PREOPENING_AND_OPENING_RANGES",
+      "source_context_note": "The morning/opening range is referenced but never defined by exact boundaries (e.g., first N minutes, high/low of a named interval). Observable prices exist, but the source semantics of the boundary are NOT_PINNED.",
+      "source_evidence": "'Unable to take out yesterday's high, we moved back into the morning range'; the opening range is described as locating 'the market's estimate of value'. No start/end definition of 'morning range' / 'opening range' is given.",
+      "source_vs_project": "SOURCE: morning range referenced without a definition. PROJECT: any morning-range boundary (e.g., first 30/60 minutes) would be invented, not source-pinned."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "FALSE_BREAKOUT_DEFINITION",
+      "source_anchor": "SB-SC-M4:catching-false-breakouts:body:FALSE_BREAKOUT_DEFINITION; SB-SC-M10:day-structure:item:6_FALSE_UPSIDE_BREAKOUT_DAY; SB-SC-M10:day-structure:item:7_FALSE_DOWNSIDE_BREAKOUT_DAY",
+      "source_context_note": "The definition is explicit and largely price/volume-based (new high/low after a range, return to the range; waning volume on the breakout leg). However 'extended trading range' and 'return to that range' are not quantified, and 'limited participation' invokes breadth/participation that is not in the corpus.",
+      "source_evidence": "'A false breakout occurs when we get new highs or lows following an extended trading range, only to see trade return to that range.' False Upside/Downside Breakout Day: 'The market opens within a range and moves above the range, usually with limited participation and volume that wanes with higher prices, only to fall back into the range and return toward VWAP.'",
+      "source_vs_project": "SOURCE: false breakout = new high/low after a range that reverts into the range; false breakout day = range-open move beyond range with waning volume/participation, reverting toward VWAP. PROJECT: the unquantified 'extended', 'return', and 'limited participation' components would need INFERRED definitions."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "FAILED_BREAKOUT_CONDITION",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:6_CANDIDATE_HIGHS; SB-SC-M5:failed-opening-range:body:FAILED_OPENING_RANGE_BREAKOUT; SB-SC-M11:anatomy-of-false-breakout:body:TICK_THRUST_FAILURE",
+      "source_context_note": "Part of the condition is price/volume observable (failure to make new highs; waning volume). The TICK-distribution, TICK-thrust, and offer-side volume components are unavailable inputs. The source presents the integrated read (valuation levels + volume + TICK + price) as the identification method.",
+      "source_evidence": "The source's failed-breakout condition integrates several signals: the bounce 'does not expand its TICK distribution and does not expand volume or volume traded at the offer', and price has 'trouble making new highs relative to the 13:39 bar'; a failed opening range breakout is recognized from a momentum/volume peak, a price peak on reduced upside momentum but very strong TICK, then failure of positive TICK to achieve new highs; thrusts in NYSE TICK above 1000 'are no longer able to generate higher prices; there is a stalling out of the rally.'",
+      "source_vs_project": "SOURCE: failed-breakout identification integrates price + volume + TICK + offer-side volume. PROJECT: the TICK/offer-side components are not owned; a price/volume-only subset (new-high failure + waning volume) is observable but is not the source's full condition and is not threshold-pinned."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "RETURN_TO_RANGE_CONDITION",
+      "source_anchor": "SB-SC-M4:catching-false-breakouts:body:FALSE_BREAKOUT_DEFINITION; SB-SC-M3:making-hard-trade:body:FAILED_BREAKOUT_REVERSION; SB-SC-M10:day-structure:item:6_FALSE_UPSIDE_BREAKOUT_DAY",
+      "source_context_note": "Return to the range is explicit and price-based, but how far back into the range (extent/touch criterion) is not defined.",
+      "source_evidence": "'Only to see trade return to that range'; 'moved back into the morning range'; 'only to fall back into the range and return toward VWAP.'",
+      "source_vs_project": "SOURCE: return into the range / toward VWAP. PROJECT: any exact 'returned-to-range' touch threshold would be INFERRED."
+    },
+    {
+      "classification": "EXPLICITLY_PINNED",
+      "semantic_field": "NEW_HIGH_OR_LOW_INVALIDATION_REFERENCE",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:7_STOP_AND_TARGET; SB-SC-M3:making-hard-trade:body:FAILED_BREAKOUT_REVERSION",
+      "source_context_note": "The invalidation reference is explicit: a fresh new high/low beyond the candidate level (or prior day's high) invalidates the reversion read. Exact stop distance above the level is operational detail, not semantic.",
+      "source_evidence": "'My stop is above the 13:39 highs--a move to new highs invalidates my idea.' 'Unable to take out yesterday's high, we moved back into the morning range.'",
+      "source_vs_project": "SOURCE: new highs/lows beyond the reference invalidate. PROJECT: the invalidation is directly representable from price; only the reference level (candidate high / prior-day high) needs an interpreted definition."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "VWAP_DEFINITION_OR_SESSION_REFERENCE",
+      "source_anchor": "SB-SC-M6:vwap-in-range-market:body:VWAP_DEFINITION; SB-SC-M8:simple-trading-template:body:RANGE_MARKET_FADE; SB-SC-M10:day-structure:body:TOWARD_VS_AWAY_FROM_VWAP",
+      "source_context_note": "VWAP is explicitly defined as the volume-weighted average price and is computable from bar price/volume. The session reference is 'the day's VWAP' / 'day session', but the exact computation window (session start) is not pinned by the source; the project would need an explicitly defined project calculation (INFERRED).",
+      "source_evidence": "'The volume-weighted average price (VWAP) is an excellent reference point in range bound markets'; 'the day's volume-weighted average price'; 'trading for moves toward VWAP... in range markets and on false breakouts'; 'fade moves away from VWAP that cannot sustain upside/downside price targets.'",
+      "source_vs_project": "SOURCE: VWAP = volume-weighted average price; referenced as the day session's VWAP. PROJECT: computing VWAP from 1-minute OHLCV under an explicitly defined session window is a project calculation (INFERRED window), not an EXPLICIT source window."
+    },
+    {
+      "classification": "REQUIRES_UNAVAILABLE_INPUT",
+      "semantic_field": "ENTRY_PERMISSION",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:7_ENTRY_TRIGGER; SB-SC-M8:simple-trading-template:body:RANGE_MARKET_FADE",
+      "source_context_note": "The source's only concrete entry trigger for this family is TICK + Market Delta based and is NOT_OBSERVABLE with current data. The price/volume fade alternative ('fade moves away from VWAP that cannot sustain targets') is not operationally pinned ('cannot sustain' is undefined) and is not a defined entry trigger.",
+      "source_evidence": "Explicit entry permission: 'I sell when we make positive TICK readings and green Market Delta readings (more volume at offer than bid) that cannot make fresh price highs.' Price/volume alternative in the template: 'If you are playing a range market, you should fade moves away from VWAP that cannot sustain upside/downside price targets.'",
+      "source_vs_project": "SOURCE: entry requires TICK + Market Delta (explicit); a VWAP fade is mentioned but not operationalized. PROJECT: cannot reproduce the explicit trigger without TICK/Delta; any price/volume-only entry rule would be an INFERRED, not a source-pinned, permission."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "TARGET_BOUNDARY",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:7_STOP_AND_TARGET; SB-SC-M1:walking-through-trade-setup:step:9_TARGET_LIMITATION; SB-SC-M3:making-hard-trade:body:FAILED_BREAKOUT_REVERSION; SB-SC-M2:three-basic-trade-setups:section:1_REVERSAL_TARGETS; SB-SC-M4:catching-false-breakouts:body:RETURN_TO_VWAP; SB-SC-M5:failed-opening-range:body:MIDPOINT_TARGET",
+      "source_context_note": "Multiple explicit target conventions exist (range lows, VWAP, range midpoint, prior pivot, opposite extreme on sustained strength). The source does not pin one unique primary target for the family; the pivot/value-area variants are undefined or unavailable.",
+      "source_evidence": "'My profit target is the lows of the trading range'; 'play a reversion back to VWAP as a first target'; reversal 'initial target will generally be the midpoint of that range (which may also be the pivot level from the previous day or week)'; 'a fade back into the day's range is generally a great play for a move back to the VWAP. On sustained strength, those false breaks lead to a complete rotation through the range to the opposite extreme'; 'anticipate a move back to the midpoint of that opening range.'",
+      "source_vs_project": "SOURCE: several target conventions, none uniquely pinned as PRIMARY. PROJECT: choosing one as THE target would be an INFERRED selection, not an EXPLICIT source semantic."
+    },
+    {
+      "classification": "EXPLICITLY_PINNED",
+      "semantic_field": "BREAKOUT_VS_RANGE_REVERSION_SEPARATION",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:9_TARGET_LIMITATION; SB-SC-M2:three-basic-trade-setups:body:THREE_SETUPS; SB-SC-M10:day-structure:body:SEVEN_DAY_STRUCTURES",
+      "source_context_note": "The range-reversion (fade) trade is explicitly separated from a breakout trade; a breakout is a different setup. This separation is explicit and consistent across posts.",
+      "source_evidence": "'I'm not playing for a home run breakout trade. If the market moves into breakout mode, I'll consider that a separate trade and setup.' The three-basic-setups taxonomy separates Reversal / Breakout / Continuation; the day-structure taxonomy separates Range Day, Trend Days, Breakout Days, and False Breakout Days, with trading toward VWAP in range/false-breakout conditions and away from VWAP in breakout/trend conditions.",
+      "source_vs_project": "SOURCE: separation explicit. PROJECT: honoring the separation is source-faithful; merging them would violate source semantics."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "VOLUME_ROLE",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:4_NO_TRADE_NEW_HIGHS; SB-SC-M1:walking-through-trade-setup:step:8_COVER; SB-SC-M10:day-structure:item:6_FALSE_UPSIDE_BREAKOUT_DAY; SB-SC-M9:breakouts-from-ranges:body:ENHANCED_VOLUME; SB-SC-M9:breakouts-from-ranges:body:GENUINE_VS_FALSE",
+      "source_context_note": "Volume's role (confirms/rejects a breakout; wanes on false breakouts; picks up at cover) is explicit, but no numeric thresholds are given for 'dwindling', 'wanes', 'enhanced', or 'picks up'.",
+      "source_evidence": "Volume roles are explicit: don't chase highs 'on dwindling volume'; cover when 'one-minute ES volume picks up'; false breakout day has 'volume that wanes with higher prices'; a genuine breakout 'creates enhanced volume on the breakout move'; 'Markets can move out of their ranges, only to fail to attract volume/participation and fall back toward their volume-weighted averages.'",
+      "source_vs_project": "SOURCE: qualitative volume role. PROJECT: any numeric volume threshold or relative-volume baseline would be INFERRED; ordinary 1-minute volume is observable but the source does not pin how it is compared."
+    },
+    {
+      "classification": "REQUIRES_UNAVAILABLE_INPUT",
+      "semantic_field": "PARTICIPATION_ROLE",
+      "source_anchor": "SB-SC-M10:day-structure:item:6_FALSE_UPSIDE_BREAKOUT_DAY; SB-SC-M9:breakouts-from-ranges:body:GENUINE_FEATURES; SB-SC-M8:simple-trading-template:body:ITEM_1",
+      "source_context_note": "Participation/breadth (advance-decline plurality, sector participation, breadth) is explicitly used to distinguish genuine vs false breakouts and to identify range days. This surface is NOT in the Chinese-futures 1-minute OHLCV corpus.",
+      "source_evidence": "False breakout days occur 'usually with limited participation'; genuine breakouts require 'the vast majority of sectors should participate in the break, expanding the plurality of advancing or declining stocks'; the range-day template conditions on 'relatively narrow breadth'.",
+      "source_vs_project": "SOURCE: participation/breadth is a required distinguishing input. PROJECT: not owned; no OHLCV proxy is authorized."
+    },
+    {
+      "classification": "REQUIRES_UNAVAILABLE_INPUT",
+      "semantic_field": "TICK_ROLE",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:7_ENTRY_TRIGGER; SB-SC-M1:walking-through-trade-setup:step:8_COVER; SB-SC-M2:three-basic-trade-setups:section:1_REVERSAL_TARGETS; SB-SC-M2:three-basic-trade-setups:section:2_BREAKOUT_TRADES; SB-SC-M5:failed-opening-range:body:TICK_FAILURE; SB-SC-M11:anatomy-of-false-breakout:body:TICK_THRUST_FAILURE",
+      "source_context_note": "TICK is explicitly integral to entry, exit, genuine-vs-false breakout identification, and reversal/breakout character. NYSE TICK is NOT owned by the current corpus and is not OHLCV.",
+      "source_evidence": "NYSE TICK is integral: entry requires 'positive TICK readings'; cover uses 'very negative (-1000) TICK readings'; reversals on 'very weak/strong NYSE TICK'; breakouts on 'very high/low NYSE TICK levels'; failed opening range breakout from 'failure of positive TICK readings to achieve new highs'; 'thrusts in the NYSE TICK above 1000 are no longer able to generate higher prices.'",
+      "source_vs_project": "SOURCE: TICK is an integral input. PROJECT: not owned; treating it as optional or proxying it with OHLCV is forbidden."
+    },
+    {
+      "classification": "REQUIRES_UNAVAILABLE_INPUT",
+      "semantic_field": "MARKET_DELTA_ROLE",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:step:7_ENTRY_TRIGGER; SB-SC-M1:walking-through-trade-setup:step:6_CANDIDATE_HIGHS; SB-SC-M2:three-basic-trade-setups:section:3_CONTINUATION_TRADES",
+      "source_context_note": "Market Delta / bid-vs-offer volume is explicitly integral to the entry/confirmation logic of the flagship walk-through. It is NOT present in 1-minute OHLCV and is not ordinary volume.",
+      "source_evidence": "Market Delta (volume at offer vs bid) is integral: entry requires 'green Market Delta readings (more volume at offer than bid)'; candidate-high non-confirmation includes 'does not expand volume or volume traded at the offer'; continuation trades use 'trending cumulative... Market Delta' with 'pullbacks in TICK and Delta' as entries.",
+      "source_vs_project": "SOURCE: Market Delta is an integral input. PROJECT: not owned; ordinary 1-minute volume is not a faithful substitute."
+    },
+    {
+      "classification": "REQUIRES_UNAVAILABLE_INPUT",
+      "semantic_field": "SECTOR_OR_CROSS_MARKET_CONFIRMATION_ROLE",
+      "source_anchor": "SB-SC-M3:making-hard-trade:body:SECTOR_NON_CONFIRMATION; SB-SC-M9:breakouts-from-ranges:body:GENUINE_FEATURES; SB-SC-M4:catching-false-breakouts:body:CROSS_INDEX_TELL; SB-SC-M2:three-basic-trade-setups:section:2_BREAKOUT_TRADES",
+      "source_context_note": "Sector/index breadth and cross-market confirmation are explicit and integral to the family's identification/confirmation. These surfaces are not in the Chinese-futures corpus.",
+      "source_evidence": "Sector non-confirmation is used as counterevidence to an upside breakout (XLE/XLF not confirming; XLB/XLV sketchy at highs); genuine breakouts require leading sectors to lead and 'similar revaluations among related asset classes, such as Treasury instruments, commodities, and currencies'; false breaks can be telegraphed by cross-index non-confirmation ('not confirmed by fresh lows for the NASDAQ or Russell averages'); breakout confirmation includes cross-market repricing.",
+      "source_vs_project": "SOURCE: sector/cross-market confirmation is an integral input. PROJECT: not owned; no proxy is authorized."
+    },
+    {
+      "classification": "EXPLICITLY_PINNED",
+      "semantic_field": "INSTRUMENT_SCOPE",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:body:ES_FUTURES; SB-SC-M5:failed-opening-range:body:ER2_FUTURES; SB-SC-M11:anatomy-of-false-breakout:body:ER2_FUTURES; SB-SC-M9:breakouts-from-ranges:body:ES_30MIN; SB-SC-M2:three-basic-trade-setups:section:2_BREAKOUT_TRADES",
+      "source_context_note": "SOURCE_INSTRUMENT_SCOPE_EXPLICIT = US_EQUITY_INDEX_FUTURES (ES, ER2) + US_INDEX_AND_SECTOR_BREADTH. No source statement mentions Chinese futures or commodity futures as tradeable instruments for this method.",
+      "source_evidence": "The source's tradeable instruments in the false-breakout / range-reversion examples are US equity-index futures: ES (S&P 500 E-mini) and ER2 (Russell 2000 futures), in an SPX/NYSE/NASDAQ/Russell context, with US sectors (XLE/XLF/XLB/XLV) and US index breadth.",
+      "source_vs_project": "SOURCE: scope explicitly US equity-index futures / US index breadth. PROJECT: corpus is Chinese futures (cu/al/ni/au/ag/rb); transfer is NOT source-supported (see instrument-transfer analysis in the dossier)."
+    },
+    {
+      "classification": "PARTIALLY_PINNED",
+      "semantic_field": "TIMEFRAME_SCOPE",
+      "source_anchor": "SB-SC-M1:walking-through-trade-setup:closing:MULTI_TIMEFRAME; SB-SC-M4:catching-false-breakouts:body:FALSE_BREAKOUT_DEFINITION; SB-SC-M10:day-structure:body:DAY_STRUCTURE_TRUMPS",
+      "source_context_note": "Multi-timeframe applicability is explicit, but the source emphasizes 'follow ONE market across many time frames' (same-market multi-timeframe), not multiple markets. No single operating timeframe is pinned (examples use 1-min, 3-min, 30-min bars).",
+      "source_evidence": "'The type of pattern I'm illustrating above occurs on multiple time frames. A key to trading this way is being able to follow one market across many time frames (which is different from following multiple markets in a single time frame)'; 'These [false breakouts] occur at every time frame'; day structure 'trumps longer timeframe trend considerations' for the intraday trader.",
+      "source_vs_project": "SOURCE: pattern occurs across time frames of the same market. PROJECT: choosing a specific operating bar-timeframe for the Chinese-futures corpus would be an INFERRED choice; the source does not pin one."
+    }
+  ],
+  "session": {
+    "model_identity": "deepseek-v4-flash",
+    "prompt_spec_version": "STEENBARGER_FALSE_BREAKOUT_SEMANTIC_COMPLETION_V1",
+    "protected_market_access_mode": "TECHNICALLY_DENIED",
+    "researcher_model_exposure_note": "Model latent historical knowledge cannot be proven absent; this is a disclosed residual threat-model risk under the frozen protocol. Project protected-period outcomes (DEVELOPMENT 2024, VALIDATION 2025H1, FINAL_HOLDOUT 2025H2) are technically unavailable to this SOURCE_ONLY runner: it exposes no project protected-period market-outcome retrieval surface, and any such request is technically DENIED and audited. No canonical market data repository, validation surface, or historical-final surface was exposed to this session. All selected source materials have effective content dates before 2024-01-01 (before the frozen corpus start), so no source-example date audit is required for the protected windows under Protocol v1.0 section 4. The bundled posts are source-process/market-read teaching material only; they are not accepted trading truth and were never selected by expected profitability. This session resolves source semantics only; it does not draft a Playbook Contract.",
+    "session_id": "SOURCE_ONLY_SEMANTIC_COMPLETION_STEENBARGER_FALSE_BREAKOUT_V1_20260819",
+    "session_identity": "36aed753d58e9ccbb5788cac0fc4c775c7f5ed43c1e845208cbfdb14c3731725",
+    "source_bundle_hash": "82240a24e3e8aa04084198f25a5660f55d702f620f612aac13ca0b7813a6a80e",
+    "source_bundle_identity": "SB-SC-STEENBARGER-FALSE-BREAKOUT-V1",
+    "tool_retrieval_mode": "LOCAL_FREE_PUBLIC_ORIGINAL_SOURCE_SEMANTIC_COMPLETION_ONLY",
+    "verification_evidence": "37e31a8a70e69b58071ed2814d37301f1494a272ff572423713a535cdfe96fff"
+  },
+  "session_purpose": "TARGETED_SOURCE_SEMANTIC_COMPLETION_STEENBARGER_FALSE_BREAKOUT_RANGE_REVERSION_V0_1. Resolves source semantics only; no Playbook Contract is drafted by this session.",
+  "technical_denial_state": {
+    "note": "The SOURCE_ONLY runner exposes no project protected-period market-outcome retrieval surface; the only market-outcome-related entry point always DENIES and audits.",
+    "protected_market_access_mode": "TECHNICALLY_DENIED"
+  }
+}
