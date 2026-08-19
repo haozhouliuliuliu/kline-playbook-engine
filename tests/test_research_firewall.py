@@ -24,7 +24,6 @@ from unittest.mock import patch
 
 from src.playbook_contract import ClaimStatus, SourceClaimRef
 from src.research_firewall import (
-    ApprovedSourceBundle,
     ClaimRecordDraft,
     ClaimRecordOutput,
     Cohort,
@@ -58,8 +57,13 @@ from src.strategy_evidence import (
 )
 from tests.synthetic_fixture import (
     SYNTHETIC_HYPOTHESIS_TEST_ID,
+    SYNTHETIC_MATERIAL_ANCHOR,
+    SYNTHETIC_MATERIAL_ID,
     SYNTHETIC_SESSION_ID,
+    SYNTHETIC_SOURCE_ID,
     build_synthetic_firewall,
+    make_approved_bundle,
+    make_approved_material_ref,
     make_artifact_bindings,
     make_code_artifact,
     make_contract,
@@ -1127,11 +1131,7 @@ class SourceOnlyClaimExtractionContextTests(unittest.TestCase):
             policy = ResearchFirewall(EvidenceLedger()).source_only
         if session is None:
             session = make_open_session(policy)
-        bundle = ApprovedSourceBundle(
-            source_bundle_id="bundle-fixture-v1",
-            source_bundle_hash="bundle-hash-fixture-v1",
-            source_anchor_reference="fixture:book:edition-1:chapter-1",
-        )
+        bundle = make_approved_bundle()
         output = ClaimRecordOutput()
         runner = SourceOnlyClaimExtractionContext(
             source_bundle=bundle,
@@ -1146,8 +1146,9 @@ class SourceOnlyClaimExtractionContextTests(unittest.TestCase):
         self.assertTrue(runner.verified)
         draft = ClaimRecordDraft(
             claim_id="claim-1",
-            source_id=bundle.source_bundle_id,
-            source_anchor="fixture:book:edition-1:chapter-1:page-12",
+            source_id=SYNTHETIC_SOURCE_ID,
+            material_id=SYNTHETIC_MATERIAL_ID,
+            source_anchor=f"{SYNTHETIC_MATERIAL_ANCHOR}:page-12",
             claim_status="EXPLICIT",
             source_excerpt_short_or_paraphrase="synthetic fixture claim",
             source_only_session_id=runner.session_id,
@@ -1180,8 +1181,9 @@ class SourceOnlyClaimExtractionContextTests(unittest.TestCase):
         runner, output, bundle = self._make_runner()
         draft = ClaimRecordDraft(
             claim_id="claim-x",
-            source_id=bundle.source_bundle_id,
-            source_anchor="fixture:anchor",
+            source_id=SYNTHETIC_SOURCE_ID,
+            material_id=SYNTHETIC_MATERIAL_ID,
+            source_anchor=f"{SYNTHETIC_MATERIAL_ANCHOR}:page-1",
             claim_status="EXPLICIT",
             source_excerpt_short_or_paraphrase="synthetic",
             source_only_session_id="other-session",

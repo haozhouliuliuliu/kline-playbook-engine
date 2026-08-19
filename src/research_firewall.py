@@ -182,6 +182,13 @@ class SourceOnlyPolicy:
     Verification is project-issued: only `open_verified_session` produces the
     `verification_evidence` token that `is_verified` accepts. Manually constructed
     sessions cannot self-verify.
+
+    Boundary (S-04): project-issued verification means the project API/session
+    mechanism reported verified under the controls implemented at the time. It is
+    NOT a claim of OS/process isolation, that a worker had no shell/file access,
+    or that any historical deterministic verification token was cryptographically
+    unforgeable. Package B closed the fixed-nonce forge path prospectively. See
+    `docs/evidence/SOURCE_ONLY_VERIFICATION_SEMANTICS_CLARIFICATION_2026-08-20.md`.
     """
 
     def __init__(self) -> None:
@@ -190,8 +197,11 @@ class SourceOnlyPolicy:
         # Project-issued verified sessions: session_id -> the session identity
         # that was issued. Only `open_verified_session()` (and trusted state
         # restore) writes here; `record_session()` can never promote a session to
-        # verified. Verification is therefore not reproducible from a public fixed
-        # formula.
+        # verified. The issued token is drawn from a cryptographically secure
+        # random source (secrets), so it is not reproducible from a public fixed
+        # formula. This is a prospective Package B hardening: it does NOT prove
+        # historical deterministic tokens were unforgeable, and SOURCE_ONLY is not
+        # an OS/process sandbox around a worker with shell/repository access.
         self._issued_verified: dict[str, str] = {}
 
     @property
@@ -286,26 +296,267 @@ class SourceOnlyPolicy:
 # ---------------------------------------------------------------------------
 
 
+class ByteBindingStatus(str, Enum):
+    """Byte-binding state of an approved source material (S-01 / F-01).
+
+    ``EXACT_BYTES_BOUND`` means the SHA256 and byte size were computed from the
+    actual content bytes at the moment the material ref was created by
+    ``ApprovedSourceMaterialRef.from_bytes``.
+
+    ``NOT_RECORDED`` is the honest state for historical materials whose exact
+    fetched bytes were never recorded. It must never be silently upgraded to
+    exact via a caller-supplied digest or a recorded historical bundle hash.
+    """
+
+    EXACT_BYTES_BOUND = "EXACT_BYTES_BOUND"
+    NOT_RECORDED = "NOT_RECORDED"
+
+
+@dataclass(frozen=True, init=False)
+class ApprovedSourceMaterialRef:
+    """Immutable forward-only source-material provenance object (S-01 / F-01).
+
+    Byte binding is forward-only. There is deliberately NO constructor that
+    accepts a caller-supplied digest while claiming exact byte binding:
+
+    - ``from_bytes(...)`` computes ``sha256(content)`` / ``len(content)``
+      internally from the supplied bytes and marks ``EXACT_BYTES_BOUND``;
+    - ``historical_unbound(...)`` records no hash/size and explicitly marks
+      ``NOT_RECORDED`` for historical materials whose exact fetched bytes were
+      never recorded.
+
+    Direct construction is closed, so a caller cannot fabricate an
+    ``EXACT_BYTES_BOUND`` ref from an arbitrary digest/size. This deliberately
+    avoids the Package B ``ArtifactBinding._build`` caller-digest defect.
+    """
+
+    source_id: str
+    material_id: str
+    source_anchor_reference: str
+    byte_binding_status: ByteBindingStatus
+    fetched_content_sha256: str | None = None
+    fetched_byte_size: int | None = None
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        raise TypeError(
+            "ApprovedSourceMaterialRef direct construction is closed; "
+            "use ApprovedSourceMaterialRef.from_bytes() or "
+            "ApprovedSourceMaterialRef.historical_unbound()"
+        )
+
+    def __post_init__(self) -> None:
+        if not self.source_id or not self.material_id or not self.source_anchor_reference:
+            raise ValueError("approved source material ref requires source_id, material_id, and anchor reference")
+        if not isinstance(self.byte_binding_status, ByteBindingStatus):
+            raise ValueError("byte binding status must be an explicit ByteBindingStatus")
+        if self.byte_binding_status is ByteBindingStatus.EXACT_BYTES_BOUND:
+            if (
+                type(self.fetched_content_sha256) is not str
+                or len(self.fetched_content_sha256) != 64
+                or type(self.fetched_byte_size) is not int
+                or self.fetched_byte_size < 0
+            ):
+                raise ValueError(
+                    "EXACT_BYTES_BOUND material ref requires an internally computed "
+                    "sha256 and byte size"
+                )
+        else:
+            if self.fetched_content_sha256 is not None or self.fetched_byte_size is not None:
+                raise ValueError("NOT_RECORDED material ref must not carry a fetched byte hash or size")
+
+    @classmethod
+    def from_bytes(
+        cls,
+        *,
+        source_id: str,
+        material_id: str,
+        source_anchor_reference: str,
+        content: bytes,
+    ) -> "ApprovedSourceMaterialRef":
+        """Exact-byte binding computed internally from ``content`` (S-01).
+
+        No caller digest / sha256 / byte size is accepted; they are derived here
+        from the actual content bytes. This is the only path that can produce
+        ``EXACT_BYTES_BOUND``.
+        """
+        if not isinstance(content, bytes):
+            raise ValueError("material content must be bytes")
+        digest = sha256(content).hexdigest()
+        obj = object.__new__(cls)
+        object.__setattr__(obj, "source_id", source_id)
+        object.__setattr__(obj, "material_id", material_id)
+        object.__setattr__(obj, "source_anchor_reference", source_anchor_reference)
+        object.__setattr__(obj, "byte_binding_status", ByteBindingStatus.EXACT_BYTES_BOUND)
+        object.__setattr__(obj, "fetched_content_sha256", digest)
+        object.__setattr__(obj, "fetched_byte_size", len(content))
+        obj.__post_init__()
+        return obj
+
+    @classmethod
+    def historical_unbound(
+        cls,
+        *,
+        source_id: str,
+        material_id: str,
+        source_anchor_reference: str,
+    ) -> "ApprovedSourceMaterialRef":
+        """Legitimate representation of historical material with no recorded
+        byte hash (S-01). Never a silent exact binding."""
+        obj = object.__new__(cls)
+        object.__setattr__(obj, "source_id", source_id)
+        object.__setattr__(obj, "material_id", material_id)
+        object.__setattr__(obj, "source_anchor_reference", source_anchor_reference)
+        object.__setattr__(obj, "byte_binding_status", ByteBindingStatus.NOT_RECORDED)
+        object.__setattr__(obj, "fetched_content_sha256", None)
+        object.__setattr__(obj, "fetched_byte_size", None)
+        obj.__post_init__()
+        return obj
+
+    @property
+    def material_identity(self) -> str:
+        """Canonical identity/hash of this material ref, including its byte
+        binding facts. Exact material bytes changing therefore changes the
+        material identity."""
+        return _canonical_hash(
+            {
+                "source_id": self.source_id,
+                "material_id": self.material_id,
+                "source_anchor_reference": self.source_anchor_reference,
+                "byte_binding_status": self.byte_binding_status.value,
+                "fetched_content_sha256": self.fetched_content_sha256,
+                "fetched_byte_size": self.fetched_byte_size,
+            }
+        )
+
+
 @dataclass(frozen=True)
 class ApprovedSourceBundle:
-    """Provenance pointer to an approved source; no redistributed content."""
+    """Provenance pointer to an approved source; no redistributed content.
+
+    The bundle knows exactly which material refs it approved (``materials``,
+    canonical sorted/unique). ``bundle_identity`` binds those material refs, so
+    changing an exact-byte-bound material's bytes changes the bundle identity.
+
+    Historical legacy bundles may be built with ``legacy_unbound``: the recorded
+    bundle reference/hash is preserved as a historical value while every material
+    ref stays explicitly ``NOT_RECORDED``. A recorded hash can never upgrade
+    materials to ``EXACT_BYTES_BOUND``.
+    """
 
     source_bundle_id: str
     source_bundle_hash: str
     source_anchor_reference: str
+    materials: tuple[ApprovedSourceMaterialRef, ...] = ()
     content_note: str | None = None
 
     def __post_init__(self) -> None:
         if not self.source_bundle_id or not self.source_bundle_hash or not self.source_anchor_reference:
             raise ValueError("approved source bundle requires identity, hash, and anchor reference")
+        # canonical sorted/unique material refs (by source_id, material_id)
+        sorted_materials = tuple(
+            sorted(self.materials, key=lambda m: (m.source_id, m.material_id))
+        )
+        seen: set[tuple[str, str]] = set()
+        for material in sorted_materials:
+            key = (material.source_id, material.material_id)
+            if key in seen:
+                raise ValueError(
+                    "approved source bundle material refs must be unique by "
+                    "(source_id, material_id)"
+                )
+            seen.add(key)
+        object.__setattr__(self, "materials", sorted_materials)
+
+    @classmethod
+    def legacy_unbound(
+        cls,
+        *,
+        source_bundle_id: str,
+        source_bundle_hash: str,
+        source_anchor_reference: str,
+        material_records: tuple[dict[str, str], ...] = (),
+        content_note: str | None = None,
+    ) -> "ApprovedSourceBundle":
+        """Explicit legacy/unbound construction for historical bundles (S-01).
+
+        ``source_bundle_hash`` is preserved as the HISTORICAL RECORDED value.
+        Material refs derived from ``material_records`` (each with
+        ``source_id`` / ``material_id`` / ``source_anchor_reference``) are always
+        ``historical_unbound`` (``NOT_RECORDED``). A caller-supplied historical
+        hash can never upgrade them to ``EXACT_BYTES_BOUND``.
+        """
+        materials = tuple(
+            ApprovedSourceMaterialRef.historical_unbound(
+                source_id=record["source_id"],
+                material_id=record["material_id"],
+                source_anchor_reference=record["source_anchor_reference"],
+            )
+            for record in material_records
+        )
+        return cls(
+            source_bundle_id=source_bundle_id,
+            source_bundle_hash=source_bundle_hash,
+            source_anchor_reference=source_anchor_reference,
+            materials=materials,
+            content_note=content_note,
+        )
+
+    @property
+    def byte_binding_status(self) -> ByteBindingStatus:
+        """Bundle byte-binding is EXACT only when every approved material ref is
+        exact; a legacy/unbound bundle stays explicitly NOT_RECORDED."""
+        if self.materials and all(
+            material.byte_binding_status is ByteBindingStatus.EXACT_BYTES_BOUND
+            for material in self.materials
+        ):
+            return ByteBindingStatus.EXACT_BYTES_BOUND
+        return ByteBindingStatus.NOT_RECORDED
+
+    @property
+    def bundle_identity(self) -> str:
+        """Material-bound bundle identity: binds bundle id, anchor, and the
+        canonical material refs (their identities/hashes)."""
+        return _canonical_hash(
+            {
+                "source_bundle_id": self.source_bundle_id,
+                "source_anchor_reference": self.source_anchor_reference,
+                "materials": [material.material_identity for material in self.materials],
+            }
+        )
+
+    def approved_material(self, source_id: str, material_id: str) -> ApprovedSourceMaterialRef | None:
+        """Resolve an approved material ref by its (source_id, material_id) pair."""
+        for material in self.materials:
+            if material.source_id == source_id and material.material_id == material_id:
+                return material
+        return None
+
+
+def _draft_anchor_matches(draft_anchor: str, material_anchor: str) -> bool:
+    """Structural source-anchor association rule (S-02 / F-10).
+
+    A draft anchor is legitimately associated with a material's
+    ``source_anchor_reference`` when it equals the material anchor (exact), or
+    when it is a strictly structural descendant of it (``material_anchor + ":"``
+    prefix). No URL parsing and no fuzzy matching.
+    """
+    return draft_anchor == material_anchor or draft_anchor.startswith(material_anchor + ":")
 
 
 @dataclass(frozen=True)
 class ClaimRecordDraft:
-    """Minimal provenance/claim-record output (Claim Schema v1.0 structural subset)."""
+    """Minimal provenance/claim-record output (Claim Schema v1.0 structural subset).
+
+    Claim Schema v1.0 requires both ``source_id`` (the actual source identity,
+    NOT the bundle id) and ``material_id`` (the approved material within that
+    source). ``record_claim`` verifies the pair exists in the approved bundle's
+    material refs and that the claim anchor is legitimately associated with the
+    material's anchor.
+    """
 
     claim_id: str
     source_id: str
+    material_id: str
     source_anchor: str
     claim_status: str
     source_excerpt_short_or_paraphrase: str
@@ -316,6 +567,7 @@ class ClaimRecordDraft:
         required = (
             self.claim_id,
             self.source_id,
+            self.material_id,
             self.source_anchor,
             self.claim_status,
             self.source_excerpt_short_or_paraphrase,
@@ -393,13 +645,25 @@ class SourceOnlyClaimExtractionContext:
         )
 
     def record_claim(self, draft: ClaimRecordDraft) -> ClaimRecordDraft:
-        """Append a claim to the provenance output surface (no market data)."""
+        """Append a claim to the provenance output surface (no market data).
+
+        S-02: the ``(source_id, material_id)`` pair must exist in the approved
+        bundle's material refs, and the claim's source anchor must be
+        legitimately associated with that material's anchor. ``source_id`` is
+        the actual source identity, never a bundle-id alias.
+        """
         if not self.verified:
             raise ValueError("SOURCE_ONLY runner requires a verified session bound to the approved source bundle")
         if draft.source_only_session_id != self._session_id:
             raise ValueError("claim record is bound to a different SOURCE_ONLY session")
-        if draft.source_id != self._source_bundle.source_bundle_id:
-            raise ValueError("claim record is bound to a different source bundle")
+        material = self._source_bundle.approved_material(draft.source_id, draft.material_id)
+        if material is None:
+            raise ValueError(
+                "claim record source/material pair is not an approved source material "
+                "(source_id is the actual source identity, not the bundle id)"
+            )
+        if not _draft_anchor_matches(draft.source_anchor, material.source_anchor_reference):
+            raise ValueError("claim record source anchor does not match the approved material anchor")
         return self._output_surface.record(draft)
 
     def request_protected_market_outcome(self, request_reference: str | None) -> ProtectedOutcomeRequestResult:

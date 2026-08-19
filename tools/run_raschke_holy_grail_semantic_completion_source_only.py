@@ -82,6 +82,9 @@ SESSION_ID = "SOURCE_ONLY_RASCHKE_HOLY_GRAIL_SEMANTIC_V1_20260820"
 MODEL_IDENTITY = "deepseek-v4-flash"
 PROMPT_SPEC_VERSION = "RASCHKE_HOLY_GRAIL_TARGETED_SEMANTIC_COMPLETION_V1"
 RETRIEVAL_MODE = "LOCAL_FREE_PUBLIC_RASCHKE_HOLY_GRAIL_SEMANTIC_ONLY"
+# Claim Schema v1.0 source identity (the actual source, distinct from the
+# bundle id). Claims reference this source plus an approved material_id.
+SOURCE_ID = "SRC-RASCHKE"
 BUNDLE_ID = "SB-RASCHKE-HOLY-GRAIL-SEMANTIC-V1"
 BUNDLE_NAME = (
     "Official free/public Linda Bradford Raschke Holy Grail targeted "
@@ -1234,7 +1237,8 @@ def _write_json(path: Path, payload: dict) -> None:
 def _claim_record_for(claim: dict, session_id: str) -> ClaimRecordDraft:
     return ClaimRecordDraft(
         claim_id=claim["claim_id"],
-        source_id=BUNDLE_ID,
+        source_id=SOURCE_ID,
+        material_id=claim["material_id"],
         source_anchor=claim["source_anchor"],
         claim_status=claim["claim_status"],
         source_excerpt_short_or_paraphrase=claim["source_excerpt_short_or_paraphrase"],
@@ -1354,7 +1358,7 @@ def main() -> None:
     if not verified:
         raise RuntimeError("SOURCE_ONLY session failed project verification")
 
-    bundle = ApprovedSourceBundle(
+    bundle = ApprovedSourceBundle.legacy_unbound(
         source_bundle_id=BUNDLE_ID,
         source_bundle_hash=bundle_hash,
         source_anchor_reference=(
@@ -1363,6 +1367,14 @@ def main() -> None:
             "2004-02; SR-V0-M04 Active Trader 2000-08; SR-V0-M05 Active Trader 2004-03) "
             "that anchor the RASCHKE_HOLY_GRAIL_PULLBACK family; see "
             "docs/evidence/HUMAN_PLAYBOOK_SOURCE_BUNDLE_RASCHKE_HOLY_GRAIL_V0_1.json"
+        ),
+        material_records=tuple(
+            {
+                "source_id": SOURCE_ID,
+                "material_id": material["material_id"],
+                "source_anchor_reference": material["material_id"],
+            }
+            for material in MATERIALS
         ),
         content_note=RETENTION_BOUNDARY,
     )

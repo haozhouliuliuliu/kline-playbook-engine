@@ -36,6 +36,9 @@ from src.playbook_contract import (
     parameter_identity,
 )
 from src.research_firewall import (
+    ApprovedSourceBundle,
+    ApprovedSourceMaterialRef,
+    ByteBindingStatus,
     CommonStatisticalProfile,
     ProtectedMarketAccessMode,
     ResearchFirewall,
@@ -61,6 +64,12 @@ SYNTHETIC_SESSION_ID = "source-only-session-1"
 SYNTHETIC_WAVE_ID = "wave-test-only-v1"
 SYNTHETIC_SOURCE_BUNDLE_ID = "bundle-fixture-v1"
 SYNTHETIC_SOURCE_BUNDLE_HASH = "bundle-hash-fixture-v1"
+# Actual source identity (Claim Schema v1.0 source_id) and approved material
+# identity used by the synthetic approved source bundle. The bundle id is a
+# distinct value so tests can prove bundle-id-as-source-id no longer passes.
+SYNTHETIC_SOURCE_ID = "source-fixture-v1"
+SYNTHETIC_MATERIAL_ID = "material-fixture-v1"
+SYNTHETIC_MATERIAL_ANCHOR = "fixture:book:edition-1:chapter-1"
 SYNTHETIC_LINEAGE = "research-lineage-fixture"
 SYNTHETIC_FAMILY = "neutral-family"
 SYNTHETIC_PARAMETER = TypedParameter("window", "int", 3)
@@ -148,6 +157,52 @@ def make_open_session(policy, *, session_id: str = SYNTHETIC_SESSION_ID) -> Sour
         source_bundle_hash=SYNTHETIC_SOURCE_BUNDLE_HASH,
         tool_retrieval_mode="PROJECT_SOURCE_ONLY",
         researcher_model_exposure_note="no known exposure",
+    )
+
+
+def make_approved_material_ref(
+    *,
+    source_id: str = SYNTHETIC_SOURCE_ID,
+    material_id: str = SYNTHETIC_MATERIAL_ID,
+    source_anchor_reference: str = SYNTHETIC_MATERIAL_ANCHOR,
+    exact_bytes: bytes | None = None,
+) -> ApprovedSourceMaterialRef:
+    """Synthetic approved source material ref.
+
+    By default historical-unbound (NOT_RECORDED), matching the historical
+    evidence posture; pass ``exact_bytes`` to create an exact-byte-bound ref.
+    """
+    if exact_bytes is None:
+        return ApprovedSourceMaterialRef.historical_unbound(
+            source_id=source_id,
+            material_id=material_id,
+            source_anchor_reference=source_anchor_reference,
+        )
+    return ApprovedSourceMaterialRef.from_bytes(
+        source_id=source_id,
+        material_id=material_id,
+        source_anchor_reference=source_anchor_reference,
+        content=exact_bytes,
+    )
+
+
+def make_approved_bundle(
+    *,
+    source_bundle_id: str = SYNTHETIC_SOURCE_BUNDLE_ID,
+    source_bundle_hash: str = SYNTHETIC_SOURCE_BUNDLE_HASH,
+    source_anchor_reference: str = SYNTHETIC_MATERIAL_ANCHOR,
+    materials: tuple[ApprovedSourceMaterialRef, ...] | None = None,
+    content_note: str | None = None,
+) -> ApprovedSourceBundle:
+    """Synthetic approved source bundle bound to the standard synthetic session."""
+    if materials is None:
+        materials = (make_approved_material_ref(),)
+    return ApprovedSourceBundle(
+        source_bundle_id=source_bundle_id,
+        source_bundle_hash=source_bundle_hash,
+        source_anchor_reference=source_anchor_reference,
+        materials=materials,
+        content_note=content_note,
     )
 
 
