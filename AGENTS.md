@@ -1,5 +1,16 @@
 # AGENTS
 
+Canonical repository identity:
+
+```text
+REPOSITORY_FULL_NAME=haozhouliuliuliu/kline-playbook-engine
+```
+
+Repository-identity operating rule:
+- For GitHub connector/API operations, copy the exact canonical `REPOSITORY_FULL_NAME` above or obtain the repository identity from already-fetched repository metadata. Do not reconstruct or retype the owner/repository slug from memory.
+- If an expected repository operation returns `404 Not Found`, first compare the requested slug character-for-character against the canonical identity above. Correct that identity before any retry; do not probe guessed spelling variants.
+- A repository-name typo is an operational defect. Do not narrate repeated typo/retry cycles to the Owner when the canonical identity can decide the issue deterministically.
+
 Read first, in this order:
 1. `OWNER_COLLABORATION_CONTRACT.md`
 2. `ARCHITECTURE_BASELINE.md`
