@@ -240,3 +240,105 @@ CURRENT_STATE_CHANGED=NO
 REMAINING_LIMITATIONS=see section 6
 BLOCKER=NONE
 ```
+
+## Pre-integration correction
+
+Bounded correction driven by `docs/reviews/PACKAGE_B_PREINTEGRATION_REVIEW_V0_1.md`
+on the same branch (merged `origin/main`), fixing B-C01..B-C05. Original Package B
+invariants (F-06/F-07/F-08/F-09/F-10/F-12/F-13/P-06) and Package A invariants
+remain green.
+
+### B-C01 — ArtifactBinding private-builder bypass
+
+- **Root defect:** `ArtifactBinding` exposed `_build(..., digest, byte_size, ...)`,
+  a callable path letting a caller supply an arbitrary 64-char digest without
+  hashing bytes.
+- **Minimum correction:** removed `_build` (and no renamed variant). `from_bytes`
+  computes `sha256(content)` and `len(content)` internally and initializes the
+  frozen fields with `object.__setattr__`; `from_file` reads bytes then calls
+  `from_bytes`. No constructor accepts a caller digest.
+- **Regression:** `test_bc01_a_no_caller_digest_construction_path`
+  (`hasattr(ArtifactBinding, "_build") is False`, no digest/sha256 parameters on
+  `from_bytes`/`from_file`) and `test_bc01_b_from_bytes_digest_deterministic`
+  (same bytes → same digest, changed → changed; B08/B09 stay green).
+- **Result:** reproduced on the pre-correction tip (`_build` present), green
+  after correction.
+
+### B-C02 — outcome registration did not fully validate ExperimentIdentity
+
+- **Root defect:** `register_outcome_test()` only compared
+  `experiment.strategy_identity_id == strategy.identity_id`; other strategy-derived
+  facts (code/parameter/environment hash, feature versions, family, version,
+  lineage) were unchecked, so an internally inconsistent `ExperimentIdentity`
+  could be registered and reach the firewall grant path.
+- **Minimum correction:** replaced the weak check with the existing full authority
+  `experiment.validate_strategy(strategy)` as the first action of
+  `register_outcome_test()` (single authority, no second comparison).
+- **Regression:** `test_bc02_tampered_experiment_fields_fail_closed` builds a
+  hand-made `ExperimentIdentity` with matching `strategy_identity_id` but tampered
+  `code_hash`, `feature_versions`, and `parameter_hash` (each separately); every
+  attempt fails closed before any lineage mutation / registration / wave
+  first-look, and `request_candidate_outcome_access` cannot grant.
+- **Result:** reproduced on the pre-correction tip (no raise), green after
+  correction.
+
+### B-C03 — family-claim identity sensitive to duplicate identical claims
+
+- **Root defect:** `derive_family_claim_identity()` hashed a sorted tuple of
+  claim-evidence tuples without de-duplicating exact duplicates; repeating an
+  identical source claim changed the family-claim hash and could mint a new
+  lineage root.
+- **Minimum correction:** derive the identity from the sorted **unique** set of
+  `(source_id, source_anchor, claim_status)` tuples (`sorted(set(...))`). No
+  fuzzy matching / anchor normalization / source-rename inference.
+- **Regression:** `test_bc03_duplicate_claim_identity_idempotent` proves
+  `derive_family_claim_identity(A) == derive_family_claim_identity(B)` where B
+  repeats the same claim tuple, and that duplicate claims cannot obtain a new
+  `research_lineage_id` (same family-claim evidence under a different lineage is
+  rejected).
+- **Result:** reproduced on the pre-correction tip (identity differed), green
+  after correction.
+
+### B-C04 — feature artifact identity ordering vs version ordering
+
+- **Root defect:** `OutcomeArtifactBindings` orders feature artifacts by unique
+  declared version, `OutcomeTestRegistration` requires lexically sorted identity
+  hashes, but `register_outcome_test()` stored identities in version order — a
+  valid multi-feature binding could fail based on hash lexical luck.
+- **Minimum correction:** `register_outcome_test()` now stores
+  `feature_artifact_identities = tuple(sorted(artifact.identity_id for ...))`
+  (canonical lexical identity order). Feature-version coverage comparison is
+  unchanged.
+- **Regression:** `test_bc04_feature_identities_stored_in_canonical_identity_order`
+  uses feature bytes (`b"f0"`/`b"f2"`) whose identity-hash lexical order is
+  reversed relative to version order (`"feature-a" < "feature-b"` but
+  `identity_a > identity_b`); the valid registration succeeds and the stored
+  identities equal the canonical sorted identity order, explicitly not the
+  version order.
+- **Result:** reproduced on the pre-correction tip (`feature artifact identities
+  must be sorted and unique`), green after correction.
+
+### B-C05 — failed registration mutated family-claim → lineage mapping
+
+- **Root defect:** the `family_claim_identity → lineage` mapping was written
+  before the registration object was constructed/registered; a registration that
+  failed at the registry left a permanent (polluted) lineage mapping.
+- **Minimum correction:** reordered so the mapping is established **only after**
+  `self._tests.register(registration)` succeeds. No transaction/rollback
+  framework.
+- **Regression:** `test_bc05_failed_registration_does_not_mutate_lineage_mapping`
+  patches `firewall.tests.register` to raise (all preceding bindings valid) and
+  asserts the family-claim → lineage mapping is absent both before and after the
+  failed attempt, with no registration and no wave first-look.
+- **Result:** reproduced on the pre-correction tip (mapping present after
+  failure), green after correction.
+
+### Correction verification
+
+- New BC regressions: 6 tests (BC01-A, BC01-B, BC02, BC03, BC04, BC05).
+- `FOCUSED_TESTS=165 OK` (strategy_evidence, research_firewall, playbook_contract,
+  validation_runner, portfolio_semantics)
+- `FULL_TESTS=356 OK`
+- `DIFF_CHECK=clean`
+- `CURRENT_STATE_CHANGED=NO`, `FROZEN_PROTOCOL_CHANGED=NO`,
+  `NO_CANDIDATE_OUTCOME_DATA_USED=YES`
