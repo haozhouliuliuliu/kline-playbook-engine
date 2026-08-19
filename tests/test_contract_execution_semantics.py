@@ -70,9 +70,6 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
             family_id="neutral-contract-lifecycle-family",
             source="deterministic-synthetic-contract-fixture",
             applicable_instruments=("A", "B", "SYNTH_MAIN"),
-            code_hash="contract-lifecycle-code-fixture-v1",
-            environment_hash="contract-lifecycle-environment-fixture-v1",
-            required_feature_versions=("contract-context-fixture-v1",),
             data_exposure_history_reference="contract-exposure-fixture-v1",
         )
         self.experiment = make_experiment(
@@ -209,8 +206,6 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
             experiment=self.experiment,
-            artifact_identity_id=self.strategy.identity_id,
-            artifact_code_hash=self.strategy.code_hash,
             dataset_class=dataset,
             inputs=inputs,
             disposition=ValidationDisposition.CONFIRMED,

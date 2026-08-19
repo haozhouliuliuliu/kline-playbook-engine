@@ -462,6 +462,16 @@ class PlaybookContractStrategyBridgeTests(unittest.TestCase):
         second = bridge_to_strategy_identity(self.instance, **bridge_kwargs(self.parameters))
         self.assertEqual(first.identity_id, second.identity_id)
 
+    def test_bridge_sets_playbook_contract_identity(self):
+        # Package B P-06/F-07: the bridged StrategyIdentity must carry the exact
+        # PlaybookContract identity so register_outcome_test can enforce the
+        # strategy -> contract binding without caller-supplied attestation.
+        identity = bridge_to_strategy_identity(
+            self.instance,
+            **bridge_kwargs(self.parameters),
+        )
+        self.assertEqual(identity.playbook_contract_identity, self.instance.contract_identity)
+
     def test_changing_contract_content_changes_bridged_strategy_identity(self):
         other = contract(
             contract_id="pb-generic-fixture-002",

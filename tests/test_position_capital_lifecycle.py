@@ -42,9 +42,6 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             research_lineage_id="position-lifecycle-lineage-fixture",
             family_id="neutral-position-lifecycle-family",
             source="deterministic-synthetic-fixture",
-            code_hash="position-lifecycle-code-fixture-v1",
-            environment_hash="position-lifecycle-environment-fixture-v1",
-            required_feature_versions=("position-context-fixture-v1",),
             data_exposure_history_reference="position-exposure-fixture-v1",
         )
         self.experiment = make_experiment(
@@ -90,8 +87,6 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
             experiment=self.experiment,
-            artifact_identity_id=self.strategy.identity_id,
-            artifact_code_hash=self.strategy.code_hash,
             dataset_class=dataset,
             inputs=(self.validation_input,),
             disposition=ValidationDisposition.CONFIRMED,
@@ -230,8 +225,6 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
             experiment=self.experiment,
-            artifact_identity_id=self.strategy.identity_id,
-            artifact_code_hash=self.strategy.code_hash,
             dataset_class=DatasetClass.DEVELOPMENT,
             inputs=tuple(inputs),
             disposition=ValidationDisposition.CONFIRMED,

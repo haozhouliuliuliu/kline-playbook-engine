@@ -63,8 +63,6 @@ class CapitalMarginConstraintTests(unittest.TestCase):
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
             experiment=self.experiment,
-            artifact_identity_id=self.strategy.identity_id,
-            artifact_code_hash=self.strategy.code_hash,
             dataset_class=dataset,
             inputs=inputs,
             disposition=ValidationDisposition.CONFIRMED,

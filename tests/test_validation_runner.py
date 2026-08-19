@@ -58,8 +58,6 @@ class ValidationRunnerTests(unittest.TestCase):
             mode=mode,
             strategy=self.strategy,
             experiment=self.experiment,
-            artifact_identity_id=self.strategy.identity_id,
-            artifact_code_hash=self.strategy.code_hash,
             dataset_class=dataset,
             inputs=inputs or (make_validation_input("request-1", self.bar, at(9, 5), data_version=self.experiment.data_version),),
             disposition=disposition,
@@ -103,8 +101,6 @@ class ValidationRunnerTests(unittest.TestCase):
             mode=ValidationMode.CONFIRMATORY,
             strategy=self.strategy,
             experiment=self.experiment,
-            artifact_identity_id=self.strategy.identity_id,
-            artifact_code_hash=self.strategy.code_hash,
             dataset_class=DatasetClass.DEVELOPMENT,
             inputs=(make_validation_input("request-1", self.bar, at(9, 5), data_version=self.experiment.data_version),),
             hypothesis_test_id=second_hypothesis,
@@ -112,14 +108,20 @@ class ValidationRunnerTests(unittest.TestCase):
         self.assertEqual(first.events, second.events)
         self.assertEqual(first.access_record.record_id, second.access_record.record_id)
 
-    def test_artifact_identity_or_code_mismatch_fails_closed(self):
-        with self.assertRaisesRegex(ValueError, "does not match"):
+    def test_runner_fails_closed_when_experiment_not_bound_to_supplied_strategy(self):
+        # Package A protection (F-01..F-05): the runner never trusts caller
+        # artifact self-attestation; it fails closed when the experiment is not
+        # bound to the supplied strategy identity.
+        other_strategy = make_strategy(
+            research_lineage_id="validation-lineage-other-fixture",
+            family_id="neutral-validation-family",
+        )
+        mismatched_experiment = make_experiment(other_strategy)
+        with self.assertRaisesRegex(ValueError, "does not bind"):
             self.runner.run(
                 mode=ValidationMode.FAST,
                 strategy=self.strategy,
-                experiment=self.experiment,
-                artifact_identity_id="other-artifact",
-                artifact_code_hash=self.strategy.code_hash,
+                experiment=mismatched_experiment,
                 dataset_class=DatasetClass.DEVELOPMENT,
                 inputs=(),
             )
@@ -246,8 +248,6 @@ class ValidationRunnerTests(unittest.TestCase):
                 mode=ValidationMode.CONFIRMATORY,
                 strategy=self.strategy,
                 experiment=self.experiment,
-                artifact_identity_id=self.strategy.identity_id,
-                artifact_code_hash=self.strategy.code_hash,
                 dataset_class=DatasetClass.DEVELOPMENT,
                 inputs=(mismatched,),
                 disposition=ValidationDisposition.CONFIRMED,
@@ -286,8 +286,6 @@ class ValidationRunnerTests(unittest.TestCase):
                 mode=ValidationMode.CONFIRMATORY,
                 strategy=ordinary_strategy,
                 experiment=ordinary_experiment,
-                artifact_identity_id=ordinary_strategy.identity_id,
-                artifact_code_hash=ordinary_strategy.code_hash,
                 dataset_class=DatasetClass.DEVELOPMENT,
                 inputs=(mismatched,),
                 disposition=ValidationDisposition.CONFIRMED,

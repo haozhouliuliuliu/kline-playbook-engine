@@ -15,8 +15,10 @@ hardening:
 """
 
 import inspect
+import os
+import tempfile
 import unittest
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 from datetime import date
 
 from src.research_firewall import (
@@ -37,106 +39,58 @@ from src.research_firewall import (
     SourceOnlySession,
     TEST_ONLY_SYNTHETIC_DATA_VERSION,
     WaveHypothesisBinding,
+    _canonical_hash,
     classify_cohort,
 )
 from src.strategy_evidence import (
+    ArtifactBinding,
     DatasetClass,
     EvidenceLedger,
     ExperimentIdentity,
     FinalUnseenFirewall,
     LifecycleState,
+    OutcomeArtifactBindings,
     StrategyCatalog,
     StrategyIdentity,
     TypedParameter,
 )
+from tests.synthetic_fixture import (
+    SYNTHETIC_HYPOTHESIS_TEST_ID,
+    SYNTHETIC_SESSION_ID,
+    build_synthetic_firewall,
+    make_artifact_bindings,
+    make_code_artifact,
+    make_contract,
+    make_data_artifact,
+    make_environment_artifact,
+    make_experiment,
+    make_feature_artifact,
+    make_open_session,
+    make_strategy,
+    make_test_only_profile,
+    make_wave_manifest,
+    make_validation_input,
+    synthetic_session_identity,
+)
 
 
 def strategy(*, family_id="neutral-family", version="1.0", parent_identity_id=None):
-    return StrategyIdentity(
-        research_lineage_id="research-lineage-fixture",
+    """Deterministic synthetic strategy bound to the default synthetic contract."""
+    return make_strategy(
         family_id=family_id,
         strategy_version=version,
-        source="deterministic-fixture",
-        applicable_instruments=("TEST",),
-        timeframe="5m",
-        parameters=(TypedParameter("window", "int", 3),),
-        code_hash="code-fixture-v1",
-        environment_hash="environment-fixture-v1",
-        required_feature_versions=("context-fixture-v1",),
-        lifecycle_state=LifecycleState.DRAFT,
-        data_exposure_history_reference="exposure-fixture-v1",
         parent_identity_id=parent_identity_id,
     )
 
 
-def make_test_only_profile(profile_id="profile-test-only-v1"):
-    return CommonStatisticalProfile(
-        profile_id=profile_id,
-        profile_version="0.0-test",
-        uncertainty_precision_method="METHOD_NOT_SPECIFIED_TEST_ONLY",
-        evidence_sufficiency_procedure="PROCEDURE_NOT_SPECIFIED_TEST_ONLY",
-        dependence_handling="HANDLING_NOT_SPECIFIED_TEST_ONLY",
-        multiplicity_decision_rule="RULE_NOT_SPECIFIED_TEST_ONLY",
-        common_acceptance_procedure="PROCEDURE_NOT_SPECIFIED_TEST_ONLY",
-        test_only_marker="TEST_ONLY",
-    )
-
-
+HYPOTHESIS_TEST_ID = SYNTHETIC_HYPOTHESIS_TEST_ID
 COUNTING_UNIT_IDENTITY = "counting-unit-test-v1"
-HYPOTHESIS_TEST_ID = "hypothesis-test-v1"
-PRIMARY_BRANCH_IDENTITY = "primary-branch-fixture-v1"
-SCOPE_IDENTITY = "scope-fixture-v1"
-PARAMETER_SEARCH_IDENTITY = "parameter-search-fixture-v1"
-
-
-def make_wave_manifest(
-    *,
-    wave_id="wave-test-only-v1",
-    profile_id="profile-test-only-v1",
-    profile_identity=None,
-    counting_unit_identity=COUNTING_UNIT_IDENTITY,
-    tested_hypothesis_test_ids=(HYPOTHESIS_TEST_ID,),
-    bindings=None,
-    created_at="2026-08-19T00:00:00Z",
-):
-    if profile_identity is None:
-        profile_identity = make_test_only_profile(profile_id=profile_id).profile_identity
-    if bindings is None:
-        bindings = tuple(
-            WaveHypothesisBinding(
-                hypothesis_test_id=hypothesis_test_id,
-                primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-                scope_identity=SCOPE_IDENTITY,
-                parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
-            )
-            for hypothesis_test_id in tested_hypothesis_test_ids
-        )
-    return ResearchWaveManifest(
-        research_wave_id=wave_id,
-        protocol_version="1.0",
-        statistical_profile_id=profile_id,
-        statistical_profile_identity=profile_identity,
-        multiplicity_counting_unit_identity=counting_unit_identity,
-        tested_hypothesis_test_ids=tested_hypothesis_test_ids,
-        hypothesis_bindings=bindings,
-        declared_outcome_tested_alternatives=(),
-        instrument_timeframe_context_scope="TEST_ONLY:instrument=TEST;timeframe=5m;context=TEST",
-        parameter_search_ranges="TEST_ONLY:none",
-        denominator_counting_semantics="TEST_ONLY:independent-falsifiable-hypotheses",
-        created_at=created_at,
-    )
-
-
-def make_open_session(policy, *, session_id="source-only-session-1"):
-    return policy.open_verified_session(
-        session_id=session_id,
-        model_identity="model-fixture-v1",
-        prompt_spec_version="prompt-spec-v1",
-        source_bundle_identity="bundle-fixture-v1",
-        source_bundle_hash="bundle-hash-fixture-v1",
-        tool_retrieval_mode="PROJECT_SOURCE_ONLY",
-        researcher_model_exposure_note="no known exposure",
-    )
+# Bogus/manual binding values used by adversarial tests to prove the wave-lock
+# and gate cross-binding checks reject identities that differ from the values
+# derived from the actual artifacts.
+PRIMARY_BRANCH_IDENTITY = "bogus-primary-identity"
+SCOPE_IDENTITY = "bogus-scope-identity"
+PARAMETER_SEARCH_IDENTITY = "bogus-parameter-search-identity"
 
 
 def make_registered_firewall(
@@ -146,19 +100,27 @@ def make_registered_firewall(
     session_id="source-only-session-1",
     profile_id="profile-test-only-v1",
     wave_id="wave-test-only-v1",
-    family_claim_identity="family-claim-fixture-v1",
-    primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-    scope_identity=SCOPE_IDENTITY,
-    parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+    family="neutral-family",
+    contract=None,
     strategy_obj=None,
+    artifact_bindings=None,
 ):
-    """Build a fully identity-bound firewall: verified session + TEST_ONLY
-    profile + wave + one registered outcome test, with the wave locked."""
+    """Build a fully artifact-bound firewall: verified session + TEST_ONLY
+    profile + wave (bindings derived from contract/strategy) + one registered
+    outcome test bound to the PlaybookContract and artifact bindings, with the
+    wave locked."""
+    if contract is None:
+        contract = make_contract(
+            family_id=family,
+            source_only_session_identity=synthetic_session_identity(session_id),
+        )
     if strategy_obj is None:
-        strategy_obj = strategy()
-    experiment = ExperimentIdentity.from_strategy(
-        strategy_obj, TEST_ONLY_SYNTHETIC_DATA_VERSION, "exposure-fixture-v1"
-    )
+        strategy_obj = make_strategy(contract)
+    else:
+        # A caller-supplied strategy must still be bound to the supplied contract.
+        if strategy_obj.playbook_contract_identity != contract.contract_identity:
+            raise AssertionError("strategy_obj must be bound to the supplied contract")
+    experiment = make_experiment(strategy_obj)
     firewall = ResearchFirewall(ledger)
     session = make_open_session(firewall.source_only, session_id=session_id)
     profile = firewall.profiles.register(make_test_only_profile(profile_id=profile_id))
@@ -166,6 +128,8 @@ def make_registered_firewall(
     wave = firewall.waves.register(
         make_wave_manifest(
             wave_id=wave_id,
+            contract=contract,
+            strategy=strategy_obj,
             profile_id=profile.profile_id,
             profile_identity=profile.profile_identity,
             tested_hypothesis_test_ids=(hypothesis_test_id,),
@@ -173,12 +137,10 @@ def make_registered_firewall(
     )
     firewall.register_outcome_test(
         hypothesis_test_id=hypothesis_test_id,
+        contract=contract,
         strategy=strategy_obj,
         experiment=experiment,
-        family_claim_identity=family_claim_identity,
-        primary_branch_identity=primary_branch_identity,
-        scope_identity=scope_identity,
-        parameter_search_identity=parameter_search_identity,
+        artifact_bindings=artifact_bindings or make_artifact_bindings(),
         source_only_session_id=session.session_id,
         research_wave_id=wave.research_wave_id,
         statistical_profile_id=profile.profile_id,
@@ -193,25 +155,39 @@ def register_adversarial_registration(
     wave,
     hypothesis_test_id,
     *,
-    primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-    scope_identity=SCOPE_IDENTITY,
-    parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+    primary_branch_identity=None,
+    scope_identity=None,
+    parameter_search_identity=None,
 ):
     """Directly register an OutcomeTestRegistration bypassing the validating
     factory, to prove the wave-lock / gate cross-binding checks catch mismatches.
+    The default identity values are the wave binding's DERIVED values, so a test
+    overrides exactly one field to isolate a mismatch.
     """
     profile = firewall.profiles.get(wave.statistical_profile_id)
     if profile is None:
         raise AssertionError("wave profile must be registered first")
+    binding = wave.binding_for(hypothesis_test_id)
+    if binding is None:
+        raise AssertionError(f"wave has no binding for {hypothesis_test_id}")
+    if primary_branch_identity is None:
+        primary_branch_identity = binding.primary_branch_identity
+    if scope_identity is None:
+        scope_identity = binding.scope_identity
+    if parameter_search_identity is None:
+        parameter_search_identity = binding.parameter_search_identity
+    contract = make_contract()
     session = make_open_session(firewall.source_only, session_id=f"adversarial-{hypothesis_test_id}")
-    experiment = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+    strategy_obj = make_strategy(contract)
+    experiment = make_experiment(strategy_obj)
     return firewall.tests.register(
         OutcomeTestRegistration(
             hypothesis_test_id=hypothesis_test_id,
             experiment_identity_id=experiment.experiment_id,
-            strategy_identity_id=strategy().identity_id,
+            strategy_identity_id=strategy_obj.identity_id,
             research_lineage_id="research-lineage-fixture",
-            family_claim_identity="family-adv",
+            playbook_contract_identity=contract.contract_identity,
+            family_claim_identity=ResearchFirewall.derive_family_claim_identity(contract),
             primary_branch_identity=primary_branch_identity,
             scope_identity=scope_identity,
             parameter_search_identity=parameter_search_identity,
@@ -219,6 +195,12 @@ def register_adversarial_registration(
             source_only_session_identity=session.session_identity,
             source_bundle_identity=session.source_bundle_identity,
             source_bundle_hash=session.source_bundle_hash,
+            code_artifact_identity=make_artifact_bindings().code_artifact.identity_id,
+            environment_artifact_identity=make_artifact_bindings().environment_artifact.identity_id,
+            data_artifact_identity=make_artifact_bindings().data_artifact.identity_id,
+            feature_artifact_identities=tuple(
+                artifact.identity_id for artifact in make_artifact_bindings().feature_artifacts
+            ),
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,
             statistical_profile_identity=profile.profile_identity,
@@ -383,16 +365,14 @@ class ResearchWaveRegistryTests(unittest.TestCase):
         wave_a = firewall.waves.register(make_wave_manifest(wave_id="wave-a", tested_hypothesis_test_ids=("h-1",)))
         wave_b = firewall.waves.register(make_wave_manifest(wave_id="wave-b", tested_hypothesis_test_ids=("h-1",)))
         session = make_open_session(firewall.source_only)
-        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        exp = make_experiment(strategy())
         # Register h-1 under wave-b, then try to lock wave-a which also claims h-1.
         firewall.register_outcome_test(
             hypothesis_test_id="h-1",
+            contract=make_contract(),
             strategy=strategy(),
             experiment=exp,
-            family_claim_identity="family-1",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-            scope_identity=SCOPE_IDENTITY,
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            artifact_bindings=make_artifact_bindings(),
             source_only_session_id=session.session_id,
             research_wave_id="wave-b",
             statistical_profile_id=profile.profile_id,
@@ -418,12 +398,10 @@ class ResearchWaveRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "profile"):
             firewall.register_outcome_test(
                 hypothesis_test_id="h-1",
+                contract=make_contract(),
                 strategy=strategy(),
                 experiment=exp,
-                family_claim_identity="family-1",
-                primary_branch_identity="primary-1",
-                scope_identity="scope-1",
-                parameter_search_identity="param-1",
+                artifact_bindings=make_artifact_bindings(),
                 source_only_session_id=session.session_id,
                 research_wave_id="wave-p",
                 statistical_profile_id=profile.profile_id,
@@ -440,18 +418,39 @@ class ResearchWaveRegistryTests(unittest.TestCase):
         firewall = ResearchFirewall(EvidenceLedger())
         profile = firewall.profiles.register(make_test_only_profile())
         session = make_open_session(firewall.source_only)
-        wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1", "h-2")))
-        for hyp, family in (("h-1", "family-1"), ("h-2", "family-2")):
-            strategy_obj = strategy(family_id=family)
-            exp = ExperimentIdentity.from_strategy(strategy_obj, "data-fixture-v1", "exposure-fixture-v1")
+        # Two distinct families/hypotheses share one wave; each hypothesis is bound
+        # to its own contract and strategy (F-06 per-hypothesis derivation).
+        contracts = {
+            "h-1": make_contract(family_id="family-1"),
+            "h-2": make_contract(family_id="family-2"),
+        }
+        strategies = {hyp: make_strategy(contract) for hyp, contract in contracts.items()}
+        bindings = tuple(
+            WaveHypothesisBinding(
+                hypothesis_test_id=hyp,
+                primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(contract),
+                scope_identity=ResearchFirewall.derive_scope_identity(contract, strategies[hyp]),
+                parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                    "TEST_ONLY:none", strategies[hyp]
+                ),
+            )
+            for hyp, contract in contracts.items()
+        )
+        wave = firewall.waves.register(
+            make_wave_manifest(
+                tested_hypothesis_test_ids=("h-1", "h-2"),
+                bindings=bindings,
+            )
+        )
+        for hyp in ("h-1", "h-2"):
+            strategy_obj = strategies[hyp]
+            exp = make_experiment(strategy_obj)
             firewall.register_outcome_test(
                 hypothesis_test_id=hyp,
+                contract=contracts[hyp],
                 strategy=strategy_obj,
                 experiment=exp,
-                family_claim_identity=family,
-                primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-                scope_identity=SCOPE_IDENTITY,
-                parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+                artifact_bindings=make_artifact_bindings(),
                 source_only_session_id=session.session_id,
                 research_wave_id=wave.research_wave_id,
                 statistical_profile_id=profile.profile_id,
@@ -474,15 +473,13 @@ class ResearchWaveRegistryTests(unittest.TestCase):
         profile = firewall.profiles.register(make_test_only_profile())
         session = make_open_session(firewall.source_only)
         wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
-        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        exp = make_experiment(strategy())
         firewall.register_outcome_test(
             hypothesis_test_id="h-1",
+            contract=make_contract(),
             strategy=strategy(),
             experiment=exp,
-            family_claim_identity="family-1",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-            scope_identity=SCOPE_IDENTITY,
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            artifact_bindings=make_artifact_bindings(),
             source_only_session_id=session.session_id,
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,
@@ -532,9 +529,7 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             firewall,
             wave,
             "h-1",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
             scope_identity="different-scope",
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
         )
         with self.assertRaisesRegex(ValueError, "scope identity"):
             firewall.lock_wave(wave.research_wave_id)
@@ -550,8 +545,6 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             firewall,
             wave,
             "h-1",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-            scope_identity=SCOPE_IDENTITY,
             parameter_search_identity="different-search",
         )
         with self.assertRaisesRegex(ValueError, "parameter/search identity"):
@@ -600,12 +593,10 @@ class ResearchWaveRegistryTests(unittest.TestCase):
         exp = ExperimentIdentity.from_strategy(strategy(), TEST_ONLY_SYNTHETIC_DATA_VERSION, "exposure-fixture-v1")
         firewall.register_outcome_test(
             hypothesis_test_id="h-1",
+            contract=make_contract(),
             strategy=strategy(),
             experiment=exp,
-            family_claim_identity="family-1",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-            scope_identity=SCOPE_IDENTITY,
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            artifact_bindings=make_artifact_bindings(),
             source_only_session_id=session.session_id,
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,
@@ -635,12 +626,10 @@ class ResearchWaveRegistryTests(unittest.TestCase):
             wave,
             "h-1",
             primary_branch_identity="different-primary",
-            scope_identity=SCOPE_IDENTITY,
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
         )
         with self.assertRaisesRegex(ValueError, "PRIMARY identity"):
             firewall.lock_wave(wave.research_wave_id)
-        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        exp = make_experiment(strategy())
         access = firewall.request_candidate_outcome_access(
             data_dates=(date(2024, 6, 16),),
             experiment=exp,
@@ -718,15 +707,13 @@ class StatisticalProfileRegistryTests(unittest.TestCase):
                 tested_hypothesis_test_ids=("h-real",),
             )
         )
-        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
+        exp = make_experiment(strategy())
         firewall.register_outcome_test(
             hypothesis_test_id="h-real",
+            contract=make_contract(),
             strategy=strategy(),
             experiment=exp,
-            family_claim_identity="family-real",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-            scope_identity=SCOPE_IDENTITY,
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            artifact_bindings=make_artifact_bindings(),
             source_only_session_id=session.session_id,
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=real2.profile_id,
@@ -804,8 +791,7 @@ class IdentityBoundGateTests(unittest.TestCase):
             hypothesis_test_id="h-other",
             session_id="source-only-session-2",
             wave_id="wave-2",
-            family_claim_identity="family-other",
-            strategy_obj=strategy(family_id="family-other"),
+            family="family-other",
         )
         self.assertTrue(firewall2.waves.is_locked("wave-2"))
         # The first hypothesis cannot be granted to the other wave's experiment.
@@ -824,8 +810,7 @@ class IdentityBoundGateTests(unittest.TestCase):
             hypothesis_test_id="h-other",
             session_id="source-only-session-2",
             wave_id="wave-2",
-            family_claim_identity="family-other",
-            strategy_obj=strategy(family_id="family-other"),
+            family="family-other",
         )
         self.assertTrue(firewall2.source_only.is_verified(session2.session_id))
         # session-2's verified status cannot authorize the other lineage's
@@ -869,7 +854,8 @@ class IdentityBoundGateTests(unittest.TestCase):
                 experiment_identity_id=exp.experiment_id,
                 strategy_identity_id=strategy().identity_id,
                 research_lineage_id="research-lineage-fixture",
-                family_claim_identity="family-1",
+                playbook_contract_identity=make_contract().contract_identity,
+                family_claim_identity=ResearchFirewall.derive_family_claim_identity(make_contract()),
                 primary_branch_identity="primary-1",
                 scope_identity="scope-1",
                 parameter_search_identity="param-1",
@@ -877,6 +863,12 @@ class IdentityBoundGateTests(unittest.TestCase):
                 source_only_session_identity=session.session_identity,
                 source_bundle_identity=session.source_bundle_identity,
                 source_bundle_hash=session.source_bundle_hash,
+                code_artifact_identity=make_artifact_bindings().code_artifact.identity_id,
+                environment_artifact_identity=make_artifact_bindings().environment_artifact.identity_id,
+                data_artifact_identity=make_artifact_bindings().data_artifact.identity_id,
+                feature_artifact_identities=tuple(
+                    artifact.identity_id for artifact in make_artifact_bindings().feature_artifacts
+                ),
                 research_wave_id=wave.research_wave_id,
                 statistical_profile_id=profile.profile_id,
                 statistical_profile_identity="wrong-profile-identity",
@@ -991,12 +983,10 @@ class IdentityBoundGateTests(unittest.TestCase):
         exp = ExperimentIdentity.from_strategy(strategy_obj, "real-development-data-v1", "exposure-fixture-v1")
         firewall.register_outcome_test(
             hypothesis_test_id="h-real-data",
+            contract=make_contract(),
             strategy=strategy_obj,
             experiment=exp,
-            family_claim_identity="family-1",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-            scope_identity=SCOPE_IDENTITY,
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            artifact_bindings=make_artifact_bindings(data_declared_version="real-development-data-v1"),
             source_only_session_id=session.session_id,
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,
@@ -1024,12 +1014,10 @@ class IdentityBoundGateTests(unittest.TestCase):
         exp = ExperimentIdentity.from_strategy(strategy_obj, "TEST_ONLY_SYNTHETIC_DATA_V1_FAKE", "exposure-fixture-v1")
         firewall.register_outcome_test(
             hypothesis_test_id="h-fake-syn",
+            contract=make_contract(),
             strategy=strategy_obj,
             experiment=exp,
-            family_claim_identity="family-1",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-            scope_identity=SCOPE_IDENTITY,
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
+            artifact_bindings=make_artifact_bindings(data_declared_version="TEST_ONLY_SYNTHETIC_DATA_V1_FAKE"),
             source_only_session_id=session.session_id,
             research_wave_id=wave.research_wave_id,
             statistical_profile_id=profile.profile_id,
@@ -1068,8 +1056,8 @@ class IdentityBoundGateTests(unittest.TestCase):
         self.assertFalse(access.allowed)
         self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:UNREGISTERED_HYPOTHESIS_TEST")
 
-    # extra: an unverified session cannot authorize even through a fully locked wave
-    def test_unverified_session_cannot_authorize_even_when_wave_locked(self):
+    # extra: an unverified session cannot register nor authorize (F-07)
+    def test_unverified_session_cannot_register_nor_authorize(self):
         firewall = ResearchFirewall(EvidenceLedger())
         manual = SourceOnlySession(
             session_id="manual-session",
@@ -1085,28 +1073,21 @@ class IdentityBoundGateTests(unittest.TestCase):
         profile = firewall.profiles.register(make_test_only_profile())
         firewall.profiles.lock(profile.profile_id)
         wave = firewall.waves.register(make_wave_manifest(tested_hypothesis_test_ids=("h-1",)))
-        exp = ExperimentIdentity.from_strategy(strategy(), "data-fixture-v1", "exposure-fixture-v1")
-        firewall.register_outcome_test(
-            hypothesis_test_id="h-1",
-            strategy=strategy(),
-            experiment=exp,
-            family_claim_identity="family-1",
-            primary_branch_identity=PRIMARY_BRANCH_IDENTITY,
-            scope_identity=SCOPE_IDENTITY,
-            parameter_search_identity=PARAMETER_SEARCH_IDENTITY,
-            source_only_session_id="manual-session",
-            research_wave_id=wave.research_wave_id,
-            statistical_profile_id=profile.profile_id,
-            multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
-        )
-        firewall.lock_wave(wave.research_wave_id)
-        access = firewall.request_candidate_outcome_access(
-            data_dates=(date(2024, 6, 16),),
-            experiment=exp,
-            hypothesis_test_id="h-1",
-        )
-        self.assertFalse(access.allowed)
-        self.assertEqual(access.record.evidence_reference, "IDENTITY_BINDING:SOURCE_ONLY_NOT_VERIFIED")
+        contract = make_contract()
+        strategy_obj = make_strategy(contract)
+        exp = make_experiment(strategy_obj)
+        with self.assertRaisesRegex(ValueError, "must be verified"):
+            firewall.register_outcome_test(
+                hypothesis_test_id="h-1",
+                contract=contract,
+                strategy=strategy_obj,
+                experiment=exp,
+                artifact_bindings=make_artifact_bindings(),
+                source_only_session_id="manual-session",
+                research_wave_id=wave.research_wave_id,
+                statistical_profile_id=profile.profile_id,
+                multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+            )
 
     # extra: renaming a strategy/family cannot wash lineage/exposure
     def test_renaming_family_preserves_lineage_exposure(self):
@@ -1245,6 +1226,682 @@ class PreOutcomeGateUnitTests(unittest.TestCase):
         decision = self._evaluate(source_only_verified=False)
         self.assertFalse(decision.allowed)
         self.assertIn("SOURCE_ONLY_CONTROLS", decision.reason)
+
+
+def build_package_b_context(
+    ledger,
+    *,
+    session_id="source-only-session-1",
+    contract=None,
+    strategy_obj=None,
+    wave_id="wave-test-only-v1",
+    bindings=None,
+    hypothesis_test_ids=(HYPOTHESIS_TEST_ID,),
+    profile_id="profile-test-only-v1",
+):
+    """Build a full artifact-bound firewall/context for Package B adversarial
+    tests, allowing a caller-supplied contract/strategy/binding to be exercised
+    against the validating register_outcome_test factory."""
+    if contract is None:
+        contract = make_contract(source_only_session_identity=synthetic_session_identity(session_id))
+    if strategy_obj is None:
+        strategy_obj = make_strategy(contract)
+    experiment = make_experiment(strategy_obj)
+    firewall = ResearchFirewall(ledger)
+    session = make_open_session(firewall.source_only, session_id=session_id)
+    profile = firewall.profiles.register(make_test_only_profile(profile_id=profile_id))
+    firewall.profiles.lock(profile.profile_id)
+    wave = firewall.waves.register(
+        make_wave_manifest(
+            wave_id=wave_id,
+            contract=contract,
+            strategy=strategy_obj,
+            profile_id=profile.profile_id,
+            profile_identity=profile.profile_identity,
+            tested_hypothesis_test_ids=hypothesis_test_ids,
+            bindings=bindings,
+        )
+    )
+    return firewall, session, profile, wave, experiment, contract, strategy_obj
+
+
+def register_package_b(
+    firewall,
+    *,
+    hypothesis_test_id,
+    contract,
+    strategy_obj,
+    experiment,
+    wave,
+    profile,
+    session,
+    artifact_bindings=None,
+):
+    return firewall.register_outcome_test(
+        hypothesis_test_id=hypothesis_test_id,
+        contract=contract,
+        strategy=strategy_obj,
+        experiment=experiment,
+        artifact_bindings=artifact_bindings or make_artifact_bindings(),
+        source_only_session_id=session.session_id,
+        research_wave_id=wave.research_wave_id,
+        statistical_profile_id=profile.profile_id,
+        multiplicity_counting_unit_identity=wave.multiplicity_counting_unit_identity,
+    )
+
+
+class PackageBArtifactLineageGovernanceTests(unittest.TestCase):
+    """Package B regression suite (B01..B30).
+
+    All fixtures synthetic. No canonical candidate data. The portfolio
+    confirmatory path stays closed (PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED).
+    """
+
+    def setUp(self):
+        self.ledger = EvidenceLedger()
+
+    def _make_context(self, **kwargs):
+        return build_package_b_context(self.ledger, **kwargs)
+
+    # -- B01..B03: caller PRIMARY/scope/search identity authority is removed. ----
+
+    def test_b01_bogus_primary_rejected_at_registration(self):
+        contract = make_contract()
+        strategy_obj = make_strategy(contract)
+        bogus = WaveHypothesisBinding(
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            primary_branch_identity="bogus-primary-identity",
+            scope_identity=ResearchFirewall.derive_scope_identity(contract, strategy_obj),
+            parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                "TEST_ONLY:none", strategy_obj
+            ),
+        )
+        firewall, session, profile, wave, experiment, _, _ = self._make_context(bindings=(bogus,))
+        with self.assertRaisesRegex(ValueError, "primary identity does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+
+    def test_b02_bogus_scope_rejected_at_registration(self):
+        contract = make_contract()
+        strategy_obj = make_strategy(contract)
+        bogus = WaveHypothesisBinding(
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(contract),
+            scope_identity="bogus-scope-identity",
+            parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                "TEST_ONLY:none", strategy_obj
+            ),
+        )
+        firewall, session, profile, wave, experiment, _, _ = self._make_context(bindings=(bogus,))
+        with self.assertRaisesRegex(ValueError, "scope identity does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+
+    def test_b03_bogus_parameter_search_rejected_at_registration(self):
+        contract = make_contract()
+        strategy_obj = make_strategy(contract)
+        bogus = WaveHypothesisBinding(
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(contract),
+            scope_identity=ResearchFirewall.derive_scope_identity(contract, strategy_obj),
+            parameter_search_identity="bogus-parameter-search-identity",
+        )
+        firewall, session, profile, wave, experiment, _, _ = self._make_context(bindings=(bogus,))
+        with self.assertRaisesRegex(ValueError, "parameter/search identity does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+
+    # -- B04: a SOURCE_ONLY session from a different bundle cannot authorize. ----
+
+    def test_b04_session_from_different_bundle_cannot_authorize(self):
+        firewall = ResearchFirewall(self.ledger)
+        session = firewall.source_only.open_verified_session(
+            session_id="source-only-session-1",
+            model_identity="model-fixture-v1",
+            prompt_spec_version="prompt-spec-v1",
+            source_bundle_identity="other-bundle",
+            source_bundle_hash="other-hash",
+            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+        )
+        contract = make_contract(source_only_session_identity=session.session_identity)
+        strategy_obj = make_strategy(contract)
+        experiment = make_experiment(strategy_obj)
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        wave = firewall.waves.register(
+            make_wave_manifest(
+                contract=contract,
+                strategy=strategy_obj,
+                profile_id=profile.profile_id,
+                profile_identity=profile.profile_identity,
+            )
+        )
+        self.assertTrue(firewall.source_only.is_verified(session.session_id))
+        with self.assertRaisesRegex(ValueError, "source bundle identity does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+
+    # -- B05/B06: strategy must be explicitly bound to the PlaybookContract. -----
+
+    def test_b05_strategy_without_playbook_contract_identity_rejected(self):
+        contract = make_contract()
+        strategy_obj = make_strategy(contract, playbook_contract_identity=None)
+        experiment = make_experiment(strategy_obj)
+        firewall, session, profile, wave, _, _, _ = self._make_context(
+            contract=contract, strategy_obj=strategy_obj
+        )
+        self.assertIsNone(strategy_obj.playbook_contract_identity)
+        with self.assertRaisesRegex(ValueError, "not bound to this playbook contract"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+
+    def test_b06_strategy_bound_to_other_contract_rejected(self):
+        contract_a = make_contract(contract_id="pb-contract-a")
+        contract_b = make_contract(contract_id="pb-contract-b")
+        strategy_a = make_strategy(contract_a)
+        experiment_a = make_experiment(strategy_a)
+        firewall, session, profile, wave, _, _, _ = self._make_context(
+            contract=contract_a, strategy_obj=strategy_a
+        )
+        with self.assertRaisesRegex(ValueError, "not bound to this playbook contract"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract_b,
+                strategy_obj=strategy_a,
+                experiment=experiment_a,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+
+    # -- B07: renaming family while reusing family-claim evidence cannot reset lineage. --
+
+    def test_b07_family_rename_cannot_reset_lineage(self):
+        firewall = ResearchFirewall(self.ledger)
+        session = make_open_session(firewall.source_only)
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        contract_1 = make_contract(
+            contract_id="pb-c1", family_id="family-a", research_lineage_id="lineage-a"
+        )
+        strategy_1 = make_strategy(contract_1)
+        experiment_1 = make_experiment(strategy_1)
+        contract_2 = make_contract(
+            contract_id="pb-c2", family_id="family-b", research_lineage_id="lineage-b"
+        )
+        strategy_2 = make_strategy(contract_2)
+        experiment_2 = make_experiment(strategy_2)
+        bindings = (
+            WaveHypothesisBinding(
+                hypothesis_test_id="h-1",
+                primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(contract_1),
+                scope_identity=ResearchFirewall.derive_scope_identity(contract_1, strategy_1),
+                parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                    "TEST_ONLY:none", strategy_1
+                ),
+            ),
+            WaveHypothesisBinding(
+                hypothesis_test_id="h-2",
+                primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(contract_2),
+                scope_identity=ResearchFirewall.derive_scope_identity(contract_2, strategy_2),
+                parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                    "TEST_ONLY:none", strategy_2
+                ),
+            ),
+        )
+        wave = firewall.waves.register(
+            make_wave_manifest(
+                wave_id="wave-b7",
+                tested_hypothesis_test_ids=("h-1", "h-2"),
+                bindings=bindings,
+                profile_id=profile.profile_id,
+                profile_identity=profile.profile_identity,
+            )
+        )
+        # Same derived family-claim evidence (identical source claims), first
+        # registration binds lineage-a.
+        self.assertEqual(
+            ResearchFirewall.derive_family_claim_identity(contract_1),
+            ResearchFirewall.derive_family_claim_identity(contract_2),
+        )
+        register_package_b(
+            firewall,
+            hypothesis_test_id="h-1",
+            contract=contract_1,
+            strategy_obj=strategy_1,
+            experiment=experiment_1,
+            wave=wave,
+            profile=profile,
+            session=session,
+        )
+        # A renamed family + new lineage reusing the same family-claim evidence
+        # cannot reset lineage (F-08).
+        with self.assertRaisesRegex(ValueError, "already bound to a different research lineage"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id="h-2",
+                contract=contract_2,
+                strategy_obj=strategy_2,
+                experiment=experiment_2,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+
+    # -- B10..B13: actual artifact binding mismatches prevent registration. ------
+
+    def test_b10_code_artifact_mismatch_rejected(self):
+        firewall, session, profile, wave, experiment, contract, strategy_obj = self._make_context()
+        tampered_code = ArtifactBinding.from_bytes(
+            artifact_kind="code",
+            artifact_reference="synthetic-strategy-v1",
+            content=b"tampered strategy code bytes",
+            declared_version="code-v1",
+        )
+        bindings = OutcomeArtifactBindings(
+            code_artifact=tampered_code,
+            environment_artifact=make_environment_artifact(),
+            data_artifact=make_data_artifact(),
+            feature_artifacts=(make_feature_artifact(),),
+        )
+        with self.assertRaisesRegex(ValueError, "code artifact sha256 does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+                artifact_bindings=bindings,
+            )
+
+    def test_b11_environment_artifact_mismatch_rejected(self):
+        firewall, session, profile, wave, experiment, contract, strategy_obj = self._make_context()
+        tampered_env = ArtifactBinding.from_bytes(
+            artifact_kind="environment",
+            artifact_reference="synthetic-environment-v1",
+            content=b"tampered environment bytes",
+            declared_version="env-v1",
+        )
+        bindings = OutcomeArtifactBindings(
+            code_artifact=make_code_artifact(),
+            environment_artifact=tampered_env,
+            data_artifact=make_data_artifact(),
+            feature_artifacts=(make_feature_artifact(),),
+        )
+        with self.assertRaisesRegex(ValueError, "environment artifact sha256 does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+                artifact_bindings=bindings,
+            )
+
+    def test_b12_data_declared_version_mismatch_rejected(self):
+        firewall, session, profile, wave, experiment, contract, strategy_obj = self._make_context()
+        bindings = make_artifact_bindings(data_declared_version="wrong-data-version-v1")
+        with self.assertRaisesRegex(ValueError, "data artifact declared version does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+                artifact_bindings=bindings,
+            )
+
+    def test_b13_feature_coverage_missing_or_extra_rejected(self):
+        firewall, session, profile, wave, experiment, contract, strategy_obj = self._make_context()
+        missing = OutcomeArtifactBindings(
+            code_artifact=make_code_artifact(),
+            environment_artifact=make_environment_artifact(),
+            data_artifact=make_data_artifact(),
+            feature_artifacts=(),
+        )
+        with self.assertRaisesRegex(ValueError, "feature artifact versions do not exactly cover"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+                artifact_bindings=missing,
+            )
+        extra_artifact = ArtifactBinding.from_bytes(
+            artifact_kind="feature",
+            artifact_reference="synthetic-feature-v1",
+            content=b"synthetic extra feature bytes",
+            declared_version="feature-extra",
+        )
+        extra = OutcomeArtifactBindings(
+            code_artifact=make_code_artifact(),
+            environment_artifact=make_environment_artifact(),
+            data_artifact=make_data_artifact(),
+            # feature versions must be sorted+unique; order ("feature-extra", "feature-v1")
+            feature_artifacts=(extra_artifact, make_feature_artifact()),
+        )
+        with self.assertRaisesRegex(ValueError, "feature artifact versions do not exactly cover"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+                artifact_bindings=extra,
+            )
+
+    # -- B14..B16: SOURCE_ONLY verification is project-issued (F-10). ------------
+
+    def test_b14_old_fixed_nonce_token_does_not_verify(self):
+        policy = ResearchFirewall(EvidenceLedger()).source_only
+        # Reconstruct the OLD pre-F-10 deterministic issuer nonce formula.
+        old_issuer_nonce = _canonical_hash(("SOURCE_ONLY_PROJECT_ISSUER_V1",))
+        old_session_identity = synthetic_session_identity("old-nonce")
+        manual = SourceOnlySession(
+            session_id="old-nonce",
+            model_identity="model-fixture-v1",
+            prompt_spec_version="prompt-spec-v1",
+            source_bundle_identity="bundle-fixture-v1",
+            source_bundle_hash="bundle-hash-fixture-v1",
+            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+            protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
+            verification_evidence=_canonical_hash((old_issuer_nonce, old_session_identity)),
+        )
+        policy.record_session(manual)
+        self.assertFalse(policy.is_verified("old-nonce"))
+
+    def test_b15_record_session_cannot_promote_to_verified(self):
+        policy = ResearchFirewall(EvidenceLedger()).source_only
+        issued = policy.open_verified_session(
+            session_id="real-issued",
+            model_identity="model-fixture-v1",
+            prompt_spec_version="prompt-spec-v1",
+            source_bundle_identity="bundle-fixture-v1",
+            source_bundle_hash="bundle-hash-fixture-v1",
+            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+        )
+        self.assertTrue(policy.is_verified("real-issued"))
+        # A compatibility session that copies the issued token verbatim must not
+        # become verified through record_session.
+        copied = SourceOnlySession(
+            session_id="copy-issued-token",
+            model_identity="model-fixture-v1",
+            prompt_spec_version="prompt-spec-v1",
+            source_bundle_identity="bundle-fixture-v1",
+            source_bundle_hash="bundle-hash-fixture-v1",
+            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+            protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
+            verification_evidence=issued.verification_evidence,
+        )
+        policy.record_session(copied)
+        self.assertFalse(policy.is_verified("copy-issued-token"))
+
+    def test_b16_open_verified_session_is_verified(self):
+        policy = ResearchFirewall(EvidenceLedger()).source_only
+        session = make_open_session(policy, session_id="b16-session")
+        self.assertTrue(policy.is_verified("b16-session"))
+        self.assertIn("b16-session", policy.issued_verified_session_ids)
+
+    # -- B17..B24: durable restart reconstruction (F-09). ------------------------
+
+    def _roundtrip(self, firewall):
+        handle = tempfile.NamedTemporaryFile(delete=False, suffix=".json", prefix="pkg-b-state-")
+        path = handle.name
+        handle.close()
+        try:
+            firewall.save_state(path)
+            return ResearchFirewall.load_state(path)
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+
+    def test_b17_restart_preserves_verified_session(self):
+        firewall, session, _, _, _ = make_registered_firewall(self.ledger)
+        loaded = self._roundtrip(firewall)
+        self.assertTrue(loaded.source_only.is_verified(session.session_id))
+        self.assertEqual(
+            loaded.source_only.get(session.session_id).session_identity,
+            session.session_identity,
+        )
+
+    def test_b18_restart_keeps_manual_session_unverified(self):
+        firewall = ResearchFirewall(self.ledger)
+        firewall.source_only.record_session(
+            SourceOnlySession(
+                session_id="manual-session",
+                model_identity="model-fixture-v1",
+                prompt_spec_version="prompt-spec-v1",
+                source_bundle_identity="bundle-fixture-v1",
+                source_bundle_hash="bundle-hash-fixture-v1",
+                tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+                protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
+            )
+        )
+        loaded = self._roundtrip(firewall)
+        self.assertFalse(loaded.source_only.is_verified("manual-session"))
+
+    def test_b19_restart_preserves_wave_lock(self):
+        firewall, _, _, wave, _ = make_registered_firewall(self.ledger)
+        self.assertTrue(firewall.waves.is_locked(wave.research_wave_id))
+        loaded = self._roundtrip(firewall)
+        self.assertTrue(loaded.waves.is_locked(wave.research_wave_id))
+        self.assertIn(wave.research_wave_id, loaded.waves.locked_wave_ids)
+
+    def test_b20_restart_preserves_first_look_and_terminal_outcome(self):
+        firewall, _, _, wave, experiment = make_registered_firewall(self.ledger)
+        access = firewall.request_candidate_outcome_access(
+            data_dates=(date(2024, 6, 16),),
+            experiment=experiment,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+        )
+        self.assertTrue(access.allowed)
+        self.assertTrue(firewall.waves.has_outcome_test_started(wave.research_wave_id))
+        firewall.waves.record_terminal_outcome(wave.research_wave_id, HYPOTHESIS_TEST_ID, "FAIL")
+        loaded = self._roundtrip(firewall)
+        self.assertTrue(loaded.waves.has_outcome_test_started(wave.research_wave_id))
+        self.assertEqual(
+            loaded.waves.outcome_records(wave.research_wave_id),
+            ((HYPOTHESIS_TEST_ID, "FAIL"),),
+        )
+
+    def test_b21_restart_preserves_profile_lock(self):
+        firewall, _, profile, _, _ = make_registered_firewall(self.ledger)
+        self.assertTrue(firewall.profiles.is_locked(profile.profile_id))
+        loaded = self._roundtrip(firewall)
+        self.assertTrue(loaded.profiles.is_locked(profile.profile_id))
+
+    def test_b22_restart_preserves_evidence_exposure(self):
+        firewall, _, _, _, experiment = make_registered_firewall(self.ledger)
+        firewall.request_candidate_outcome_access(
+            data_dates=(date(2024, 6, 16),),
+            experiment=experiment,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+        )
+        original_records = self.ledger.records
+        self.assertTrue(original_records)
+        loaded = self._roundtrip(firewall)
+        self.assertEqual(len(loaded._ledger.records), len(original_records))
+        self.assertEqual(loaded._ledger.records, original_records)
+        self.assertIn(
+            DatasetClass.DEVELOPMENT,
+            loaded._ledger.exposures_for(experiment.research_lineage_id),
+        )
+
+    def test_b23_restart_preserves_final_holdout_exposed_terminal(self):
+        firewall, _, _, _, _ = make_registered_firewall(self.ledger)
+        firewall.final_state.register_unlock_authority("owner-gate-1")
+        firewall.final_state.expose("owner-gate-1")
+        firewall.final_state.conclude(FinalHoldoutState.FINAL_VOID_IMPLEMENTATION_DEFECT)
+        loaded = self._roundtrip(firewall)
+        self.assertEqual(loaded.final_state.state, FinalHoldoutState.FINAL_VOID_IMPLEMENTATION_DEFECT)
+        # Terminal conclusion: no longer locked, never restores holdout status.
+        self.assertFalse(loaded.final_state.is_locked)
+        self.assertFalse(loaded.final_state.is_exposed)
+        self.assertEqual(loaded.final_state.unlock_authority, "owner-gate-1")
+
+    def test_b24_unknown_state_schema_fails_closed(self):
+        firewall, _, _, _, _ = make_registered_firewall(self.ledger)
+        data = firewall.to_state_dict()
+        self.assertEqual(data["state_schema_version"], ResearchFirewall.STATE_SCHEMA_VERSION)
+        data["state_schema_version"] = "v999-unknown"
+        with self.assertRaisesRegex(ValueError, "unknown state schema version"):
+            ResearchFirewall.from_state_dict(data)
+
+    # -- B25..B27: F-12 alternatives must exactly equal the tested denominator. --
+
+    def _wave_with_alternatives(self, declared):
+        firewall = ResearchFirewall(self.ledger)
+        manifest = replace(
+            make_wave_manifest(tested_hypothesis_test_ids=(HYPOTHESIS_TEST_ID,)),
+            declared_outcome_tested_alternatives=declared,
+        )
+        wave = firewall.waves.register(manifest)
+        return firewall, wave
+
+    def test_b25_alternatives_missing_fails_wave_lock(self):
+        firewall, wave = self._wave_with_alternatives(())
+        with self.assertRaisesRegex(ValueError, "exactly equal the tested hypothesis set"):
+            firewall.lock_wave(wave.research_wave_id)
+        self.assertFalse(firewall.waves.is_locked(wave.research_wave_id))
+
+    def test_b26_alternatives_extra_fails_wave_lock(self):
+        firewall, wave = self._wave_with_alternatives(("h-undeclared", HYPOTHESIS_TEST_ID))
+        with self.assertRaisesRegex(ValueError, "exactly equal the tested hypothesis set"):
+            firewall.lock_wave(wave.research_wave_id)
+        self.assertFalse(firewall.waves.is_locked(wave.research_wave_id))
+
+    def test_b27_alternatives_exact_locks(self):
+        firewall, session, _, wave, _ = make_registered_firewall(self.ledger)
+        self.assertTrue(firewall.waves.is_locked(wave.research_wave_id))
+        self.assertEqual(
+            wave.declared_outcome_tested_alternatives,
+            tuple(sorted(wave.tested_hypothesis_test_ids)),
+        )
+        self.assertIn(wave.research_wave_id, firewall.waves.locked_wave_ids)
+        self.assertEqual(session.session_id, SYNTHETIC_SESSION_ID)
+
+    # -- B29: repeated identical grant/deny is idempotent on the ledger. ---------
+
+    def test_b29_repeated_grant_and_deny_do_not_inflate_ledger(self):
+        firewall, _, _, _, experiment = make_registered_firewall(self.ledger)
+        grant_1 = firewall.request_candidate_outcome_access(
+            data_dates=(date(2024, 6, 16),),
+            experiment=experiment,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+        )
+        grant_2 = firewall.request_candidate_outcome_access(
+            data_dates=(date(2024, 6, 16),),
+            experiment=experiment,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+        )
+        self.assertTrue(grant_1.allowed)
+        self.assertTrue(grant_2.allowed)
+        granted = [r for r in self.ledger.records if r.event_type == "PRE_OUTCOME_GATE_GRANTED"]
+        self.assertEqual(len(granted), 1)
+        deny_1 = firewall.request_candidate_outcome_access(
+            data_dates=(date(2025, 1, 15),),
+            experiment=experiment,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+        )
+        deny_2 = firewall.request_candidate_outcome_access(
+            data_dates=(date(2025, 1, 15),),
+            experiment=experiment,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+        )
+        self.assertFalse(deny_1.allowed)
+        self.assertFalse(deny_2.allowed)
+        denied = [r for r in self.ledger.records if r.event_type == "PRE_OUTCOME_GATE_DENIED"]
+        self.assertEqual(len(denied), 1)
+
+    # -- B30: current Package A invariants remain green. -------------------------
+
+    def test_b30_package_a_protections_intact(self):
+        firewall, _, _, _, experiment = make_registered_firewall(self.ledger)
+        # caller cohort/synthetic booleans absent from the authoritative API
+        access_params = set(inspect.signature(firewall.request_candidate_outcome_access).parameters)
+        self.assertNotIn("synthetic_fixture", access_params)
+        self.assertNotIn("cohort", access_params)
+        # VALIDATION denied
+        validation = firewall.request_candidate_outcome_access(
+            data_dates=(date(2025, 1, 15),),
+            experiment=experiment,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+        )
+        self.assertFalse(validation.allowed)
+        # non-TEST_ONLY profile cannot be locked
+        real = CommonStatisticalProfile(
+            profile_id="profile-real-b30",
+            profile_version="1.0",
+            uncertainty_precision_method="METHOD_NOT_SPECIFIED",
+            evidence_sufficiency_procedure="PROCEDURE_NOT_SPECIFIED",
+            dependence_handling="HANDLING_NOT_SPECIFIED",
+            multiplicity_decision_rule="RULE_NOT_SPECIFIED",
+            common_acceptance_procedure="PROCEDURE_NOT_SPECIFIED",
+        )
+        registry = ResearchFirewall(EvidenceLedger()).profiles
+        registry.register(real)
+        with self.assertRaisesRegex(ValueError, "REAL_STATISTICAL_PROFILE_NOT_ADOPTED"):
+            registry.lock(real.profile_id)
+        # portfolio confirmatory path remains closed (no outcome retrieval surface)
+        self.assertFalse(hasattr(firewall, "portfolio"))
+        self.assertFalse(hasattr(firewall, "candidate_outcomes"))
 
 
 if __name__ == "__main__":

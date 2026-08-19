@@ -92,9 +92,6 @@ def run_lifecycle(
         research_lineage_id="round-trip-ledger-lineage-fixture",
         family_id="neutral-round-trip-ledger-family",
         source="deterministic-synthetic-fixture",
-        code_hash="round-trip-ledger-code-fixture-v1",
-        environment_hash="round-trip-ledger-environment-fixture-v1",
-        required_feature_versions=("round-trip-context-fixture-v1",),
         data_exposure_history_reference="round-trip-exposure-fixture-v1",
     )
     experiment = make_experiment(
@@ -149,8 +146,6 @@ def run_lifecycle(
         mode=ValidationMode.CONFIRMATORY,
         strategy=strategy,
         experiment=experiment,
-        artifact_identity_id=strategy.identity_id,
-        artifact_code_hash=strategy.code_hash,
         dataset_class=DatasetClass.DEVELOPMENT,
         inputs=tuple(inputs),
         disposition=ValidationDisposition.CONFIRMED,

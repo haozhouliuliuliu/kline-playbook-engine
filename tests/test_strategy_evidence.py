@@ -2,6 +2,7 @@ import unittest
 from dataclasses import FrozenInstanceError
 
 from src.strategy_evidence import (
+    ArtifactBinding,
     DatasetClass,
     EvidenceLedger,
     EvidenceRecord,
@@ -97,12 +98,63 @@ class EvidenceAndFirewallTests(unittest.TestCase):
 
     def test_ledger_is_append_only_factual_history_not_live_state(self):
         record = EvidenceRecord("LIFECYCLE_TRANSITION", self.experiment, DatasetClass.DEVELOPMENT, "RECORDED", LifecycleState.CANDIDATE)
-        self.ledger.append(record)
+        returned = self.ledger.append(record)
         with self.assertRaises(FrozenInstanceError):
             record.outcome = "CHANGED"
-        with self.assertRaises(ValueError):
-            self.ledger.append(record)
+        # F-13: an exact duplicate append is idempotent - returns the already
+        # stored canonical record and never inflates the factual history.
+        again = self.ledger.append(record)
+        self.assertIs(returned, again)
         self.assertEqual(self.ledger.records, (record,))
+
+    # B28 (F-13): repeated identical evidence append is idempotent and never
+    # inflates the canonical evidence ledger.
+    def test_b28_repeated_identical_append_is_idempotent(self):
+        record = EvidenceRecord("DATASET_ACCESS_GRANTED", self.experiment, DatasetClass.DEVELOPMENT, "GRANTED", LifecycleState.CANDIDATE, "synthetic-ok")
+        first = self.ledger.append(record)
+        for _ in range(5):
+            returned = self.ledger.append(record)
+            self.assertIs(returned, first)
+        self.assertEqual(self.ledger.records, (record,))
+        self.assertEqual(len(self.ledger.records), 1)
+
+
+class ArtifactBindingHashTests(unittest.TestCase):
+    """P-06: ArtifactBinding hashes are computed from the actual bytes."""
+
+    # B08: identical bytes -> identical digest + identity.
+    def test_b08_same_bytes_produce_same_identity(self):
+        first = ArtifactBinding.from_bytes(
+            artifact_kind="code", artifact_reference="ref-v1", content=b"same bytes", declared_version="v1"
+        )
+        second = ArtifactBinding.from_bytes(
+            artifact_kind="code", artifact_reference="ref-v1", content=b"same bytes", declared_version="v1"
+        )
+        self.assertEqual(first.sha256, second.sha256)
+        self.assertEqual(first.identity_id, second.identity_id)
+        self.assertEqual(first.byte_size, len(b"same bytes"))
+
+    # B09: a one-byte change changes the digest and the identity.
+    def test_b09_one_byte_change_changes_digest(self):
+        original = ArtifactBinding.from_bytes(
+            artifact_kind="code", artifact_reference="ref-v1", content=b"synthetic code bytes", declared_version="v1"
+        )
+        tampered = ArtifactBinding.from_bytes(
+            artifact_kind="code", artifact_reference="ref-v1", content=b"synthetic code byte!", declared_version="v1"
+        )
+        self.assertNotEqual(original.sha256, tampered.sha256)
+        self.assertNotEqual(original.identity_id, tampered.identity_id)
+
+    def test_constructor_never_accepts_caller_supplied_digest(self):
+        # The public construction path is from_bytes/from_file only; a digest is
+        # always recomputed from content and cannot be supplied directly.
+        binding = ArtifactBinding.from_bytes(
+            artifact_kind="environment", artifact_reference="env-v1", content=b"env", declared_version="v1"
+        )
+        self.assertEqual(len(binding.sha256), 64)
+        self.assertEqual(binding.sha256, ArtifactBinding.from_bytes(
+            artifact_kind="environment", artifact_reference="env-v1", content=b"env", declared_version="v1"
+        ).sha256)
 
 
 if __name__ == "__main__":
