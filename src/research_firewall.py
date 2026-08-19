@@ -1199,17 +1199,19 @@ class ResearchFirewall:
 
     @staticmethod
     def derive_primary_branch_identity(contract: PlaybookContract) -> str:
-        """F-06: derive PRIMARY identity from the actual PlaybookContract.
+        """F-06 / Package C P-01: whole-contract canonical PRIMARY selection identity.
 
-        Package B keeps the current one-contract-primary model: the contract must
-        have exactly one ``primary_selected`` branch, otherwise registration fails
-        closed. (Package C later replaces this with Protocol-complete claim-level
-        PRIMARY semantics.)
+        The machine meaning is now the contract's canonical
+        ``primary_selection_identity`` (Protocol v1.0 section 2: every
+        source-faithful claim must have exactly one source-justified PRIMARY). It
+        replaces the old assumption that the whole contract has exactly one
+        selected branch. The ``primary_branch_identity`` field name is retained on
+        ``WaveHypothesisBinding`` / ``OutcomeTestRegistration`` for compatibility,
+        but its value is the whole-contract canonical PRIMARY selection identity,
+        never a single branch identity. Raises ``ValueError`` when any source
+        claim's PRIMARY is unresolved, so registration fails closed.
         """
-        primary_branches = [branch for branch in contract.interpretations if branch.primary_selected]
-        if len(primary_branches) != 1:
-            raise ValueError("playbook contract must have exactly one primary_selected branch")
-        return primary_branches[0].branch_identity
+        return contract.primary_selection_identity
 
     @staticmethod
     def derive_scope_identity(contract: PlaybookContract, strategy: StrategyIdentity) -> str:

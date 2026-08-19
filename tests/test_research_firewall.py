@@ -1377,6 +1377,70 @@ class PackageBArtifactLineageGovernanceTests(unittest.TestCase):
                 session=session,
             )
 
+    # -- C14: Package B registration binds the canonical PRIMARY selection identity. --
+
+    def test_c14_primary_selection_identity_governs_registration(self):
+        contract = make_contract()
+        strategy_obj = make_strategy(contract)
+        # The firewall derives the whole-contract canonical PRIMARY selection
+        # identity (Package C P-01), not a single-branch identity.
+        self.assertEqual(
+            ResearchFirewall.derive_primary_branch_identity(contract),
+            contract.primary_selection_identity,
+        )
+        single_branch_identity = contract.interpretations[0].branch_identity
+        self.assertNotEqual(single_branch_identity, contract.primary_selection_identity)
+        # A wave binding that still uses the old single-branch identity cannot
+        # impersonate the canonical whole-contract identity at registration.
+        legacy_binding = WaveHypothesisBinding(
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            primary_branch_identity=single_branch_identity,
+            scope_identity=ResearchFirewall.derive_scope_identity(contract, strategy_obj),
+            parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                "TEST_ONLY:none", strategy_obj
+            ),
+        )
+        firewall, session, profile, wave, experiment, _, _ = self._make_context(
+            bindings=(legacy_binding,)
+        )
+        with self.assertRaisesRegex(ValueError, "primary identity does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+        # The same contract registered with the derived canonical identity passes,
+        # and the stored machine PRIMARY identity is the canonical one.
+        correct_binding = WaveHypothesisBinding(
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(contract),
+            scope_identity=ResearchFirewall.derive_scope_identity(contract, strategy_obj),
+            parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                "TEST_ONLY:none", strategy_obj
+            ),
+        )
+        firewall, session, profile, wave, experiment, _, _ = self._make_context(
+            bindings=(correct_binding,)
+        )
+        registration = register_package_b(
+            firewall,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            contract=contract,
+            strategy_obj=strategy_obj,
+            experiment=experiment,
+            wave=wave,
+            profile=profile,
+            session=session,
+        )
+        self.assertEqual(
+            registration.primary_branch_identity, contract.primary_selection_identity
+        )
+
     # -- B04: a SOURCE_ONLY session from a different bundle cannot authorize. ----
 
     def test_b04_session_from_different_bundle_cannot_authorize(self):
