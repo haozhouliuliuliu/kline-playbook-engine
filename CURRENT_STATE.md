@@ -8,15 +8,14 @@ ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
 CURRENT_BLOCKER=SECOND_PASS_FOUNDATION_REPAIRS
-CURRENT_WORK_PACKAGE=PARALLEL_PACKAGE_C_D_F_ACTUAL_REPAIRS
-CURRENT_WORK_PACKAGE_STATUS=READY_THREE_LANE
-CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_PLAN_V0_1.md
+CURRENT_WORK_PACKAGE=PARALLEL_PACKAGE_C_D_F_PREINTEGRATION_CORRECTIONS
+CURRENT_WORK_PACKAGE_STATUS=THREE_LANES_CORRECTION_REQUIRED_BEFORE_INTEGRATION
+CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/PARALLEL_PACKAGE_C_D_F_PREINTEGRATION_REVIEW_V0_1.md
 SECOND_PASS_AUDIT_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md
-PACKAGE_B_FINAL_REVIEW=docs/reviews/PACKAGE_B_FINAL_INTEGRATION_REVIEW_V0_1.md
-OWNER_ACTION=RUN_C_D_F_IN_PARALLEL
+OWNER_ACTION=RELAY_THREE_BOUNDED_CORRECTION_PROMPTS
 ```
 
-Package A and Package B are integrated. The earlier foundation-wide audit remains binding. Parallel production repair is now allowed only where dependencies are cleared and production/semantic ownership is disjoint.
+Package A and Package B are integrated. Package C/D/F initial production repairs are complete on isolated branches but are NOT integrated; project-brain preintegration review found bounded cross-layer blockers that must be corrected first.
 
 ## Binding research / access boundary
 
@@ -42,7 +41,7 @@ PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 
 No project-recorded real candidate outcome exposure has been established.
 
-## Package A / B accepted foundation
+## Accepted foundation
 
 ```text
 PACKAGE_A_STATUS=INTEGRATED_ACCEPTED_WITH_EXPLICIT_RESIDUAL_BOUNDARY
@@ -52,24 +51,7 @@ PACKAGE_B_STATUS=INTEGRATED_ACCEPTED
 PACKAGE_B_INTEGRATED_TIP=3260e9660e166da3593a19a70bc980e4b273b26e
 ```
 
-Accepted invariants now include:
-
-```text
-CONFIRMATORY_RUNNER_USES_AUTHORITATIVE_RESEARCH_FIREWALL=YES
-CALLER_DECLARED_COHORT=REMOVED
-CALLER_SYNTHETIC_BOOLEAN=REMOVED
-VALIDATION_INPUT_DATA_VERSION_LABEL_BINDING=ENFORCED
-NON_TEST_PROFILE_LOCK=FAIL_CLOSED_CURRENT_POLICY
-PORTFOLIO_CONFIRMATORY_CANDIDATE_PATH=CLOSED_NOT_IMPLEMENTED
-PRIMARY_SCOPE_SEARCH_REGISTRATION=DERIVED_FROM_ACTUAL_ARTIFACTS_CURRENT_CONTRACT_MODEL
-SOURCE_ONLY_PLAYBOOK_STRATEGY_BINDING=ENFORCED
-FAMILY_CLAIM_LINEAGE_BINDING=ENFORCED_FOR_IDENTICAL_SOURCE_EVIDENCE
-FIREWALL_STATE_DURABILITY=VERSIONED_JSON_V1
-SOURCE_ONLY_FIXED_NONCE_FORGE_PATH=CLOSED_AT_API_LEVEL
-DECLARED_ALTERNATIVES_EQUALS_TESTED_DENOMINATOR=ENFORCED
-EVIDENCE_APPEND_IDEMPOTENT=YES
-CODE_ENV_DATA_FEATURE_ARTIFACT_BINDINGS=BYTE_DERIVED_AT_REGISTRATION
-```
+Accepted A/B invariants include authoritative confirmatory ResearchFirewall gating; caller cohort/synthetic booleans removed; validation input/experiment data-version label binding; non-test profile lock fail-closed under current policy; portfolio candidate path closed; artifact-derived PRIMARY/scope/search registration under the pre-C contract model; SOURCE_ONLY/Playbook/Strategy binding; family-claim lineage binding; versioned JSON firewall state durability; fixed-nonce SOURCE_ONLY forge path closed; alternatives=denominator; idempotent evidence append; byte-derived code/environment/data/feature registration bindings.
 
 Residual boundaries remain explicit:
 
@@ -77,52 +59,48 @@ Residual boundaries remain explicit:
 SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN
 LOCAL_STATE_TAMPER_PROOFING=NO
 VALIDATION_ROW_TO_CANONICAL_ARTIFACT_BYTE_PROVENANCE=NOT_YET_PROVEN
-PROTOCOL_COMPLETE_FIELD_LEVEL_PRIMARY=NO
 ```
 
-## Active parallel actual repairs
+## C / D / F current state
 
-The following three production packages are now independent enough to run in parallel from the latest `origin/main`:
+All three initial repair branches started from `e8ccab103a43c464aef6cc02f9566083e7acd922`, stayed isolated, and are currently one commit ahead / zero behind that baseline.
 
 ```text
-LANE_C=PLAYBOOK_CONTRACT_PROTOCOL_INVARIANTS
-LANE_C_PREFLIGHT_BRANCH=prep/package-c-playbook-protocol-reproduction-v01
-LANE_C_PREFLIGHT_COMMIT=f76aed58c4fe43b92dc2e798d74159365562b28b
-LANE_C_PREFLIGHT=P01_P05_ALL_REPRODUCED
+LANE_C_BRANCH=repair/package-c-playbook-protocol-v01
+LANE_C_DIRECTION=ACCEPTED
+LANE_C_INTEGRATION=BLOCKED_PENDING_CORRECTION
+LANE_C_BLOCKERS=C-C01,C-C02,C-C03
 
-LANE_D=CANONICAL_COMPLETENESS_PROVENANCE
-LANE_D_PREFLIGHT_BRANCH=prep/package-d-canonical-reproduction-v01
-LANE_D_PREFLIGHT_COMMIT=8ffea4472cdd24257b612c5a9050bff9f567ec8a
-LANE_D_PREFLIGHT=D01_D08_ALL_REPRODUCED
+LANE_D_BRANCH=repair/package-d-canonical-provenance-v01
+LANE_D_DIRECTION=ACCEPTED
+LANE_D_INTEGRATION=BLOCKED_PENDING_CORRECTION
+LANE_D_BLOCKERS=D-C01,D-C02,D-C03
 
-LANE_F=SOURCE_EVIDENCE_HARDENING
-LANE_F_PREFLIGHT_BRANCH=prep/package-f-source-evidence-preflight-v01
-LANE_F_PREFLIGHT_COMMIT=2bc9ea147684a080bd38161de4afebbad215e148
-LANE_F_PREFLIGHT=S01_S02_S04_REPRODUCED
+LANE_F_BRANCH=repair/package-f-source-evidence-hardening-v01
+LANE_F_DIRECTION=ACCEPTED
+LANE_F_INTEGRATION=BLOCKED_PENDING_CORRECTION
+LANE_F_BLOCKERS=F-C01,F-C02,F-C03
 ```
 
-C/D/F have different principal production ownership and no current need for a new Owner semantic decision. They may therefore be implemented concurrently in isolated worktrees. Main remains the sole integration lane; each result requires project-brain adversarial review before integration.
+Authority and exact findings: `docs/reviews/PARALLEL_PACKAGE_C_D_F_PREINTEGRATION_REVIEW_V0_1.md`.
 
-## Package E dependency
-
-Package E preflight is complete:
+Important integration gaps:
 
 ```text
-PACKAGE_E_PREFLIGHT_BRANCH=prep/package-e-execution-reproduction-v01
-PACKAGE_E_PREFLIGHT_COMMIT=5f77f279181fe7fe9c385017ee92f93cf4ca204c
-PACKAGE_E_PREFLIGHT=E01_E05_E08_E13_REPRODUCED
+C_OUTCOME_REGISTRATION_REQUIRES_MACHINE_READY_CONTRACT=NOT_YET
+C_DUPLICATE_CLAIM_IDS_FAIL_CLOSED=NOT_YET
+C_STRATEGY_MUST_EQUAL_PLAYBOOK_BRIDGE_SEMANTICS=NOT_YET
+D_OFFICIAL_PARTIAL_REPROMOTION_BLOCKED=NOT_YET
+D_CANONICAL_STORAGE_PASS_ONLY=NOT_YET
+D_LEGACY_SESSION_IDENTITY_REVALIDATION_DIAGNOSTIC=NOT_YET
+F_SESSION_BINDS_MATERIAL_BOUND_BUNDLE=NOT_YET
+F_FUTURE_BUNDLE_SESSION_HASH_MATERIAL_DERIVED=NOT_YET
+F_CLAIM_STATUS_SCHEMA_ENFORCED=NOT_YET
 ```
 
-Full Package E production repair does not start yet because:
+Do not merge any C/D/F worker branch until these corrections are reviewed. C and F both modify `src/research_firewall.py`; after accepted corrections they require a cross-package interface audit plus one combined full regression on the integrated tree.
 
-```text
-E10_ROUND_TRIP_SESSION_IDENTITY_DEPENDS_ON_D05_SESSION_METADATA_IDENTITY=YES
-E08_MARGIN_ADMISSION_RESOURCE_SEMANTICS=OWNER_OR_FORMAL_AUTHORITY_REQUIRED
-```
-
-After Package D fixes the session identity authority, Package E can be executed as one coherent repair package. E-08 must remain unresolved/fail-closed until its semantic authority is frozen rather than guessed by a worker.
-
-## Canonical data status
+## Canonical data
 
 ```text
 CANONICAL_DATASET_ACCEPTED=YES_WITH_SECOND_PASS_QUALIFICATIONS
@@ -134,15 +112,15 @@ NORMALIZED_ROWS=15280452
 CANONICAL_CORPUS_IDENTITY=1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8
 CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
 CANONICAL_PRICE_VALUES_REVOKED=NO
-CANONICAL_INTRADAY_COMPLETENESS_PROOF=PACKAGE_D_REPAIR_REQUIRED
-CANONICAL_PROVENANCE_LINKS=PACKAGE_D_REPAIR_REQUIRED
+CANONICAL_CORPUS_REBUILT_DURING_SECOND_PASS=NO
+CANONICAL_ACCEPTANCE_REWRITTEN_DURING_SECOND_PASS=NO
 CONCRETE_CONTRACT_RESEARCH_MAPPING_RULE=NOT_FROZEN
 HISTORICAL_REALISTIC_MARGIN_FEE_AUTHORITY=NOT_IMPLEMENTED_FOR_CANDIDATE_QUALITY
 ```
 
-The D findings are proof/provenance defects; they are not evidence that recorded OHLC prices are numerically wrong.
+D findings concern correctness/provenance gates; they are not evidence that recorded OHLC values are numerically wrong.
 
-## Human Playbook research state
+## Human Playbook research
 
 ```text
 GRIMES_WAVE_1=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
@@ -150,67 +128,52 @@ STEENBARGER_WAVE_2=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
 STEENBARGER_FALSE_BREAKOUT=ACCEPTED_NEGATIVE_SEMANTIC_RESULT
 RASCHKE_NR7=ACCEPTED_NEGATIVE_SEMANTIC_RESULT
 RASCHKE_HOLY_GRAIL=SOURCE_SEMANTICALLY_DRAFTABLE_NOT_MACHINE_READY
-FAMILY=RASCHKE_HOLY_GRAIL_PULLBACK
 PRIMARY_FREEZE_READY=NO
 CURRENT_PROJECT_PRODUCT_TRANSFER=INFERRED
 NO_CANDIDATE_OUTCOME_DATA_USED=YES
 ```
 
-Accepted raw worker evidence remains retained through dedicated refs:
+Historical exact fetched source bytes remain not retroactively provable where no historical byte SHA was recorded. Accepted raw Wave 1/2 evidence remains retained by dedicated evidence refs.
+
+## Package E / later work
+
+Package E preflight is complete on `prep/package-e-execution-reproduction-v01` @ `5f77f279181fe7fe9c385017ee92f93cf4ca204c`.
 
 ```text
-WAVE1_EVIDENCE_REF=evidence/wave1-accepted-raw-20260819
-WAVE1_EVIDENCE_COMMIT=b68da256bbc493ac6e1de0fe02b7fde5a0396ddf
-WAVE2_EVIDENCE_REF=evidence/wave2-accepted-raw-20260819
-WAVE2_EVIDENCE_COMMIT=c0fef50bb3b0f5a97c7bdf472d5a9e2d9339273a
+E10_ROUND_TRIP_SESSION_IDENTITY_DEPENDS_ON_ACCEPTED_D05=YES
+E08_MARGIN_ADMISSION_RESOURCE_SEMANTICS=UNRESOLVED_FORMAL_AUTHORITY_REQUIRED
+PACKAGE_E_PRODUCTION_REPAIR=WAIT
+OLD_HOLY_GRAIL_F_BRANCH=NOT_MERGED
+OLD_FEATURE_G_BRANCH=NOT_MERGED
+OLD_STOP_H_BRANCH=NOT_MERGED
 ```
 
-Historical exact fetched source bytes are not retroactively provable where no historical byte SHA was recorded.
+After accepted C/D/F corrections and combined regression, Package E becomes the next main production repair. E-08 must not be guessed by a worker. E-06 realistic historical fees/margins and E-07 concrete-contract mapping remain governed prerequisites before candidate-quality performance access.
 
-## Execution / latest lanes
-
-```text
-TD001_SINGLE_TRADING_DAY_AUTHORITY=RESOLVED_AS_DESIGN_OWNER
-TD002_PARTIAL_CLOSE_REMARK=RESOLVED_FOR_THAT_PATH
-ADD_POSITION_UNREALIZED_RESET_BUG=OPEN_CONFIRMED
-FORCED_LIQUIDATION_NEXT_TRADING_DAY_GAP=OPEN_CONFIRMED
-FORCED_LIQUIDATION_OFFSET_FEE_GAP=OPEN_CONFIRMED
-GENERIC_CLOSE_TODAY_PLUS_PREVIOUS_SPLIT=UNSUPPORTED
-MULTIPRODUCT_HETEROGENEOUS_MULTIPLIER_PORTFOLIO=UNSUPPORTED
-ROUND_TRIP_LEDGER=MERGED_WITH_KNOWN_SECOND_PASS_GAPS
-
-LANE_F_OLD_HOLY_GRAIL_BRANCH=parallel/holy-grail-playbook-contract-draft-v01
-LANE_G_OLD_FEATURE_BRANCH=parallel/pit-feature-timeframe-core-v01
-LANE_H_OLD_STOP_BRANCH=parallel/stop-trigger-observation-v01
-OLD_F_G_H=NOT_MERGED_REBUILD_AFTER_FOUNDATION_REPAIRS
-```
-
-## Repair orchestration
+## Orchestration
 
 ```text
 REPAIR_EXECUTION_MODE=BOUNDED_PARALLEL_WITH_SINGLE_MAIN_INTEGRATION_LANE
 MAX_ACTIVE_PRODUCTION_REPAIR_LANES=3
 MAIN=SOLE_INTEGRATION_AUTHORITY
 MANDATORY_POST_PARALLEL_ADVERSARIAL_AUDIT=YES
-MANDATORY_COMBINED_REGRESSION_BEFORE_MAIN=YES
+MANDATORY_COMBINED_REGRESSION_BEFORE_MAIN_ADVANCE=YES
 TOOL_DECISION=USE_EXISTING
 NEW_TOOL_REQUIRED=NO
 ```
 
-Current order/dependencies:
+Current dependency order:
 
 ```text
 A [INTEGRATED]
 B [INTEGRATED]
-C [PARALLEL_ACTIVE]
-D [PARALLEL_ACTIVE]
-F [PARALLEL_ACTIVE]
--> E [WAIT_D05 + E08_SEMANTIC_AUTHORITY]
--> G [rebuild/correct old F/G/H + combined regression]
+C/D/F [CORRECTION_REQUIRED_IN_PARALLEL]
+-> project-brain review
+-> integrate C/D/F + combined regression
+-> E
+-> rebuild/correct old F/G/H + combined regression
 -> first machine-operationalized Playbook pre-outcome integration
 ```
-
-`E-06` realistic historical fees/margins and `E-07` concrete-contract research mapping remain governed prerequisites before candidate-quality performance access.
 
 ## Progress estimate
 
@@ -218,16 +181,15 @@ F [PARALLEL_ACTIVE]
 PLANNING_ESTIMATE_ONLY=YES
 OVERALL_ENGINEERING_PROGRESS_ESTIMATE=ABOUT_59_PERCENT_ACCEPTED_RELIABLE_WORK
 RESEARCH_AND_VALIDATION_FOUNDATION_PROGRESS_ESTIMATE=ABOUT_74_PERCENT
-PREVIOUS_63_PERCENT_ESTIMATE=SUPERSEDED_AFTER_SECOND_PASS_REAUDIT
 ```
 
-The overall estimate counts only accepted/reliable work on the main authority path; preflight reproductions reduce uncertainty but are not counted as completed production repair. The lower overall number reflects still-unbuilt live Trading Loop / RiskGate / OMS / broker reconciliation / control-plane work, not loss of existing code.
+Unmerged C/D/F production code is not counted as accepted completion yet.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=RUN_PACKAGE_C_D_F_ACTUAL_REPAIRS_IN_THREE_ISOLATED_WORKTREES
-OWNER_ACTION=RELAY_THREE_BOUNDED_DS_PROMPTS
+CURRENT_NEXT_ACTION=CORRECT_C_D_F_IN_EXISTING_ISOLATED_BRANCHES_THEN_RETURN_FOR_ONE_INTEGRATION_REVIEW
+OWNER_ACTION=RELAY_THREE_BOUNDED_CORRECTION_PROMPTS
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
