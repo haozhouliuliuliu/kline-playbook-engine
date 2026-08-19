@@ -7,14 +7,16 @@ PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
-CURRENT_BLOCKER=PREOUTCOME_INTEGRATION_CORRECTIONS_F_G_H
-CURRENT_WORK_PACKAGE=PARALLEL_WORK_PACKAGE_2026_08_20_V0_3_POST_PARALLEL_AUDIT
-CURRENT_WORK_PACKAGE_STATUS=PAUSED_FOR_CORRECTION_AND_COMBINED_REGRESSION
-CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/PARALLEL_WORK_PACKAGE_2026-08-20_V0_3_ADVERSARIAL_AUDIT.md
+CURRENT_BLOCKER=FULL_PROJECT_SECOND_PASS_AUDIT_FINDINGS
+CURRENT_WORK_PACKAGE=FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026_08_20
+CURRENT_WORK_PACKAGE_STATUS=FINDINGS_COMPLETE_REPAIR_NOT_YET_PLANNED
+CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md
 CURRENT_RESEARCH_POLICY=docs/research/HUMAN_PLAYBOOK_HISTORICAL_V1_EVIDENCE_POLICY_V1_0.md
 SOURCE_ACQUISITION_POLICY=docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_POLICY_V1_0.md
 OWNER_ACTION=NONE
 ```
+
+The second-pass audit intentionally traced the repository from data/metadata foundations through source evidence, Playbook/Strategy identity, firewall, validation/execution, round-trip evidence and the latest unmerged F/G/H branches. It continued after defects were found. No repair package or outcome access was created by the audit.
 
 ## Binding research direction / access boundary
 
@@ -33,12 +35,19 @@ VALIDATION=2025-01-01..2025-06-30
 PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT=2025-07-01..2025-12-31
 PERFORMANCE_RESEARCH_STARTED=NO
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
+VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 ```
 
-Frozen chronology/research semantics changes require a new protocol version, material independent review and Owner gate.
+Important second-pass distinction:
+
+```text
+VALIDATION_POLICY=LOCKED
+VALIDATION_RUNNER_TECHNICAL_LOCK=NOT_ENFORCED
+```
+
+The existing validation runner still uses the legacy coarse access path and can produce `VALIDATION_CONFIRMED` without the authoritative candidate pre-outcome gate. No project-recorded real candidate use of that path was found.
 
 ## Owner Option A / statistical acceptance
 
@@ -51,9 +60,11 @@ STATISTICAL_POSITIVE_ACCEPTANCE_PACKAGE=PARKED
 CURRENT_INFERENCE_CANDIDATE=NONE_ADOPTED_FOR_POSITIVE_PASS
 ```
 
-Historical v1 may legitimately end `INSUFFICIENT_EVIDENCE`; no arbitrary statistical gate is introduced to manufacture a PASS.
+The second-pass audit found that the current `StatisticalProfileRegistry` can technically lock an arbitrary non-TEST_ONLY profile object; therefore registry lock state by itself is not proof of an Owner-approved real profile. This does not change the Owner policy above: no real positive-PASS profile is adopted.
 
 ## Canonical data / cost boundary
+
+Recorded accepted corpus facts remain:
 
 ```text
 CANONICAL_DATASET_ACCEPTED=YES
@@ -67,32 +78,48 @@ CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
 SOURCE_ACQUISITION_DEFAULT=FREE_PUBLIC_UNAUTHENTICATED_FIRST
 PAID_SOURCE_PURCHASE_DEFAULT=NO
 EXISTING_MARKET_DATA_DEFAULT_BOUNDARY=CANONICAL_1MIN_OHLCV_PLUS_GOVERNED_METADATA
-PAYWALL_OR_DRM_BYPASS=FORBIDDEN
 ```
 
-Missing inputs are recorded as not/partially observable; no invented OHLCV proxy is authorized.
-
-## Pre-outcome firewall
+Second-pass qualification:
 
 ```text
-PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED_ACCEPTED
-SOURCE_ONLY_POLICY=VERIFIED
-SOURCE_ONLY_CLAIM_EXTRACTION_RUNNER=VERIFIED
-RESEARCH_WAVE_IDENTITY_BINDING=VERIFIED
-PRE_OUTCOME_GATE_STATUS=VERIFIED_FAIL_CLOSED
-HISTORICAL_FINAL_HOLDOUT_LOCK=ENFORCED
+CANONICAL_PRICE_VALUES_REVOKED=NO
+CANONICAL_INTRADAY_COMPLETENESS_PROOF=REAUDIT_REQUIRED
+CANONICAL_PROVENANCE_LINKS=GAPS_FOUND
+CONCRETE_CONTRACT_RESEARCH_MAPPING_RULE=NOT_FROZEN
+HISTORICAL_REALISTIC_MARGIN_FEE_AUTHORITY=NOT_IMPLEMENTED_FOR_CANDIDATE_QUALITY
 ```
 
-`src/research_firewall.py` remains the sole new candidate-outcome access-rule owner.
+The audit found that truncated/entirely absent session coverage can escape the current missing-bar proof path, and canonical storage has a raw-artifact identity semantic mismatch. This is a proof/provenance defect; it is not evidence that the 15,280,452 stored OHLC rows are numerically wrong.
+
+## Pre-outcome firewall / SOURCE_ONLY state after second-pass audit
+
+Previous `COMPLETE_VERIFIED_ACCEPTED` wording is downgraded.
+
+```text
+PREOUTCOME_FIREWALL_CORE_LOGIC=IMPLEMENTED
+PREOUTCOME_GATE_INTERNAL_IDENTITY_CHECKS=IMPLEMENTED
+PREOUTCOME_GATE_CONNECTED_TO_VALIDATION_RUNNER=NO
+COHORT_BOUND_TO_ACTUAL_DATA_ARTIFACT=NO
+PRIMARY_SCOPE_SEARCH_BOUND_TO_ACTUAL_PLAYBOOK_STRATEGY_ARTIFACT=NO
+FIREWALL_REGISTRIES_DURABLY_RESTORED_AFTER_RESTART=NO
+SOURCE_ONLY_API_PROTECTED_OUTCOME_DENIAL=IMPLEMENTED
+SOURCE_ONLY_PROJECT_ISSUED_ATTESTATION=NOT_SECURELY_ENFORCED
+SOURCE_ONLY_PROCESS_SANDBOX=NOT_IMPLEMENTED
+LINEAGE_RENAMING_TECHNICALLY_PREVENTED=NO
+HISTORICAL_FINAL_STATE_DURABLE_ACROSS_RESTART=NO
+```
+
+No finding proves that prior SOURCE_ONLY workers actually accessed protected market outcomes. It changes what the project's `VERIFIED` label can legitimately claim.
 
 ## Human Playbook research state
 
-Accepted history:
-- Grimes Wave 1: accepted with integration corrections;
-- Steenbarger Wave 2: accepted with integration corrections;
-- Steenbarger false-breakout semantic completion: accepted negative result / stopped as current-data candidate;
-- Raschke NR7: accepted negative semantic-completion result;
-- Raschke Holy Grail: accepted as source-semantically draftable.
+Accepted source-research history remains evidence, with provenance/verification qualifications from the second-pass audit:
+- Grimes Wave 1: integration review accepted with corrections; raw wave artifacts remain on worker branch;
+- Steenbarger Wave 2: integration review accepted with corrections; raw wave artifacts remain on worker branch;
+- Steenbarger false-breakout: accepted negative semantic result;
+- Raschke NR7: accepted negative semantic result;
+- Raschke Holy Grail: accepted as source-semantically draftable, not machine-ready.
 
 Current family:
 
@@ -101,159 +128,115 @@ FAMILY=RASCHKE_HOLY_GRAIL_PULLBACK
 PLAYBOOK_SEMANTICALLY_DRAFTABLE=YES
 PLAYBOOK_MACHINE_READY=NO
 PRIMARY_FREEZE_READY=NO
-SOURCE_STOP_BOUNDARY_CONCEPT=EXPLICITLY_PINNED
-SOURCE_STOP_MACHINE_OPERATIONALIZATION=PARTIALLY_PINNED
-SOURCE_SUPPORTS_CURRENT_PROJECT_PRODUCTS=UNKNOWN
 CURRENT_PROJECT_PRODUCT_TRANSFER=INFERRED
 NO_CANDIDATE_OUTCOME_DATA_USED=YES
 ```
 
-Known pre-outcome semantic gaps include:
+Additional second-pass gaps include:
 
 ```text
-EMA_PRICE_INPUT=NOT_SOURCE_PINNED
 EMA_TOUCH_CAUSAL_REFERENCE=NOT_FROZEN
-NEWLY_FORMED_SWING_LOW_HIGH_MACHINE_DEFINITION=UNRESOLVED_CRITICAL
+ADX_SOURCE_SEQUENCE_TO_MACHINE_TIME=NOT_FROZEN
+EMA_ALGORITHM_SEED_WARMUP_ROUNDING=NOT_IN_INTERPRETATION_FREEZE
+ADX_ALGORITHM_INITIALIZATION_ROUNDING=NOT_IN_INTERPRETATION_FREEZE
+SWING_LOW_HIGH_MACHINE_DEFINITION=UNRESOLVED_CRITICAL
 TRAILING_STOP_MACHINE_DEFINITION=UNRESOLVED_CRITICAL
-EXIT_ON_PUSH_TO_NEW_HIGHS_MACHINE_DEFINITION=UNRESOLVED_CRITICAL
+EXIT_ON_NEW_HIGHS_MACHINE_DEFINITION=UNRESOLVED_CRITICAL
 OPERATING_TIMEFRAME=UNRESOLVED_CRITICAL
-PROTECTIVE_STOP_SAME_BAR_CHRONOLOGY=NOT_FROZEN
-CURRENT_PROJECT_PRODUCT_TRANSFER=INFERRED
+TOUCH_THEN_ENTRY_SAME_BAR_SEQUENCE=UNRESOLVED
+ENTRY_THEN_PROTECTIVE_STOP_SAME_BAR_SEQUENCE=UNRESOLVED
 ```
 
-Lane F branch `parallel/holy-grail-playbook-contract-draft-v01` / commit `9fe53a2104e78e51f09f56c3bc73d2f6c930e536` is NOT merged. Its honest `PRIMARY_FREEZE_READY=NO` result is directionally accepted, but its interpretation-freeze artifact requires causal correction before becoming authority: same-bar EMA-touch timing must not use a current-bar close-derived EMA, and same-bar post-fill protective-stop risk must not be silently discarded.
+Source bundle identities do not currently bind exact fetched HTML/PDF byte hashes. Wave 1/2 SOURCE_ONLY raw evidence is branch-referenced rather than self-contained on main.
 
-## Accepted engineering state on main
+## Playbook Contract / Strategy identity state
 
-### Playbook Contract core
+The generic Playbook Contract code remains merged, but its prior acceptance status is qualified:
 
 ```text
-PLAYBOOK_CONTRACT_CORE=MERGED_ACCEPTED
-SOURCE_INTERPRETATION_MACHINE_SEPARATION=ENFORCED
-AMBIGUITY_FAIL_CLOSED=YES
-OBSERVABILITY_FAIL_CLOSED=YES
-ZERO_PARAMETER_STRATEGY_SUPPORT=YES
-ZERO_REQUIRED_FEATURE_VERSION_SUPPORT=YES
-RESEARCH_FIREWALL_REMAINS_SOLE_ACCESS_OWNER=YES
+PLAYBOOK_CONTRACT_CORE=MERGED_IMPLEMENTED
+SOURCE_INTERPRETATION_MACHINE_STRUCTURAL_SEPARATION=IMPLEMENTED
+PROTOCOL_COMPLETE_PRIMARY_ENFORCEMENT=NO
+FIELD_LEVEL_CRITICAL_AMBIGUITY_DERIVATION=NO
+PARTIALLY_OBSERVABLE_REQUIRED_INPUT_BLOCKS_MACHINE_READY=NO
+UNKNOWN_PROJECT_TRANSFER_BLOCKS_MACHINE_READY=NO
+ACTUAL_CODE_ENVIRONMENT_DATA_ARTIFACT_ATTESTATION=NO
 ```
 
-### Execution evidence TD-001 / TD-002
+Critical protocol mismatch: current validator requires exactly one PRIMARY interpretation across the entire contract, while frozen Protocol v1.0 requires source-faithful claim/interpretation ambiguity to be resolved at the relevant claim level before outcome testing.
+
+## Execution / capital / ledger state after second pass
+
+Previously merged work remains useful but is no longer treated as defect-free:
 
 ```text
-TD001=RESOLVED
-SESSION_METADATA_SINGLE_TRADING_DAY_AUTHORITY=YES
-TD002=RESOLVED
-PARTIAL_CLOSE_REMAINING_POSITION_REMARKED_AT_CLOSE_FILL=YES
+TD001_SINGLE_TRADING_DAY_AUTHORITY=RESOLVED_AS_DESIGN_OWNER
+TD002_PARTIAL_CLOSE_REMARK=RESOLVED_FOR_THAT_PATH
+ADD_POSITION_UNREALIZED_RESET_BUG=OPEN_CONFIRMED
+FORCED_LIQUIDATION_NEXT_TRADING_DAY_GAP=OPEN_CONFIRMED
+FORCED_LIQUIDATION_OFFSET_FEE_GAP=OPEN_CONFIRMED
+GENERIC_CLOSE_TODAY_PLUS_PREVIOUS_SPLIT=UNSUPPORTED
+MULTIPRODUCT_HETEROGENEOUS_MULTIPLIER_PORTFOLIO=UNSUPPORTED
+ROUND_TRIP_LEDGER=MERGED_IMPLEMENTED_WITH_NEW_IDENTITY_INPUT_GAPS
 ```
 
-### Completed round-trip ledger
+`RoundTripLedger.active_official_trading_days` still means official days represented by lifecycle transitions, not guaranteed complete inclusive holding-day coverage.
+
+## Latest parallel lanes F/G/H
 
 ```text
-ROUND_TRIP_LEDGER=MERGED_ACCEPTED
-ONE_POSITION_ID_ONE_COMPLETED_ROUND_TRIP=YES
-ADDS_AND_PARTIAL_CLOSES_DO_NOT_INFLATE_N=YES
-FORCED_LIQUIDATION_TERMINAL=YES
-GROSS_REALIZED_PNL_AUTHORITY=CapitalTransition.realized_pnl_change
-ADDITIVE_COST_AUTHORITY=CapitalTransition.required_cost
-TRADING_DAY_WEEK_AUTHORITY=SessionMetadata
+LANE_F_BRANCH=parallel/holy-grail-playbook-contract-draft-v01
+LANE_F_COMMIT=9fe53a2104e78e51f09f56c3bc73d2f6c930e536
+LANE_F=NOT_MERGED / PRIMARY_FREEZE_READY_NO / SECOND_PASS_CAUSAL_GAPS_FOUND
+
+LANE_G_BRANCH=parallel/pit-feature-timeframe-core-v01
+LANE_G_COMMIT=ae16f7cd0b38aadc783bd8957c7b03a7ac123d37
+LANE_G=NOT_MERGED / CORRECTIONS_REQUIRED
+
+LANE_H_BRANCH=parallel/stop-trigger-observation-v01
+LANE_H_COMMIT=8244935ed3be32394910a6fb745017b31e194b6a
+LANE_H=NOT_MERGED / CORRECTIONS_REQUIRED
+
+COMBINED_F_G_H_REGRESSION=NOT_RUN
 ```
 
-`active_official_trading_days` means official days represented by supplied lifecycle transitions, not guaranteed full inclusive holding-day coverage.
+The full finding inventory and propagation chains are in:
+`docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md`.
 
-## Post-parallel adversarial audit of F/G/H
-
-Authority:
-`docs/reviews/PARALLEL_WORK_PACKAGE_2026-08-20_V0_3_ADVERSARIAL_AUDIT.md`
+## Parallel-work policy
 
 ```text
 PARALLEL_EXECUTION_STRATEGY=KEEP
 MAX_ACTIVE_LANES=3
+MAIN=SOLE_INTEGRATION_LANE
 MANDATORY_POST_PARALLEL_ADVERSARIAL_AUDIT=YES
 MANDATORY_COMBINED_REGRESSION_BEFORE_MAIN=YES
-LANE_F=REVISION_REQUIRED_BEFORE_FREEZE_AUTHORITY
-LANE_G=INTEGRATION_BLOCKED_CORRECTIONS_REQUIRED
-LANE_H=INTEGRATION_BLOCKED_CORRECTIONS_REQUIRED
-COMBINED_F_G_H_REGRESSION=NOT_YET_RUN
-```
-
-### Lane G corrections required
-
-Worker:
-`parallel/pit-feature-timeframe-core-v01` / `ae16f7cd0b38aadc783bd8957c7b03a7ac123d37`.
-
-Blocking findings:
-- daily aggregation can emit a complete daily bar without proving all expected minute constituents exist;
-- completely absent session windows can disappear from intraday completeness evidence;
-- unsupported/non-integral timeframe-to-base relationships and constituent duration are not fully guarded;
-- EMA/ADX feature identity does not bind the full historical dependency chain;
-- feature computation can be called on only the complete aggregates while silently ignoring reported incomplete buckets.
-
-Lane G is not merged.
-
-### Lane H corrections required
-
-Worker:
-`parallel/stop-trigger-observation-v01` / `8244935ed3be32394910a6fb745017b31e194b6a`.
-
-Blocking findings:
-- `evaluate_stop_group()` can consume a one-shot `bars` generator on the first order, leaving later orders with no bars;
-- trigger-result identities do not bind exact source-bar/evaluated-sequence provenance strongly enough.
-
-Integration limitation:
-- same-bar OCO ambiguity is detected, but full OCO cancellation after an earlier unambiguous trigger is deliberately not implemented and must not be represented as complete bracket lifecycle execution.
-
-Lane H is not merged.
-
-## Progress estimate
-
-Planning estimate, not acceptance evidence:
-
-```text
-FULL_PROJECT_ENGINEERING_PROGRESS_ESTIMATE=~63_PERCENT
-PRE_OUTCOME_RESEARCH_AND_VALIDATION_FOUNDATION=~75_PERCENT
-RAW_IMPLEMENTATION_IF_UNACCEPTED_F_G_H_COUNTED=~66_PERCENT
-```
-
-Only accepted-main capabilities count toward the ~63% full-project figure. Unaccepted branches with known correctness defects are not counted as completed engineering.
-
-The remaining full-project gap is dominated by:
-- no frozen machine-ready real Playbook / StrategyIdentity yet;
-- PIT feature/timeframe layer not yet accepted;
-- stop-trigger layer not yet accepted;
-- live `TradingState`, RiskGate, OMS, broker adapter, reconciliation, safety/kill-switch and durable live control path remain largely unimplemented;
-- owner-facing observability/control remains incomplete;
-- candidate DEVELOPMENT outcome research has not started and remains locked.
-
-## Tool / execution policy
-
-```text
 TOOL_DECISION=USE_EXISTING
 NEW_TOOL_REQUIRED=NO
-PARALLEL_EXECUTION=ENABLED_AFTER_CORRECTIONS
-MAIN=SOLE_INTEGRATION_LANE
 ```
 
-Parallel independent construction remains preferred. The optimization after this audit is mandatory cross-lane adversarial review plus one combined integration regression before main acceptance.
+The second-pass audit shows that branch-local green tests are not sufficient evidence for cross-module safety.
+
+## Progress estimate status
+
+The earlier planning estimate `FULL_PROJECT_ENGINEERING_PROGRESS_ESTIMATE=~63_PERCENT` is now stale because it counted several merged modules as fully accepted when the second-pass audit found material cross-binding and execution defects.
+
+```text
+PREVIOUS_63_PERCENT_ESTIMATE=WITHDRAWN_AS_STALE
+NEW_PROGRESS_ESTIMATE=NOT_REISSUED_IN_FINDINGS_ONLY_AUDIT
+```
+
+This audit records correctness status only; it does not manufacture a new percentage before the findings are reclassified into accepted / repair-required / design-gap work.
 
 ## Current authorization / next action
 
-AUTHORIZED NOW:
-- correct Lane G generic PIT aggregation/feature provenance defects using synthetic data;
-- correct Lane H iterable/provenance defects using synthetic data;
-- revise Lane F causal interpretation without outcome access;
-- run a combined corrected F+G+H isolated integration regression.
-
-NOT AUTHORIZED:
-- candidate DEVELOPMENT outcome backtest;
-- candidate PnL/returns/win-rate/Sharpe/equity/drawdown inspection;
-- Validation/final holdout access;
-- paid data/source commitments;
-- real-money/broker actions.
+No outcome access is authorized.
 
 ```text
-CURRENT_NEXT_ACTION=CORRECT_F_G_H_THEN_RUN_ONE_COMBINED_INTEGRATION_REGRESSION
+CURRENT_NEXT_ACTION=SECOND_PASS_FINDINGS_RECORDED_NO_REPAIR_PROMPTS_IN_THIS_AUDIT
 OWNER_ACTION=NONE
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
+VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
+SHADOW_FORWARD=NOT_AUTHORIZED
 ```
