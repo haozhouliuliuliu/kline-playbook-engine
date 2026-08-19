@@ -120,13 +120,26 @@ def load_calendar() -> TradingCalendar:
         for year_days in data.get("night_closed_trading_days", {}).values()
         for d in year_days
     ]
+    # Committed evidence records exact per-year SHA256 for the official annual
+    # raw; bind them all (canonical sorted unique) so the governed source is
+    # genuinely byte-bound instead of claiming availability with no hash.
+    committed_sha256s = tuple(
+        sorted(str(h) for h in data["source"].get("artifact_sha256s", {}).values())
+    )
+    classification = data["source"].get("classification", "OFFICIAL_AVAILABLE")
+    if committed_sha256s:
+        source_classification = classification
+    else:
+        # No committed byte hash: never pretend exact byte binding.
+        source_classification = "OFFICIAL_PARTIAL"
     source = GovernedSource(
         resource_identity=data["source"]["resource"],
         url=data["source"]["url"],
         retrieved_at=datetime.fromisoformat(data["source"]["retrieved_at"]),
         artifact_sha256=None,
+        artifact_sha256s=committed_sha256s,
         schema_version="shfe-official-annual-daily-v2",
-        classification=data["source"]["classification"],
+        classification=source_classification,
         effective_period_start=COVERAGE_START,
         effective_period_end=COVERAGE_END,
     )
@@ -156,7 +169,9 @@ def load_specs() -> dict[str, ContractSpec]:
             retrieved_at=datetime.fromisoformat(item["retrieved_at"]),
             artifact_sha256=None,
             schema_version="shfe-contract-text-v2",
-            classification="OFFICIAL_AVAILABLE",
+            # No historical byte hash is recorded in committed evidence for
+            # contract text; stay explicitly partial, never exact-byte-bound.
+            classification="OFFICIAL_PARTIAL",
             effective_period_start=eff_start,
             effective_period_end=eff_end,
         )
@@ -182,7 +197,9 @@ def load_schedules() -> dict[str, ProductSessionSchedule]:
             retrieved_at=datetime.fromisoformat(item["retrieved_at"]),
             artifact_sha256=None,
             schema_version="shfe-trading-hours-v1",
-            classification="OFFICIAL_AVAILABLE",
+            # No historical byte hash is recorded in committed evidence for
+            # session schedules; stay explicitly partial, never exact-byte-bound.
+            classification="OFFICIAL_PARTIAL",
             effective_period_start=COVERAGE_START,
             effective_period_end=COVERAGE_END,
         )
@@ -559,11 +576,18 @@ def reevaluate_manifest(
         batch, _source = _reconstruct_and_normalize(
             partition, raw_dir, config.sessions, config.minimum_price_tick
         )
-        quality = (
-            "PASS"
-            if not batch.missing_expected_starts
-            else f"ANOMALY:missing_expected_starts={len(batch.missing_expected_starts)}"
+        # Truncated returned coverage can never be PASS (matches the
+        # acquisition path's quality semantics).
+        truncated = (
+            partition.returned_start != partition.requested_start
+            or partition.returned_end != partition.requested_end
         )
+        flags: list[str] = []
+        if truncated:
+            flags.append("returned_coverage_truncated")
+        if batch.missing_expected_starts:
+            flags.append(f"missing_expected_starts={len(batch.missing_expected_starts)}")
+        quality = "PASS" if not flags else "ANOMALY:" + ";".join(flags)
         if quality != partition.quality_status:
             changed += 1
         partition = ManifestPartition(
@@ -628,10 +652,14 @@ def normalize_and_store_partition(
                 high=bar.high,
                 low=bar.low,
                 close=bar.close,
-                volume=int(bar.volume) if bar.volume is not None else 0,
+                # Missing/unknown volume stays None (nullable int64), never 0.
+                volume=None if bar.volume is None else int(bar.volume),
                 open_interest_start=int(bar.open_interest_start) if bar.open_interest_start is not None else None,
                 open_interest_end=int(bar.open_interest_end) if bar.open_interest_end is not None else None,
-                raw_artifact_identity_id=partition.raw_sha256,
+                # raw_artifact_identity_id is the RawArtifact.identity_id carried
+                # on the normalized bar; it is NOT the raw SHA256 (a different
+                # provenance fact).
+                raw_artifact_identity_id=bar.raw_artifact_identity_id,
                 source_identity_id=source.identity_id,
                 data_version_id=partition.data_version_id,
                 contract_metadata_identity=partition.contract_metadata_identity,

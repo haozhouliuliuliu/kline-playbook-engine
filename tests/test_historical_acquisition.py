@@ -140,7 +140,7 @@ def build_once(adapter, requests, raw_dir, manifest_path):
             exchange="SHFE",
             concrete_instrument=contract,
             minimum_price_tick=Decimal(spec["tick"]),
-            session_metadata_version=f"{contract}-test-v1",
+            session_metadata_version=sessions.version,
             effective_start=date(2025, 6, 16),
             effective_end=date(2025, 6, 20),
             evidence_reference="tests/test_fixture",
