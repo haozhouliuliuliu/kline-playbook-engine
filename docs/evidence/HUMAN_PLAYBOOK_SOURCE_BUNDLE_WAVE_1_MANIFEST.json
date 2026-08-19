@@ -1,0 +1,89 @@
+{
+  "artifact": "HUMAN_PLAYBOOK_SOURCE_BUNDLE_WAVE_1_MANIFEST",
+  "bundle_id": "SB-W1-PUBLIC-GRIMES-V1",
+  "bundle_name": "Real Claim Extraction Wave 1 - Public Adam Grimes free public source bundle",
+  "canonical_bundle_hash": "e9c60ca1169ff4cb23f2d599e4b74ebf49d6ce04942045b49f271de7eba52170",
+  "copyright_boundary": "Store traceability, not a redistribution archive. Only short excerpts and concise paraphrases are recorded; full copyrighted material is not stored.",
+  "manifest_version": "1.0",
+  "materials": [
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "author": "Adam H. Grimes",
+      "canonical_title": "How I Trade (Part 1 of 2)",
+      "content_note": "Sections: Discretionary vs Systematic; Fundamental and Macro; Technicals; Importance of doing your own work; Can the whole be more than the sum of the parts? Includes: macro/fundamental signals are not timing signals; pattern occurrence identification via discretion vs rule set; '100% reliable' pattern claims impossible; context must be quantified; baseline-relative edge analysis.",
+      "content_note_hash": "3601ac415fd2c4133588a689469f84f741d91c7cf8895c6e70b8f940176ff43b",
+      "content_type": "official blog post (trading process / market-reading method)",
+      "date": "2023-10-31",
+      "diversity_role": "market context / observed cue / review process",
+      "effective_content_date": "2023-10-31",
+      "language": "EN",
+      "material_id": "SB-W1-M1",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publisher_channel": "The Blog of Adam H Grimes (adamhgrimes.com)",
+      "url": "https://www.adamhgrimes.com/how-i-trade-part-1-of-2/"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "author": "Adam H. Grimes",
+      "canonical_title": "Reader question: what's wrong with Fibonacci?",
+      "content_note": "Reply to a reader question. Covers: inability to predict which Fibonacci level will hold; confluence as possible luck; random-data perception study; price-memory reliance on chart adjustment; absence of quantitative proof for Fibonacci; data-supported replacement of ~50% retracement of prior swing with a very large margin of error.",
+      "content_note_hash": "91407a0c0af46ea70e9d67f67b1e5fa85365b3112e81c2187720acf4a8b041d2",
+      "content_type": "official blog post (methodological critique / counterexample)",
+      "date": "2016-03-23",
+      "diversity_role": "limitation / failure / counterexample",
+      "effective_content_date": "2016-03-23",
+      "language": "EN",
+      "material_id": "SB-W1-M2",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publisher_channel": "The Blog of Adam H Grimes (adamhgrimes.com)",
+      "url": "https://www.adamhgrimes.com/whats-wrong-fibonacci/"
+    },
+    {
+      "access": "FREE_PUBLIC_UNAUTHENTICATED",
+      "author": "Adam H. Grimes",
+      "canonical_title": "Marketlifetrading.com and the free trading course",
+      "content_note": "Announcement/relaunch of the free trading course. Covers: trading is not a get-rich-quick scheme; cannot learn to trade with a few candlestick patterns; becoming a trader requires changing how you think and handle risk; the author's acknowledged process mistake of making everything free (not sustainable); commitment to free public material plus paid tiers.",
+      "content_note_hash": "a9e361d923c6aed45a0561a2a1db92b25b188aa036169bff8c595d6007312c1f",
+      "content_type": "official blog post (education approach / risk / process)",
+      "date": "2017-09-06",
+      "diversity_role": "action/no-trade / applicability / risk-process",
+      "effective_content_date": "2017-09-06",
+      "language": "EN",
+      "material_id": "SB-W1-M3",
+      "provenance": "TRACEABLE_ORIGINAL",
+      "publisher_channel": "The Blog of Adam H Grimes (adamhgrimes.com)",
+      "url": "https://www.adamhgrimes.com/marketlife-free-trading-course/"
+    }
+  ],
+  "optional_paid_candidates": [
+    {
+      "access_class": "PAID_SUBSCRIPTION (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "More systematic failure/invalidation examples and defined context factors for pattern claims.",
+      "source_identity": "Adam Grimes / MarketLife paid education platform (marketlifetrading.com subscriptions, premium courses, daily market insight)",
+      "why_it_might_matter": "Deeper long-form course material and live market context could later clarify context factors, full trading-loop examples and invalidation examples at scale."
+    },
+    {
+      "access_class": "PAID_BOOK (not purchased; listed for awareness only)",
+      "evidence_gap_it_could_fill": "Structured definitions of market-structure and momentum concepts that may be referenced implicitly in free material.",
+      "source_identity": "Adam Grimes, The Art and Science of Technical Analysis (book)",
+      "why_it_might_matter": "Book-length synthesis of the discretionary + quantitative method the free blog material is based on."
+    }
+  ],
+  "paid_candidates_note": "Listed for awareness only. No purchase or subscription is authorized. PAID_SOURCE_PURCHASE_DEFAULT=NO. Free/public alternatives were sufficient.",
+  "raw_material_retention_boundary": "Raw HTML of the source pages was not retained. Only attributable short excerpts and concise paraphrases needed for claim traceability are recorded. Full copyrighted articles/courses are not stored. Anchors point to the canonical public URLs.",
+  "retrieval_mode": "LOCAL_FREE_PUBLIC_ORIGINAL_SOURCE_BUNDLE_ONLY",
+  "selected_on": "2026-08-19",
+  "selection_basis_note": "Selection based on provenance + anchor quality + extraction suitability. NEVER based on expected trading performance, backtest quality, or ease of producing a strategy.",
+  "selection_criteria": [
+    "original / nearest-original provenance (author's own official blog)",
+    "stable attributable URL and title",
+    "substantive trading / process / market-observation content",
+    "useful context on applicability, limitation, invalidation or failure where available",
+    "not selected by expected historical performance"
+  ],
+  "source_admission_reference": "docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md -> SRC-GRIMES / MAT-GRIMES-MARKETLIFE (KEEP_CANDIDATE) and docs/research/source_dossiers/SOURCE_DOSSIER_GRIMES_V0_1.md",
+  "source_substitution": {
+    "note": "SRC-GRIMES free/public bundle was formed successfully from 3 official Adam Grimes blog pages; no substitution was required.",
+    "occurred": "NO"
+  }
+}
