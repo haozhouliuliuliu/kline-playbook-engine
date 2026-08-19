@@ -8,13 +8,13 @@ ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
 CURRENT_BLOCKER=NONE
-CURRENT_WORK_PACKAGE=RASCHKE_FREE_PUBLIC_CURRENT_DATA_COMPATIBILITY_SCREEN_AND_CLAIM_EXTRACTION_V0_1
-CURRENT_WORK_PACKAGE_STATUS=READY_TO_START_IN_VERIFIED_SOURCE_ONLY
-CURRENT_WORK_PACKAGE_AUTHORITY=docs/research/HUMAN_PLAYBOOK_CLAIM_CORPUS_TRIAGE_V0_2.md
+CURRENT_WORK_PACKAGE=PARALLEL_THREE_LANE_PREOUTCOME_BUILDOUT_2026_08_19
+CURRENT_WORK_PACKAGE_STATUS=READY_TO_EXECUTE_IN_3_ISOLATED_WORKTREES
+CURRENT_WORK_PACKAGE_AUTHORITY=docs/research/PARALLEL_WORK_PACKAGE_2026-08-19_V0_1.md
 CURRENT_RESEARCH_POLICY=docs/research/HUMAN_PLAYBOOK_HISTORICAL_V1_EVIDENCE_POLICY_V1_0.md
 SOURCE_ACQUISITION_POLICY=docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_POLICY_V1_0.md
 CONVERSATION_HANDOFF_STATUS=TAKEOVER_ACCEPTED
-OWNER_ACTION=NONE
+OWNER_ACTION=RUN_THREE_PARALLEL_LOCAL_AGENT_PROMPTS
 ```
 
 ## Binding research direction / anti-regression
@@ -26,7 +26,7 @@ RESEARCH_ROUTE_ANTI_REGRESSION=HUMAN_PLAYBOOK_FIRST_NO_DATA_FIRST_KLINE_MINING
 PROHIBITED_DEFAULT_RESEARCH_ROUTE=UNCONSTRAINED_KLINE_INDICATOR_PATTERN_PARAMETER_MINING
 ```
 
-Binding route remains:
+Binding route:
 
 ```text
 traceable human trading experience
@@ -40,7 +40,7 @@ traceable human trading experience
 
 No strategy/results/parameters/failure-history facts may be imported from another project.
 
-## Frozen Research Protocol v1.0
+## Frozen Research Protocol v1.0 / access boundary
 
 ```text
 RESEARCH_PROTOCOL_VERSION=1.0
@@ -58,13 +58,9 @@ VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 ```
 
-`INSUFFICIENT_EVIDENCE` remains a frozen legitimate result. Material changes to frozen research semantics or chronology require a new protocol version, material independent review and Owner gate.
+`INSUFFICIENT_EVIDENCE` remains a legitimate frozen result. Frozen semantics/chronology changes require a new protocol version, material independent review and Owner gate.
 
-## Owner Option A — APPROVED
-
-Authorities:
-- `docs/evidence/HUMAN_PLAYBOOK_HISTORICAL_V1_IE_ONLY_OWNER_APPROVAL_2026-08-19.md`
-- `docs/research/HUMAN_PLAYBOOK_HISTORICAL_V1_EVIDENCE_POLICY_V1_0.md`
+## Owner Option A / statistical inference
 
 ```text
 OWNER_DECISION=OPTION_A_APPROVED
@@ -72,32 +68,21 @@ FROZEN_12_6_6=PRESERVED
 STRONG_FWER_ACCEPTANCE_TARGET=UNCHANGED
 HISTORICAL_V1_GENERAL_DOMAIN_POSITIVE_PASS=UNAVAILABLE_CURRENTLY
 STATISTICAL_POSITIVE_ACCEPTANCE_PACKAGE=PARKED
-```
-
-The project does not lower the statistical standard or invent arbitrary gates merely to manufacture a historical PASS. This does not authorize longer windows, pooling, Shadow/Forward, weaker error-rate claims or new statistical thresholds.
-
-## Common Statistical Profile v1 — parked
-
-```text
 REVISION_CANDIDATE_VERSION=v1.0-revision-candidate-0.3
 REVISION_CANDIDATE_STATUS=NOT_LOCKABLE_AS_PASS_BASIS
 PROFILE_0_4_DRAFTABLE=NO_WITH_CURRENT_INFERENCE_EVIDENCE
 CURRENT_INFERENCE_CANDIDATE=NONE_ADOPTED_FOR_POSITIVE_PASS
 ```
 
-Durable statistical-review evidence:
+Authorities/evidence:
+- `docs/evidence/HUMAN_PLAYBOOK_HISTORICAL_V1_IE_ONLY_OWNER_APPROVAL_2026-08-19.md`
+- `docs/research/HUMAN_PLAYBOOK_HISTORICAL_V1_EVIDENCE_POLICY_V1_0.md`
+- `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_PARALLEL_REVIEW_ADJUDICATION_V0_2.md`
+- `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_INFERENCE_RESOLUTION_ADJUDICATION_V0_3.md`
 
-```text
-TARGETED_DELTA_REVIEW_COMMIT=cbfc1ae6e6b833292181252d3d4fe14014a22fae
-SECOND_SN_REVIEW_COMMIT=a4008dfaf6996d13f269077f8e4c537857d18ab9
-INFERENCE_RESOLUTION_COMMIT=dd84dba7d37a2dd00ab8480c7f79ccfd37b7b118
-PARALLEL_REVIEW_ADJUDICATION=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_PARALLEL_REVIEW_ADJUDICATION_V0_2.md
-INFERENCE_RESOLUTION_ADJUDICATION=docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_INFERENCE_RESOLUTION_ADJUDICATION_V0_3.md
-```
+No arbitrary statistical gate or weaker nominal error-rate claim is adopted merely to manufacture a historical PASS.
 
-Accepted inference facts remain: Shao-style self-normalization is not lockable as a positive-PASS basis at the investigated six-month lengths under strong persistence/left-skew; Holm cannot repair invalid per-hypothesis p-values; investigated wild/block/grouped/subsampling alternatives are not adopted; no arbitrary shape/autocorrelation gate or weakened nominal error-rate is adopted. This is not an impossibility theorem for all future methods.
-
-## Pre-outcome research firewall
+## Pre-outcome firewall
 
 ```text
 PREOUTCOME_FIREWALL_IMPLEMENTATION=COMPLETE_VERIFIED_ACCEPTED
@@ -114,7 +99,7 @@ FULL_TESTS_BASELINE=235_OK_3_SKIPPED
 
 `src/research_firewall.py` remains the single owner of new pre-outcome access rules.
 
-## Claim extraction authority
+## Claim / Playbook authority
 
 Active schema:
 `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`
@@ -127,9 +112,9 @@ EXACTLY_ONE_SOURCE_JUSTIFIED_PRIMARY_BEFORE_ANY_FUTURE_OUTCOME_TEST=REQUIRED
 AMBIGUOUS_PRIMARY=STOP
 ```
 
-Every real extraction/semantic-completion session must be bound to a verified SOURCE_ONLY session/source-bundle identity. No task may silently invent unavailable K-line proxies or inspect protected-period market outcomes.
+Real extraction/semantic-completion sessions must be bound to a verified SOURCE_ONLY session/source-bundle identity. Missing information surfaces may not be silently replaced by OHLCV proxies.
 
-## Source acquisition / data budget policy
+## Source acquisition / data budget
 
 ```text
 SOURCE_ACQUISITION_DEFAULT=FREE_PUBLIC_UNAUTHENTICATED_FIRST
@@ -138,184 +123,7 @@ EXISTING_MARKET_DATA_DEFAULT_BOUNDARY=CANONICAL_1MIN_OHLCV_PLUS_GOVERNED_METADAT
 PAYWALL_OR_DRM_BYPASS=FORBIDDEN
 ```
 
-Paid sources/data may be listed as optional candidates but are not purchased, subscribed to or treated as the default blocker. When an adequate public source exists, use it. Missing data surfaces are recorded as not/partially observable rather than replaced by invented OHLCV proxies.
-
-## Real claim extraction Wave 1 — ACCEPTED
-
-Integration review:
-`docs/reviews/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_WAVE_1_INTEGRATION_REVIEW_V0_1.md`
-
-```text
-WAVE_1_BRANCH=parallel/claim-extraction-wave1-public
-WAVE_1_COMMIT=b68da256bbc493ac6e1de0fe02b7fde5a0396ddf
-WAVE_1_SOURCE=SRC-GRIMES/MAT-GRIMES-MARKETLIFE
-WAVE_1_SOURCE_ACCESS=FREE_PUBLIC_UNAUTHENTICATED
-WAVE_1_CLAIMS=15
-WAVE_1_EXPLICIT=13
-WAVE_1_INFERRED=2
-WAVE_1_SOURCE_ONLY_VERIFIED=YES
-WAVE_1_PROTECTED_OUTCOME_DENIAL=PASS
-WAVE_1_NO_CANDIDATE_OUTCOME_DATA_USED=YES
-WAVE_1_STATUS=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
-```
-
-Durable corrections:
-- `C-W1-009` remains source-faithful but `PRIMARY_NOT_YET_JUSTIFIED` because swing identification and tolerance are not source-pinned;
-- `C-W1-011` remains `PARTIALLY_OBSERVABLE`; the worker's `LIMIT-001` cross-reference was rejected as unrelated.
-
-Accepted Wave 1 counts:
-
-```text
-OBSERVABLE_NOW=1
-PARTIALLY_OBSERVABLE=3
-NOT_OBSERVABLE_WITH_CURRENT_DATA=1
-NOT_APPLICABLE=10
-PRIMARY_CANDIDATES=0
-PRIMARY_NOT_YET_JUSTIFIED=15
-```
-
-## Real claim extraction Wave 2 — ACCEPTED
-
-Integration review:
-`docs/reviews/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_WAVE_2_INTEGRATION_REVIEW_V0_1.md`
-
-```text
-WAVE_2_BRANCH=parallel/claim-extraction-wave2-steenbarger-public
-WAVE_2_COMMIT=c0fef50bb3b0f5a97c7bdf472d5a9e2d9339273a
-WAVE_2_SOURCE=SRC-STEENBARGER/MAT-STEENBARGER-TRADERFEED
-WAVE_2_SOURCE_BUNDLE=SB-W2-PUBLIC-STEENBARGER-V1
-WAVE_2_SOURCE_ACCESS=FREE_PUBLIC_UNAUTHENTICATED
-WAVE_2_CLAIMS=18
-WAVE_2_EXPLICIT=18
-WAVE_2_INFERRED=0
-WAVE_2_SOURCE_ONLY_VERIFIED=YES
-WAVE_2_PROTECTED_OUTCOME_DENIAL=PASS
-WAVE_2_NO_CANDIDATE_OUTCOME_DATA_USED=YES
-WAVE_2_STATUS=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
-```
-
-Durable Wave 2 corrections:
-- worker claim that two main authority files were absent at baseline `04f5ecb...` is rejected; both files are present at that exact commit;
-- `C-W2-016`: sector non-confirmation is counterevidence in the example, not a universal `sector non-confirmation -> range day` rule;
-- `C-W2-018`: explicit source claim is only that the hard trade is about preparation; exact preparation components are not promoted as EXPLICIT.
-
-Accepted Wave 2 counts:
-
-```text
-OBSERVABLE_NOW=5
-PARTIALLY_OBSERVABLE=9
-NOT_OBSERVABLE_WITH_CURRENT_DATA=2
-NOT_APPLICABLE=2
-PRIMARY_CANDIDATES=0
-PRIMARY_NOT_YET_JUSTIFIED=18
-```
-
-No repository memory file was committed by the worker; local-agent memory is never project authority.
-
-## Cross-wave claim corpus
-
-Original triage:
-`docs/research/HUMAN_PLAYBOOK_CLAIM_CORPUS_TRIAGE_V0_1.md`
-
-Current triage / source re-selection:
-`docs/research/HUMAN_PLAYBOOK_CLAIM_CORPUS_TRIAGE_V0_2.md`
-
-```text
-REAL_CLAIM_EXTRACTION_WAVES_ACCEPTED=2
-TOTAL_CLAIMS=33
-TOTAL_EXPLICIT=31
-TOTAL_INFERRED=2
-TOTAL_UNKNOWN=0
-TOTAL_OBSERVABLE_NOW=6
-TOTAL_PARTIALLY_OBSERVABLE=12
-TOTAL_NOT_OBSERVABLE_WITH_CURRENT_DATA=3
-TOTAL_NOT_APPLICABLE=12
-TOTAL_PRIMARY_CANDIDATES=0
-TOTAL_PRIMARY_NOT_YET_JUSTIFIED=33
-```
-
-The absence of PRIMARY candidates remains useful evidence: machine-facing semantics are not yet source-pinned and must not be filled with outcome-driven definitions.
-
-## First semantic-completion attempt — ACCEPTED NEGATIVE RESULT
-
-Integration review:
-`docs/reviews/STEENBARGER_FALSE_BREAKOUT_RANGE_REVERSION_SEMANTIC_COMPLETION_INTEGRATION_REVIEW_V0_1.md`
-
-Worker evidence:
-
-```text
-SEMANTIC_COMPLETION_BRANCH=parallel/semantic-completion-steenbarger-false-breakout-v01
-SEMANTIC_COMPLETION_COMMIT=94e312c4a9c7504c90b9df4ba907766706c16901
-TARGET_FAMILY=STEENBARGER_FALSE_BREAKOUT_RANGE_REVERSION
-SOURCE_BUNDLE=SB-SC-STEENBARGER-FALSE-BREAKOUT-V1
-SOURCE_ONLY_VERIFIED=YES
-PROTECTED_OUTCOME_DENIAL=PASS
-NO_CANDIDATE_OUTCOME_DATA_USED=YES
-```
-
-Accepted result:
-
-```text
-SOURCE_FAITHFUL_PRICE_VOLUME_PLAYBOOK_DRAFTABLE=NO
-PRICE_VOLUME_ONLY_FORMULATION_EXPLICITLY_SUPPORTED_BY_SOURCE=NO
-SOURCE_SUPPORTS_CHINESE_FUTURES_TRANSFER=NO_AS_SOURCE_SUPPORT_STATEMENT
-PLAYBOOK_CONTRACT_CREATED=NO
-SEMANTICS_EXPLICITLY_PINNED=3
-SEMANTICS_PARTIALLY_PINNED=10
-SEMANTICS_NOT_PINNED=1
-SEMANTICS_REQUIRES_UNAVAILABLE_INPUT=5
-```
-
-Meaning of `SOURCE_SUPPORTS_CHINESE_FUTURES_TRANSFER=NO_AS_SOURCE_SUPPORT_STATEMENT`: the reviewed source does not authorize the transfer as the same EXPLICIT source claim. It is not evidence that the idea cannot work in Chinese futures.
-
-Project conclusion:
-
-```text
-STEENBARGER_FALSE_BREAKOUT_RANGE_REVERSION_STATUS=STOPPED_AS_CURRENT_DATA_PLAYBOOK_CANDIDATE
-REASON=SOURCE_CRITICAL_INPUTS_UNAVAILABLE_AND_PRICE_SIDE_SEMANTICS_NOT_UNIQUELY_PINNED
-NO_NEW_PAID_DATA_JUSTIFIED=YES
-```
-
-The source's real-time family materially uses NYSE TICK, Market Delta, breadth/participation and US sector/cross-market confirmation. These inputs are not replaced by OHLCV proxies.
-
-## Human Playbook source layer / next re-selection
-
-Registered source layer includes Brandt, Brooks, Raschke, Grimes, Steenbarger, Steidlmayer -> Dalton Market Profile lineage and skeptical/counter-evidence methods. China-first leads retain their recorded provenance limitations; 青泽 remains bibliographic-level only without authorized text/sample; competition rankings remain discovery-only.
-
-Source authorities:
-- `docs/research/HUMAN_PLAYBOOK_SOURCE_MATERIAL_INVENTORY.md`
-- `docs/research/HUMAN_PLAYBOOK_SOURCE_LAYER_FIRST_WAVE_CLOSEOUT.md`
-- `docs/research/source_dossiers/SOURCE_DOSSIER_RASCHKE_V0_1.md`
-
-Next source selection:
-
-```text
-NEXT_SOURCE=SRC-RASCHKE
-NEXT_SOURCE_CLASSIFICATION=PRIORITY_DEEP_DIVE
-NEXT_SELECTION_BASIS=FREE_PUBLIC_ORIGINAL_PLUS_PRICE_VOLUME_SESSION_COMPATIBILITY_NOT_EXPECTED_PERFORMANCE
-NEXT_GOAL=SELECT_AT_MOST_ONE_CURRENT_DATA_COMPATIBLE_SOURCE_FAITHFUL_FAMILY
-```
-
-Brandt remains attractive but its primary diary/book source is paid. Brooks remains highly bar-compatible but core books/course are paid and many current official web materials require registration/login. Raschke is selected next because the official free-resource surface includes price/volume, day-type/trade-location, short-term-pattern, and mean-reversion/trend/breakout material while the repository dossier already rates her `PRIORITY_DEEP_DIVE` with mixed but substantial current-data observability.
-
-## Source acquisition tool state for Raschke package
-
-Authority:
-`docs/research/HUMAN_PLAYBOOK_SOURCE_ACQUISITION_TOOL_ADMISSION.md`
-
-Recorded capability:
-
-```text
-LOCAL_VIDEO_MULTIMODAL_SUBPIPELINE=VERIFIED
-PUBLIC_YOUTUBE_URL_ADAPTER=NOT_VERIFIED_BLOCKED_BY_403_IN_RECORDED_ENV
-BILIBILI_PUBLIC_URL_ADAPTER=NOT_VERIFIED_BLOCKED_BY_412_IN_RECORDED_ENV
-VIDEO_TRANSCRIBE_SKILL=VERIFIED_FOR_LOCAL_OFFLINE_FALLBACK_WITH_NON_EXACT_TRANSCRIPT_LIMITATIONS
-DOCLING=VERIFIED_NOT_ADOPTED
-TOOL_DECISION=USE_EXISTING
-NO_NEW_TOOL_REQUIRED=YES
-```
-
-The next package must not bypass anti-bot/cookie/auth controls. If a free official Raschke video cannot be lawfully/technically acquired, use official free article/text material or another accessible official Raschke resource rather than treating one adapter failure as a project blocker.
+Paid sources/data may be recorded as optional candidates only. Adequate free/public alternatives should be used when available. No automatic purchase/subscription/login is authorized.
 
 ## Canonical historical corpus
 
@@ -332,22 +140,151 @@ CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
 
 Corpus construction created no project-recorded strategy-family DEVELOPMENT/VALIDATION/historical-final exposure.
 
+## Human Playbook research state
+
+### Wave 1 — Grimes
+
+```text
+WAVE_1_STATUS=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
+WAVE_1_COMMIT=b68da256bbc493ac6e1de0fe02b7fde5a0396ddf
+WAVE_1_CLAIMS=15
+WAVE_1_EXPLICIT=13
+WAVE_1_INFERRED=2
+WAVE_1_PRIMARY_CANDIDATES=0
+```
+
+Review: `docs/reviews/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_WAVE_1_INTEGRATION_REVIEW_V0_1.md`.
+
+### Wave 2 — Steenbarger
+
+```text
+WAVE_2_STATUS=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
+WAVE_2_COMMIT=c0fef50bb3b0f5a97c7bdf472d5a9e2d9339273a
+WAVE_2_CLAIMS=18
+WAVE_2_EXPLICIT=18
+WAVE_2_PRIMARY_CANDIDATES=0
+```
+
+Review: `docs/reviews/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_WAVE_2_INTEGRATION_REVIEW_V0_1.md`.
+
+### First semantic-completion attempt — Steenbarger false breakout
+
+```text
+SEMANTIC_COMPLETION_STATUS=ACCEPTED_NEGATIVE_RESULT
+TARGET_FAMILY=STEENBARGER_FALSE_BREAKOUT_RANGE_REVERSION
+SOURCE_FAITHFUL_PRICE_VOLUME_PLAYBOOK_DRAFTABLE=NO
+PRICE_VOLUME_ONLY_FORMULATION_EXPLICITLY_SUPPORTED_BY_SOURCE=NO
+SOURCE_SUPPORTS_CHINESE_FUTURES_TRANSFER=NO_AS_SOURCE_SUPPORT_STATEMENT
+PLAYBOOK_CONTRACT_CREATED=NO
+STEENBARGER_FALSE_BREAKOUT_RANGE_REVERSION_STATUS=STOPPED_AS_CURRENT_DATA_PLAYBOOK_CANDIDATE
+NO_NEW_PAID_DATA_JUSTIFIED=YES
+```
+
+Review: `docs/reviews/STEENBARGER_FALSE_BREAKOUT_RANGE_REVERSION_SEMANTIC_COMPLETION_INTEGRATION_REVIEW_V0_1.md`.
+
+### Raschke free/public screen — ACCEPTED
+
+Worker evidence:
+
+```text
+RASCHKE_SCREEN_BRANCH=parallel/raschke-public-current-data-screen-v01
+RASCHKE_SCREEN_COMMIT=bd09f9acc4647f9a2240a2f20bf9c919c4d8bb23
+RASCHKE_SCREEN_STATUS=ACCEPTED_WITH_INTEGRATION_CORRECTION
+MATERIALS_SCREENED=8
+CLAIMS=24
+EXPLICIT=24
+OBSERVABLE_NOW=12
+PARTIALLY_OBSERVABLE=10
+NOT_OBSERVABLE_WITH_CURRENT_DATA=2
+SOURCE_ONLY_VERIFIED=YES
+PROTECTED_OUTCOME_DENIAL=PASS
+NO_CANDIDATE_OUTCOME_DATA_USED=YES
+```
+
+Selected family:
+
+```text
+RASCHKE_CURRENT_DATA_FAMILY_SELECTED=RASCHKE_NR7_RANGE_CONTRACTION_TREND_DAY_BREAKOUT
+SELECTED_FAMILY_STATUS=SELECTED_FOR_TARGETED_SEMANTIC_COMPLETION
+SOURCE_SUPPORTS_COMMODITY_FUTURES=YES_FOR_NR7_CONCEPT
+SOURCE_SUPPORTS_CURRENT_PROJECT_PRODUCTS=UNKNOWN
+PLAYBOOK_CONTRACT_CREATED=NO
+```
+
+Integration correction:
+
+```text
+INVALIDATION_REFERENCE=NOT_YET_SOURCE_PINNED_FOR_SELECTED_FAMILY
+```
+
+The source's bracket-entry statement does not itself establish the opposite bracket side as a post-entry stop/invalidation rule. Generic `gives back more than it should` management language is also not a unique invalidation threshold.
+
+Review: `docs/reviews/HUMAN_PLAYBOOK_RASCHKE_FREE_PUBLIC_CURRENT_DATA_SCREEN_INTEGRATION_REVIEW_V0_1.md`.
+
+## Active three-lane parallel package
+
+Authority:
+`docs/research/PARALLEL_WORK_PACKAGE_2026-08-19_V0_1.md`
+
+```text
+PARALLEL_EXECUTION=ENABLED
+MAX_ACTIVE_LANES=3
+PARALLELISM_CRITERION=INDEPENDENT_MUST_DO_WORK_NOT_DEPENDENT_ON_OTHER_LANE_RESULT
+MAIN=SOLE_INTEGRATION_LANE
+TOOL_DECISION=USE_EXISTING
+```
+
+### Lane A — source semantics
+
+```text
+LANE_A=RASCHKE_NR7_TARGETED_SEMANTIC_COMPLETION_V0_1
+TYPE=SOURCE_RESEARCH
+OUTCOME_ACCESS=FORBIDDEN
+TARGET=PLAYBOOK_SEMANTICALLY_DRAFTABLE_YES_OR_NO
+```
+
+### Lane B — generic Playbook Contract engineering
+
+```text
+LANE_B=PLAYBOOK_CONTRACT_CORE_ENGINEERING_V0_1
+TYPE=ENGINEERING
+OUTCOME_ACCESS=FORBIDDEN
+TARGET=VERSIONED_SOURCE_INTERPRETATION_MACHINE_CONTRACT_LAYER
+```
+
+This lane must reuse/bridge existing `StrategyIdentity`, `StrategyCatalog`, `ResearchFirewall` and canonical identity patterns rather than duplicate them.
+
+### Lane C — mandatory execution-evidence repairs
+
+```text
+LANE_C=EXECUTION_EVIDENCE_TD001_TD002_REPAIR_V0_1
+TYPE=ENGINEERING
+OUTCOME_ACCESS=FORBIDDEN
+TARGET=TRADING_DAY_AUTHORITY_AND_PARTIAL_CLOSE_EQUITY_PATH_REPAIR
+```
+
+Known debts:
+- `TD-001`: trusted day/week logic must use `SessionMetadata` as the official authority;
+- `TD-002`: partial-close intermediate equity/unrealized/drawdown snapshots are unsafe because remaining-position `unrealized_pnl` can be zeroed until a later mark; closed realized totals are not corrupted.
+
+Preferred integration order if all lanes finish together: C -> B -> A. A failure/delay in one lane does not block integration of accepted independent lanes.
+
 ## Current authorization boundaries
 
 AUTHORIZED NOW:
-- free/public source discovery and provenance;
-- controlled real source-faithful claim extraction / semantic completion in verified SOURCE_ONLY;
+- free/public source discovery/provenance;
+- verified SOURCE_ONLY claim extraction / semantic completion;
 - claim/interpretation/lineage/exposure evidence work;
-- deterministic non-outcome operationalization/tests only where source meaning is adequately pinned;
-- non-candidate engineering that cannot bias a future acceptance design;
-- synthetic/non-candidate sanity/reproducibility work.
+- generic Playbook Contract engineering using synthetic/non-candidate fixtures;
+- deterministic non-outcome execution/ledger engineering;
+- synthetic/non-candidate tests and reproducibility work.
 
 NOT AUTHORIZED:
 - data-first K-line/chart-pattern/indicator/rule/parameter mining as project route;
 - candidate PnL/equity/expectancy/Sharpe/win-loss or equivalent candidate-quality inspection;
 - Validation access;
 - historical final-holdout access;
-- Shadow/Forward trading/evidence collection without later authority;
+- Shadow/Forward evidence collection without later authority;
 - changing frozen 12/6/6 or Protocol semantics without new version/review/Owner gate;
 - real-money/broker actions;
 - discretionary live-LLM critical path;
@@ -358,26 +295,17 @@ NOT AUTHORIZED:
 
 ```text
 TOOL_DECISION=USE_EXISTING
-TOOL_DECISION_SCOPE=RASCHKE_FREE_PUBLIC_CURRENT_DATA_COMPATIBILITY_SCREEN_AND_CLAIM_EXTRACTION_V0_1
+TOOL_DECISION_SCOPE=THREE_LANE_PARALLEL_PREOUTCOME_BUILDOUT
+NEW_TOOL_REQUIRED=NO
+PARALLEL_WORKTREES=3
 PAID_CHAT_RELAY_ORCHESTRATOR=NOT_ADOPTED_CURRENTLY
 BRITTLE_VSCODE_UI_CHAT_AUTOMATION=NOT_ADOPTED_CURRENTLY
 CURRENT_DS_RELAY_MODE=OWNER_MANUAL_RELAY_WHEN_LOCAL_AGENT_IS_NEEDED
 ```
 
-No new framework/API is justified for the next package. Existing SOURCE_ONLY + recorded local multimedia/text acquisition capabilities are sufficient for a bounded source screen.
+## Verification baseline
 
-## Known limitations / tech debt
-
-- `TD-001`: trusted day/week statistics must use `SessionMetadata`.
-- `TD-002`: partial-close equity/unrealized/drawdown path snapshots unsafe; final realized round-trip totals not corrupted.
-- `LIMIT-001`: missing governed historical price-limit facts fail closed for affected confirmatory execution.
-- `DECISION-001`: live AI scene-recognition mode remains Owner-gated/unresolved.
-
-Statistical evaluator/round-trip-ledger implementation is not the current priority while the positive-acceptance path is parked.
-
-## Verification status
-
-Latest code-bearing main baseline remains:
+Latest accepted code-bearing baseline before these new lanes:
 
 ```text
 python -m unittest discover -s tests -v
@@ -386,26 +314,19 @@ python -m unittest discover -s tests -v
 exit 0
 ```
 
-The Steenbarger semantic-completion lane independently reported firewall 54 OK and full suite 235 OK / 3 skipped / exit 0. Its worker commit changed no production `src/` or tests.
+Raschke screen independently reported the same full-suite result plus 54 SOURCE_ONLY/firewall tests OK; its worker commit changed no production `src/` or tests.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=SCREEN_AND_EXTRACT_RASCHKE_FREE_PUBLIC_MATERIAL_FOR_ONE_CURRENT_DATA_COMPATIBLE_SOURCE_FAMILY
-CURRENT_NEXT_ACTION_AUTHORITY=docs/research/HUMAN_PLAYBOOK_CLAIM_CORPUS_TRIAGE_V0_2.md
-SOURCE=SRC-RASCHKE
-SOURCE_SCOPE=OFFICIAL_FREE_PUBLIC_UNAUTHENTICATED_ONLY
-TARGET_OUTPUT=RASCHKE_CURRENT_DATA_FAMILY_SELECTED_ONE_OR_NONE
-NO_CANDIDATE_OUTCOME_DATA_USED=YES
-PROFILE_STATUS=POSITIVE_ACCEPTANCE_PATH_PARKED_NOT_LOCKED
-TOOL_DECISION=USE_EXISTING
+CURRENT_NEXT_ACTION=RUN_LANES_A_B_C_IN_PARALLEL_AND_RETURN_THEIR_FINAL_REPORTS
+OWNER_ACTION=RUN_THREE_PARALLEL_LOCAL_AGENT_PROMPTS
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
-OWNER_ACTION=NONE
 ```
 
-The next package should screen official free Raschke price/volume/session material and extract only enough source-faithful claims to decide whether one family deserves targeted semantic completion. `NONE` is a valid result. No data purchase or proxy invention is justified.
+Project brain will independently review each returned branch and integrate accepted lanes into `main`. Ordinary defects are fixed without creating new Owner gates.
 
 ## Progress estimates — engineering estimates, not evidence facts
 
@@ -413,11 +334,11 @@ The next package should screen official free Raschke price/volume/session materi
 | --- | --- | ---: |
 | Architecture / Bootstrap | Skeleton v1.0 accepted | 100% |
 | Data Substrate | canonical corpus accepted | ~90% |
-| Strategy Catalog | 2 real claim waves accepted; first semantic candidate stopped; reselection active | ~68% |
+| Strategy Catalog | claim corpus + selected Raschke semantic family; generic contract lane next | ~68% |
 | Backtest & Validation | engine/firewall substantial; positive acceptance path parked | ~66% |
-| Human Playbook Research Loop | 33 claims + first semantic negative result; Raschke screen next | ~61% |
+| Human Playbook Research Loop | 2 claim waves + Steenbarger negative + Raschke family selected | ~63% |
 | Trading Loop | early deterministic foundations | ~15% |
-| Ledger / Observability | foundational pieces only | ~25% |
-| Overall project | research-foundation stage | ~54% |
+| Ledger / Observability | foundational pieces; TD-001/TD-002 repair active | ~25% |
+| Overall project | research-foundation stage | ~55% |
 
 Percentages are conservative engineering estimates, not evidence facts.
