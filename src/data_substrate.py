@@ -69,6 +69,20 @@ class SessionMetadata:
             return None
         return matches[0].trading_day
 
+    def trading_week_at(self, exchange: str, instrument: str, timestamp: datetime) -> tuple[int, int] | None:
+        """ISO (year, week) of the official trading day containing the timestamp.
+
+        Weekly attribution is derived from the authoritative trading-day
+        identity returned by ``trading_day_at``, never from the raw civil
+        timestamp.  A night session that crosses civil midnight is therefore
+        attributed to the week of the official trading day it opens for.
+        """
+        trading_day = self.trading_day_at(exchange, instrument, timestamp)
+        if trading_day is None:
+            return None
+        iso = trading_day.isocalendar()
+        return (iso[0], iso[1])
+
     def expected_bar_starts(
         self, exchange: str, instrument: str, trading_day: date, interval: timedelta
     ) -> tuple[datetime, ...]:

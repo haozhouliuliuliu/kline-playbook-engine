@@ -11,9 +11,16 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Dict, Iterable, Tuple
 
+from src.data_substrate import SessionMetadata, SessionWindow
+
 
 class SessionConflict(ValueError):
-    pass
+    """Legacy feasibility-fixture exception.
+
+    Retained only for API compatibility.  Trading-day conflicts now fail
+    closed inside ``SessionMetadata`` at construction time (overlapping
+    windows are rejected), so no lookup can reach a conflicting state.
+    """
 
 
 @dataclass(frozen=True)
@@ -38,23 +45,37 @@ class TradingSession:
 
 
 class NormalizedSessionCalendar:
-    """Explicit point-in-time session mapping; no weekday/night inference."""
+    """Explicit point-in-time session mapping; no weekday/night inference.
+
+    This feasibility fixture deliberately delegates trading-day and
+    trading-week attribution to the single authoritative ``SessionMetadata``
+    semantics in ``src.data_substrate``.  The fixture therefore contains no
+    competing trading-day algorithm and can never become a second
+    business-logic owner of trading-day determination (TD-001).
+    """
 
     def __init__(self, sessions: Iterable[TradingSession]):
         self._sessions: Tuple[TradingSession, ...] = tuple(sessions)
+        windows = tuple(
+            SessionWindow(
+                session.exchange,
+                session.instrument,
+                session.trading_day,
+                session.start,
+                session.end,
+                session.kind,
+            )
+            for session in self._sessions
+        )
+        # SessionMetadata fails closed on overlapping windows, so one
+        # timestamp can never silently map to two different trading days.
+        self._metadata = SessionMetadata("bootstrap-feasibility-fixture-v1", windows)
 
     def trading_day_at(self, exchange: str, instrument: str, ts: datetime) -> date | None:
-        matches = [
-            s
-            for s in self._sessions
-            if s.exchange == exchange and s.instrument == instrument and s.contains(ts)
-        ]
-        if not matches:
-            return None
-        trading_days = {s.trading_day for s in matches}
-        if len(trading_days) != 1:
-            raise SessionConflict("overlapping sessions map one timestamp to different trading days")
-        return next(iter(trading_days))
+        return self._metadata.trading_day_at(exchange, instrument, ts)
+
+    def trading_week_at(self, exchange: str, instrument: str, ts: datetime) -> tuple[int, int] | None:
+        return self._metadata.trading_week_at(exchange, instrument, ts)
 
 
 @dataclass(frozen=True)
