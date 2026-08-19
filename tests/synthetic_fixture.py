@@ -133,13 +133,17 @@ def make_artifact_bindings(
 
 
 def synthetic_session_identity(session_id: str = SYNTHETIC_SESSION_ID) -> str:
-    """Deterministic session identity of the standard synthetic SOURCE_ONLY session."""
+    """Deterministic session identity of the standard synthetic SOURCE_ONLY session.
+
+    The session binds the material-derived session binding identity/hash of the
+    standard synthetic approved bundle (F-C01), not the legacy bundle id/hash.
+    """
     session = SourceOnlySession(
         session_id=session_id,
         model_identity="model-fixture-v1",
         prompt_spec_version="prompt-spec-v1",
-        source_bundle_identity=SYNTHETIC_SOURCE_BUNDLE_ID,
-        source_bundle_hash=SYNTHETIC_SOURCE_BUNDLE_HASH,
+        source_bundle_identity=SYNTHETIC_SESSION_BINDING_IDENTITY,
+        source_bundle_hash=SYNTHETIC_SESSION_BINDING_HASH,
         tool_retrieval_mode="PROJECT_SOURCE_ONLY",
         protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
         researcher_model_exposure_note="no known exposure",
@@ -148,13 +152,14 @@ def synthetic_session_identity(session_id: str = SYNTHETIC_SESSION_ID) -> str:
 
 
 def make_open_session(policy, *, session_id: str = SYNTHETIC_SESSION_ID) -> SourceOnlySession:
-    """Open the standard verified synthetic SOURCE_ONLY session on ``policy``."""
+    """Open the standard verified synthetic SOURCE_ONLY session on ``policy``,
+    bound to the material-derived session binding identity/hash (F-C01)."""
     return policy.open_verified_session(
         session_id=session_id,
         model_identity="model-fixture-v1",
         prompt_spec_version="prompt-spec-v1",
-        source_bundle_identity=SYNTHETIC_SOURCE_BUNDLE_ID,
-        source_bundle_hash=SYNTHETIC_SOURCE_BUNDLE_HASH,
+        source_bundle_identity=SYNTHETIC_SESSION_BINDING_IDENTITY,
+        source_bundle_hash=SYNTHETIC_SESSION_BINDING_HASH,
         tool_retrieval_mode="PROJECT_SOURCE_ONLY",
         researcher_model_exposure_note="no known exposure",
     )
@@ -206,6 +211,14 @@ def make_approved_bundle(
     )
 
 
+# Deterministic material-derived session binding facts of the standard synthetic
+# approved bundle. Future SOURCE_ONLY sessions must bind to these, not to the
+# legacy recorded bundle id/hash (F-C01).
+_SYNTHETIC_APPROVED_BUNDLE = make_approved_bundle()
+SYNTHETIC_SESSION_BINDING_IDENTITY = _SYNTHETIC_APPROVED_BUNDLE.session_binding_identity
+SYNTHETIC_SESSION_BINDING_HASH = _SYNTHETIC_APPROVED_BUNDLE.session_binding_hash
+
+
 def make_contract(**overrides) -> PlaybookContract:
     """Build a machine-ready synthetic PlaybookContract bound to the standard
     synthetic source bundle and SOURCE_ONLY session identity."""
@@ -223,8 +236,8 @@ def make_contract(**overrides) -> PlaybookContract:
                 claim_status=ClaimStatus.EXPLICIT,
             ),
         ),
-        source_bundle_identity=SYNTHETIC_SOURCE_BUNDLE_ID,
-        source_bundle_hash=SYNTHETIC_SOURCE_BUNDLE_HASH,
+        source_bundle_identity=SYNTHETIC_SESSION_BINDING_IDENTITY,
+        source_bundle_hash=SYNTHETIC_SESSION_BINDING_HASH,
         source_only_session_identity=synthetic_session_identity(),
         source_scope="deterministic-synthetic-fixture",
         interpretations=(

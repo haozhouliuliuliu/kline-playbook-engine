@@ -1133,6 +1133,31 @@ def main() -> None:
     bundle_hash = _bundle_hash()
     material_records = _material_records()
 
+    # ---- Approved source bundle (provenance surface) --------------------
+    # Built before the SOURCE_ONLY session so the session can bind the
+    # deterministic material-derived session binding identity/hash (F-C01),
+    # not the legacy recorded bundle id/hash.
+    bundle = ApprovedSourceBundle.legacy_unbound(
+        source_bundle_id=BUNDLE_ID,
+        source_bundle_hash=bundle_hash,
+        source_anchor_reference=(
+            f"{BUNDLE_ID}: reuses the accepted Raschke screen bundle materials "
+            "(SR-V0-M01 AIQ 1997-08; SR-V0-M02 S&C 1993-09; SR-V0-M03 Active Trader "
+            "2004-02; SR-V0-M04 Active Trader 2000-08; SR-V0-M05 Active Trader 2004-03) "
+            "that anchor the NR7 / range-contraction -> trend-day breakout family; see "
+            "docs/evidence/HUMAN_PLAYBOOK_SOURCE_BUNDLE_RASCHKE_NR7_SEMANTIC_V0_1.json"
+        ),
+        material_records=tuple(
+            {
+                "source_id": SOURCE_ID,
+                "material_id": material["material_id"],
+                "source_anchor_reference": material["material_id"],
+            }
+            for material in MATERIALS
+        ),
+        content_note=RETENTION_BOUNDARY,
+    )
+
     # ---- B: source bundle manifest (predeclared) --------------------------
     manifest = {
         "artifact": "HUMAN_PLAYBOOK_SOURCE_BUNDLE_RASCHKE_NR7_SEMANTIC",
@@ -1216,8 +1241,8 @@ def main() -> None:
         session_id=SESSION_ID,
         model_identity=MODEL_IDENTITY,
         prompt_spec_version=PROMPT_SPEC_VERSION,
-        source_bundle_identity=BUNDLE_ID,
-        source_bundle_hash=bundle_hash,
+        source_bundle_identity=bundle.session_binding_identity,
+        source_bundle_hash=bundle.session_binding_hash,
         tool_retrieval_mode=RETRIEVAL_MODE,
         researcher_model_exposure_note=EXPOSURE_NOTE,
     )
@@ -1225,26 +1250,6 @@ def main() -> None:
     if not verified:
         raise RuntimeError("SOURCE_ONLY session failed project verification")
 
-    bundle = ApprovedSourceBundle.legacy_unbound(
-        source_bundle_id=BUNDLE_ID,
-        source_bundle_hash=bundle_hash,
-        source_anchor_reference=(
-            f"{BUNDLE_ID}: reuses the accepted Raschke screen bundle materials "
-            "(SR-V0-M01 AIQ 1997-08; SR-V0-M02 S&C 1993-09; SR-V0-M03 Active Trader "
-            "2004-02; SR-V0-M04 Active Trader 2000-08; SR-V0-M05 Active Trader 2004-03) "
-            "that anchor the NR7 / range-contraction -> trend-day breakout family; see "
-            "docs/evidence/HUMAN_PLAYBOOK_SOURCE_BUNDLE_RASCHKE_NR7_SEMANTIC_V0_1.json"
-        ),
-        material_records=tuple(
-            {
-                "source_id": SOURCE_ID,
-                "material_id": material["material_id"],
-                "source_anchor_reference": material["material_id"],
-            }
-            for material in MATERIALS
-        ),
-        content_note=RETENTION_BOUNDARY,
-    )
     output = ClaimRecordOutput()
     runner = SourceOnlyClaimExtractionContext(
         source_bundle=bundle,

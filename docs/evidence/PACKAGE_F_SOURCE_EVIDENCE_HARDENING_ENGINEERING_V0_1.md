@@ -120,7 +120,8 @@ wording was erased and no historical JSON was modified.
 
 ## 5. Focused acceptance tests (F01..F13)
 
-`tests/test_source_evidence_hardening.py` (16 tests) plus the updated
+`tests/test_source_evidence_hardening.py` (23 tests including FC01/F-C02/F-C03
+regressions) plus the updated
 `tests/test_research_firewall.py` runner tests:
 
 - F01 `from_bytes` same bytes → same material identity.
@@ -161,3 +162,51 @@ PLAYBOOK_CONTRACT_CHANGED=NO
 CANONICAL_DATA_CHANGED=NO
 EXECUTION_CHANGED=NO
 ```
+
+## 8. Pre-integration correction (F-C01 / F-C02 / F-C03)
+
+Authoritative review: `docs/reviews/PARALLEL_PACKAGE_C_D_F_PREINTEGRATION_REVIEW_V0_1.md`
+(baseline `40f27b24...` merged into this branch; one new correction commit, no
+amend of the original Package F commit).
+
+### F-C01 — SOURCE_ONLY sessions bind material-derived bundle identity/hash
+
+`ApprovedSourceBundle` now exposes deterministic material-derived session
+binding facts:
+
+- `session_binding_identity` — equal to the material-bound `bundle_identity`;
+- `session_binding_hash` — derived from `bundle_identity` + `byte_binding_status`.
+
+`bundle_identity` now also binds the recorded historical `source_bundle_hash`, so
+the same bundle id + materials with a different recorded hash is a different
+bundle evidence identity.
+
+`SourceOnlyClaimExtractionContext.verified` now compares the session against
+`session_binding_identity` / `session_binding_hash` (not the legacy bundle id /
+caller-supplied recorded hash). Therefore changing exact source bytes changes
+both session binding identity and hash, invalidating a previously verified
+SOURCE_ONLY session context (FC01-A/B/C regressions).
+
+`source_bundle_id` / `source_bundle_hash` are retained as historical recorded
+values (`historical_recorded_bundle_hash`), never upgraded to byte proof.
+Historical-unbound legacy bundles remain `NOT_RECORDED` and still have
+deterministic session binding facts for future re-runs.
+
+All future `open_verified_session` call sites (synthetic fixtures, NR7 and Holy
+Grail tools, Package B helpers) now bind `source_bundle_identity` /
+`source_bundle_hash` to the material-derived session binding identity/hash.
+Committed historical session JSON is unchanged.
+
+### F-C02 — future session binding hash is not caller-controlled
+
+`session_binding_identity` / `session_binding_hash` are read-only derived
+properties, not constructor fields. There is no `session_binding_hash=`,
+`bundle_binding_hash=`, or `material_digest=` caller path. Exact binding still
+originates only from `ApprovedSourceMaterialRef.from_bytes()` and is derived
+upward. An `inspect.signature` regression proves this (FC02).
+
+### F-C03 — ClaimRecordDraft claim_status conforms to Claim Schema v1.0
+
+`ClaimRecordDraft.claim_status` is now restricted to `EXPLICIT | INFERRED |
+UNKNOWN` (authority: `src/playbook_contract.ClaimStatus`). Values such as
+`READY`, `explicit`, `NOT_APPLICABLE` fail closed (FC03 regressions).

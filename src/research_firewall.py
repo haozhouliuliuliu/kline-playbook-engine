@@ -35,7 +35,7 @@ import os
 import secrets
 from typing import Any
 
-from src.playbook_contract import PlaybookContract
+from src.playbook_contract import ClaimStatus, PlaybookContract
 from src.strategy_evidence import (
     AccessResult,
     ArtifactBinding,
@@ -441,9 +441,20 @@ class ApprovedSourceBundle:
     bundle reference/hash is preserved as a historical value while every material
     ref stays explicitly ``NOT_RECORDED``. A recorded hash can never upgrade
     materials to ``EXACT_BYTES_BOUND``.
+
+    Field semantics (F-C01 / F-C02):
+    - ``source_bundle_id`` is the legacy bundle identity used by historical
+      evidence.
+    - ``source_bundle_hash`` is the HISTORICAL RECORDED bundle hash / recorded
+      metadata value (see ``historical_recorded_bundle_hash``). It is NOT an
+      exact-byte session attestation. Future SOURCE_ONLY sessions bind to the
+      deterministic material-derived ``session_binding_identity`` /
+      ``session_binding_hash``, never to this recorded value as byte proof.
     """
 
     source_bundle_id: str
+    # Historical recorded bundle hash / recorded metadata value (F-C01/F-C02).
+    # Kept for historical-evidence compatibility; NOT a byte-bound attestation.
     source_bundle_hash: str
     source_anchor_reference: str
     materials: tuple[ApprovedSourceMaterialRef, ...] = ()
@@ -513,14 +524,57 @@ class ApprovedSourceBundle:
         return ByteBindingStatus.NOT_RECORDED
 
     @property
+    def historical_recorded_bundle_hash(self) -> str:
+        """The historical recorded bundle hash / recorded metadata value.
+
+        This is the value recorded in accepted historical evidence. It is NOT an
+        exact-byte session attestation and must never be treated as one.
+        """
+        return self.source_bundle_hash
+
+    @property
     def bundle_identity(self) -> str:
-        """Material-bound bundle identity: binds bundle id, anchor, and the
-        canonical material refs (their identities/hashes)."""
+        """Canonical material-bound bundle evidence identity (S-01 / F-C01).
+
+        Binds the legacy bundle id, the recorded historical bundle hash, the
+        bundle anchor, and the canonical material refs (their identities/hashes).
+        The same bundle id + materials with a different recorded historical hash
+        is therefore a different bundle evidence identity.
+        """
         return _canonical_hash(
             {
                 "source_bundle_id": self.source_bundle_id,
+                "source_bundle_hash": self.source_bundle_hash,
                 "source_anchor_reference": self.source_anchor_reference,
                 "materials": [material.material_identity for material in self.materials],
+            }
+        )
+
+    @property
+    def session_binding_identity(self) -> str:
+        """Deterministic material-bound SOURCE_ONLY session binding identity
+        (F-C01).
+
+        Equal to the material-bound ``bundle_identity``. Exact material byte
+        changes change the session binding identity, so a session opened for one
+        bundle can never verify against a different-material bundle.
+        """
+        return self.bundle_identity
+
+    @property
+    def session_binding_hash(self) -> str:
+        """Deterministic material-bound SOURCE_ONLY session binding hash
+        (F-C01 / F-C02).
+
+        Fully derived from the actual bundle material binding facts (no caller
+        input). Exact material byte changes therefore change the session binding
+        hash as well as the session binding identity. There is no caller-set
+        path for this value.
+        """
+        return _canonical_hash(
+            {
+                "bundle_identity": self.bundle_identity,
+                "byte_binding_status": self.byte_binding_status.value,
             }
         )
 
@@ -541,6 +595,11 @@ def _draft_anchor_matches(draft_anchor: str, material_anchor: str) -> bool:
     prefix). No URL parsing and no fuzzy matching.
     """
     return draft_anchor == material_anchor or draft_anchor.startswith(material_anchor + ":")
+
+
+# Claim Schema v1.0 claim statuses (authority: src.playbook_contract.ClaimStatus).
+# Only these three values are legal for a claim record draft (F-C03).
+_CLAIM_STATUS_VALUES = frozenset(status.value for status in ClaimStatus)
 
 
 @dataclass(frozen=True)
@@ -576,6 +635,13 @@ class ClaimRecordDraft:
         )
         if not all(required):
             raise ValueError("claim record draft has required empty fields")
+        # F-C03: Claim Schema v1.0 restricts claim_status to EXPLICIT | INFERRED |
+        # UNKNOWN (authority: src.playbook_contract.ClaimStatus).
+        if self.claim_status not in _CLAIM_STATUS_VALUES:
+            raise ValueError(
+                "claim record draft claim_status must be one of "
+                "EXPLICIT | INFERRED | UNKNOWN (Claim Schema v1.0)"
+            )
 
 
 class ClaimRecordOutput:
@@ -639,9 +705,11 @@ class SourceOnlyClaimExtractionContext:
         session = self._source_only.get(self._session_id)
         if session is None or not self._source_only.is_verified(self._session_id):
             return False
+        # F-C01: session binding uses the deterministic material-derived bundle
+        # binding identity/hash, NOT the legacy bundle id / recorded hash.
         return (
-            session.source_bundle_identity == self._source_bundle.source_bundle_id
-            and session.source_bundle_hash == self._source_bundle.source_bundle_hash
+            session.source_bundle_identity == self._source_bundle.session_binding_identity
+            and session.source_bundle_hash == self._source_bundle.session_binding_hash
         )
 
     def record_claim(self, draft: ClaimRecordDraft) -> ClaimRecordDraft:

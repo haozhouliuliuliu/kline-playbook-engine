@@ -222,10 +222,18 @@ class SourceEvidenceHardeningTests(unittest.TestCase):
 
     def test_f08b_bundle_id_that_is_also_approved_source_id_passes(self):
         policy = ResearchFirewall(EvidenceLedger()).source_only
-        session = make_open_session(policy)
-        # "unless the bundle id happens to truly also be an approved source_id"
+        # Approve a material whose source_id is exactly the bundle id.
         bundle = make_approved_bundle(
             materials=(make_approved_material_ref(source_id=SYNTHETIC_SOURCE_BUNDLE_ID),)
+        )
+        # The session must bind THIS bundle's material-derived binding facts (F-C01).
+        session = policy.open_verified_session(
+            session_id="f08b-session",
+            model_identity="model-fixture-v1",
+            prompt_spec_version="prompt-spec-v1",
+            source_bundle_identity=bundle.session_binding_identity,
+            source_bundle_hash=bundle.session_binding_hash,
+            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
         )
         runner, _ = self._make_runner(policy=policy, session=session, bundle=bundle)
         recorded = runner.record_claim(
@@ -267,6 +275,164 @@ class SourceEvidenceHardeningTests(unittest.TestCase):
             )
         )
         self.assertEqual(recorded.claim_id, "c-descendant-anchor")
+
+    # -- FC01: SOURCE_ONLY session binds material-derived identity/hash -------
+
+    def _exact_bundle(self, *, content: bytes) -> ApprovedSourceBundle:
+        return ApprovedSourceBundle(
+            source_bundle_id="SB-FC01",
+            source_bundle_hash="recorded-hash",
+            source_anchor_reference="R",
+            materials=(_exact_ref(content=content),),
+        )
+
+    def test_fc01a_material_change_changes_session_binding_identity_and_hash(self):
+        bundle_v1 = self._exact_bundle(content=b"abc")
+        bundle_v2 = self._exact_bundle(content=b"abd")
+        # All metadata (bundle id + recorded hash) is identical; only the
+        # material bytes differ.
+        self.assertEqual(bundle_v1.source_bundle_id, bundle_v2.source_bundle_id)
+        self.assertEqual(bundle_v1.source_bundle_hash, bundle_v2.source_bundle_hash)
+        self.assertNotEqual(
+            bundle_v1.session_binding_identity, bundle_v2.session_binding_identity
+        )
+        self.assertNotEqual(bundle_v1.session_binding_hash, bundle_v2.session_binding_hash)
+
+    def test_fc01b_material_change_invalidates_session_context(self):
+        bundle_v1 = self._exact_bundle(content=b"abc")
+        bundle_v2 = self._exact_bundle(content=b"abd")
+        self.assertEqual(bundle_v1.source_bundle_id, bundle_v2.source_bundle_id)
+        self.assertEqual(bundle_v1.source_bundle_hash, bundle_v2.source_bundle_hash)
+        policy = ResearchFirewall(EvidenceLedger()).source_only
+        session = policy.open_verified_session(
+            session_id="fc01-session",
+            model_identity="model-fixture-v1",
+            prompt_spec_version="prompt-spec-v1",
+            source_bundle_identity=bundle_v1.session_binding_identity,
+            source_bundle_hash=bundle_v1.session_binding_hash,
+            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+        )
+        self.assertTrue(policy.is_verified(session.session_id))
+        # Same legacy bundle id and recorded hash, different material bytes:
+        # the session context built on bundle_v2 is NOT verified.
+        runner_v2 = SourceOnlyClaimExtractionContext(
+            source_bundle=bundle_v2,
+            source_only=policy,
+            session_id=session.session_id,
+            output_surface=ClaimRecordOutput(),
+        )
+        self.assertFalse(runner_v2.verified)
+
+    def test_fc01c_record_claim_fails_for_different_material_bundle(self):
+        bundle_v1 = self._exact_bundle(content=b"abc")
+        bundle_v2 = self._exact_bundle(content=b"abd")
+        policy = ResearchFirewall(EvidenceLedger()).source_only
+        session = policy.open_verified_session(
+            session_id="fc01-session",
+            model_identity="model-fixture-v1",
+            prompt_spec_version="prompt-spec-v1",
+            source_bundle_identity=bundle_v1.session_binding_identity,
+            source_bundle_hash=bundle_v1.session_binding_hash,
+            tool_retrieval_mode="PROJECT_SOURCE_ONLY",
+        )
+        runner_v2 = SourceOnlyClaimExtractionContext(
+            source_bundle=bundle_v2,
+            source_only=policy,
+            session_id=session.session_id,
+            output_surface=ClaimRecordOutput(),
+        )
+        draft = ClaimRecordDraft(
+            claim_id="fc01-c",
+            source_id="SRC-X",
+            material_id="M1",
+            source_anchor="M1:page-1",
+            claim_status="EXPLICIT",
+            source_excerpt_short_or_paraphrase="synthetic",
+            source_only_session_id=session.session_id,
+            created_at="2026-08-20T00:00:00Z",
+        )
+        with self.assertRaisesRegex(ValueError, "verified session bound to the approved source bundle"):
+            runner_v2.record_claim(draft)
+
+    def test_fc01_historical_recorded_hash_retained_and_still_not_exact(self):
+        bundle = ApprovedSourceBundle.legacy_unbound(
+            source_bundle_id="SB-LEGACY",
+            source_bundle_hash="historical-recorded-hash",
+            source_anchor_reference="R",
+            material_records=(
+                {"source_id": "SRC-X", "material_id": "M1", "source_anchor_reference": "M1"},
+            ),
+        )
+        # Recorded hash is retained as a historical recorded value.
+        self.assertEqual(bundle.source_bundle_hash, "historical-recorded-hash")
+        self.assertEqual(bundle.historical_recorded_bundle_hash, "historical-recorded-hash")
+        # It must never upgrade to exact byte binding.
+        self.assertIs(bundle.byte_binding_status, ByteBindingStatus.NOT_RECORDED)
+        # A legacy/unbound bundle still has deterministic session binding facts.
+        self.assertTrue(bundle.session_binding_identity)
+        self.assertTrue(bundle.session_binding_hash)
+
+    # -- FC02: future session binding hash cannot be caller-controlled ---------
+
+    def test_fc02_session_binding_values_are_derived_not_settable(self):
+        parameters = inspect.signature(ApprovedSourceBundle.__init__).parameters
+        for forbidden in (
+            "session_binding_identity",
+            "session_binding_hash",
+            "bundle_binding_hash",
+            "material_digest",
+        ):
+            self.assertNotIn(forbidden, parameters)
+        # They are read-only derived properties, not constructor fields.
+        self.assertIsInstance(ApprovedSourceBundle.session_binding_identity, property)
+        self.assertIsInstance(ApprovedSourceBundle.session_binding_hash, property)
+        # The derived hash cannot be set to a caller-chosen value.
+        bundle = self._exact_bundle(content=b"abc")
+        self.assertNotEqual(bundle.session_binding_hash, "0" * 64)
+        self.assertEqual(bundle.session_binding_hash, bundle.session_binding_hash)
+
+    # -- FC03: claim_status must conform to Claim Schema v1.0 -----------------
+
+    def test_fc03_claim_status_schema_accepted(self):
+        for status in ("EXPLICIT", "INFERRED", "UNKNOWN"):
+            draft = ClaimRecordDraft(
+                claim_id="c",
+                source_id="S",
+                material_id="M",
+                source_anchor="A",
+                claim_status=status,
+                source_excerpt_short_or_paraphrase="p",
+                source_only_session_id="s",
+                created_at="t",
+            )
+            self.assertEqual(draft.claim_status, status)
+
+    def test_fc03_claim_status_schema_rejected(self):
+        # Empty claim_status fails via the required-fields check.
+        with self.assertRaisesRegex(ValueError, "required empty fields"):
+            ClaimRecordDraft(
+                claim_id="c",
+                source_id="S",
+                material_id="M",
+                source_anchor="A",
+                claim_status="",
+                source_excerpt_short_or_paraphrase="p",
+                source_only_session_id="s",
+                created_at="t",
+            )
+        # Non-schema statuses fail via the Claim Schema v1.0 check.
+        for status in ("READY", "explicit", "NOT_APPLICABLE", "whatever"):
+            with self.assertRaisesRegex(ValueError, "claim_status"):
+                ClaimRecordDraft(
+                    claim_id="c",
+                    source_id="S",
+                    material_id="M",
+                    source_anchor="A",
+                    claim_status=status,
+                    source_excerpt_short_or_paraphrase="p",
+                    source_only_session_id="s",
+                    created_at="t",
+                )
 
     # -- F11: protected market-outcome denial -------------------------------
 

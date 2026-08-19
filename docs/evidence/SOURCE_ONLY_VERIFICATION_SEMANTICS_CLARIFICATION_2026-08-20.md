@@ -108,3 +108,11 @@ than it is. Concretely, in `src/research_firewall.py`:
   SOURCE_ONLY an OS/process sandbox.
 
 No historical evidence JSON was modified.
+
+## 8. Prospective material-bound sessions (F-C01)
+
+Prospective material-bound SOURCE_ONLY sessions bind the deterministic
+material-derived bundle binding identity/hash (`session_binding_identity` /
+`session_binding_hash`); historical sessions are not retroactively upgraded.
+The historical recorded bundle id/hash remain historical metadata only and are
+never treated as byte proof.
