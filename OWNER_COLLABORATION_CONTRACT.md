@@ -76,3 +76,4 @@ This file defines the Owner's stable collaboration preferences for this project.
 ## Handoff and continuity
 - Stable project rules belong in formal project files, not only in chat memory.
 - When context becomes large or a new conversation is needed, handoff through current formal project state instead of trying to reconstruct the project from chat history.
+- When the Owner explicitly asks to validate a fresh-conversation handoff before continuing work, the new conversation's first task is **read-only takeover verification**: fetch/read the real repository, reconstruct current authority/state, identify contradictions or missing facts, and report its understanding. During that acceptance turn it must not modify the repository, start the next work package, generate worker prompts, adopt tools, run candidate research, or otherwise advance project state. It waits for the Owner to confirm takeover before normal project execution resumes.
