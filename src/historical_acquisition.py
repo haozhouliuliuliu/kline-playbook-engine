@@ -191,7 +191,14 @@ class ContractMetadataFact:
     Binds exchange, concrete-contract applicability, minimum tick, effective
     period, session metadata version, and the source/evidence reference so the
     resulting identity is not an arbitrary label.  Classification is honest:
-    `VERIFIED_OFFICIAL` or `PILOT_FIXTURE`.
+    `VERIFIED_OFFICIAL`, `OFFICIAL_PARTIAL` or `PILOT_FIXTURE`.
+
+    `VERIFIED_OFFICIAL` requires an exact source artifact SHA256 (the exact
+    byte hash of the official source artifact); a source without a historical
+    exact-byte binding must be classified `OFFICIAL_PARTIAL` (with
+    ``source_artifact_sha256=None``) and must never be re-promoted to
+    `VERIFIED_OFFICIAL`.  `PILOT_FIXTURE` is for synthetic fixtures and does
+    not require an official artifact hash.
     """
 
     exchange: str
@@ -221,10 +228,25 @@ class ContractMetadataFact:
             raise ValueError("metadata minimum price tick must be a positive Decimal")
         if self.effective_end < self.effective_start:
             raise ValueError("metadata effective period is reversed")
-        if self.evidence_classification not in ("VERIFIED_OFFICIAL", "PILOT_FIXTURE"):
-            raise ValueError("metadata evidence classification must be VERIFIED_OFFICIAL or PILOT_FIXTURE")
+        if self.evidence_classification not in (
+            "VERIFIED_OFFICIAL",
+            "OFFICIAL_PARTIAL",
+            "PILOT_FIXTURE",
+        ):
+            raise ValueError(
+                "metadata evidence classification must be VERIFIED_OFFICIAL, "
+                "OFFICIAL_PARTIAL or PILOT_FIXTURE"
+            )
         if self.source_artifact_sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", self.source_artifact_sha256):
             raise ValueError("metadata source artifact SHA256 must be 64 lowercase hexadecimal characters")
+        # VERIFIED_OFFICIAL may only be claimed when the exact source artifact
+        # byte hash is actually bound; an OFFICIAL_PARTIAL source must not be
+        # re-promoted downstream.
+        if self.evidence_classification == "VERIFIED_OFFICIAL" and self.source_artifact_sha256 is None:
+            raise ValueError(
+                "VERIFIED_OFFICIAL requires an exact source artifact SHA256 "
+                "(64 lowercase hex); use OFFICIAL_PARTIAL when exact bytes are not bound"
+            )
 
     def identity_id(self) -> str:
         return canonical_hash(

@@ -106,3 +106,53 @@ CURRENT_STATE_CHANGED=NO
 CONCRETE_CONTRACT_MAPPING_RULE_CHANGED=NO
 CANDIDATE_DATA_CHANGED=NO
 ```
+
+---
+
+# Pre-integration correction (D-C01..D-C03)
+
+> Date: 2026-08-20
+> Trigger: `docs/reviews/PARALLEL_PACKAGE_C_D_F_PREINTEGRATION_REVIEW_V0_1.md` (Package D blockers)
+> Base after merge: `origin/main` `40f27b24b30af11bb961a7d46e99b2c834a94824` merged into `repair/package-d-canonical-provenance-v01` (merge `2da92c87854499ae9bcb6c32aec28f9627c5d674`; D-01..D-08 retained, not reworked).
+> No corpus rebuild, no acceptance rewrite, no `main` modification, no rebase/force-push, no `CURRENT_STATE` modification.
+
+## D-C01 — OFFICIAL_PARTIAL is never re-promoted to VERIFIED_OFFICIAL
+
+- `ContractMetadataFact` (`src/historical_acquisition.py`) now permits exactly three evidence classifications: `VERIFIED_OFFICIAL`, `OFFICIAL_PARTIAL`, `PILOT_FIXTURE` (no new framework).
+- `VERIFIED_OFFICIAL` requires an exact `source_artifact_sha256` (64 lowercase hex); `VERIFIED_OFFICIAL` + `None` fails closed.
+- `OFFICIAL_PARTIAL` explicitly allows `source_artifact_sha256=None` (no exact historical byte binding).
+- `PILOT_FIXTURE` keeps synthetic-fixture semantics with no official artifact hash requirement.
+- `build_contract_configs` (`tools/build_canonical_dataset.py`) no longer hardcodes `VERIFIED_OFFICIAL`: the metadata-fact classification and `source_artifact_sha256` are derived from the governed `ContractSpec.source` (`OFFICIAL_AVAILABLE`/`ARCHIVED_OFFICIAL` → `VERIFIED_OFFICIAL` with exactly one attributable exact hash; `OFFICIAL_PARTIAL`/`PENDING_OFFICIAL_BINDING` → `OFFICIAL_PARTIAL` with `None`). Resource/content-model/URL hashes are never used as source-artifact byte SHA.
+- Current contract specs have no historical byte hash → `OFFICIAL_PARTIAL` with `source_artifact_sha256=None` (verified against the real committed evidence path).
+
+## D-C02 — canonical storage admits PASS partitions only
+
+- `normalize_and_store_partition` (`tools/build_canonical_dataset.py`) now fails closed at the top of the reusable storage boundary with `CANONICAL_STORAGE_REQUIRES_PASS_PARTITION` unless `partition.quality_status == "PASS"` exactly (never `startswith("PASS")`, never `ANOMALY`/`WARNING`/`UNKNOWN`). The check runs before reading the raw file, normalizing, or writing any Parquet.
+- The CLI normalize phase (`main()`) adds an up-front fail-closed check that names the non-PASS partition(s); it never silently filters them out.
+
+## D-C03 — legacy session identity mismatch is an explicit revalidation gate
+
+- `_reconstruct_and_normalize` (`tools/build_canonical_dataset.py`) checks at the very front (before reading the raw file or constructing a `DataVersionIdentity`): if `partition.session_metadata_version != sessions.version` it raises `SESSION_METADATA_IDENTITY_REVALIDATION_REQUIRED` containing both the recorded (legacy) and current content-derived session identities.
+- No auto-migration, no manifest rewrite, no `partition.session_metadata_version` overwrite, no `data_version_id` recomputation-and-continue.
+
+```text
+EXISTING_ACCEPTED_CORPUS_AUTOMATICALLY_MIGRATED=NO
+EXPLICIT_REVALIDATION_REQUIRED_FOR_NEW_SESSION_IDENTITY=YES
+```
+
+## Pre-integration focused regression
+
+`tests/test_package_d_canonical_repair.py` gained DC01/DC02/DC03 classes plus one integrated detection→classification→admission chain test (truncated response → `ANOMALY:returned_coverage_truncated` recorded durably in the manifest → storage boundary rejects → zero Parquet written). Total focused tests: 37 OK (was 22).
+
+Full default suite: `python -m unittest discover -s tests` → 393 tests OK (was 378). `git diff --check` clean. `python -m compileall -q src tools tests` clean. PyArrow capability exercised (25.0.1).
+
+## Boundaries preserved (pre-integration correction)
+
+```text
+CANONICAL_CORPUS_REBUILT=NO
+CANONICAL_ACCEPTANCE_REWRITTEN=NO
+REAL_CANDIDATE_DATA_USED=NO
+CURRENT_STATE_CHANGED=NO
+LEGACY_MANIFEST_AUTO_MIGRATED=NO
+ANOMALY_PARQUET_WRITE_ALLOWED=NO
+```

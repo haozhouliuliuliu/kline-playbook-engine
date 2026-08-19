@@ -48,8 +48,9 @@ from src.historical_data import (
     SourceIdentity,
     normalize_tqsdk_historical_bars,
 )
-from src.historical_manifest import ManifestPartition, canonical_hash
+from src.historical_manifest import DatasetManifest, ManifestPartition, canonical_hash
 from src.metadata_authority import (
+    ContractSpec,
     GovernedSource,
     ProductSessionSchedule,
     TradingCalendar,
@@ -172,6 +173,246 @@ def _canonical_row(
     )
 
 
+class TruncatingAdapter(SourceAdapter):
+    """Deterministic adapter that returns only 09:30..10:00 when 09:00..10:00
+    is requested (truncated head), for detection/admission chain fixtures."""
+
+    @property
+    def source_specification(self) -> SourceSpecification:
+        return SourceSpecification(
+            provider="FAKE",
+            source_type="FAKE_HISTORICAL_API",
+            endpoint_identity="FakeSource.get_kline_series",
+            raw_schema_identity="fake-kline-records-json-v1",
+            provider_dataset_version=None,
+            normalizer=_normalizer(),
+        )
+
+    def acquire(self, request: AcquisitionRequest) -> AcquisitionResult:
+        returned_start = datetime(2026, 8, 20, 9, 30, tzinfo=CN)
+        returned_end = datetime(2026, 8, 20, 10, 0, tzinfo=CN)
+        starts = []
+        cursor = returned_start
+        while cursor + _ONE_MINUTE <= returned_end:
+            starts.append(cursor)
+            cursor += _ONE_MINUTE
+        records = [_record(s) for s in starts]
+        return AcquisitionResult(
+            request=request,
+            payload=_payload(records),
+            returned_start=returned_start,
+            returned_end=returned_end,
+            rows=len(records),
+            provider_version="fake-1.0",
+        )
+
+    def decode(self, payload, *, artifact, data_version, sessions, minimum_price_tick):
+        return normalize_tqsdk_historical_bars(
+            payload,
+            artifact=artifact,
+            data_version=data_version,
+            sessions=sessions,
+            minimum_price_tick=minimum_price_tick,
+        )
+
+    def close(self) -> None:
+        pass
+
+
+def _truncated_build_inputs() -> tuple[AcquisitionRequest, SessionMetadata, dict[str, ContractConfig]]:
+    requested_start = datetime(2026, 8, 20, 9, 0, tzinfo=CN)
+    requested_end = datetime(2026, 8, 20, 10, 0, tzinfo=CN)
+    request = AcquisitionRequest(
+        exchange="SHFE",
+        concrete_instrument="SHFE.ni2509",
+        trading_day=date(2026, 8, 20),
+        granularity_seconds=60,
+        requested_start=requested_start,
+        requested_end=requested_end,
+        timezone="Asia/Shanghai",
+    )
+    sessions = SessionMetadata(
+        "shfe-ni-session-v1",
+        [
+            SessionWindow(
+                "SHFE", "SHFE.ni2509", date(2026, 8, 20),
+                requested_start, requested_end, "day",
+            )
+        ],
+    )
+    fact = ContractMetadataFact(
+        exchange="SHFE",
+        concrete_instrument="SHFE.ni2509",
+        minimum_price_tick=Decimal("10"),
+        session_metadata_version=sessions.version,
+        effective_start=date(2026, 8, 20),
+        effective_end=date(2026, 8, 20),
+        evidence_reference="tests/test_fixture",
+        evidence_classification="PILOT_FIXTURE",
+    )
+    contracts = {
+        "SHFE.ni2509": ContractConfig(
+            concrete_instrument="SHFE.ni2509",
+            minimum_price_tick=Decimal("10"),
+            metadata_fact=fact,
+            sessions=sessions,
+        )
+    }
+    return request, sessions, contracts
+
+
+def _run_truncated_build(tmp: Path) -> tuple[object, SessionMetadata, Path, Path]:
+    """Run a DatasetBuilder with the TruncatingAdapter inside ``tmp``.
+
+    Returns (manifest, sessions, raw_dir, manifest_path); the recorded
+    partition quality is a non-PASS ANOMALY (truncated coverage).
+    """
+    from src.historical_manifest import DatasetManifest  # noqa: PLC0415
+
+    request, sessions, contracts = _truncated_build_inputs()
+    raw_dir = Path(tmp) / "raw"
+    manifest_path = Path(tmp) / "manifest.json"
+    builder = DatasetBuilder(
+        adapter=TruncatingAdapter(),
+        raw_dir=raw_dir,
+        manifest_path=manifest_path,
+        schema_version="package-d-fixture-manifest-v1",
+        contracts=contracts,
+        retrieved_at_provider=lambda: datetime(2026, 8, 20, 2, 0, tzinfo=UTC),
+    )
+    return builder.build([request]), sessions, raw_dir, manifest_path
+
+
+def _storage_partition(
+    *,
+    quality_status: str,
+    session_metadata_version: str,
+    data_version_id: str = "dv-fixture-v1",
+) -> ManifestPartition:
+    """A validly-constructible full-coverage partition (anomaly evidence OK)."""
+    trading_day = date(2026, 8, 20)
+    requested_start = datetime(2026, 8, 20, 9, 0, tzinfo=CN)
+    requested_end = datetime(2026, 8, 20, 9, 5, tzinfo=CN)
+    records = [_record(requested_start + timedelta(minutes=i)) for i in range(5)]
+    payload = _payload(records)
+    request_parameters = (
+        ("duration_seconds", "60"),
+        ("end_dt", requested_end.isoformat()),
+        ("start_dt", requested_start.isoformat()),
+        ("symbol", "SHFE.ni2509"),
+    )
+    return ManifestPartition(
+        provider="TQSDK",
+        api_version="3.10.1",
+        contract="SHFE.ni2509",
+        exchange="SHFE",
+        granularity_seconds=60,
+        timezone="Asia/Shanghai",
+        trading_day=trading_day,
+        requested_start=requested_start,
+        requested_end=requested_end,
+        returned_start=requested_start,
+        returned_end=requested_end,
+        retrieved_at=datetime(2026, 8, 20, 2, 0, tzinfo=UTC),
+        raw_bytes=len(payload),
+        raw_sha256=hashlib.sha256(payload).hexdigest(),
+        request_identity=canonical_hash(request_parameters),
+        request_parameters=request_parameters,
+        normalizer_identity=_normalizer().identity_id,
+        session_metadata_version=session_metadata_version,
+        contract_metadata_identity="cm-fixture-v1",
+        data_version_id=data_version_id,
+        normalized_batch_id="nb-fixture-v1",
+        quality_status=quality_status,
+    )
+
+
+def _valid_storage_context(tmp: Path) -> tuple[SessionMetadata, ManifestPartition, Path, Path]:
+    """Sessions + a fully-consistent PASS partition + matching raw file.
+
+    Returns (sessions, partition, raw_dir, tmp).  The partition's
+    data_version_id and session_metadata_version are the recomputed
+    content-derived values, so the PASS normalize/store path succeeds.
+    """
+    from tools.build_canonical_dataset import SOURCE_SPEC  # noqa: PLC0415
+
+    trading_day = date(2026, 8, 20)
+    requested_start = datetime(2026, 8, 20, 9, 0, tzinfo=CN)
+    requested_end = datetime(2026, 8, 20, 9, 5, tzinfo=CN)
+    records = [_record(requested_start + timedelta(minutes=i)) for i in range(5)]
+    payload = _payload(records)
+    retrieved_at = datetime(2026, 8, 20, 2, 0, tzinfo=UTC)
+    request_parameters = (
+        ("duration_seconds", "60"),
+        ("end_dt", requested_end.isoformat()),
+        ("start_dt", requested_start.isoformat()),
+        ("symbol", "SHFE.ni2509"),
+    )
+    sessions = SessionMetadata(
+        "shfe-ni-session-v1",
+        [
+            SessionWindow(
+                "SHFE", "SHFE.ni2509", trading_day, requested_start, requested_end, "day",
+            )
+        ],
+    )
+    source = SourceIdentity(
+        "TQSDK", SOURCE_SPEC.source_type, SOURCE_SPEC.endpoint_identity,
+        SOURCE_SPEC.provider_dataset_version, retrieved_at, request_parameters,
+    )
+    raw_sha = hashlib.sha256(payload).hexdigest()
+    artifact = RawArtifact(
+        "SHFE", "SHFE.ni2509", requested_start, requested_end, 60, "Asia/Shanghai",
+        SOURCE_SPEC.raw_schema_identity, raw_sha, source.identity_id,
+    )
+    data_version = DataVersionIdentity(
+        (source,), (artifact,), SOURCE_SPEC.normalizer, sessions.version,
+        SOURCE_SPEC.availability_rule, "cm-fixture-v1",
+    )
+    partition = _storage_partition(
+        quality_status="PASS",
+        session_metadata_version=sessions.version,
+        data_version_id=data_version.identity_id,
+    )
+    raw_dir = Path(tmp) / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    coverage_tag = canonical_hash(
+        ("Asia/Shanghai", requested_start.isoformat(), requested_end.isoformat())
+    )[:12]
+    raw_name = f"TQSDK.SHFE.ni2509.60s.{trading_day.isoformat()}.{coverage_tag}.json"
+    (raw_dir / raw_name).write_bytes(payload)
+    return sessions, partition, raw_dir, Path(tmp)
+
+
+def _synthetic_configs(source: GovernedSource) -> dict[str, ContractConfig]:
+    """Deterministic all-six-product authority fixtures for build_contract_configs."""
+    from tools.build_canonical_dataset import build_contract_configs  # noqa: PLC0415
+
+    products = ("cu", "al", "ni", "au", "ag", "rb")
+    eff_start = date(2024, 1, 1)
+    eff_end = date(2024, 1, 5)
+    days = [date(2024, 1, 2), date(2024, 1, 3), date(2024, 1, 4), date(2024, 1, 5)]
+    calendar = TradingCalendar("v1", days, source)
+    schedules = {
+        p: ProductSessionSchedule(
+            "SHFE", p, eff_start, eff_end,
+            ((time(9, 0), time(10, 15)), (time(13, 30), time(15, 0))),
+            (time(21, 0), time(1, 0)), timezone="Asia/Shanghai", source=source,
+        )
+        for p in products
+    }
+    specs = {
+        p: ContractSpec(
+            "SHFE", p, p.upper(), Decimal("10"), "yuan/ton", Decimal("5"), "ton/lot",
+            "yuan/ton", "1-12", "3", binding_notice="n",
+            effective_start=eff_start, effective_end=eff_end, source=source,
+        )
+        for p in products
+    }
+    universe = {p: [f"SHFE.{p}2401"] for p in products}
+    return build_contract_configs(calendar, universe, specs, schedules)
+
+
 class D01TruncatedCoverageCannotBePASSTests(unittest.TestCase):
     def _partition(self, *, returned_start: datetime, returned_end: datetime,
                    quality_status: str, **overrides) -> ManifestPartition:
@@ -252,100 +493,8 @@ class D01TruncatedCoverageCannotBePASSTests(unittest.TestCase):
 
     def test_builder_never_writes_truncated_PASS(self) -> None:
         """DatasetBuilder must produce a non-PASS quality for truncated coverage."""
-
-        class TruncatingAdapter(SourceAdapter):
-            @property
-            def source_specification(self) -> SourceSpecification:
-                return SourceSpecification(
-                    provider="FAKE",
-                    source_type="FAKE_HISTORICAL_API",
-                    endpoint_identity="FakeSource.get_kline_series",
-                    raw_schema_identity="fake-kline-records-json-v1",
-                    provider_dataset_version=None,
-                    normalizer=_normalizer(),
-                )
-
-            def acquire(self, request: AcquisitionRequest) -> AcquisitionResult:
-                # Return only 09:30..10:00 even though 09:00..10:00 was requested.
-                returned_start = datetime(2026, 8, 20, 9, 30, tzinfo=CN)
-                returned_end = datetime(2026, 8, 20, 10, 0, tzinfo=CN)
-                starts = []
-                cursor = returned_start
-                while cursor + _ONE_MINUTE <= returned_end:
-                    starts.append(cursor)
-                    cursor += _ONE_MINUTE
-                records = [_record(s) for s in starts]
-                return AcquisitionResult(
-                    request=request,
-                    payload=_payload(records),
-                    returned_start=returned_start,
-                    returned_end=returned_end,
-                    rows=len(records),
-                    provider_version="fake-1.0",
-                )
-
-            def decode(self, payload, *, artifact, data_version, sessions, minimum_price_tick):
-                return normalize_tqsdk_historical_bars(
-                    payload,
-                    artifact=artifact,
-                    data_version=data_version,
-                    sessions=sessions,
-                    minimum_price_tick=minimum_price_tick,
-                )
-
-            def close(self) -> None:
-                pass
-
-        requested_start = datetime(2026, 8, 20, 9, 0, tzinfo=CN)
-        requested_end = datetime(2026, 8, 20, 10, 0, tzinfo=CN)
-        request = AcquisitionRequest(
-            exchange="SHFE",
-            concrete_instrument="SHFE.ni2509",
-            trading_day=date(2026, 8, 20),
-            granularity_seconds=60,
-            requested_start=requested_start,
-            requested_end=requested_end,
-            timezone="Asia/Shanghai",
-        )
-        sessions = SessionMetadata(
-            "shfe-ni-session-v1",
-            [
-                SessionWindow(
-                    "SHFE", "SHFE.ni2509", date(2026, 8, 20),
-                    requested_start, requested_end, "day",
-                )
-            ],
-        )
-        fact = ContractMetadataFact(
-            exchange="SHFE",
-            concrete_instrument="SHFE.ni2509",
-            minimum_price_tick=Decimal("10"),
-            session_metadata_version=sessions.version,
-            effective_start=date(2026, 8, 20),
-            effective_end=date(2026, 8, 20),
-            evidence_reference="tests/test_fixture",
-            evidence_classification="PILOT_FIXTURE",
-        )
-        contracts = {
-            "SHFE.ni2509": ContractConfig(
-                concrete_instrument="SHFE.ni2509",
-                minimum_price_tick=Decimal("10"),
-                metadata_fact=fact,
-                sessions=sessions,
-            )
-        }
         with tempfile.TemporaryDirectory() as tmp:
-            raw_dir = Path(tmp) / "raw"
-            manifest_path = Path(tmp) / "manifest.json"
-            builder = DatasetBuilder(
-                adapter=TruncatingAdapter(),
-                raw_dir=raw_dir,
-                manifest_path=manifest_path,
-                schema_version="package-d-fixture-manifest-v1",
-                contracts=contracts,
-                retrieved_at_provider=lambda: datetime(2026, 8, 20, 2, 0, tzinfo=UTC),
-            )
-            manifest = builder.build([request])
+            manifest, _sessions, _raw_dir, _manifest_path = _run_truncated_build(Path(tmp))
         partition = manifest.partitions[0]
         self.assertNotEqual(partition.quality_status, "PASS")
         self.assertIn("returned_coverage_truncated", partition.quality_status)
@@ -836,6 +985,240 @@ class D08RuntimeVersionDiagnosticTests(unittest.TestCase):
             probe._connect()
         self.assertIsNone(probe._api)
         self.assertIsNone(probe._version)
+
+
+def _metadata_fact(*, classification: str, source_sha: str | None) -> ContractMetadataFact:
+    return ContractMetadataFact(
+        exchange="SHFE",
+        concrete_instrument="SHFE.ni2509",
+        minimum_price_tick=Decimal("10"),
+        session_metadata_version="synthetic-session-v1",
+        effective_start=date(2026, 8, 20),
+        effective_end=date(2026, 8, 20),
+        evidence_reference="tests/test_fixture",
+        evidence_classification=classification,
+        source_artifact_sha256=source_sha,
+    )
+
+
+class DC01EvidenceClassificationTests(unittest.TestCase):
+    """D-C01: OFFICIAL_PARTIAL must never be re-promoted to VERIFIED_OFFICIAL."""
+
+    def test_verified_official_without_exact_sha_fails(self) -> None:
+        with self.assertRaisesRegex(ValueError, "VERIFIED_OFFICIAL requires"):
+            _metadata_fact(classification="VERIFIED_OFFICIAL", source_sha=None)
+
+    def test_verified_official_with_exact_sha_passes(self) -> None:
+        fact = _metadata_fact(classification="VERIFIED_OFFICIAL", source_sha="a" * 64)
+        self.assertEqual(fact.evidence_classification, "VERIFIED_OFFICIAL")
+        self.assertEqual(fact.source_artifact_sha256, "a" * 64)
+
+    def test_official_partial_with_none_passes(self) -> None:
+        fact = _metadata_fact(classification="OFFICIAL_PARTIAL", source_sha=None)
+        self.assertIsNone(fact.source_artifact_sha256)
+
+    def test_pilot_fixture_without_official_hash_passes(self) -> None:
+        fact = _metadata_fact(classification="PILOT_FIXTURE", source_sha=None)
+        self.assertEqual(fact.evidence_classification, "PILOT_FIXTURE")
+
+    def test_build_contract_configs_keeps_official_partial(self) -> None:
+        source = GovernedSource(
+            resource_identity="r", url="https://example.com/official",
+            retrieved_at=datetime(2026, 8, 16, tzinfo=CN),
+            artifact_sha256=None, schema_version="v1", classification="OFFICIAL_PARTIAL",
+            effective_period_start=date(2024, 1, 1), effective_period_end=date(2024, 1, 5),
+        )
+        configs = _synthetic_configs(source)
+        fact = configs["SHFE.ni2401"].metadata_fact
+        self.assertEqual(fact.evidence_classification, "OFFICIAL_PARTIAL")
+        self.assertIsNone(fact.source_artifact_sha256)
+
+    def test_build_contract_configs_verified_only_with_single_exact_sha(self) -> None:
+        source = GovernedSource(
+            resource_identity="r", url="https://example.com/official",
+            retrieved_at=datetime(2026, 8, 16, tzinfo=CN),
+            artifact_sha256="a" * 64, schema_version="v1", classification="OFFICIAL_AVAILABLE",
+            effective_period_start=date(2024, 1, 1), effective_period_end=date(2024, 1, 5),
+        )
+        configs = _synthetic_configs(source)
+        fact = configs["SHFE.ni2401"].metadata_fact
+        self.assertEqual(fact.evidence_classification, "VERIFIED_OFFICIAL")
+        self.assertEqual(fact.source_artifact_sha256, "a" * 64)
+
+    def test_build_contract_configs_ambiguous_multiple_hashes_fails(self) -> None:
+        source = GovernedSource(
+            resource_identity="r", url="https://example.com/official",
+            retrieved_at=datetime(2026, 8, 16, tzinfo=CN),
+            artifact_sha256=None, artifact_sha256s=("a" * 64, "b" * 64),
+            schema_version="v1", classification="OFFICIAL_AVAILABLE",
+            effective_period_start=date(2024, 1, 1), effective_period_end=date(2024, 1, 5),
+        )
+        with self.assertRaisesRegex(ValueError, "exactly one attributable"):
+            _synthetic_configs(source)
+
+    def test_real_contract_specs_are_official_partial(self) -> None:
+        from tools.build_canonical_dataset import (  # noqa: PLC0415
+            build_contract_configs,
+            load_calendar,
+            load_schedules,
+            load_specs,
+            load_universe,
+        )
+
+        calendar = load_calendar()
+        specs = load_specs()
+        schedules = load_schedules()
+        universe = load_universe()
+        configs = build_contract_configs(calendar, universe, specs, schedules)
+        fact = configs["SHFE.cu2401"].metadata_fact
+        self.assertEqual(fact.evidence_classification, "OFFICIAL_PARTIAL")
+        self.assertIsNone(fact.source_artifact_sha256)
+
+
+class DC02StoragePassOnlyTests(unittest.TestCase):
+    """D-C02: canonical storage admits PASS partitions only."""
+
+    def _reject_anomaly(self, quality_status: str) -> None:
+        from tools.build_canonical_dataset import normalize_and_store_partition  # noqa: PLC0415
+
+        sessions = SessionMetadata(
+            "shfe-ni-session-v1",
+            [
+                SessionWindow(
+                    "SHFE", "SHFE.ni2509", date(2026, 8, 20),
+                    datetime(2026, 8, 20, 9, 0, tzinfo=CN),
+                    datetime(2026, 8, 20, 9, 5, tzinfo=CN), "day",
+                )
+            ],
+        )
+        partition = _storage_partition(
+            quality_status=quality_status,
+            session_metadata_version=sessions.version,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            raw_dir = tmp_path / "raw"  # intentionally absent: gate fires first
+            parquet_dir = tmp_path / "parquet"
+            with self.assertRaisesRegex(ValueError, "CANONICAL_STORAGE_REQUIRES_PASS_PARTITION"):
+                normalize_and_store_partition(
+                    partition, raw_dir, parquet_dir, sessions, "cm-fixture-v1", Decimal("10"),
+                )
+            self.assertEqual(
+                list(parquet_dir.rglob("*.parquet")),
+                [],
+                "no parquet may be written for a rejected anomaly partition",
+            )
+
+    def test_truncated_coverage_anomaly_rejected(self) -> None:
+        self._reject_anomaly("ANOMALY:returned_coverage_truncated")
+
+    def test_missing_starts_anomaly_rejected(self) -> None:
+        self._reject_anomaly("ANOMALY:missing_expected_starts=3")
+
+    @unittest.skipUnless(HAVE_PYARROW, "pyarrow not available in this environment")
+    def test_pass_partition_still_stores(self) -> None:
+        from tools.build_canonical_dataset import normalize_and_store_partition  # noqa: PLC0415
+
+        with tempfile.TemporaryDirectory() as tmp:
+            sessions, partition, raw_dir, tmp_path = _valid_storage_context(Path(tmp))
+            parquet_dir = tmp_path / "parquet"
+            stored = normalize_and_store_partition(
+                partition, raw_dir, parquet_dir, sessions, "cm-fixture-v1", Decimal("10"),
+            )
+            self.assertGreater(stored.storage_facts["row_count"], 0)
+            self.assertTrue(list(parquet_dir.rglob("*.parquet")))
+
+
+class DC03LegacySessionRevalidationTests(unittest.TestCase):
+    """D-C03: legacy session identity mismatch requires explicit revalidation."""
+
+    def _current_sessions(self) -> SessionMetadata:
+        return SessionMetadata(
+            "current-ref",
+            [
+                SessionWindow(
+                    "SHFE", "SHFE.ni2509", date(2026, 8, 20),
+                    datetime(2026, 8, 20, 9, 0, tzinfo=CN),
+                    datetime(2026, 8, 20, 9, 5, tzinfo=CN), "day",
+                )
+            ],
+        )
+
+    def test_legacy_session_label_requires_explicit_revalidation(self) -> None:
+        from tools.build_canonical_dataset import normalize_and_store_partition  # noqa: PLC0415
+
+        sessions = self._current_sessions()
+        legacy_partition = _storage_partition(
+            quality_status="PASS",
+            session_metadata_version="legacy-session-label-v1",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            parquet_dir = tmp_path / "parquet"
+            with self.assertRaisesRegex(ValueError, "SESSION_METADATA_IDENTITY_REVALIDATION_REQUIRED") as ctx:
+                normalize_and_store_partition(
+                    legacy_partition, tmp_path / "raw", parquet_dir,
+                    sessions, "cm-fixture-v1", Decimal("10"),
+                )
+            message = str(ctx.exception)
+            self.assertIn("legacy-session-label-v1", message)
+            self.assertIn(sessions.version, message)
+            self.assertEqual(list(parquet_dir.rglob("*.parquet")), [])
+
+    def test_reconstruct_raises_before_raw_read(self) -> None:
+        from tools.build_canonical_dataset import _reconstruct_and_normalize  # noqa: PLC0415
+
+        sessions = self._current_sessions()
+        legacy_partition = _storage_partition(
+            quality_status="PASS",
+            session_metadata_version="legacy-session-label-v1",
+        )
+        with self.assertRaisesRegex(ValueError, "SESSION_METADATA_IDENTITY_REVALIDATION_REQUIRED"):
+            # Raw directory does not exist: the identity gate must fire first.
+            _reconstruct_and_normalize(
+                legacy_partition, Path("no-such-raw-dir"), sessions, Decimal("10"),
+            )
+
+    def test_matching_current_identity_is_not_blocked(self) -> None:
+        from tools.build_canonical_dataset import _reconstruct_and_normalize  # noqa: PLC0415
+
+        sessions = self._current_sessions()
+        partition = _storage_partition(
+            quality_status="PASS",
+            session_metadata_version=sessions.version,
+        )
+        # Identity gate passes; failure now comes from the missing raw file
+        # (FileNotFoundError), proving the legacy gate is not falsely firing.
+        with self.assertRaises(FileNotFoundError):
+            _reconstruct_and_normalize(
+                partition, Path("no-such-raw-dir"), sessions, Decimal("10"),
+            )
+
+
+class DCIntegratedDetectionToAdmissionTests(unittest.TestCase):
+    """Whole chain: detection -> classification -> admission, not just helpers."""
+
+    def test_truncated_anomaly_is_recorded_then_rejected_at_storage(self) -> None:
+        from tools.build_canonical_dataset import normalize_and_store_partition  # noqa: PLC0415
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            manifest, sessions, raw_dir, manifest_path = _run_truncated_build(tmp_path)
+            partition = manifest.partitions[0]
+            # detection + classification: the truncated response is surfaced as
+            # a non-PASS ANOMALY, not silently recorded as PASS.
+            self.assertIn("ANOMALY", partition.quality_status)
+            self.assertIn("returned_coverage_truncated", partition.quality_status)
+            # the anomaly evidence is durable in the manifest (loadable back)
+            reloaded = DatasetManifest.load(manifest_path)
+            self.assertEqual(reloaded.partitions[0].quality_status, partition.quality_status)
+            # admission: the canonical storage boundary rejects the anomaly
+            parquet_dir = tmp_path / "parquet"
+            with self.assertRaisesRegex(ValueError, "CANONICAL_STORAGE_REQUIRES_PASS_PARTITION"):
+                normalize_and_store_partition(
+                    partition, raw_dir, parquet_dir, sessions, "cm-fixture-v1", Decimal("10"),
+                )
+            self.assertEqual(list(parquet_dir.rglob("*.parquet")), [])
 
 
 if __name__ == "__main__":
