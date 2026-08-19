@@ -1,9 +1,9 @@
 import unittest
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
-from src.contract_semantics import PositionDirection
+from src.contract_semantics import CloseOffset, OffsetCostAssumptions, OrderAction, PositionDirection
 from src.data_substrate import CompletedBar
 from src.strategy_evidence import (
     DatasetClass,
@@ -155,6 +155,99 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
         mark = self.mark_for(snapshot, Decimal("40"))
         result, _ = self.run_case(mark=mark)
         return mark, result.liquidation_requirement
+
+    def run_lifecycle(
+        self,
+        *,
+        prices,
+        quantities,
+        actions,
+        directions=None,
+        offsets=None,
+        starting_capital=Decimal("100"),
+        slippage=Decimal("1.5"),
+        fee=Decimal("0.25"),
+        close_today_fee=Decimal("1"),
+        close_previous_fee=Decimal("2"),
+        mark=None,
+    ):
+        """Run a full deterministic multi-step OPEN/ADD/CLOSE lifecycle.
+
+        ``prices``/``quantities``/``actions`` are parallel sequences; each
+        order receives a distinct request id and strictly increasing
+        decision/observation times.
+        """
+        execution_assumptions = ExecutionAssumptions(
+            "synthetic-position-execution-v1",
+            slippage,
+            fee,
+        )
+        offset_costs = OffsetCostAssumptions(
+            "synthetic-offset-cost-v1",
+            close_today_fee,
+            close_previous_fee,
+        )
+        directions = list(directions or [PositionDirection.LONG] * len(quantities))
+        offsets = list(offsets or [None] * len(quantities))
+        inputs = []
+        observations = []
+        specifications = []
+        for index, (price, quantity, action, direction, offset) in enumerate(
+            zip(prices, quantities, actions, directions, offsets)
+        ):
+            request_id = f"request-{index + 1}"
+            decision_at = at(9, 5) + timedelta(minutes=2 * index)
+            inputs.append(
+                ValidationInput(
+                    request_id,
+                    CompletedBar(
+                        "TEST",
+                        DAY,
+                        decision_at - timedelta(minutes=5),
+                        decision_at,
+                        decision_at,
+                    ),
+                    decision_at,
+                )
+            )
+            observations.append(
+                ExecutionObservation(
+                    request_id,
+                    decision_at + timedelta(minutes=1),
+                    decision_at + timedelta(minutes=1),
+                    Decimal(price),
+                )
+            )
+            specifications.append(
+                OrderSpecification(
+                    request_id,
+                    Decimal(quantity),
+                    action=action,
+                    close_offset=offset if action is OrderAction.CLOSE else None,
+                    direction=direction,
+                )
+            )
+        ledger = EvidenceLedger()
+        runner = ChronologicalValidationRunner(ledger, FinalUnseenFirewall(ledger))
+        result = runner.run(
+            mode=ValidationMode.CONFIRMATORY,
+            strategy=self.strategy,
+            experiment=self.experiment,
+            artifact_identity_id=self.strategy.identity_id,
+            artifact_code_hash=self.strategy.code_hash,
+            dataset_class=DatasetClass.VALIDATION,
+            inputs=tuple(inputs),
+            disposition=ValidationDisposition.CONFIRMED,
+            execution_observations=tuple(observations),
+            execution_cutoff_at=at(9, 30),
+            execution_assumptions=execution_assumptions,
+            order_specifications=tuple(specifications),
+            capital_snapshot=CapitalSnapshot(starting_capital),
+            capital_margin_assumptions=self.capital_assumptions,
+            mark_observations=(() if mark is None else (mark,)),
+            offset_cost_assumptions=offset_costs,
+        )
+        return result, ledger
 
     def test_fill_creates_position_and_no_fill_creates_none(self):
         filled, _ = self.run_case()
@@ -445,6 +538,169 @@ class PositionCapitalLifecycleTests(unittest.TestCase):
         self.assertEqual(result.mark_transitions, ())
         self.assertIsNone(result.final_capital_snapshot)
         self.assertEqual([record.event_type for record in ledger.records], ["DATASET_ACCESS_DENIED"])
+
+    # ------------------------------------------------------------------
+    # TD-002: after a PARTIAL CLOSE the remaining open position must keep a
+    # correct deterministic valuation under an explicit mark-price semantic
+    # (the close fill price), instead of temporarily clearing unrealized PnL
+    # to zero until a later mark.
+    # ------------------------------------------------------------------
+
+    def test_partial_close_preserves_remaining_quantity_and_revalues_remaining(self):
+        result, _ = self.run_lifecycle(
+            prices=(100, 110, 112),
+            quantities=(2, 1, 1),
+            actions=(OrderAction.OPEN, OrderAction.CLOSE, OrderAction.CLOSE),
+            offsets=(None, CloseOffset.CLOSE_TODAY, CloseOffset.CLOSE_TODAY),
+        )
+        partial = result.capital_transitions[1].after
+        final = result.final_capital_snapshot
+        # Remaining quantity is preserved, not fabricated.
+        self.assertEqual(partial.position_quantity, Decimal("1"))
+        self.assertEqual(partial.today_quantity, Decimal("1"))
+        self.assertEqual(partial.average_open_price, Decimal("101.5"))
+        # Partial close realizes 1 unit at 108.5 vs avg open 101.5.
+        self.assertEqual(partial.realized_pnl, Decimal("7"))
+        # Remaining unit is re-marked at the close fill price, so its
+        # unrealized PnL is nonzero (not cleared).
+        self.assertEqual(partial.unrealized_pnl, Decimal("7"))
+        self.assertEqual(partial.equity, Decimal("112.5"))
+        # Full close ends flat with zero remaining unrealized.
+        self.assertEqual(final.position_quantity, Decimal("0"))
+        self.assertEqual(final.unrealized_pnl, Decimal("0"))
+        self.assertEqual(final.realized_pnl, Decimal("16"))
+        self.assertEqual(final.charged_costs, Decimal("2.75"))
+        self.assertEqual(final.equity, Decimal("113.25"))
+
+    def test_optional_add_then_partial_close_preserves_correct_remaining_quantity(self):
+        result, _ = self.run_lifecycle(
+            prices=(100, 104, 110, 112),
+            quantities=(1, 1, 1, 1),
+            actions=(OrderAction.OPEN, OrderAction.OPEN, OrderAction.CLOSE, OrderAction.CLOSE),
+            offsets=(None, None, CloseOffset.CLOSE_TODAY, CloseOffset.CLOSE_TODAY),
+        )
+        added = result.capital_transitions[1].after
+        partial = result.capital_transitions[2].after
+        final = result.final_capital_snapshot
+        self.assertEqual(added.average_open_price, Decimal("103.5"))
+        self.assertEqual(added.position_quantity, Decimal("2"))
+        self.assertEqual(partial.position_quantity, Decimal("1"))
+        self.assertEqual(partial.realized_pnl, Decimal("5"))
+        self.assertEqual(partial.unrealized_pnl, Decimal("5"))
+        self.assertEqual(partial.equity, Decimal("108.25"))
+        self.assertEqual(final.position_quantity, Decimal("0"))
+        self.assertEqual(final.unrealized_pnl, Decimal("0"))
+
+    def test_short_partial_close_favorable_mark_is_consistent(self):
+        short = PositionDirection.SHORT
+        result, _ = self.run_lifecycle(
+            prices=(100, 90),
+            quantities=(2, 1),
+            actions=(OrderAction.OPEN, OrderAction.CLOSE),
+            directions=(short, short),
+            offsets=(None, CloseOffset.CLOSE_TODAY),
+        )
+        partial = result.capital_transitions[1].after
+        self.assertEqual(partial.average_open_price, Decimal("98.5"))
+        self.assertEqual(partial.position_quantity, Decimal("1"))
+        self.assertEqual(partial.realized_pnl, Decimal("7"))
+        self.assertEqual(partial.unrealized_pnl, Decimal("7"))
+
+    def test_adverse_partial_close_leaves_negative_remaining_unrealized(self):
+        result, _ = self.run_lifecycle(
+            prices=(100, 90),
+            quantities=(2, 1),
+            actions=(OrderAction.OPEN, OrderAction.CLOSE),
+            offsets=(None, CloseOffset.CLOSE_TODAY),
+        )
+        partial = result.capital_transitions[1].after
+        self.assertEqual(partial.position_quantity, Decimal("1"))
+        self.assertEqual(partial.realized_pnl, Decimal("-13"))
+        self.assertEqual(partial.unrealized_pnl, Decimal("-13"))
+
+    def test_partial_close_does_not_create_artificial_equity_jump(self):
+        # Zero transaction costs isolate the mark-to-market from fees.
+        full_close, _ = self.run_lifecycle(
+            prices=(100, 110),
+            quantities=(2, 2),
+            actions=(OrderAction.OPEN, OrderAction.CLOSE),
+            offsets=(None, CloseOffset.CLOSE_TODAY),
+            slippage=Decimal("0"),
+            fee=Decimal("0"),
+            close_today_fee=Decimal("0"),
+            close_previous_fee=Decimal("0"),
+        )
+        partial_then_full, _ = self.run_lifecycle(
+            prices=(100, 110, 110),
+            quantities=(2, 1, 1),
+            actions=(OrderAction.OPEN, OrderAction.CLOSE, OrderAction.CLOSE),
+            offsets=(None, CloseOffset.CLOSE_TODAY, CloseOffset.CLOSE_TODAY),
+            slippage=Decimal("0"),
+            fee=Decimal("0"),
+            close_today_fee=Decimal("0"),
+            close_previous_fee=Decimal("0"),
+        )
+        after_partial = partial_then_full.capital_transitions[1].after
+        after_full = partial_then_full.final_capital_snapshot
+        # Marking the whole position at the close price yields the same equity
+        # whether it is closed in one order or partly then fully closed.
+        self.assertEqual(after_partial.unrealized_pnl, Decimal("10"))
+        self.assertEqual(after_partial.equity, Decimal("120"))
+        self.assertEqual(full_close.final_capital_snapshot.equity, Decimal("120"))
+        self.assertEqual(after_full.equity, Decimal("120"))
+
+    def test_realized_pnl_and_transaction_costs_unaffected_by_unrealized_fix(self):
+        result, _ = self.run_lifecycle(
+            prices=(100, 110, 112),
+            quantities=(2, 1, 1),
+            actions=(OrderAction.OPEN, OrderAction.CLOSE, OrderAction.CLOSE),
+            offsets=(None, CloseOffset.CLOSE_TODAY, CloseOffset.CLOSE_TODAY),
+        )
+        partial_transition = result.capital_transitions[1]
+        full_transition = result.capital_transitions[2]
+        # Realized PnL changes are driven only by the close fill price.
+        self.assertEqual(partial_transition.realized_pnl_change, Decimal("7"))
+        self.assertEqual(partial_transition.quantity_change, Decimal("-1"))
+        self.assertEqual(partial_transition.resolved_close_offset, CloseOffset.CLOSE_TODAY)
+        # Transaction-cost semantics are unchanged: synthetic fee + per-unit
+        # close-today offset fee.
+        self.assertEqual(partial_transition.required_cost, Decimal("1.25"))
+        self.assertEqual(full_transition.realized_pnl_change, Decimal("9"))
+        self.assertEqual(full_transition.required_cost, Decimal("1.25"))
+        self.assertEqual(result.final_capital_snapshot.realized_pnl, Decimal("16"))
+
+    def test_later_mark_after_partial_close_revalues_remaining_quantity(self):
+        base, _ = self.run_lifecycle(
+            prices=(100, 110),
+            quantities=(2, 1),
+            actions=(OrderAction.OPEN, OrderAction.CLOSE),
+            offsets=(None, CloseOffset.CLOSE_TODAY),
+        )
+        after_partial = base.capital_transitions[1].after
+        mark = MarkObservation(
+            "mark-after-partial",
+            after_partial.position_id,
+            after_partial.position_request_id,
+            after_partial.position_instrument,
+            at(9, 14),
+            at(9, 14),
+            Decimal("115"),
+        )
+        marked, _ = self.run_lifecycle(
+            prices=(100, 110),
+            quantities=(2, 1),
+            actions=(OrderAction.OPEN, OrderAction.CLOSE),
+            offsets=(None, CloseOffset.CLOSE_TODAY),
+            mark=mark,
+        )
+        marked_after = marked.mark_transitions[0].after
+        final = marked.final_capital_snapshot
+        # The later mark revalues the REMAINING quantity (1), not the old
+        # pre-close quantity (2).
+        self.assertEqual(marked_after.position_quantity, Decimal("1"))
+        self.assertEqual(marked_after.unrealized_pnl, Decimal("13.5"))
+        self.assertEqual(final.realized_pnl, Decimal("7"))
+        self.assertEqual(final.equity, Decimal("119.0"))
 
 
 if __name__ == "__main__":

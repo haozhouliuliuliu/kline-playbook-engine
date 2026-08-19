@@ -21,52 +21,58 @@ RESOLVED  = fixed; preserve the resolution reference, then move to history when 
 ## TD-001 — Duplicate session/trading-day responsibility in bootstrap fixture
 
 ```text
-STATUS=OPEN
+STATUS=RESOLVED
+RESOLVED_BY=docs/evidence/EXECUTION_EVIDENCE_TD001_TD002_REPAIR_V0_1.md
 PRIORITY=MEDIUM
 CURRENT_BLOCKER=NO
 ACTIVATE_BEFORE=production/backtest session-authority consolidation or live trading path
 ```
 
-`src/bootstrap_semantics.py` still contains the early feasibility
+`src/bootstrap_semantics.py` previously carried an early feasibility
 `NormalizedSessionCalendar.trading_day_at()` implementation.
 
-The accepted historical/canonical data path uses the later explicit/versioned
+The accepted historical/canonical data path uses the explicit/versioned
 `SessionMetadata` authority in `src/data_substrate.py` and governed metadata. The bootstrap
-calendar is deliberately a feasibility fixture, but keeping two implementations with
-similar trading-day responsibility creates future drift risk.
+calendar is deliberately a feasibility fixture, but a second independent trading-day
+implementation created future drift risk.
 
-Required later action:
+Resolution (see `docs/evidence/EXECUTION_EVIDENCE_TD001_TD002_REPAIR_V0_1.md`):
 
-- preserve `SessionMetadata` / governed session facts as the authoritative semantics;
-- retire, adapt, or clearly isolate the bootstrap calendar before it could become a second
-  business-logic owner;
-- add/retain regression tests proving one timestamp cannot silently map to conflicting
-  trading days.
+- `NormalizedSessionCalendar` now delegates `trading_day_at()` / `trading_week_at()` to a
+  single authoritative `SessionMetadata`, so no competing trading-day algorithm remains;
+- `SessionMetadata.trading_week_at()` makes weekly attribution use the same official
+  trading-day identity;
+- regression tests prove one timestamp cannot silently map to conflicting trading days,
+  including night-session/cross-midnight and week-boundary cases.
 
-This debt does not invalidate the accepted canonical corpus.
+This debt did not invalidate the accepted canonical corpus.
 
 ---
 
 ## TD-002 — Partial-close snapshot temporarily clears unrealized PnL
 
 ```text
-STATUS=OPEN
+STATUS=RESOLVED
+RESOLVED_BY=docs/evidence/EXECUTION_EVIDENCE_TD001_TD002_REPAIR_V0_1.md
 PRIORITY=MEDIUM
 CURRENT_BLOCKER=NO
 ACTIVATE_BEFORE=PnL-sensitive confirmatory validation is treated as final-quality evidence
 ```
 
-In the current offline validation lifecycle, a partial close creates the remaining-position
-snapshot with `unrealized_pnl=0` and updates the position request identity; a later valid mark
-observation recomputes unrealized PnL for the remaining quantity.
+Previously, in the offline validation lifecycle, a partial close created the remaining-position
+snapshot with `unrealized_pnl=0` and updated the position request identity; a later valid mark
+observation recomputed unrealized PnL for the remaining quantity.
 
-This was acceptable for the bootstrap/semantics package and is not a canonical-data issue,
-but it is a modeling simplification. Before confirmatory PnL evidence is relied on for final
-strategy acceptance, the project should decide and implement a coherent mark-preservation /
-re-mark semantic so a partial close cannot create a misleading intermediate equity state.
+This was acceptable for the bootstrap/semantics package and was not a canonical-data issue,
+but it was a modeling simplification that could create a misleading intermediate equity state.
 
-Do not silently change historical accepted evidence when fixing this. Add a new explicit
-semantic/version if outcome-affecting behavior changes.
+Resolution (see `docs/evidence/EXECUTION_EVIDENCE_TD001_TD002_REPAIR_V0_1.md`):
+
+- after a partial close the remaining position is re-marked deterministically at the close
+  fill price (the explicit mark price of the transition), so unrealized PnL / equity /
+  drawdown path stay correct;
+- realized PnL totals and transaction-cost semantics are unchanged;
+- full close still ends with a flat snapshot and zero remaining unrealized.
 
 ---
 

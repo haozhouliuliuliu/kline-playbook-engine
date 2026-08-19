@@ -971,12 +971,24 @@ class ChronologicalValidationRunner:
                         latest_mark_reference=current.latest_mark_reference,
                     )
                 else:
+                    # TD-002: after a partial close the remaining position is
+                    # re-marked at the close fill price (the explicit mark
+                    # price of this transition), so its unrealized PnL is
+                    # deterministic and nonzero where mathematically
+                    # appropriate, instead of being temporarily cleared to
+                    # zero until a later mark observation.
+                    remaining_unrealized_pnl = (
+                        (outcome.fill_price - current.average_open_price)
+                        * remaining_quantity
+                        * capital_assumptions.contract_multiplier
+                        * pnl_sign
+                    )
                     next_snapshot = replace(
                         current,
                         reserved_margin=current.reserved_margin - released_margin,
                         charged_costs=current.charged_costs + total_cost,
                         realized_pnl=current.realized_pnl + realized_pnl_change,
-                        unrealized_pnl=Decimal("0"),
+                        unrealized_pnl=remaining_unrealized_pnl,
                         position_quantity=remaining_quantity,
                         position_request_id=specification.request_id,
                         state_at=outcome.evaluated_at,
