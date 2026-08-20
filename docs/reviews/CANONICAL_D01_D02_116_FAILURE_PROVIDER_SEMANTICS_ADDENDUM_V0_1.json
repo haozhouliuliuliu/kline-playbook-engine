@@ -1,0 +1,110 @@
+{
+  "answers": {
+    "Q1_zero_volume_bars_before_first_trade": {
+      "summary": "Official docs do not verbatim-state the first-session boundary; official semantics (E1/E2/E3/E4) imply the series starts at the first available bar and emits no bars before it. Observed corpus (cu2504 night from 21:11 vol=1, zero-volume bars only after) is consistent.",
+      "verdict": "PARTIAL_OFFICIAL_STRONG_INFERENCE"
+    },
+    "Q2_returned_start_later_than_requested_start": {
+      "summary": "Direct consequence of E2 + E4 + E1: no-trade periods produce no bars, data starts from listing, and the API returns only stored bars in the range; a newly listed contract with a late first trade has returned_start later than requested_start.",
+      "verdict": "OFFICIALLY_SUPPORTED"
+    },
+    "Q3_bar_every_minute_guarantee": {
+      "summary": "E2 (skip on no trade), E3 (non-continuous K-lines), E5 (missing time slots) together show TqSdk does not guarantee a bar per minute.",
+      "verdict": "NO_OFFICIALLY_SUPPORTED"
+    },
+    "Q4_range_vs_availability_semantics": {
+      "summary": "start_dt/end_dt define a filter window; the API returns the provider's stored bars inside it; full population is not guaranteed.",
+      "verdict": "OFFICIALLY_DOCUMENTED_FILTER_SEMANTICS"
+    },
+    "Q5_no_bars_before_listing_first_trade": {
+      "summary": "E1 ('从上市开始' - from listing) plus E2/E3: historical series has no bars before listing/first trade.",
+      "verdict": "OFFICIALLY_SUPPORTED"
+    }
+  },
+  "constraints": {
+    "no_32980_recompute": true,
+    "no_candidate_outcome_research": true,
+    "no_download": true,
+    "no_install": true,
+    "no_main_writes": true,
+    "no_tqsdk_login": true
+  },
+  "evidence_sources": [
+    {
+      "id": "DOC-INTRO",
+      "url": "https://doc.shinnytech.com/tqsdk/latest/intro.html"
+    },
+    {
+      "id": "DOC-MDDATAS",
+      "url": "https://doc.shinnytech.com/tqsdk/latest/usage/mddatas.html"
+    },
+    {
+      "id": "DOC-API",
+      "url": "https://doc.shinnytech.com/tqsdk/latest/reference/tqsdk.api.html"
+    },
+    {
+      "id": "DOC-DOWNLOAD",
+      "url": "https://doc.shinnytech.com/tqsdk/latest/reference/tqsdk.tools.download.html"
+    },
+    {
+      "id": "SRC-API",
+      "url": "https://github.com/shinnytech/tqsdk-python/tree/master/tqsdk/api.py"
+    },
+    {
+      "id": "SRC-DATA_SERIES",
+      "url": "https://github.com/shinnytech/tqsdk-python/tree/master/tqsdk/data_series.py"
+    },
+    {
+      "id": "SRC-DEMO-VWAP",
+      "url": "https://github.com/shinnytech/tqsdk-python/tree/master/tqsdk/demo/example/vwap.py"
+    }
+  ],
+  "official_evidence_base": [
+    {
+      "id": "E1",
+      "source": "DOC-INTRO",
+      "statement": "TqSdk provides all tick/K-line data '从上市开始' (from listing) for all currently tradable contracts."
+    },
+    {
+      "id": "E2",
+      "source": "DOC-DOWNLOAD",
+      "statement": "Non-trading periods produce no K-line bars (e.g. cu1805 13:00-13:30 not trading -> its K-line data in that period is skipped)."
+    },
+    {
+      "id": "E3",
+      "source": "DOC-MDDATAS / SRC-API",
+      "statement": "When a contract has no data at a time, that bar is skipped and K-lines can be non-continuous."
+    },
+    {
+      "id": "E4",
+      "source": "SRC-DATA_SERIES / SRC-API",
+      "statement": "get_kline_data_series returns only the bars the server stores within [start_dt, end_dt); download pages by K-line id without synthesizing missing minutes."
+    },
+    {
+      "id": "E5",
+      "source": "SRC-DEMO-VWAP",
+      "statement": "Official example explicitly handles days whose trading-time slots are not fully filled (bars can be missing for parts of a period)."
+    }
+  ],
+  "original_phrase_refinement": {
+    "original": "provider data is incomplete/truncated (PROVIDER_REPEATABLE_TRUNCATION)",
+    "rationale": "Official TqSdk semantics (E1/E2/E3/E4) say no-trade/no-listing periods have no bars and the series starts at the first available bar; leading missing minutes are absent by design, not lost or randomly truncated.",
+    "refined": "NO_BAR_BEFORE_FIRST_AVAILABLE_TRADE",
+    "rejected_candidates": {
+      "PROVIDER_DATA_INCOMPLETE": "implies data loss the official semantics do not support",
+      "UNRESOLVED_PROVIDER_AVAILABILITY_SEMANTICS": "used only as a residual note for the exact first-session leading-edge rule"
+    }
+  },
+  "original_verdict_impact": {
+    "detail": "MIXED_ROOT_CAUSES stands; primary component re-characterized as NO_BAR_BEFORE_FIRST_AVAILABLE_TRADE; secondary listing-boundary authority/planner findings are reinforced.",
+    "verdict": "NO_CONFLICT"
+  },
+  "recommended_repair": "UNCHANGED - re-request reproduces leading-absent bars; re-scope first-day expected coverage or use another authoritative source for genuinely-traded leading minutes.",
+  "residual_gap": "INSUFFICIENT_OFFICIAL_EVIDENCE for the verbatim mechanism of the first-session leading edge only; overall semantic direction is unambiguous.",
+  "review_branch": "review/canonical-116-root-cause-v01",
+  "review_date": "2026-08-21",
+  "review_identity": "4250d993048c12f019be9735c4fb14edf15872afda2932792f7340b104c9fa8d",
+  "schema_version": "canonical-d01-d02-116-failure-provider-semantics-addendum-v0.1",
+  "scope": "TqSdk official/first-party materials only",
+  "supersedes": null
+}
