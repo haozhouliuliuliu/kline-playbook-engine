@@ -7,15 +7,15 @@ PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
-CURRENT_BLOCKER=CDF_COMBINED_INTEGRATION_AND_REMAINING_SECOND_PASS_REPAIRS
-CURRENT_WORK_PACKAGE=CDF_FINAL_INTEGRATION_PLUS_PACKAGE_E_PARALLEL_PREP
+CURRENT_BLOCKER=FINAL_SECOND_PASS_EXECUTION_AND_FGH_REPAIR_CLOSURE
+CURRENT_WORK_PACKAGE=POST_CDF_E_CORE_REPAIR_EXIT_ROUND_R1
 CURRENT_WORK_PACKAGE_STATUS=THREE_LANES_READY
-CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/CDF_CORRECTION_REVIEW_AND_NEXT_PARALLEL_PLAN_V0_1.md
+CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/POST_CDF_E_CORE_GOVERNANCE_REVIEW_AND_REPAIR_EXIT_PLAN_V0_1.md
 SECOND_PASS_AUDIT_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md
-OWNER_ACTION=RELAY_THREE_BOUNDED_NEXT_LANE_PROMPTS
+OWNER_ACTION=RUN_R1_NOW_AND_RESOLVE_FOUR_OWNER_GATES
 ```
 
-Package A and Package B are integrated. Package C/D/F initial repairs and their bounded pre-integration corrections are complete on isolated branches. Project-brain code review accepts all three corrected branches for one combined integration/regression branch; none is on main yet.
+Package A/B are integrated on main. Package C/D/F corrected branches have passed project-brain review and their combined integration branch has passed the worker combined regression; it is ready for final main-path integration. Package E-Core has passed project-brain code review and is ready for integration with accepted D-05 plus E-10. E-Governance research is accepted as decision input.
 
 ## Binding research / access boundary
 
@@ -45,48 +45,59 @@ No project-recorded real candidate outcome exposure has been established.
 
 ```text
 PACKAGE_A_STATUS=INTEGRATED_ACCEPTED_WITH_EXPLICIT_RESIDUAL_BOUNDARY
-PACKAGE_A_COMMIT=6704b4b03eed07a72bc847b58c7dec375320e960
-PACKAGE_A_CORRECTION_COMMIT=79d0d057cb694b639724ebf84bcf222edb0e5337
 PACKAGE_B_STATUS=INTEGRATED_ACCEPTED
-PACKAGE_B_INTEGRATED_TIP=3260e9660e166da3593a19a70bc980e4b273b26e
-```
-
-Accepted A/B invariants include authoritative confirmatory ResearchFirewall gating; caller cohort/synthetic booleans removed; validation input/experiment data-version label binding; current-policy non-test profile lock fail-closed; portfolio candidate path closed; artifact-derived PRIMARY/scope/search registration; SOURCE_ONLY/Playbook/Strategy binding; family-claim lineage binding; versioned JSON firewall state durability; fixed-nonce SOURCE_ONLY forge path closed; alternatives=denominator; idempotent evidence append; byte-derived code/environment/data/feature registration bindings.
-
-Residual boundaries remain explicit:
-
-```text
 SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN
 LOCAL_STATE_TAMPER_PROOFING=NO
 VALIDATION_ROW_TO_CANONICAL_ARTIFACT_BYTE_PROVENANCE=NOT_YET_PROVEN
 ```
 
-## C / D / F corrected branches
-
-Authority: `docs/reviews/CDF_CORRECTION_REVIEW_AND_NEXT_PARALLEL_PLAN_V0_1.md`.
+## C / D / F combined integration
 
 ```text
-LANE_C_BRANCH=repair/package-c-playbook-protocol-v01
-LANE_C_CORRECTION_REVIEW=PASS_READY_FOR_COMBINED_INTEGRATION
-C_OUTCOME_REGISTRATION_REQUIRES_MACHINE_READY_CONTRACT=YES
-C_DUPLICATE_CLAIM_IDS_FAIL_CLOSED=YES
-C_STRATEGY_MUST_EQUAL_PLAYBOOK_BRIDGE_SEMANTICS=YES
-
-LANE_D_BRANCH=repair/package-d-canonical-provenance-v01
-LANE_D_CORRECTION_REVIEW=PASS_READY_FOR_COMBINED_INTEGRATION
-D_OFFICIAL_PARTIAL_REPROMOTION_BLOCKED=YES
-D_VERIFIED_OFFICIAL_REQUIRES_EXACT_HASH=YES
-D_CANONICAL_STORAGE_PASS_ONLY=YES
-D_LEGACY_SESSION_IDENTITY_REVALIDATION_DIAGNOSTIC=YES
-
-LANE_F_BRANCH=repair/package-f-source-evidence-hardening-v01
-LANE_F_CORRECTION_REVIEW=PASS_READY_FOR_COMBINED_INTEGRATION
-F_SESSION_BINDS_MATERIAL_BOUND_BUNDLE=YES
-F_FUTURE_BUNDLE_SESSION_HASH_MATERIAL_DERIVED=YES
-F_CLAIM_STATUS_SCHEMA_ENFORCED=YES
+CDF_INTEGRATION_BRANCH=integration/cdf-final-v01
+CDF_PROJECT_BRAIN_REVIEW=PASS_READY_FOR_MAIN_INTEGRATION
+CDF_WORKER_FOCUSED_TESTS=260_OK
+CDF_WORKER_FULL_TESTS=451_OK
+CDF_COMPILEALL=OK
+CDF_DIFF_CHECK=OK
+CDF_CONFLICT_MARKERS=NONE
+PACKAGE_C_INVARIANTS=PRESERVED
+PACKAGE_D_INVARIANTS=PRESERVED
+PACKAGE_F_INVARIANTS=PRESERVED
+PACKAGE_A_B_INVARIANTS=PRESERVED
 ```
 
-C and F both modify `src/research_firewall.py` and `tests/synthetic_fixture.py`. They must be merged as a semantic union in one integration branch and pass a combined regression before main advances.
+Important accepted semantics include claim-level PRIMARY and machine-ready Playbook registration; Playbook->Strategy bridge equivalence; canonical completeness/provenance and PASS-only storage admission; material-bound SOURCE_ONLY bundle/session/claim provenance; historical source bytes are not retroactively upgraded.
+
+## Package E current state
+
+```text
+PACKAGE_E_CORE_BRANCH=repair/package-e-core-execution-v01
+PACKAGE_E_CORE_REVIEW=PASS_READY_FOR_COMBINED_INTEGRATION
+E01=REPAIRED_ON_BRANCH
+E02=REPAIRED_ON_BRANCH
+E03=REPAIRED_ON_BRANCH
+E09=REPAIRED_ON_BRANCH
+E11=REPAIRED_ON_BRANCH
+E12=REPAIRED_ON_BRANCH
+E13=REPAIRED_ON_BRANCH_BOOTSTRAP_SCOPE_ONLY
+E10=NEXT_AFTER_ACCEPTED_D05
+```
+
+Governance research:
+
+```text
+E04_STATUS=OWNER_DECISION_REQUIRED
+E05_STATUS=OWNER_DECISION_REQUIRED
+E06_STATUS=INSUFFICIENT_EVIDENCE
+E07_STATUS=OWNER_DECISION_REQUIRED
+E08_STATUS=OWNER_DECISION_REQUIRED
+E06_HISTORICAL_REALISTIC_FEE_MARGIN_SCHEDULE=NOT_ESTABLISHED
+E07_MAPPING_RULE_ALREADY_FROZEN=NO
+E08_RESOURCE_RULE_ALREADY_FROZEN=NO
+```
+
+No worker may silently choose E-04/E-05/E-07/E-08. E-06 current rates must not be backfilled into 2024-2025.
 
 ## Canonical data status
 
@@ -106,92 +117,75 @@ CONCRETE_CONTRACT_RESEARCH_MAPPING_RULE=NOT_FROZEN
 HISTORICAL_REALISTIC_MARGIN_FEE_AUTHORITY=NOT_IMPLEMENTED_FOR_CANDIDATE_QUALITY
 ```
 
-Package D repairs future/revalidation correctness and provenance gates; they do not establish that existing accepted OHLC values are numerically wrong.
+Package D repairs do not establish that accepted OHLC values are numerically wrong. Legacy session identity requires explicit revalidation/rebuild; there is no automatic migration.
 
-## Human Playbook research
+## Human Playbook / old F-G-H
 
 ```text
-GRIMES_WAVE_1=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
-STEENBARGER_WAVE_2=ACCEPTED_WITH_INTEGRATION_CORRECTIONS
-STEENBARGER_FALSE_BREAKOUT=ACCEPTED_NEGATIVE_SEMANTIC_RESULT
-RASCHKE_NR7=ACCEPTED_NEGATIVE_SEMANTIC_RESULT
 RASCHKE_HOLY_GRAIL=SOURCE_SEMANTICALLY_DRAFTABLE_NOT_MACHINE_READY
 PRIMARY_FREEZE_READY=NO
 CURRENT_PROJECT_PRODUCT_TRANSFER=INFERRED
-NO_CANDIDATE_OUTCOME_DATA_USED=YES
-```
-
-Historical exact fetched source bytes remain not retroactively provable where no historical byte SHA was recorded. Accepted raw Wave 1/2 evidence remains retained by dedicated evidence refs.
-
-## Package E / later work
-
-Package E preflight is complete on `prep/package-e-execution-reproduction-v01` @ `5f77f279181fe7fe9c385017ee92f93cf4ca204c`.
-
-The next parallel plan is:
-
-```text
-LANE_1=CDF_COMBINED_INTEGRATION_AND_REGRESSION
-LANE_2=PACKAGE_E_UNAMBIGUOUS_EXECUTION_REPAIRS_E01_E02_E03_E09_E11_E12_E13
-LANE_3=PACKAGE_E_GOVERNANCE_AUTHORITY_RESEARCH_E04_E05_E06_E07_E08
-```
-
-Lane 2 may repair only `E-01,E-02,E-03,E-09,E-11,E-12,E-13`. It must not repair E-04, E-05, E-08, or E-10. E-10 waits until accepted D-05 is on the main integration path. E-13 remains bootstrap/feasibility scope.
-
-Lane 3 is research/documentation only for E-04/E-05/E-06/E-07/E-08. E-04/E-05/E-07/E-08 remain Owner-gated if repository/formal external authority does not already contain a binding answer. No worker may choose those rules. Source acquisition follows `FREE_PUBLIC_UNAUTHENTICATED_FIRST`; no paid purchase/login and no candidate outcomes.
-
-```text
-E10_ROUND_TRIP_SESSION_IDENTITY_DEPENDS_ON_ACCEPTED_D05=YES
-E08_MARGIN_ADMISSION_RESOURCE_SEMANTICS=UNRESOLVED_FORMAL_AUTHORITY_REQUIRED
-E07_CONCRETE_CONTRACT_MAPPING_RULE=NOT_FROZEN_OWNER_GATED
-E04_GENERIC_CLOSE_SPLIT_RULE=NOT_DELEGATED_TO_WORKER
-E05_PORTFOLIO_REPRESENTATION=NOT_DELEGATED_TO_WORKER
 OLD_HOLY_GRAIL_F_BRANCH=NOT_MERGED
 OLD_FEATURE_G_BRANCH=NOT_MERGED
 OLD_STOP_H_BRANCH=NOT_MERGED
+OLD_F_G_H_REBUILD=HIGHEST_REMAINING_CROSS_MODULE_IMPLEMENTATION_DIFFICULTY
+CODEX_PRIORITY=OLD_F_G_H_REBUILD_AND_COMBINED_CAUSAL_TIMING_INTEGRATION
 ```
 
-## Orchestration
+## Repair-exit plan
+
+Repair mode ends when every second-pass finding is either fixed/tested or converted into an explicit governed prerequisite / Owner-gated semantic that cannot be silently bypassed. Candidate outcome access can remain locked after repair mode ends.
+
+Expected remaining path, absent a new critical integration defect:
 
 ```text
-REPAIR_EXECUTION_MODE=BOUNDED_PARALLEL_WITH_SINGLE_MAIN_INTEGRATION_LANE
+ROUND_R1_NOW=
+  CDF + E-Core combined integration
+  + E-10 using accepted D-05 SessionMetadata identity
+  + E-06 bounded official evidence collection
+  + Owner decisions E-04/E-05/E-07/E-08
+
+ROUND_R2=
+  implement Owner-approved E-04/E-05/E-07/E-08
+  + rebuild/correct old F-G-H against repaired foundation
+  + combined causal regression
+
+FINAL_CLOSURE=
+  full second-pass closure audit
+  + only bounded corrections for concrete blockers
+```
+
+Planning expectation: two substantive repair rounds plus one final closure audit. This is not a guarantee that the final audit finds zero minor defects; another open-ended audit/repair loop is not the planned default.
+
+## Current three lanes
+
+```text
+LANE_1=INTEGRATE_CDF_E_CORE_AND_IMPLEMENT_E10
+LANE_2=E06_OFFICIAL_HISTORICAL_FEE_MARGIN_EVIDENCE_COLLECTION
+LANE_3=FGH_REBUILD_PREPARATION_NOW_THEN_CODEX_EXECUTION_WHEN_AVAILABLE
 MAX_ACTIVE_LANES=3
 MAIN=SOLE_FINAL_INTEGRATION_AUTHORITY
-MANDATORY_POST_PARALLEL_ADVERSARIAL_AUDIT=YES
-MANDATORY_COMBINED_REGRESSION_BEFORE_MAIN_ADVANCE=YES
 TOOL_DECISION=USE_EXISTING
 NEW_TOOL_REQUIRED=NO
 ```
 
-Current dependency order:
-
-```text
-A [INTEGRATED]
-B [INTEGRATED]
-C/D/F [CORRECTIONS REVIEWED; COMBINED INTEGRATION PENDING]
-+ E unambiguous execution repairs [PARALLEL ALLOWED]
-+ E governance authority research [PARALLEL ALLOWED]
--> project-brain integration review
--> E-10 after accepted D-05
--> resolve Owner-gated E-04/E-05/E-07/E-08 if needed
--> rebuild/correct old F/G/H + combined regression
--> first machine-operationalized Playbook pre-outcome integration
-```
+Do not idle waiting for Codex. Use current workers for deterministic integration/E-10 and E-06 evidence work; reserve Codex for the old F/G/H rebuild and combined causal-timing integration when quota becomes available.
 
 ## Progress estimate
 
 ```text
 PLANNING_ESTIMATE_ONLY=YES
-OVERALL_ENGINEERING_PROGRESS_ESTIMATE=ABOUT_59_PERCENT_ACCEPTED_RELIABLE_WORK
-RESEARCH_AND_VALIDATION_FOUNDATION_PROGRESS_ESTIMATE=ABOUT_74_PERCENT
+ACCEPTED_MAIN_OVERALL_ENGINEERING_PROGRESS=ABOUT_59_PERCENT
+INCLUDING_PROJECT_BRAIN_REVIEWED_READY_UNMERGED_WORK=ABOUT_66_PERCENT
+RESEARCH_AND_VALIDATION_FOUNDATION_INCLUDING_REVIEWED_READY_WORK=ABOUT_82_PERCENT
 ```
 
-Unmerged C/D/F production work remains outside the accepted-main percentage until the combined integration/regression is accepted.
+The accepted-main percentage does not count CDF/E-Core until final integrated-tree regression is accepted.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=RUN_THREE_LANES_CDF_INTEGRATION_E_CORE_E_GOVERNANCE
-OWNER_ACTION=RELAY_THREE_BOUNDED_NEXT_LANE_PROMPTS
+CURRENT_NEXT_ACTION=RUN_R1_WITHOUT_WAITING_FOR_CODEX
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
