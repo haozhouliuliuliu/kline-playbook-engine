@@ -14,6 +14,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 from typing import Iterable
+from weakref import WeakValueDictionary
 
 from src.data_substrate import SessionMetadata
 from src.historical_data import NormalizedHistoricalBar
@@ -419,6 +420,11 @@ class AggregationResult:
         )
 
 
+_AGGREGATOR_ISSUED_RESULTS: WeakValueDictionary[int, AggregationResult] = (
+    WeakValueDictionary()
+)
+
+
 class TimeframeAggregator:
     def __init__(self, sessions: SessionMetadata, base_interval_seconds: int = 60) -> None:
         if not isinstance(sessions, SessionMetadata):
@@ -550,7 +556,7 @@ class TimeframeAggregator:
                 coverage_end,
             )
         aggregates, incomplete, expected_ids = buckets
-        return AggregationResult._from_aggregation(
+        result = AggregationResult._from_aggregation(
             aggregates=tuple(aggregates),
             incomplete_buckets=tuple(incomplete),
             expected_bucket_identities=tuple(expected_ids),
@@ -561,6 +567,8 @@ class TimeframeAggregator:
             coverage_start=coverage_start,
             coverage_end=coverage_end,
         )
+        _AGGREGATOR_ISSUED_RESULTS[id(result)] = result
+        return result
 
     def _window_runs(self, starts: tuple[datetime, ...]) -> tuple[tuple[datetime, ...], ...]:
         runs: list[list[datetime]] = []
@@ -740,6 +748,10 @@ def visible_aggregates(
 def _validated_feature_input(result: AggregationResult) -> tuple[AggregatedBar, ...]:
     if not isinstance(result, AggregationResult):
         raise ValueError("feature computation requires an AggregationResult completeness envelope")
+    if _AGGREGATOR_ISSUED_RESULTS.get(id(result)) is not result:
+        raise ValueError(
+            "feature computation rejected an AggregationResult not issued by TimeframeAggregator.aggregate"
+        )
     if result.incomplete_buckets:
         raise ValueError("feature continuity is blocked by incomplete aggregation buckets")
     bars = result.aggregates
