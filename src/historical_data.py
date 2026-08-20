@@ -478,23 +478,19 @@ def normalize_tqsdk_historical_bars(
                 data_version.identity_id,
             )
         )
-    observed_by_day: dict[date, set[datetime]] = {}
-    for bar in bars:
-        observed_by_day.setdefault(bar.completed_bar.trading_day, set()).add(bar.completed_bar.start)
-    missing: list[datetime] = []
-    for trading_day, observed in observed_by_day.items():
-        expected = sessions.expected_bar_starts(
-            artifact.exchange,
-            artifact.concrete_instrument,
-            trading_day,
-            interval,
-        )
-        covered_expected = {
-            start
-            for start in expected
-            if artifact.coverage_start <= start and start + interval <= artifact.coverage_end
-        }
-        missing.extend(covered_expected - observed)
+    # Completeness is derived from the authoritative session windows over the
+    # whole declared artifact coverage, NOT from the set of days that happen to
+    # have observed bars.  An entirely absent session window inside the claimed
+    # coverage therefore still contributes missing expected starts.
+    expected = sessions.expected_bar_starts_between(
+        artifact.exchange,
+        artifact.concrete_instrument,
+        artifact.coverage_start,
+        artifact.coverage_end,
+        interval,
+    )
+    observed = {bar.completed_bar.start for bar in bars}
+    missing = sorted(set(expected) - observed)
     return NormalizedHistoricalBatch(
         tuple(bars),
         tuple(sorted(missing)),

@@ -221,9 +221,11 @@ def main() -> None:
             })
 
     # ---- session schedules (bound to official trading-hours page) ----
+    # No historical byte hash is recorded for the trading-hours page: the
+    # governed source must stay explicitly partial, never exact-byte-bound.
     sess_source = official_source(
         "SHFE official trading-hours page", SESSION_URL,
-        "shfe-trading-hours-v1", "OFFICIAL_AVAILABLE",
+        "shfe-trading-hours-v1", "OFFICIAL_PARTIAL",
         effective_start, effective_end,
     )
     schedule_objs: list[ProductSessionSchedule] = []
@@ -252,9 +254,11 @@ def main() -> None:
         url, pub_date, notice = SPEC_URLS[product]
         code, tick, tick_unit, mult, mult_unit, quote, months, plimit = SPECS[product]
         binding_notice, eff_start_s, eff_end_s, delivery_revisions = SPEC_BINDING_NOTICES[product]
+        # No historical byte hash is recorded for contract-text pages: the
+        # governed source must stay explicitly partial, never exact-byte-bound.
         spec_source = official_source(
             f"SHFE contract text {product} (published {pub_date})", url,
-            "shfe-contract-text-v1", "OFFICIAL_AVAILABLE",
+            "shfe-contract-text-v1", "OFFICIAL_PARTIAL",
             date.fromisoformat(eff_start_s), date.fromisoformat(eff_end_s),
         )
         spec = ContractSpec(

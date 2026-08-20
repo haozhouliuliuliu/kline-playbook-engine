@@ -98,7 +98,9 @@ def build_pilot(
             exchange=EXCHANGE,
             concrete_instrument=contract,
             minimum_price_tick=tick,
-            session_metadata_version=cdata["session_metadata_version"],
+            # Bind the computed SessionMetadata content version, not the stored
+            # label (the two diverge once version is a content identity).
+            session_metadata_version=sessions.version,
             effective_start=date.fromisoformat(cdata["effective_start"]),
             effective_end=date.fromisoformat(cdata["effective_end"]),
             evidence_reference=fixture["evidence_reference"],

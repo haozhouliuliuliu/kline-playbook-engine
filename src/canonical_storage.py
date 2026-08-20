@@ -64,7 +64,7 @@ def canonical_schema_definition() -> list[dict]:
         {"name": "high", "type": "decimal128(24,4)"},
         {"name": "low", "type": "decimal128(24,4)"},
         {"name": "close", "type": "decimal128(24,4)"},
-        {"name": "volume", "type": "int64"},
+        {"name": "volume", "type": "int64 nullable"},
         {"name": "open_interest_start", "type": "int64 nullable"},
         {"name": "open_interest_end", "type": "int64 nullable"},
         {"name": "raw_artifact_identity_id", "type": "string"},
@@ -148,7 +148,7 @@ class CanonicalRow:
     high: Decimal
     low: Decimal
     close: Decimal
-    volume: int
+    volume: int | None
     open_interest_start: int | None
     open_interest_end: int | None
     raw_artifact_identity_id: str
@@ -164,8 +164,10 @@ class CanonicalRow:
             raise ValueError("canonical row OHLC must be positive finite Decimals")
         if self.low > min(self.open, self.close) or self.high < max(self.open, self.close) or self.low > self.high:
             raise ValueError("canonical row OHLC is inconsistent")
-        if type(self.volume) is not int or self.volume < 0:
-            raise ValueError("canonical row volume must be a non-negative integer")
+        # volume is nullable: None means unknown/missing (never collapsed to 0),
+        # any non-None value must be a non-negative integer.
+        if self.volume is not None and (type(self.volume) is not int or self.volume < 0):
+            raise ValueError("canonical row volume must be a non-negative integer or None")
 
     def to_pylist_row(self) -> dict:
         return {
@@ -230,6 +232,10 @@ class CanonicalRow:
 def write_partition_table(root: Path, rows: Iterable[CanonicalRow]) -> dict:
     """Write a logical canonical table under the partitioned layout.
 
+    Rejects rows spanning more than one logical ``PARTITION_COLUMNS`` tuple
+    before writing any file, so a mixed partition can never silently produce
+    an inventory built from only the first row's partition directory.
+
     Returns deterministic storage facts: partition-relative file paths, per-file
     SHA256, row count, and a logical table identity (hash of sorted rows).
     """
@@ -239,6 +245,24 @@ def write_partition_table(root: Path, rows: Iterable[CanonicalRow]) -> dict:
     row_objects = list(rows)
     if not row_objects:
         raise ValueError("cannot write an empty canonical partition")
+    # D-07: every row must map to the SAME logical partition tuple
+    # (exchange, product, concrete_contract, year, month) before any file is
+    # written; mixed input rows are a caller defect and must fail closed.
+    partition_keys = {
+        (
+            row.exchange,
+            row.product,
+            row.concrete_contract,
+            row.trading_day.year,
+            row.trading_day.month,
+        )
+        for row in row_objects
+    }
+    if len(partition_keys) != 1:
+        raise ValueError(
+            "cannot write rows spanning multiple canonical partitions "
+            "(exchange, product, concrete_contract, year, month must be identical)"
+        )
     row_list = [row.to_pylist_row() for row in row_objects]
     table = pa.Table.from_pylist(row_list, schema=canonical_parquet_schema())
     table = table.select([f.name for f in canonical_parquet_schema()])
