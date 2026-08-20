@@ -1,0 +1,223 @@
+{
+  "artifact": "FGH_CODEX_REBUILD_FINDING_MATRIX_V0_1",
+  "version": "0.1",
+  "date": "2026-08-20",
+  "repository": "haozhouliuliuliu/kline-playbook-engine",
+  "prep_branch": "prep/fgh-codex-rebuild-v01",
+  "foundation_target_tree": "integration/r1-cdf-ecore-e10-v01",
+  "foundation_main_head": "c32c5bf2b76afd290cc0e44839aacf778d423863",
+  "old_branches": {
+    "OLD_F": {"branch": "parallel/holy-grail-playbook-contract-draft-v01", "commit": "9fe53a2104e78e51f09f56c3bc73d2f6c930e536"},
+    "OLD_G": {"branch": "parallel/pit-feature-timeframe-core-v01", "commit": "ae16f7cd0b38aadc783bd8957c7b03a7ac123d37"},
+    "OLD_H": {"branch": "parallel/stop-trigger-observation-v01", "commit": "8244935ed3be32394910a6fb745017b31e194b6a"}
+  },
+  "classes": [
+    "RESOLVED_BY_CURRENT_FOUNDATION",
+    "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+    "SOURCE_SEMANTIC_AUTHORITY_REQUIRED",
+    "OWNER_DECISION_REQUIRED",
+    "OBSOLETE_AFTER_FOUNDATION_CHANGE"
+  ],
+  "findings": [
+    {
+      "id": "L-01",
+      "lane": "F",
+      "title": "EMA touch price/reference not frozen",
+      "class": "SOURCE_SEMANTIC_AUTHORITY_REQUIRED",
+      "old_behavior": "old F predeclared close-based EMA + intrabar touch bar.low<=EMA<=bar.high (INFERRED)",
+      "source_status": "MOVING_AVERAGE_PRICE_INPUT=NOT_PINNED; PULLBACK_TOUCH_OR_PENETRATION_RULE=PARTIALLY_PINNED",
+      "gate": "FGH-GATE-01",
+      "outcome_effect": "entry bars/prices; close-based same-bar comparison is look-ahead unless redefined"
+    },
+    {
+      "id": "L-02",
+      "lane": "F",
+      "title": "ADX rising sequence not fully represented",
+      "class": "SOURCE_SEMANTIC_AUTHORITY_REQUIRED",
+      "old_behavior": "old F one-bar ADX[t]>ADX[t-1] at context/touch bar (project-added requirement)",
+      "source_status": "ADX>30 pinned; rising pinned as concept; slope window INFERRED; pullback usually ADX turndown",
+      "gate": "FGH-GATE-02",
+      "outcome_effect": "which bars qualify as Holy Grail context"
+    },
+    {
+      "id": "L-03",
+      "lane": "F->G",
+      "title": "EMA/ADX algorithm semantics not frozen",
+      "class": "OWNER_DECISION_REQUIRED",
+      "old_behavior": "old G chose SMA-seeded EMA, Wilder init, 6dp ROUND_HALF_UP (ENGINEERING semantics)",
+      "source_status": "source cannot decide numerical implementation",
+      "gate": "FGH-GATE-03",
+      "outcome_effect": "EMA-touch and ADX>30 classification change with seed/warmup/rounding"
+    },
+    {
+      "id": "L-04",
+      "lane": "F->H",
+      "title": "Same-bar EMA touch + entry trigger ordering",
+      "class": "OWNER_DECISION_REQUIRED",
+      "old_behavior": "no conservative same-bar touch->entry policy exists",
+      "source_status": "entry trigger concept pinned; intra-bar ordering not observable",
+      "gate": "FGH-GATE-04",
+      "outcome_effect": "ambiguous same-bar bars produce/no-produce entries"
+    },
+    {
+      "id": "L-05",
+      "lane": "F->H",
+      "title": "Entry fill + protective stop same bar",
+      "class": "OWNER_DECISION_REQUIRED",
+      "old_behavior": "old F INT-STOP-ACTIVATION-AFTER-FILL next-bar activation (OBSOLETE sub-construct)",
+      "source_status": "'once filled enter protective stop'; intra-bar ordering NOT_OBSERVABLE_AT_1M",
+      "gate": "FGH-GATE-05",
+      "outcome_effect": "protective-stop loss path; same-bar risk suppression"
+    },
+    {
+      "id": "L-06",
+      "lane": "G",
+      "title": "Daily aggregate completeness",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "_aggregate_daily groups supplied bars; no expected-start comparison",
+      "foundation_reuse": "SessionMetadata.expected_bar_starts/missing_bar_starts (D-02/D-05)",
+      "gate": null,
+      "outcome_effect": "partial days must never emit complete daily bars"
+    },
+    {
+      "id": "L-07",
+      "lane": "G",
+      "title": "Absent session window visibility",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "intraday groups only represented windows; zero-bar windows disappear",
+      "foundation_reuse": "authoritative window enumeration + zero-bar windows (D-02)",
+      "gate": null,
+      "outcome_effect": "missing windows must emit incomplete buckets"
+    },
+    {
+      "id": "L-08",
+      "lane": "G",
+      "title": "Base interval / constituent duration validation",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "arbitrary interval_seconds; no exact base-multiple / duration proof",
+      "foundation_reuse": "expected_bar_starts alignment; CompletedBar.start/end",
+      "gate": null,
+      "outcome_effect": "unsupported aggregation specs must be rejected"
+    },
+    {
+      "id": "L-09",
+      "lane": "G",
+      "title": "Feature identity dependency prefix",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "identity binds current source aggregate + value, not full prefix",
+      "foundation_reuse": "ArtifactBinding hash-over-evidence pattern",
+      "gate": null,
+      "outcome_effect": "any material source-evidence change must change feature identity"
+    },
+    {
+      "id": "L-10",
+      "lane": "G",
+      "title": "Mixed exchange/instrument stream binding",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "_validated_aggregate_series lacks exchange/concrete_instrument check",
+      "foundation_reuse": "NormalizedHistoricalBar.exchange/concrete_instrument",
+      "gate": null,
+      "outcome_effect": "one stream = one exchange + one concrete instrument"
+    },
+    {
+      "id": "L-11",
+      "lane": "G",
+      "title": "Feature actual code hash",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "algorithm/version strings only; no code hash",
+      "foundation_reuse": "ArtifactBinding.from_bytes (P-06/B)",
+      "gate": null,
+      "outcome_effect": "code change without version bump must change identity"
+    },
+    {
+      "id": "L-12",
+      "lane": "G",
+      "title": "Incomplete bucket evidence discard",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "compute_ema/adx accept bare aggregate iterables",
+      "foundation_reuse": "AggregationResult completeness state",
+      "gate": null,
+      "outcome_effect": "feature computation must fail closed on missing buckets"
+    },
+    {
+      "id": "L-13",
+      "lane": "H",
+      "title": "Generator consumption in group evaluation",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "evaluate_stop_group passes same iterable per order; generator consumed once",
+      "foundation_reuse": null,
+      "gate": null,
+      "outcome_effect": "materialize ordered bars once; add generator regression"
+    },
+    {
+      "id": "L-14",
+      "lane": "H",
+      "title": "Trigger-result source-bar / sequence identity",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "identity omits NormalizedHistoricalBar.identity_id and evaluated prefix",
+      "foundation_reuse": "ArtifactBinding pattern",
+      "gate": null,
+      "outcome_effect": "equivalent-looking different-evidence bars must not share identity"
+    },
+    {
+      "id": "L-15",
+      "lane": "H",
+      "title": "trigger_model_version caller label",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "any non-empty string; code always executes V0_1",
+      "foundation_reuse": "ArtifactBinding over trigger code + explicit model constant",
+      "gate": null,
+      "outcome_effect": "declared model version must equal executed algorithm (model semantics remain ENGINEERING)"
+    },
+    {
+      "id": "L-16",
+      "lane": "H",
+      "title": "Completed-bar availability vs exchange-resting chronology",
+      "class": "OWNER_DECISION_REQUIRED",
+      "old_behavior": "bridge observed_at=available_at=bar_available_at",
+      "foundation_reuse": null,
+      "gate": "FGH-GATE-05",
+      "outcome_effect": "conservative completed-bar model must be explicit; never claim exchange-resting"
+    },
+    {
+      "id": "L-17",
+      "lane": "H",
+      "title": "OCO cancellation lifecycle",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "same-bar ambiguity detection only; no sibling cancellation after unambiguous trigger",
+      "foundation_reuse": null,
+      "gate": null,
+      "outcome_effect": "cancel sibling at first unambiguous trigger; preserve AMBIGUOUS_INTRABAR_SEQUENCE"
+    },
+    {
+      "id": "L-18",
+      "lane": "X",
+      "title": "Combined F/G/H regression",
+      "class": "UNAMBIGUOUS_IMPLEMENTATION_FIX",
+      "old_behavior": "303/338/330 branch-local suites only",
+      "foundation_reuse": "R1 tree: PlaybookContract + SessionMetadata + ResearchFirewall + validation_runner",
+      "gate": "FGH-GATE-01..06 (prerequisite for Holy Grail PRIMARY-specific parts)",
+      "outcome_effect": "synthetic-only combined causal-timing regression required before integration"
+    }
+  ],
+  "owner_gates": [
+    "FGH-GATE-01",
+    "FGH-GATE-02",
+    "FGH-GATE-03",
+    "FGH-GATE-04",
+    "FGH-GATE-05",
+    "FGH-GATE-06"
+  ],
+  "counts": {
+    "UNAMBIGUOUS_IMPLEMENTATION_FIX": 12,
+    "SOURCE_SEMANTIC_AUTHORITY_REQUIRED": 2,
+    "OWNER_DECISION_REQUIRED": 4
+  },
+  "boundaries": {
+    "CANDIDATE_OUTCOME_BACKTEST": "NOT_AUTHORIZED",
+    "VALIDATION_ACCESS": "LOCKED",
+    "HISTORICAL_FINAL_HOLDOUT_ACCESS": "LOCKED",
+    "F_G_H_MERGED": false,
+    "SRC_PRODUCTION_DIFF": 0
+  }
+}
