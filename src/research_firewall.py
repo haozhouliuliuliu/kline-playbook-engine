@@ -35,7 +35,11 @@ import os
 import secrets
 from typing import Any
 
-from src.playbook_contract import PlaybookContract
+from src.playbook_contract import (
+    PlaybookContract,
+    validate_contract,
+    validate_strategy_against_playbook_contract,
+)
 from src.strategy_evidence import (
     AccessResult,
     ArtifactBinding,
@@ -1199,17 +1203,19 @@ class ResearchFirewall:
 
     @staticmethod
     def derive_primary_branch_identity(contract: PlaybookContract) -> str:
-        """F-06: derive PRIMARY identity from the actual PlaybookContract.
+        """F-06 / Package C P-01: whole-contract canonical PRIMARY selection identity.
 
-        Package B keeps the current one-contract-primary model: the contract must
-        have exactly one ``primary_selected`` branch, otherwise registration fails
-        closed. (Package C later replaces this with Protocol-complete claim-level
-        PRIMARY semantics.)
+        The machine meaning is now the contract's canonical
+        ``primary_selection_identity`` (Protocol v1.0 section 2: every
+        source-faithful claim must have exactly one source-justified PRIMARY). It
+        replaces the old assumption that the whole contract has exactly one
+        selected branch. The ``primary_branch_identity`` field name is retained on
+        ``WaveHypothesisBinding`` / ``OutcomeTestRegistration`` for compatibility,
+        but its value is the whole-contract canonical PRIMARY selection identity,
+        never a single branch identity. Raises ``ValueError`` when any source
+        claim's PRIMARY is unresolved, so registration fails closed.
         """
-        primary_branches = [branch for branch in contract.interpretations if branch.primary_selected]
-        if len(primary_branches) != 1:
-            raise ValueError("playbook contract must have exactly one primary_selected branch")
-        return primary_branches[0].branch_identity
+        return contract.primary_selection_identity
 
     @staticmethod
     def derive_scope_identity(contract: PlaybookContract, strategy: StrategyIdentity) -> str:
@@ -1290,7 +1296,24 @@ class ResearchFirewall:
         the full existing authority `ExperimentIdentity.validate_strategy`
         (research lineage, identity, family, version, code/parameter/environment
         hashes, feature versions) before any registration or governance mutation.
+
+        Package C corrections:
+        - C-C01: a NOT_MACHINE_READY PlaybookContract can never be registered,
+          even when a caller hand-builds a StrategyIdentity carrying
+          `playbook_contract_identity=contract.contract_identity` (bypassing the
+          bridge). This runs before any registration / lineage / first-look
+          mutation and uses the single existing readiness authority.
+        - C-C03: the StrategyIdentity must be exactly equivalent to the
+          deterministic Playbook->Strategy bridge output for this contract
+          (single shared validator; replaces the caller-assertable
+          `playbook_contract_identity`-only check).
         """
+        readiness = validate_contract(contract)
+        if not readiness.ready:
+            raise ValueError(
+                "PLAYBOOK_CONTRACT_NOT_MACHINE_READY: " + ",".join(readiness.blockers)
+            )
+        validate_strategy_against_playbook_contract(contract, strategy)
         experiment.validate_strategy(strategy)
         wave = self._waves.get(research_wave_id)
         if wave is None:
@@ -1312,19 +1335,16 @@ class ResearchFirewall:
         if not self._source_only.is_verified(source_only_session_id):
             raise ValueError("SOURCE_ONLY session must be verified")
 
-        # F-07: bind SOURCE_ONLY -> Playbook -> Strategy.
-        if contract.research_lineage_id != strategy.research_lineage_id:
-            raise ValueError("playbook contract research lineage does not match the strategy")
-        if contract.family_id != strategy.family_id:
-            raise ValueError("playbook contract family id does not match the strategy")
+        # F-07: bind SOURCE_ONLY -> Playbook -> Strategy. The strategy is already
+        # proven bridge-equivalent to the contract by
+        # `validate_strategy_against_playbook_contract` (C-C03); here the
+        # SOURCE_ONLY session must be bound to the same contract source bundle.
         if contract.source_bundle_identity != session.source_bundle_identity:
             raise ValueError("playbook contract source bundle identity does not match the SOURCE_ONLY session")
         if contract.source_bundle_hash != session.source_bundle_hash:
             raise ValueError("playbook contract source bundle hash does not match the SOURCE_ONLY session")
         if contract.source_only_session_identity != session.session_identity:
             raise ValueError("playbook contract SOURCE_ONLY session identity does not match the session")
-        if strategy.playbook_contract_identity != contract.contract_identity:
-            raise ValueError("strategy is not bound to this playbook contract")
 
         # P-06: artifact binding checks.
         if artifact_bindings.code_artifact.sha256 != strategy.code_hash:

@@ -211,27 +211,91 @@ def make_contract(**overrides) -> PlaybookContract:
     return PlaybookContract(**base)
 
 
+def _contract_for_facts(
+    *,
+    lineage: str = SYNTHETIC_LINEAGE,
+    family: str = SYNTHETIC_FAMILY,
+    source: str | None = None,
+    instruments: tuple[str, ...] | None = None,
+    timeframe: str | None = None,
+    exposure: str | None = None,
+    code_hash: str | None = None,
+    environment_hash: str | None = None,
+    feature_versions: tuple[str, ...] | None = None,
+    parameters: tuple[TypedParameter, ...] | None = None,
+) -> PlaybookContract:
+    """Build a synthetic machine-ready contract consistent with the given
+    bridge-relevant strategy facts, so a StrategyIdentity built from those facts
+    is genuinely equivalent to a bridge output for this contract (Package C
+    C-C03)."""
+    return make_contract(
+        research_lineage_id=lineage,
+        family_id=family,
+        source_scope=source if source is not None else "deterministic-synthetic-fixture",
+        instrument_scope=(
+            tuple(sorted(set(instruments))) if instruments is not None else ("TEST",)
+        ),
+        timeframe_scope=(timeframe,) if timeframe is not None else ("5m",),
+        data_exposure_history_reference=(
+            exposure if exposure is not None else SYNTHETIC_EXPOSURE_REFERENCE
+        ),
+        machine=MachineOperationalization(
+            operationalization_reference="op-ref-v1",
+            code_hash=code_hash if code_hash is not None else make_code_artifact().sha256,
+            environment_hash=(
+                environment_hash
+                if environment_hash is not None
+                else make_environment_artifact().sha256
+            ),
+            required_feature_versions=(
+                tuple(sorted(set(feature_versions)))
+                if feature_versions is not None
+                else ("feature-v1",)
+            ),
+            parameter_identities=(
+                tuple(sorted({parameter_identity(p) for p in parameters}))
+                if parameters is not None
+                else (SYNTHETIC_PARAMETER_IDENTITY,)
+            ),
+        ),
+    )
+
+
 def make_strategy(contract: PlaybookContract | None = None, **overrides) -> StrategyIdentity:
     """Build a synthetic StrategyIdentity explicitly bound to ``contract``.
 
-    ``code_hash``/``environment_hash`` are the real byte-derived artifact hashes,
-    and ``playbook_contract_identity`` is the contract identity, so the strategy
-    can be artifact-bound at registration. When ``contract`` is omitted, a
-    consistent contract is built from any ``research_lineage_id``/``family_id``
-    overrides so a strategy with a custom lineage/family is bound to a matching
-    contract.
+    The produced strategy is exactly equivalent to a ``bridge_to_strategy_identity``
+    output for its contract: it uses the deterministic bridge version string
+    ``pc-{contract_version}-{contract_identity}``, the contract machine hashes,
+    and canonical scope facts, and ``playbook_contract_identity`` is the contract
+    identity, so the strategy can be artifact-bound at registration. When
+    ``contract`` is omitted, a consistent contract is built from the
+    bridge-relevant overrides (lineage/family/source/instruments/timeframe/
+    exposure/machine facts) so a strategy with custom facts is bound to a
+    matching contract (Package C C-C03).
     """
     if contract is None:
         lineage = overrides.pop("research_lineage_id", SYNTHETIC_LINEAGE)
         family = overrides.pop("family_id", SYNTHETIC_FAMILY)
-        contract = make_contract(research_lineage_id=lineage, family_id=family)
+        contract = _contract_for_facts(
+            lineage=lineage,
+            family=family,
+            source=overrides.get("source"),
+            instruments=overrides.get("applicable_instruments"),
+            timeframe=overrides.get("timeframe"),
+            exposure=overrides.get("data_exposure_history_reference"),
+            code_hash=overrides.get("code_hash"),
+            environment_hash=overrides.get("environment_hash"),
+            feature_versions=overrides.get("required_feature_versions"),
+            parameters=overrides.get("parameters"),
+        )
     fields = {
         "research_lineage_id": contract.research_lineage_id,
         "family_id": contract.family_id,
-        "strategy_version": "1.0",
+        "strategy_version": f"pc-{contract.contract_version}-{contract.contract_identity}",
         "source": contract.source_scope or contract.family_id,
-        "applicable_instruments": ("TEST",),
-        "timeframe": "5m",
+        "applicable_instruments": tuple(sorted(set(contract.instrument_scope))),
+        "timeframe": contract.timeframe_scope[0],
         "parameters": (SYNTHETIC_PARAMETER,),
         "code_hash": contract.machine.code_hash,
         "environment_hash": contract.machine.environment_hash,
@@ -338,10 +402,20 @@ def build_synthetic_firewall(
     firewall = ResearchFirewall(ledger)
     session = make_open_session(firewall.source_only, session_id=session_id)
     if contract is None:
-        # Rebuild the contract this strategy is bound to (lineage/family match).
-        contract = make_contract(
-            research_lineage_id=strategy.research_lineage_id,
-            family_id=strategy.family_id,
+        # Rebuild the exact contract this strategy is bound to from its actual
+        # bridge facts (Package C C-C03), so registration sees a contract the
+        # strategy is genuinely equivalent to.
+        contract = _contract_for_facts(
+            lineage=strategy.research_lineage_id,
+            family=strategy.family_id,
+            source=strategy.source,
+            instruments=strategy.applicable_instruments,
+            timeframe=strategy.timeframe,
+            exposure=strategy.data_exposure_history_reference,
+            code_hash=strategy.code_hash,
+            environment_hash=strategy.environment_hash,
+            feature_versions=strategy.required_feature_versions,
+            parameters=strategy.parameters,
         )
     profile = firewall.profiles.register(make_test_only_profile())
     firewall.profiles.lock(profile.profile_id)

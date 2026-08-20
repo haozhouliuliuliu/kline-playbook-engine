@@ -22,7 +22,15 @@ from dataclasses import FrozenInstanceError, replace
 from datetime import date
 from unittest.mock import patch
 
-from src.playbook_contract import ClaimStatus, SourceClaimRef
+from src.playbook_contract import (
+    ClaimStatus,
+    InterpretationBranch,
+    MachineOperationalization,
+    ObservationSurface,
+    ObservabilityStatus,
+    SourceClaimRef,
+    TransferStatus,
+)
 from src.research_firewall import (
     ApprovedSourceBundle,
     ClaimRecordDraft,
@@ -58,6 +66,7 @@ from src.strategy_evidence import (
 )
 from tests.synthetic_fixture import (
     SYNTHETIC_HYPOTHESIS_TEST_ID,
+    SYNTHETIC_PARAMETER_IDENTITY,
     SYNTHETIC_SESSION_ID,
     build_synthetic_firewall,
     make_artifact_bindings,
@@ -76,8 +85,16 @@ from tests.synthetic_fixture import (
 )
 
 
-def strategy(*, family_id="neutral-family", version="1.0", parent_identity_id=None):
-    """Deterministic synthetic strategy bound to the default synthetic contract."""
+def strategy(*, family_id="neutral-family", version=None, parent_identity_id=None):
+    """Deterministic synthetic strategy bound to the default synthetic contract.
+
+    By default it uses the deterministic Playbook bridge version string so it is
+    exactly equivalent to a bridge output for the matching contract (Package C
+    C-C03); an explicit ``version`` override is preserved for lineage tests.
+    """
+    if version is None:
+        contract = make_contract(family_id=family_id)
+        version = f"pc-{contract.contract_version}-{contract.contract_identity}"
     return make_strategy(
         family_id=family_id,
         strategy_version=version,
@@ -1377,6 +1394,70 @@ class PackageBArtifactLineageGovernanceTests(unittest.TestCase):
                 session=session,
             )
 
+    # -- C14: Package B registration binds the canonical PRIMARY selection identity. --
+
+    def test_c14_primary_selection_identity_governs_registration(self):
+        contract = make_contract()
+        strategy_obj = make_strategy(contract)
+        # The firewall derives the whole-contract canonical PRIMARY selection
+        # identity (Package C P-01), not a single-branch identity.
+        self.assertEqual(
+            ResearchFirewall.derive_primary_branch_identity(contract),
+            contract.primary_selection_identity,
+        )
+        single_branch_identity = contract.interpretations[0].branch_identity
+        self.assertNotEqual(single_branch_identity, contract.primary_selection_identity)
+        # A wave binding that still uses the old single-branch identity cannot
+        # impersonate the canonical whole-contract identity at registration.
+        legacy_binding = WaveHypothesisBinding(
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            primary_branch_identity=single_branch_identity,
+            scope_identity=ResearchFirewall.derive_scope_identity(contract, strategy_obj),
+            parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                "TEST_ONLY:none", strategy_obj
+            ),
+        )
+        firewall, session, profile, wave, experiment, _, _ = self._make_context(
+            bindings=(legacy_binding,)
+        )
+        with self.assertRaisesRegex(ValueError, "primary identity does not match"):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+        # The same contract registered with the derived canonical identity passes,
+        # and the stored machine PRIMARY identity is the canonical one.
+        correct_binding = WaveHypothesisBinding(
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            primary_branch_identity=ResearchFirewall.derive_primary_branch_identity(contract),
+            scope_identity=ResearchFirewall.derive_scope_identity(contract, strategy_obj),
+            parameter_search_identity=ResearchFirewall.derive_parameter_search_identity(
+                "TEST_ONLY:none", strategy_obj
+            ),
+        )
+        firewall, session, profile, wave, experiment, _, _ = self._make_context(
+            bindings=(correct_binding,)
+        )
+        registration = register_package_b(
+            firewall,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            contract=contract,
+            strategy_obj=strategy_obj,
+            experiment=experiment,
+            wave=wave,
+            profile=profile,
+            session=session,
+        )
+        self.assertEqual(
+            registration.primary_branch_identity, contract.primary_selection_identity
+        )
+
     # -- B04: a SOURCE_ONLY session from a different bundle cannot authorize. ----
 
     def test_b04_session_from_different_bundle_cannot_authorize(self):
@@ -1906,6 +1987,241 @@ class PackageBArtifactLineageGovernanceTests(unittest.TestCase):
         self.assertFalse(hasattr(firewall, "candidate_outcomes"))
 
 
+class PackageCContractOutcomeGateCorrectionTests(unittest.TestCase):
+    """Package C pre-integration corrections C-C01 + C-C03.
+
+    C-C01: outcome registration requires a MACHINE_READY PlaybookContract. A
+    caller that hand-builds a StrategyIdentity carrying
+    playbook_contract_identity=contract.contract_identity must still fail closed
+    when the contract is NOT_MACHINE_READY, before any registration / lineage /
+    first-look mutation.
+    C-C03: a manually constructed StrategyIdentity must be exactly equivalent to
+    the deterministic Playbook bridge output; tampering any single machine/scope
+    fact fails closed at registration.
+    """
+
+    def setUp(self):
+        self.ledger = EvidenceLedger()
+
+    def _build_context(self, contract):
+        """Full firewall context whose wave is bound to ``contract`` with
+        explicit bindings (so wave construction never needs PRIMARY resolution
+        and never re-derives a binding to match a tampered strategy)."""
+        firewall = ResearchFirewall(self.ledger)
+        session = make_open_session(firewall.source_only)
+        profile = firewall.profiles.register(make_test_only_profile())
+        firewall.profiles.lock(profile.profile_id)
+        strategy_obj = make_strategy(contract)
+        bindings = (
+            WaveHypothesisBinding(
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                primary_branch_identity="binding-primary-v1",
+                scope_identity="binding-scope-v1",
+                parameter_search_identity="binding-search-v1",
+            ),
+        )
+        wave = firewall.waves.register(
+            make_wave_manifest(
+                wave_id="wave-cc01",
+                contract=contract,
+                strategy=strategy_obj,
+                profile_id=profile.profile_id,
+                profile_identity=profile.profile_identity,
+                tested_hypothesis_test_ids=(HYPOTHESIS_TEST_ID,),
+                bindings=bindings,
+            )
+        )
+        return firewall, session, profile, wave, strategy_obj
+
+    def _assert_not_machine_ready_registration(self, contract, expected_blocker):
+        firewall, session, profile, wave, strategy_obj = self._build_context(contract)
+        with self.assertRaisesRegex(
+            ValueError,
+            "PLAYBOOK_CONTRACT_NOT_MACHINE_READY:.*" + expected_blocker,
+        ):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=strategy_obj,
+                experiment=make_experiment(strategy_obj),
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+        # No registration / lineage mapping / wave first-look mutation.
+        self.assertEqual(firewall.tests.registrations, ())
+        self.assertEqual(firewall.family_claim_lineage, {})
+        self.assertFalse(firewall.waves.has_outcome_test_started(wave.research_wave_id))
+        self.assertFalse(firewall.waves.is_locked(wave.research_wave_id))
+
+    # -- CC01-A: required PARTIALLY_OBSERVABLE blocks registration. ------------
+    def test_cc01a_partially_observable_contract_cannot_register(self):
+        contract = make_contract(
+            observation_surfaces=(
+                ObservationSurface(
+                    surface_id="price",
+                    required=True,
+                    observability_status=ObservabilityStatus.PARTIALLY_OBSERVABLE,
+                ),
+            )
+        )
+        self._assert_not_machine_ready_registration(
+            contract, "REQUIRED_INPUT_NOT_FULLY_OBSERVABLE"
+        )
+
+    # -- CC01-B: UNKNOWN project transfer blocks registration. ----------------
+    def test_cc01b_unknown_project_transfer_contract_cannot_register(self):
+        contract = make_contract(project_transfer_status=TransferStatus.UNKNOWN)
+        self._assert_not_machine_ready_registration(contract, "PROJECT_TRANSFER_UNKNOWN")
+
+    # -- CC01-C: multiple timeframes block registration. ----------------------
+    def test_cc01c_multiple_timeframes_contract_cannot_register(self):
+        contract = make_contract(timeframe_scope=("15m", "60m"))
+        self._assert_not_machine_ready_registration(
+            contract, "MULTIPLE_TIMEFRAMES_UNRESOLVED"
+        )
+
+    # -- CC01-D: incomplete claim PRIMARY blocks registration. ----------------
+    def test_cc01d_incomplete_claim_primary_contract_cannot_register(self):
+        contract = make_contract(
+            source_claims=(
+                SourceClaimRef(
+                    claim_id="c1",
+                    source_id="bundle-fixture-v1",
+                    source_anchor="fixture:book:p1",
+                    claim_status=ClaimStatus.EXPLICIT,
+                ),
+                SourceClaimRef(
+                    claim_id="c2",
+                    source_id="bundle-fixture-v1",
+                    source_anchor="fixture:book:p2",
+                    claim_status=ClaimStatus.EXPLICIT,
+                ),
+            ),
+            interpretations=(
+                InterpretationBranch(
+                    branch_id="b1",
+                    source_claim_ids=("c1",),
+                    source_basis="synthetic price shape",
+                    transfer_status=TransferStatus.EXPLICIT,
+                    primary_selected=True,
+                ),
+                InterpretationBranch(
+                    branch_id="b2",
+                    source_claim_ids=("c2",),
+                    source_basis="synthetic price shape",
+                    transfer_status=TransferStatus.EXPLICIT,
+                    primary_selected=False,
+                ),
+            ),
+        )
+        self._assert_not_machine_ready_registration(contract, "CLAIM_PRIMARY_MISSING")
+
+    # -- CC03 valid: a correct bridge strategy registers normally. ------------
+    def test_cc03_valid_bridge_strategy_registers(self):
+        contract = make_contract()
+        strategy_obj = make_strategy(contract)
+        firewall, session, profile, wave, experiment, _, _ = build_package_b_context(
+            self.ledger, contract=contract, strategy_obj=strategy_obj
+        )
+        registered = register_package_b(
+            firewall,
+            hypothesis_test_id=HYPOTHESIS_TEST_ID,
+            contract=contract,
+            strategy_obj=strategy_obj,
+            experiment=experiment,
+            wave=wave,
+            profile=profile,
+            session=session,
+        )
+        self.assertEqual(registered.strategy_identity_id, strategy_obj.identity_id)
+        self.assertEqual(
+            registered.primary_branch_identity, contract.primary_selection_identity
+        )
+
+    def _assert_tampered_strategy_rejected(self, tamper, expected_substring):
+        contract = make_contract()
+        valid_strategy = make_strategy(contract)
+        # The wave binding is derived from the VALID strategy + contract, so it
+        # can never be recomputed to match the tampered strategy (the contract is
+        # the machine authority).
+        firewall, session, profile, wave, experiment, _, _ = build_package_b_context(
+            self.ledger, contract=contract, strategy_obj=valid_strategy
+        )
+        tampered = replace(valid_strategy, **tamper)
+        with self.assertRaisesRegex(ValueError, expected_substring):
+            register_package_b(
+                firewall,
+                hypothesis_test_id=HYPOTHESIS_TEST_ID,
+                contract=contract,
+                strategy_obj=tampered,
+                experiment=experiment,
+                wave=wave,
+                profile=profile,
+                session=session,
+            )
+        # No registration / lineage mapping / wave first-look mutation.
+        self.assertEqual(firewall.tests.registrations, ())
+        self.assertEqual(firewall.family_claim_lineage, {})
+        self.assertFalse(firewall.waves.has_outcome_test_started(wave.research_wave_id))
+
+    def test_cc03a_tampered_applicable_instruments_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"applicable_instruments": ("OTHER", "TEST")},
+            "applicable instruments do not match",
+        )
+
+    def test_cc03b_tampered_timeframe_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"timeframe": "15m"}, "timeframe does not match"
+        )
+
+    def test_cc03c_tampered_code_hash_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"code_hash": "tampered-code-hash"}, "code hash does not match"
+        )
+
+    def test_cc03d_tampered_environment_hash_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"environment_hash": "tampered-env-hash"}, "environment hash does not match"
+        )
+
+    def test_cc03e_tampered_required_feature_versions_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"required_feature_versions": ("feature-other",)},
+            "required feature versions do not match",
+        )
+
+    def test_cc03f_tampered_typed_parameter_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"parameters": (TypedParameter("window", "int", 9),)},
+            "parameters do not match",
+        )
+
+    def test_cc03g_tampered_data_exposure_reference_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"data_exposure_history_reference": "other-exposure"},
+            "data exposure reference does not match",
+        )
+
+    def test_cc03h_tampered_source_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"source": "other-source"}, "source does not match"
+        )
+
+    def test_cc03i_tampered_strategy_version_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"strategy_version": "1.0"}, "strategy version does not match"
+        )
+
+    def test_cc03j_tampered_playbook_contract_identity_rejected(self):
+        self._assert_tampered_strategy_rejected(
+            {"playbook_contract_identity": "other-contract-identity"},
+            "not bound to this playbook contract",
+        )
+
+
 # Synthetic feature bytes chosen so that the identity hash lexical order is
 # REVERSED relative to the declared-version order ("feature-a" < "feature-b" but
 # identity_id(feature-a) > identity_id(feature-b)). This makes the B-C04 test
@@ -1989,10 +2305,13 @@ class PackageBPreIntegrationCorrectionTests(unittest.TestCase):
             source_claims=(claim,),
         )
         strategy_a = make_strategy(lineage_a_contract)
+        # Note: C-C02 makes a duplicate claim_id contract invalid for PRIMARY
+        # resolution, so the lineage-reuse contract uses the same single claim
+        # (the family-claim identity is what is being reused across lineages).
         lineage_b_contract = make_contract(
             contract_id="pb-lin-b",
             research_lineage_id="lineage-dup-b",
-            source_claims=(claim, claim),
+            source_claims=(claim,),
         )
         strategy_b = make_strategy(lineage_b_contract)
         self.assertEqual(
@@ -2052,7 +2371,17 @@ class PackageBPreIntegrationCorrectionTests(unittest.TestCase):
     # -- B-C04: multi-feature identities stored in canonical identity order. -----
 
     def test_bc04_feature_identities_stored_in_canonical_identity_order(self):
-        contract = make_contract()
+        # The contract machine must declare the exact features the strategy uses
+        # so the strategy is bridge-equivalent (Package C C-C03).
+        contract = make_contract(
+            machine=MachineOperationalization(
+                operationalization_reference="op-ref-v1",
+                code_hash=make_code_artifact().sha256,
+                environment_hash=make_environment_artifact().sha256,
+                required_feature_versions=("feature-a", "feature-b"),
+                parameter_identities=(SYNTHETIC_PARAMETER_IDENTITY,),
+            )
+        )
         strategy_obj = make_strategy(
             contract, required_feature_versions=("feature-a", "feature-b")
         )
