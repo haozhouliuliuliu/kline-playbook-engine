@@ -1,0 +1,34 @@
+{
+  "case_adjudication": {
+    "CASE_A": "TqSdk official semantics support no bars before the first available bar, but do not independently establish each contract's first available minute.",
+    "CASE_B": "The live provider probe repeats the original leading gaps and, for three severe representatives, cannot supply complete day-session bars even for a day-only request.",
+    "CASE_C": "Current SessionMetadata expects scheduled session minutes; CANONICAL_CONTRACT_UNIVERSE first_trading_day is a date and does not express a contract-specific intraday trading start."
+  },
+  "d02_non_laundering": "Provider observed/returned coverage is not used to shorten expected coverage or create PASS.",
+  "historical_accepted_corpus_modified": false,
+  "live_probe_facts": {
+    "day_only_complete": 3,
+    "day_only_still_truncated": 3,
+    "original_request_repeatable_truncation": 6,
+    "overlapping_ohlc_mismatch_count": 0,
+    "overlapping_ohlc_values_compared": 11496,
+    "selected_targets": 6
+  },
+  "outcome_access_used": false,
+  "production_defect_adjudication": {
+    "contract_config_session_scope": "FIXED_TO_GOVERNED_CONCRETE_LISTING_BOUNDS",
+    "first_day_night_session_rule": "AUTHORITY_GAP_NO_AUTOMATIC_CHANGE",
+    "first_day_request_planner_rule": "AUTHORITY_GAP_NO_AUTOMATIC_CHANGE",
+    "legacy_session_identity": "EXPLICIT_REVALIDATION_REQUIRED_NO_AUTOMATIC_MIGRATION"
+  },
+  "repaired_corpus_materialization_permitted": false,
+  "result": "CANONICAL_FIRST_DAY_AVAILABILITY_AUTHORITY_UNRESOLVED",
+  "schema_version": "canonical-first-day-scope-adjudication-v0.1",
+  "source_evidence": {
+    "provider_probe": "docs/evidence/CANONICAL_FIRST_DAY_PROVIDER_PROBE_V0_1.json",
+    "provider_semantics_addendum_commit": "d9f685fa604515509093e764652948df76b055d6",
+    "provider_semantics_addendum_identity": "4250d993048c12f019be9735c4fb14edf15872afda2932792f7340b104c9fa8d",
+    "root_cause_review_commit": "2f49603fe5dafb4bd8293ba817db8291df6faba8"
+  },
+  "targeted_116_reacquisition_permitted": false
+}

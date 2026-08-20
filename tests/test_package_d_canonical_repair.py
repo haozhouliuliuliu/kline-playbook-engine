@@ -410,7 +410,8 @@ def _synthetic_configs(source: GovernedSource) -> dict[str, ContractConfig]:
         for p in products
     }
     universe = {p: [f"SHFE.{p}2401"] for p in products}
-    return build_contract_configs(calendar, universe, specs, schedules)
+    bounds = {p: {f"SHFE.{p}2401": (eff_start, eff_end)} for p in products}
+    return build_contract_configs(calendar, universe, bounds, specs, schedules)
 
 
 class D01TruncatedCoverageCannotBePASSTests(unittest.TestCase):
@@ -1063,13 +1064,14 @@ class DC01EvidenceClassificationTests(unittest.TestCase):
             load_schedules,
             load_specs,
             load_universe,
+            load_universe_bounds,
         )
 
         calendar = load_calendar()
         specs = load_specs()
         schedules = load_schedules()
         universe = load_universe()
-        configs = build_contract_configs(calendar, universe, specs, schedules)
+        configs = build_contract_configs(calendar, universe, load_universe_bounds(), specs, schedules)
         fact = configs["SHFE.cu2401"].metadata_fact
         self.assertEqual(fact.evidence_classification, "OFFICIAL_PARTIAL")
         self.assertIsNone(fact.source_artifact_sha256)
