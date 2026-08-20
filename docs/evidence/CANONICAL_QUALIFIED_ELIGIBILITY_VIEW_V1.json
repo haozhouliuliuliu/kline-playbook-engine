@@ -1,0 +1,1102 @@
+{
+  "all_remaining_certificate": {
+    "clean_first_day_exclusion_count": 96,
+    "d01_pass_count": 32768,
+    "d02_pass_count": 32768,
+    "failure_partition_count": 116,
+    "historical_accepted_corpus_modified": false,
+    "no_candidate_outcome_used": true,
+    "revalidation_evidence_identity": "42e0de64e47c91156f82bbd09b53e404e93a69eebd2bc2e950c8b58c8753af32",
+    "total_accepted_row_count": 15280452,
+    "uncertified_partition_count": 0
+  },
+  "authority_decision_evidence_identity": "1e26805e48b89d8494145527d14f4733ddafb3435c05ebca1708d91271743e46",
+  "candidate_quality_data_identity_template": {
+    "candidate_outcome_ready": false,
+    "mapping_authority_identity": "UNRESOLVED_FAIL_CLOSED",
+    "other_required_governed_inputs": "REQUIRED_AT_FUTURE_CANDIDATE_INTEGRATION",
+    "parent_corpus_identity": "1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8",
+    "price_limit_authority_identity": "UNRESOLVED_FAIL_CLOSED",
+    "qualified_eligibility_view_identity": "fb30bfaf0433df02b4ee7d1e781b25473c7271495924859c1d781b87e036c822"
+  },
+  "contract_universe_identity": "51a475e12ff3a1d6b9c1821005a0bdffa9e5c0586756f25146c6fffb313aa74b",
+  "contract_universe_source_artifact_sha256": "389fc046ef3e7f1280233444fcbc4752ec626f2d2db6340b80e260d2ebaf7392",
+  "eligible_partition_count": 32768,
+  "excluded_partition_count": 212,
+  "excluded_partitions": [
+    {
+      "concrete_contract": "SHFE.cu2504",
+      "partition_identity": "00562af6c0eb7a3843332b6d44c600daad65e2d15839ebd57ce9380b9316529f",
+      "trading_day": "2024-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2609",
+      "partition_identity": "012c98b8d126e6820491bdf03a46f84eb2f7780dcbf2d764747f3f781ed32d35",
+      "trading_day": "2025-09-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2510",
+      "partition_identity": "01905421677e3013ef3c50b57a785cdad737ffaae654db29cd82ea319d7769c8",
+      "trading_day": "2024-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2508",
+      "partition_identity": "01a1896869064fa0fd6fbfbed2f50a0f6528f2c7c0b7a3cc4c430adc714087aa",
+      "trading_day": "2024-08-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2606",
+      "partition_identity": "01b3a455c62013e282ed168c45ff041bc9037fd84d28d9841d6394aac7be3e48",
+      "trading_day": "2025-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.au2508",
+      "partition_identity": "02bb3ee967118fdf88b677dc3109f4dbdf343bb4c6712138b0cd123de585b110",
+      "trading_day": "2024-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2601",
+      "partition_identity": "0420e44101bd9e32c7ba118175007faf395605e17fbfa34967987ff1516aefbb",
+      "trading_day": "2025-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2610",
+      "partition_identity": "04a11bbd0c5a339f14cd20a5ca63cbabf87d5e4db5b3fb93c4303aea9743474a",
+      "trading_day": "2025-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2510",
+      "partition_identity": "058b2ba5cd5ebfde4f3f42d564ebe3df44e12a30e3c53e4cba5174e89625470e",
+      "trading_day": "2024-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2505",
+      "partition_identity": "07460de08fea4e36882230c21b43aaae060b7572d3e098a6cbe39d5df210b82a",
+      "trading_day": "2024-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2507",
+      "partition_identity": "074d77856efa32317c6227869527565e0e7d61ea071fd923ff8a9395c55825e9",
+      "trading_day": "2025-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2402",
+      "partition_identity": "0af8cb879c8f221668f185450d09f9e317b08d166220994dd05b9293a6a069d3",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2410",
+      "partition_identity": "0c41df017faf5ddbe9da3cab93ff1dccfaa9e8802b923aad7af9077e78b66c87",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2508",
+      "partition_identity": "0d4f8084428dcb95bae00329dbb74e4daff375eb156069b5642fe92a93717e0f",
+      "trading_day": "2024-08-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2611",
+      "partition_identity": "0e4dd642914ca0e6d56cb2f0bc9df9e755182c5b9e90eee76d71332936921c08",
+      "trading_day": "2025-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2407",
+      "partition_identity": "0e5a5642f07839cb2b8bd12f977bc4b2ddbeae34ebad5417ea9aa9da4e453e10",
+      "trading_day": "2024-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2403",
+      "partition_identity": "0e7fd80b40d08db18bbea79cbde4a02fdcdcd61b011aac739b468d4a842f71cf",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2411",
+      "partition_identity": "0f026ca3a08b28473a2d3637c818e6ad66b18dc52f958da2b90047f08e92359e",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2511",
+      "partition_identity": "0f0f68b2f7971b88ae3427b61679ddf4013473f7fbffece64b46d6028edc24c9",
+      "trading_day": "2024-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2503",
+      "partition_identity": "0f7e7374dd4a760208fb000833c4d1c7b06b6bf375158c9b3234b1cdf60f2557",
+      "trading_day": "2024-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2604",
+      "partition_identity": "11594113f2bed3057b86178e9700767467d27f71578509bb47b72d9d68617d65",
+      "trading_day": "2025-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2407",
+      "partition_identity": "11f432b26a775626d053c32cd4227c284a9c86d25c56a9f5634be1ca87f1ed5b",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2612",
+      "partition_identity": "1222dcac165dce60b275309363eeb51dd866a78424a6c458373929d42372e93e",
+      "trading_day": "2025-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2609",
+      "partition_identity": "1227878d32f0ae607668edd5f5656526f98e9150a754eb0275c6d5e0e3183f35",
+      "trading_day": "2025-09-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2612",
+      "partition_identity": "1339e1fa80b2c155cc4f0ca0d2ab97335cb45c5f80cdc27f546904a1a00e5d14",
+      "trading_day": "2025-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2412",
+      "partition_identity": "14c254b6cc10651c74329d334bc4a0b2d3bd20237e8cce53b5c0ebf7795c30cc",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2603",
+      "partition_identity": "173a15658cdccde9ff64673d4cf5628c847727249ff0ff0e8e4ce38bd0b34d80",
+      "trading_day": "2025-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.al2608",
+      "partition_identity": "176e7e823239bb096980d1749eb9b1deeff0b7c3e4cb3b5b511423cba7e9a9b5",
+      "trading_day": "2025-08-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2411",
+      "partition_identity": "1d02aca99a411928a976306a774c7d4755f42358217044cc82eddb2548d52682",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2506",
+      "partition_identity": "1ec2d8561a8b909b55bd1fd16b30fa4ebcdb6ca2a00b7f45d30c9e666074df4f",
+      "trading_day": "2024-06-18"
+    },
+    {
+      "concrete_contract": "SHFE.al2410",
+      "partition_identity": "2021ebe75d10d161271686f8f67e3bc85adb5bc6c84815ad04610ae58e63260e",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.au2512",
+      "partition_identity": "21ad20df8efc5cb21283bb40bf0c30353c45d139d73f93c90242c654eaaf4a31",
+      "trading_day": "2024-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.rb2402",
+      "partition_identity": "24028a761618704191aed0ce48290dc721da3a34e73f9cf7718a0a9f6c463acf",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.au2401",
+      "partition_identity": "25906cca2b3b5526593481b9f4236ce5dbfaf609b43b02c1a5a877711c90048f",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2606",
+      "partition_identity": "26012489e64024cb53bd161d745b0cf855d051ce27a7c87c6717c9a693ca9aca",
+      "trading_day": "2025-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2409",
+      "partition_identity": "270cd63ae9b01e2b6b09dab78b5ecbf7a1572d50009dbd3e965338e6ac6a1102",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2408",
+      "partition_identity": "28e9cab69854d451854c3102cefc56a19b2e9291c11d4fd2d0d249de2724c35e",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2604",
+      "partition_identity": "2b7e8269b9d671fae20581c37a021294aa99bdb96ca5db7262fbea013055a215",
+      "trading_day": "2025-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2401",
+      "partition_identity": "2bed453831ca89536760835a1d790cd6a3b93db2eac6c3180db74a14a909aa55",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2401",
+      "partition_identity": "2c85aaba983b73eb771905050c49b52eb0dffe36771879fae8fdd812035d8549",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2505",
+      "partition_identity": "2c93ed68dc8da629a4cf7dfdebdb84d78f2bcc6b6aa7718f108377a47a9452d3",
+      "trading_day": "2024-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2603",
+      "partition_identity": "3204594fb9882cdb8f1744a877f35fc915a1737b2eed2c15a017821cc33dd49a",
+      "trading_day": "2025-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2608",
+      "partition_identity": "36b0c7238ef8405e8b89cdaf69c18bdf6c903a2c300d0215b4bd42f53e891ef4",
+      "trading_day": "2025-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2612",
+      "partition_identity": "37ecc073b4596171f94e2667e1e63a33d93e9e1221d812b98da0c847ef2628d2",
+      "trading_day": "2025-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2605",
+      "partition_identity": "38135ae4a93f456e04ef0715b801f25ea0748fa25a3ad03859b63b79f7356be7",
+      "trading_day": "2025-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2402",
+      "partition_identity": "38d97dd195e752adc86c3e52537579079f7f0b23aa0f7d1c66e4f667e7b9bd64",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2507",
+      "partition_identity": "3c355ba1080351c0a29a8cd98ac7888d060fd12a66fddb561ea1f65cb9fd17a9",
+      "trading_day": "2024-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2611",
+      "partition_identity": "3cc3ab857ecff23c85d5677093f70bc8cb8ae7e6825945a89944b553e5ec44a0",
+      "trading_day": "2025-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2611",
+      "partition_identity": "3f3598f814666664b760cad85d55e8e1c47b1a8cbe4fbd41941e4f3f06228f73",
+      "trading_day": "2025-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.al2605",
+      "partition_identity": "4143bd2d9635dfffe5de8a71c0209abad91584a88f236c88e23b0ac5c3248a24",
+      "trading_day": "2025-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2607",
+      "partition_identity": "4651dc4fed4298755b38e961b01290f673e5ecedca057b56d2f6a6011d2a80b4",
+      "trading_day": "2025-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2504",
+      "partition_identity": "4680fa6fda0d5ae28786b9950fd13bd8e25079b33a8db2af1bb69a0f0c796103",
+      "trading_day": "2024-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2510",
+      "partition_identity": "46be8b1c55840e1333a269e353f25e38b6d858264dd59d62276e49a4b8dda2de",
+      "trading_day": "2024-09-19"
+    },
+    {
+      "concrete_contract": "SHFE.al2611",
+      "partition_identity": "4837806a6a40e11b6a5839cd92ee525ff9096f116cf9ed917bafc0370edf5ef1",
+      "trading_day": "2025-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2604",
+      "partition_identity": "484f65cb542eb0ae3a12fa9f90ae1f3dd2f04471e1a934d509c6160846fb0fa4",
+      "trading_day": "2025-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2511",
+      "partition_identity": "490ada19433ea78f4b779727c5735da79808513283519b8286d9f31d6ffb1378",
+      "trading_day": "2025-08-18"
+    },
+    {
+      "concrete_contract": "SHFE.cu2410",
+      "partition_identity": "4a347bacb591b45e8f0ba19133de8dc3138c9ed3e6c9e8a10707231eacfc23c1",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2607",
+      "partition_identity": "4b832930481b133c57b725792595db1f5cd914fc4f634f2fb2ce1e59af40553f",
+      "trading_day": "2025-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2610",
+      "partition_identity": "4e49336d79e8f72e4b3c401fab12656f1f9d6ba06044f279a4bb8a897fadab97",
+      "trading_day": "2025-09-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2503",
+      "partition_identity": "4ed4fc771093202317b9c90df042f0e26db61dd3c6881475b3663a2002a00e1d",
+      "trading_day": "2024-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.al2601",
+      "partition_identity": "505b08e15fea028f6c3d45c483937bf6f8849747b9536b5ed1e39d3a90b3f442",
+      "trading_day": "2025-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2603",
+      "partition_identity": "52169e79102d95765e8385c7434ad7af7e767f8fc633661e0eddb842fd49f221",
+      "trading_day": "2025-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2501",
+      "partition_identity": "5346d2a53c3a4c2eca14d1dbef787f860878a3ebd5c5e476c418fee932f7ea35",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2408",
+      "partition_identity": "54a82ff1e69d3b55707593dfea2e1965a37ce884d3b263686660435c644378db",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2501",
+      "partition_identity": "551e5b7edcee093e4410ad935ccab187dea65d0ae5cbd6110539679106125a90",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2601",
+      "partition_identity": "552d0811133074670a6c14dd18d8d93516ac17645c0fc108e7bad961025b5074",
+      "trading_day": "2025-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2512",
+      "partition_identity": "55c6417152ea1a6b2e4ff2e531997f60d0520273641c758f4503081acbf6cbde",
+      "trading_day": "2024-12-17"
+    },
+    {
+      "concrete_contract": "SHFE.ag2606",
+      "partition_identity": "55d55ad5a531b37e92e53e4444fcec381eb8949d467775e5ec051d6d0642da15",
+      "trading_day": "2025-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.ag2601",
+      "partition_identity": "566a11a00a0e5b0a14a3e5e390e754e99c004f117787b16abac438c816c5c4e5",
+      "trading_day": "2025-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2406",
+      "partition_identity": "56b4acfa4a4d4d0d1b7a92af6ecc3746572e5c53eec7e8c62bf6e98506ff97d3",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2512",
+      "partition_identity": "571fbdb64be19b09d6f295fadbde1fc3befe12b15af7311a3ebe209f00a663b3",
+      "trading_day": "2024-12-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2606",
+      "partition_identity": "5835e0e93aee0f6ab3fd29e75fbdeb16308bb58309693d47d14187771f7724c7",
+      "trading_day": "2025-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2408",
+      "partition_identity": "594a0cd4cc157079594276f260f176d5c551110b6a2612de276f79ff08365641",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2412",
+      "partition_identity": "598e89183ac8b3aa9fa9ff45f4a644f7d998e603de219938fb4c995f68f3604c",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2610",
+      "partition_identity": "5a54e1a60208b652336c55bd533ee871c2244c2d267d8f981dfd57cf07084a55",
+      "trading_day": "2025-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2510",
+      "partition_identity": "5ab131cc2ebce3b19e920a939d0d964155228180ad9eb44631021e6e8644b33a",
+      "trading_day": "2024-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2502",
+      "partition_identity": "5c7311318d5d5fbd3ff260b9f1fe99636b3ace7032bf01398c6bd9d0a12dedac",
+      "trading_day": "2024-02-20"
+    },
+    {
+      "concrete_contract": "SHFE.cu2406",
+      "partition_identity": "5d527dc3565086ec3e5610c6dbc1103423019e98398ddecf671376e34791178d",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2509",
+      "partition_identity": "5dab131338c2c3397a0939cfcd67bf3f1bdcfedd6ac17bac87e074b40d9cda00",
+      "trading_day": "2024-09-19"
+    },
+    {
+      "concrete_contract": "SHFE.ni2607",
+      "partition_identity": "5dfdf8cb127075a6b1dd52d6638931c3d7fdfc6152a0c181cb9d733d2b0b5b3e",
+      "trading_day": "2025-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2401",
+      "partition_identity": "5feb54b87bdcd50b560fb3f28c9f945fd46e191ece7e64efc0e66eecafcc2566",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.au2404",
+      "partition_identity": "60755581584cc3888ed4be694b0ea26a9053c026819fe66a775be39d3dc6c206",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2604",
+      "partition_identity": "61629cf673aca4310f510b93aac51a54b73c17998d2088c373f765f41100f800",
+      "trading_day": "2025-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2511",
+      "partition_identity": "6165f84e3ee42c9f3a2ac41eb63d4a9137c11a823d05dd8cb70136f2a7fe2e9b",
+      "trading_day": "2024-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2403",
+      "partition_identity": "626bbddc9d510252c144881a70437a45b92e46da6604c265777536d9837908a5",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2501",
+      "partition_identity": "6423806cf0418d4071e903ba5fc1e6f444f62df8e2785fd21d79caca8e414c73",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2612",
+      "partition_identity": "64f6b2c4e149bc4b88771d2085b1480220c64a5203511d7e2f483e90b06b8114",
+      "trading_day": "2025-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2404",
+      "partition_identity": "66a9caba6ab4a855bf30f181076a5112864fc19caa26f9dc965c6c4d8d896cc0",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.au2506",
+      "partition_identity": "66c2e40463e9f8bee130b06350feef9c71bab9a46dce7e99f8e692486fc49bac",
+      "trading_day": "2024-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2408",
+      "partition_identity": "6bd70135425e7a5887d69701ad1f7153f6ed240cde522657d044fc7153443a23",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.au2509",
+      "partition_identity": "6e313e1cdd9f6ffe31527cd7afaf52940bbc77b4a335e010304c14280906b29d",
+      "trading_day": "2025-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.cu2408",
+      "partition_identity": "6f41030003e5330f9116ed1a029be411c5dfb6b8c65db9190672922fcd5dbaa5",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2406",
+      "partition_identity": "70713c5d4186e41e964ec31e7356e67ec06bc0fb0b0912ca8d027a1da9a64dcb",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2409",
+      "partition_identity": "70d9bf866a5da1796d9b78c7df0898c3ec55215dd1fa6e80f6cb5100288721c9",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2412",
+      "partition_identity": "7302c1304fa0ee6adcb7a272b1f1f108b3a14553ef87e34886f1314861c7cd7c",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2410",
+      "partition_identity": "754e70fb1004e11e8300bd25a1c770bca99fb2fa2ef6a206303b573a64434854",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2511",
+      "partition_identity": "783b1feb987af71984495ea7f72e26b6ff5ca51b90ea7eb2094b8c4e1d4fa630",
+      "trading_day": "2024-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2502",
+      "partition_identity": "7af4181134861eff002d570d49539ccc6d872c425330a11825ce4916403d39c3",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2609",
+      "partition_identity": "7c0314107448eb4cd9e20281cbb5e4fe4ca1620bfb63237921b70e924c4a0fd2",
+      "trading_day": "2025-09-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2604",
+      "partition_identity": "7cbb6e3b5c7574ee8ed7d1b235206d101c1c54e9e06d89472782467965d57c44",
+      "trading_day": "2025-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2407",
+      "partition_identity": "7e51d0da5e6c370bc3aeef40e95179942aa911e7cc7c51ebe08a02d7a9899316",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2510",
+      "partition_identity": "7ee4a5ab75e23e5887d3ea95ae67ac42f83d72674c62ab6333cde34abf50b7ae",
+      "trading_day": "2024-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2605",
+      "partition_identity": "7f964a719ee1461da01f69ff96c3411b855f5fd7f04f59d6f76488c9ee435e8a",
+      "trading_day": "2025-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2501",
+      "partition_identity": "815d3a5726c8696050f6d9f0a06b009a4520dd63c4d1bb5a87c6e7f006b0b24d",
+      "trading_day": "2024-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2602",
+      "partition_identity": "83b0c933f82d78f850b0eff191896758ce4d41bce93c86fbe081c5c24a87f973",
+      "trading_day": "2025-02-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2402",
+      "partition_identity": "861e7cf2735983cc62001990fdc2e0dd87db54339ff05f2cd36d0b556d7e665c",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2505",
+      "partition_identity": "89edca6c56281224368113b9788424722a82c71d5fbdcbc639948595de52096f",
+      "trading_day": "2024-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2409",
+      "partition_identity": "8a730e7e8ce07b772a0718a5537a218d6094a117388a0365acf40c40f1829e88",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.au2602",
+      "partition_identity": "8a876938206e8321a62b337d3c3d422dd7a82ee6b73562cec7409c0d773dd65b",
+      "trading_day": "2025-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2502",
+      "partition_identity": "8acadd35c090e12d87f7eb51d98d825f0dfe14408097ed66a94dbb2f3e1541c6",
+      "trading_day": "2024-02-20"
+    },
+    {
+      "concrete_contract": "SHFE.al2508",
+      "partition_identity": "8d54e4ff476fa977fc983c2366145cc94bd631462336b4fd2b0689420dc3858c",
+      "trading_day": "2024-08-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2608",
+      "partition_identity": "8d68080ed891b94af8eeefb86013772ec41d58b04e65f22327d655623275e21b",
+      "trading_day": "2025-08-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2603",
+      "partition_identity": "8e0507b1da760d8fe205ad189989f139d2bf93b006f7247f23dd8cad95447869",
+      "trading_day": "2025-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2402",
+      "partition_identity": "8ebed264a4a4160b8b4f32e26a5d2855be54e7ec93299ded33e5899b074051bc",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2511",
+      "partition_identity": "92c1914a46e3acba5c3dd56696228718e39b5d14744f3fa0d08d8096861e5126",
+      "trading_day": "2024-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.rb2602",
+      "partition_identity": "9300128764b6253b700d93cf7729bf079a2d267a625c8d6d4b63dbf34b91a469",
+      "trading_day": "2025-02-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2502",
+      "partition_identity": "930c0d4335abab38853b45c4dd056634fb070ae8dc10796f49b7f91fc44d39d2",
+      "trading_day": "2024-02-20"
+    },
+    {
+      "concrete_contract": "SHFE.au2503",
+      "partition_identity": "95cd036fe70bd4a499e9d700939b9dc15c0fa6803c2c3f3b26f876138be3d57c",
+      "trading_day": "2024-12-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2608",
+      "partition_identity": "96ca008fd3d3b5277c9f4016036461750ace89487ea954f66bf40b7c36373e23",
+      "trading_day": "2025-08-18"
+    },
+    {
+      "concrete_contract": "SHFE.rb2403",
+      "partition_identity": "974475e1b6f9fdbd7c68eab5eb923e1f0069527b529cb0f58a270eeae9e59d3d",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2411",
+      "partition_identity": "97e16fc74a5f32abcfbaf965b19e25cfdbcfe663197b4885d22ac6fd0d3f26f9",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2605",
+      "partition_identity": "98cf4cbda597f6156cd5d151a5e30469b38fa7dfd935a5371c15b8e6ba219772",
+      "trading_day": "2025-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2405",
+      "partition_identity": "9b1bd1210ac9990b694783fd3673417d1ff73e1f12bcd3ac51b9f24470731af3",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2606",
+      "partition_identity": "9c5b7de927a15874595a57bb5cb472015567236055d89cdfce53cdf82412e0b8",
+      "trading_day": "2025-06-17"
+    },
+    {
+      "concrete_contract": "SHFE.cu2507",
+      "partition_identity": "9c9f5bf4b52bf37da0f259d6bdf6ef1207f2748d5826061c649ce37e75aa52db",
+      "trading_day": "2024-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2405",
+      "partition_identity": "a0802ab588bfdbb1bdd211dd632b8edf595f0e793b771be22b5ca0f2020a04bb",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2405",
+      "partition_identity": "a19faeea371d8114928acf321ed6aeef99e6617a9ddc10469ea62cb30d90783b",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2504",
+      "partition_identity": "a24a3d084f99ae641b988c7ea3b8db78236acde8175ad7e030106be1a347e54c",
+      "trading_day": "2024-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2511",
+      "partition_identity": "a31159b6d49876a95a06faa50951eea4bede474997924df01504c91b56445634",
+      "trading_day": "2024-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.cu2405",
+      "partition_identity": "a35382bc1363c2d9139edd95bf697ab6dda1d5bf333b1b13c46e696d300428e7",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2406",
+      "partition_identity": "a4085723a9afd9756bc6e3739376c072ea7dc299f9af61b31043522d9c5fbb4f",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2508",
+      "partition_identity": "a66453f013323f238aedc12dece261f32dd88fb61e781ab86af31e14913f2b63",
+      "trading_day": "2024-08-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2401",
+      "partition_identity": "a74d92470a6030da2982a3661555b2ca17f339a7cf46f7500e74bab5fe633a78",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2504",
+      "partition_identity": "ab473484cd6a0a37ea14934daedc3abd5fc4c2a1259d923158563665827a167d",
+      "trading_day": "2024-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2505",
+      "partition_identity": "ab5deeb95c8359033cf6658c508b354230fee88c29ef1ae769369b94ed7a04d4",
+      "trading_day": "2025-02-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2411",
+      "partition_identity": "ac04d7982e27dddd5a058b76787eaafaa1b59032849c14268173e2f6b5a0ca75",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2404",
+      "partition_identity": "ac0ce7cc4d67b5532b8a2f5cb6a6873a93cc1278f2091fce6972afd2a64539d3",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.au2409",
+      "partition_identity": "ac25624ac5bf5ac1f5ba72b3bc5fa6efa6c4eabdeb53fd685afcfac14dc33e5e",
+      "trading_day": "2024-06-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2401",
+      "partition_identity": "ad7d53bb8ff3f0ac78e74f46334ed6054d666becdc63bd975ea99ef7f4e00ec6",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2503",
+      "partition_identity": "ad8bf2d062ee542a368a598046e7a4ca0329d8c05b8a904c21d7e0d8eecf6099",
+      "trading_day": "2024-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.rb2610",
+      "partition_identity": "af7a092f54c08f0d7d290b7a025ab0719c40c204ba0dab6cdb66d6440abe65b1",
+      "trading_day": "2025-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2506",
+      "partition_identity": "aff4678298088a80c9fbff94fa042e98eaf5766d1164817c62bd01a11fcfe3c6",
+      "trading_day": "2024-06-18"
+    },
+    {
+      "concrete_contract": "SHFE.rb2507",
+      "partition_identity": "b06537006777fb4b9b11d33bc7eed3b65d4d7ac313b4741cc0ff0eb69a96c5cd",
+      "trading_day": "2024-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2502",
+      "partition_identity": "b275126b49075ec1867f2c354d1422331ce5bed1ebd94c3cb920f6c8ebbad4eb",
+      "trading_day": "2024-02-20"
+    },
+    {
+      "concrete_contract": "SHFE.al2512",
+      "partition_identity": "b2b6ddfb0ab37c2941df368e25cd534bfa7c3c7d855926f72f34d1430a424443",
+      "trading_day": "2024-12-17"
+    },
+    {
+      "concrete_contract": "SHFE.ag2604",
+      "partition_identity": "b37ad835bebc650d7c0d01f434f5e12a8e48486d1de7fd4bb4444bcb2aeb3672",
+      "trading_day": "2025-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2412",
+      "partition_identity": "b462c9a11a03f243c9e9631bfc516db6bb366ad81f3489e70b0acda32159aef2",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2607",
+      "partition_identity": "b493ec1f4869d1e778d49b1283fc1185f63a4014e1c5f3dcfd5cdea0f96904ed",
+      "trading_day": "2025-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2407",
+      "partition_identity": "b51bf48c3af77f31261d2b7095c01832f3225969ac05c92cd051179da9a67bdd",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.au2410",
+      "partition_identity": "b5e348eaaf140b61a6f5f60e0d774c0e5c6a3012dae2a95db02918d75fdbf602",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2501",
+      "partition_identity": "b98cb8b88fa317a2e08ae930349eb8ddae1498b01eb19a8d5ab8db8837a1895c",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2507",
+      "partition_identity": "ba1a9f19c12c26041ab47449ec7867035c1afa883a153afad1e934d3fe4c4277",
+      "trading_day": "2024-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2504",
+      "partition_identity": "bb84ae7c2d4830cd13267ed9de161c923c29392e8b1ae35dff8b3e5d72d5bf09",
+      "trading_day": "2024-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.rb2408",
+      "partition_identity": "bc102f48b8eabfbc4ca85c22d8e915e34a0a73f825e926b21a5ba2d47c551cab",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2609",
+      "partition_identity": "bc358b1a9d57fe46042bc27cd51a911b6c74a73f611d4f3b065c177a68f99505",
+      "trading_day": "2025-09-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2402",
+      "partition_identity": "bd649b68b5452bdee2492b1429f8a2c204efdce29b78625026f9e31388722342",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2506",
+      "partition_identity": "bdb7acca7894ae357aae4a24c6b40a6469d5635656e93098bedcdca8b8778b37",
+      "trading_day": "2024-06-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2603",
+      "partition_identity": "bfb1a1b208de1e8e059b7e2c34d9e534e4c2c0df6fbcd8de14127f8fc766e42b",
+      "trading_day": "2025-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2605",
+      "partition_identity": "bfc29e0c7058742503691c0de5268d40436b27b29857d516b419f0a6dc8a29b0",
+      "trading_day": "2025-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2607",
+      "partition_identity": "c0030c5b3edf8634705d5840ab18e0163d539b45761e980dbcfdb2ccbfd28c67",
+      "trading_day": "2025-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2407",
+      "partition_identity": "c07c7d8a1a9ad2c8af26813baafe105ecb5a80387d1b05569df6d12903e5f09d",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2404",
+      "partition_identity": "c184b0d8dfef10879ded25638953cf72280dc6098ffe52bdf445687a6a68753a",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2602",
+      "partition_identity": "c1cd023e7c82370434163d2f4e3de92f6a3b275796909d79c1e306ee82df2c99",
+      "trading_day": "2025-02-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2505",
+      "partition_identity": "c1d3e91e65318a57e5ff13d4ece1f70f76d754379538f2044ccf9db6be140b28",
+      "trading_day": "2024-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2612",
+      "partition_identity": "c235bcab5b4969006ec04c08e25effdb49e26b06293c5e8cfdf4477dc0e88483",
+      "trading_day": "2025-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2409",
+      "partition_identity": "c2db0f995eea24fb50655fa9b5eac908ea58817393129bf4d84b2352fa0de58f",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ag2509",
+      "partition_identity": "c4884debaf58ac2a5324d6268559cd9558112124a582d6e85f5d1e16044748ea",
+      "trading_day": "2024-09-19"
+    },
+    {
+      "concrete_contract": "SHFE.ag2602",
+      "partition_identity": "c8312173e2e36b3dbb001364388aa4e0e09a77760230ac0430c49d5c516dcb09",
+      "trading_day": "2025-02-18"
+    },
+    {
+      "concrete_contract": "SHFE.al2507",
+      "partition_identity": "c895df958504bfd5627263ff2c219acbeef763fd989f549f74f9108524182b12",
+      "trading_day": "2024-07-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2609",
+      "partition_identity": "c9f4deb70c0445730f2e7d47b9129a5a258097f9ceb6b41c276eaf29078a15b9",
+      "trading_day": "2025-09-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2506",
+      "partition_identity": "ca4a8014328b72272d3cc0f50e2f8b568850a8e7a800ef9129b024ab4a839d41",
+      "trading_day": "2024-06-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2411",
+      "partition_identity": "cb10682a0df710639fb2f018301159c0353fb6716453240cbe62b07447f06a81",
+      "trading_day": "2024-08-16"
+    },
+    {
+      "concrete_contract": "SHFE.au2406",
+      "partition_identity": "cba711df3e7d4170e38403f13560f68de45eabb4d39910baefa8a2ec521451e8",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2610",
+      "partition_identity": "cf9ef3c1dacfe3d4403f4133a38d165956678925da0c1e4507101db456eb35ef",
+      "trading_day": "2025-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2506",
+      "partition_identity": "d0756ab348a8f53d1dd42ea1c5619fb30de7cc529c596678505871d4a47830ed",
+      "trading_day": "2024-06-18"
+    },
+    {
+      "concrete_contract": "SHFE.al2409",
+      "partition_identity": "d31ab0ea38b30c352abbd8e063fb2d2be788d1841782fe37b43a382270d7b3ca",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2406",
+      "partition_identity": "d343d9b96edbbf4158780b7a136b1d396a95d961c8c04e8cf3570a342ceffc02",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2611",
+      "partition_identity": "d5849297e22f75113de4850dbd6d2be056cb5987be97083e1a4add1012e2b321",
+      "trading_day": "2025-11-18"
+    },
+    {
+      "concrete_contract": "SHFE.cu2601",
+      "partition_identity": "d5fc1e65cfa7c4108568f7a5288d1c45a7478b4c54e5fc1571f7949a9cf47d15",
+      "trading_day": "2025-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.al2612",
+      "partition_identity": "d60f8ef09df2fa5da94ce81be5dedc81cac9a5800f4677c344c1e52c5296eaef",
+      "trading_day": "2025-12-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2407",
+      "partition_identity": "d7918826bacb936c35748eca02cbba59ef9d45884b0d034d4cc2743928e593e7",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.ni2512",
+      "partition_identity": "d8df994f9eb87b66af1ec2043ea9b29cf7c86ba87e09b531aef05bbf3e10137f",
+      "trading_day": "2024-12-17"
+    },
+    {
+      "concrete_contract": "SHFE.al2509",
+      "partition_identity": "dbb32e07c7dfa5d15ab83ca8fd0a374f632386cf9c305b2f49ffd58aa4f27a35",
+      "trading_day": "2024-09-19"
+    },
+    {
+      "concrete_contract": "SHFE.rb2411",
+      "partition_identity": "dcf02087a13e6056404d50928e470db1362f1dac5d62df6d88e462599cd45a40",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2403",
+      "partition_identity": "df21caba11a07d71dccae328db1a069b5057be4eb44dbc6a22cabd5439b944f6",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2505",
+      "partition_identity": "e18a22c17b3d7df9e7308f02d8d9be97ec9054e4b2164fdb73a2082aad15b0af",
+      "trading_day": "2024-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2405",
+      "partition_identity": "e1fa82a9ee68fd9fee07e25087dcc3e681c9ec1bad3013eb96db4ceede3d1457",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2503",
+      "partition_identity": "e256b21039ab1db8cf8393e1b1b5a03cb72b7f7a2b303178710c86a8e696ca40",
+      "trading_day": "2024-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.ag2403",
+      "partition_identity": "e30d5d7926b76c3ebf36c79533b13bd156ad835f3321c720ae04bfc7b467d75c",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2509",
+      "partition_identity": "e3c46c80603ca661557b7350b9e341c65def2aceeb1487c5e03ab5af034dec73",
+      "trading_day": "2024-09-19"
+    },
+    {
+      "concrete_contract": "SHFE.rb2601",
+      "partition_identity": "e46e934b03492f38010ebfae271150c5cc0b36a75e14c208babc149ead516a1a",
+      "trading_day": "2025-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.ag2608",
+      "partition_identity": "e5561bcccb8c30157655218e1f6c479461bab3c15de8edb89ca2f38345cf492b",
+      "trading_day": "2025-08-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2606",
+      "partition_identity": "e7125221b76e48197b770c00d87d80741005fc79acb288e2867ce5013111af27",
+      "trading_day": "2025-05-16"
+    },
+    {
+      "concrete_contract": "SHFE.ni2410",
+      "partition_identity": "e74c60329133e6906da5b2ff8faafbe6023aea64edc91f8a8f2e0d7a02b03538",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.cu2503",
+      "partition_identity": "e7c8edf8d066b8e7faa91d2d03d776b47cba9442afd5196a21d94b1962a49646",
+      "trading_day": "2024-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.rb2603",
+      "partition_identity": "e809acfd271c6bb96098ef007254701dc995aa8ed884ded3a7142474f147a791",
+      "trading_day": "2025-03-18"
+    },
+    {
+      "concrete_contract": "SHFE.au2405",
+      "partition_identity": "eac856687174de8c8f9e8ae1ce673fbec4bd72a7bc057071e266cc8a20c9057b",
+      "trading_day": "2024-02-20"
+    },
+    {
+      "concrete_contract": "SHFE.au2403",
+      "partition_identity": "edd2bbf3ee5aba02d399bbd8e2391078b75d2ff287e9391f41e057b2978076e0",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2608",
+      "partition_identity": "ede8944b05fd22449b31af7e39520f4652cf4490eddf01971bbf66b00e679fd3",
+      "trading_day": "2025-08-18"
+    },
+    {
+      "concrete_contract": "SHFE.cu2501",
+      "partition_identity": "edfe01f1f489beea0d2d020abf43a02504ed7d8f2c853fadd9497ee75cee40ed",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "concrete_contract": "SHFE.rb2510",
+      "partition_identity": "f3baff821f98f71386201122cdc24e4ecd95377676602869c39784d5a3a46d84",
+      "trading_day": "2024-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2509",
+      "partition_identity": "f3faa891b867960ea8cb65c7c2a9ddf89e7e90289a0c4d543e4034a0e4078519",
+      "trading_day": "2024-09-19"
+    },
+    {
+      "concrete_contract": "SHFE.cu2502",
+      "partition_identity": "f54020e655f276c38fe4b950337296b2684f747bfa27684e6e9c9dc264386351",
+      "trading_day": "2024-02-20"
+    },
+    {
+      "concrete_contract": "SHFE.al2404",
+      "partition_identity": "f5e08388329e6c8e1c064fb237ee8b36c1188c5b2169a58eb970e472d4a25fa0",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2610",
+      "partition_identity": "f6c04b243b69b443fb591502976ab667cda543eab1f8d65043e89e73b537d7c1",
+      "trading_day": "2025-10-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2412",
+      "partition_identity": "f740265964c2ed67d3d80309a0d0ee4a41ef685e554e6b073492193f0c1ae4b0",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2404",
+      "partition_identity": "f758fb561c813ae186c6a56dfe898249de20f96ea5da06d3b0a4529b01b8991a",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.al2412",
+      "partition_identity": "f766a98659845b3ddaa5142ec4444d3bc8d60eb0e9e4a2532bd1ff2153d5382a",
+      "trading_day": "2024-01-02"
+    },
+    {
+      "concrete_contract": "SHFE.rb2504",
+      "partition_identity": "f99ff83af7b6ee693bc5fe8c531a23a289f876a5b7e4c8cb232db583d54f2163",
+      "trading_day": "2024-04-16"
+    },
+    {
+      "concrete_contract": "SHFE.cu2512",
+      "partition_identity": "fbb0ba45bae95e4555e8e64cd87f60efc942aac7d314791127b224c93f0386e1",
+      "trading_day": "2024-12-17"
+    },
+    {
+      "concrete_contract": "SHFE.ni2602",
+      "partition_identity": "fded85dbcb1975ea81a992051e6a6334b279d4ec0c184472ea130916989b46e2",
+      "trading_day": "2025-02-18"
+    },
+    {
+      "concrete_contract": "SHFE.ni2508",
+      "partition_identity": "fe1b8dabe488a184e624a1d3b308c9ea2b209e7515655b572b87b9e82e2be783",
+      "trading_day": "2024-08-16"
+    }
+  ],
+  "excluded_row_count": 70692,
+  "excluded_row_percent": "0.46263029",
+  "exclusion_rule": "UNIFORM_GOVERNED_FIRST_TRADING_DAY_EXCLUSION",
+  "historical_accepted_corpus_modified": false,
+  "historical_revalidation_status": "32864_PASS_116_FAIL",
+  "implementation_identity": "10f445d94754df93b88fb887e81ca8e43abf6eedcac4c5c6cd66926a810ed576",
+  "included_partition_root_identity": "9a184bef465ccd5aaf76d305852944c92b1505045a6a2a00662ce1ecd7a8a6d3",
+  "no_candidate_outcome_used": true,
+  "parent_corpus_identity": "1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8",
+  "parent_manifest_identity": "7510a4a943e85c9be256e62971b5a64d64e9976c2b01c9f5d0fe07b1c6c8d324",
+  "qualified_eligibility_view_identity": "fb30bfaf0433df02b4ee7d1e781b25473c7271495924859c1d781b87e036c822",
+  "revalidation_evidence_identity": "42e0de64e47c91156f82bbd09b53e404e93a69eebd2bc2e950c8b58c8753af32",
+  "schema_version": "canonical-qualified-eligibility-view-v1",
+  "view_version": "QUALIFIED_ELIGIBILITY_VIEW_V1"
+}

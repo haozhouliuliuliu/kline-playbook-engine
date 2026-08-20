@@ -1,0 +1,20 @@
+{
+  "adopted_semantics": "QUALIFIED_ELIGIBILITY_VIEW_WITH_UNIFORM_FIRST_TRADING_DAY_EXCLUSION",
+  "adoption_evidence_identity": "1e26805e48b89d8494145527d14f4733ddafb3435c05ebca1708d91271743e46",
+  "authority_basis": "docs/reviews/CANONICAL_COMPLETENESS_AUTHORITY_RESOLUTION_V0_1.md#recommended-option-a",
+  "candidate_quality_input_eligibility_changed": true,
+  "eligible_partition_count": 32768,
+  "excluded_partition_count": 212,
+  "excluded_row_count": 70692,
+  "excluded_row_percent": "0.46263029",
+  "historical_acceptance_changed": false,
+  "historical_final_holdout_used": false,
+  "no_candidate_outcome_used": true,
+  "owner_direction": "Owner directed the project brain to directly decide and proceed for clear evidence and recommended ordinary research semantics, without redundant approval gates.",
+  "owner_direction_date": "2026-08-21",
+  "project_brain_decision": "ADOPT_RECOMMENDED_OPTION_A",
+  "schema_version": "canonical-qualified-eligibility-adoption-v1",
+  "shadow_used": false,
+  "validation_used": false,
+  "view_version": "QUALIFIED_ELIGIBILITY_VIEW_V1"
+}

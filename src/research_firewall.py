@@ -41,6 +41,7 @@ from src.playbook_contract import (
     validate_contract,
     validate_strategy_against_playbook_contract,
 )
+from src.candidate_eligibility import CandidateEligibilityGate, CandidatePartitionReference
 from src.strategy_evidence import (
     AccessResult,
     ArtifactBinding,
@@ -1499,6 +1500,31 @@ class ResearchFirewall:
     @property
     def final_state(self) -> HistoricalFinalHoldoutStateMachine:
         return self._final_state
+
+    def require_candidate_canonical_input(
+        self,
+        *,
+        eligibility_gate: CandidateEligibilityGate,
+        concrete_contract: str,
+        trading_day: date,
+        partition_identity: str,
+        parent_corpus_identity: str,
+    ) -> CandidatePartitionReference:
+        """Single firewall entry for identity-bound candidate canonical input.
+
+        This is deliberately separate from (and cannot grant) candidate outcome
+        access.  A caller gets only an approved partition reference; raw market
+        data, mapping substitution, and any candidate outcome route remain out
+        of scope for this method.
+        """
+        if not isinstance(eligibility_gate, CandidateEligibilityGate):
+            raise TypeError("eligibility gate must be a CandidateEligibilityGate")
+        return eligibility_gate.require_eligible(
+            concrete_contract=concrete_contract,
+            trading_day=trading_day,
+            partition_identity=partition_identity,
+            parent_corpus_identity=parent_corpus_identity,
+        )
 
     # -- legacy compatibility path (FinalUnseenFirewall delegates here) ---------
 
