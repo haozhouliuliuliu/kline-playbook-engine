@@ -4,6 +4,7 @@ from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from src.data_substrate import CompletedBar
+from src.contract_semantics import PositionDirection
 from src.strategy_evidence import DatasetClass, EvidenceLedger
 from src.validation_runner import (
     CapitalMarginAssumptions,
@@ -11,6 +12,7 @@ from src.validation_runner import (
     ChronologicalValidationRunner,
     ExecutionAssumptions,
     ExecutionObservation,
+    ExecutionOutcome,
     FillStatus,
     OrderSpecification,
     ValidationDisposition,
@@ -143,6 +145,109 @@ class CapitalMarginConstraintTests(unittest.TestCase):
         self.assertEqual(result.execution_outcomes, ())
         self.assertEqual(result.capital_transitions, ())
         self.assertEqual(ledger.records[0].event_type, "DATASET_ACCESS_DENIED")
+
+    def _open_snapshot(self, starting_capital, unrealized_pnl, position_id):
+        return CapitalSnapshot(
+            starting_capital=starting_capital,
+            unrealized_pnl=unrealized_pnl,
+            position_quantity=Decimal("1"),
+            average_open_price=Decimal("90"),
+            position_instrument="TEST",
+            position_id=position_id,
+            position_request_id=f"req-{position_id}",
+            execution_assumption_id=self.execution_assumptions.identity_id,
+            capital_assumption_id=self.capital_assumptions.identity_id,
+            state_at=at(9, 0),
+            today_quantity=Decimal("1"),
+            previous_quantity=Decimal("0"),
+            position_direction=PositionDirection.LONG,
+        )
+
+    def apply_admission(self, snapshot):
+        # Exercise the open/add admission decision in
+        # _apply_capital_constraints directly against an already-open
+        # position snapshot (the offline runner requires a flat start).
+        outcome = ExecutionOutcome(
+            "request-1",
+            FillStatus.FILLED,
+            at(9, 6),
+            self.execution_assumptions.identity_id,
+            Decimal("100"),
+            Decimal("0.25"),
+            "FILLED",
+        )
+        specification = OrderSpecification("request-1", Decimal("1"))
+        item = make_validation_input(
+            "request-1",
+            CompletedBar("TEST", DAY, at(9, 0), at(9, 5), at(9, 5)),
+            at(9, 5),
+            data_version=self.experiment.data_version,
+        )
+        constrained, transitions = ChronologicalValidationRunner._apply_capital_constraints(
+            (outcome,),
+            (specification,),
+            (item,),
+            snapshot,
+            self.capital_assumptions,
+            self.execution_assumptions,
+        )
+        return constrained[0], transitions[0]
+
+    def test_e08_positive_unrealized_pnl_cannot_finance_new_admission(self):
+        # E-08 case A: cash-based available_capital is insufficient while
+        # available_resources (equity-based) is sufficient because of a large
+        # positive unrealized PnL. Admission must still fail on
+        # available_capital; floating profit cannot finance a new position.
+        snapshot = self._open_snapshot(Decimal("5"), Decimal("1000"), "pos-a")
+        required = Decimal("10.25")
+        self.assertLess(snapshot.available_capital, required)
+        self.assertGreaterEqual(snapshot.available_resources, required)
+        outcome, transition = self.apply_admission(snapshot)
+        self.assertEqual(outcome.status, FillStatus.NOT_FILLED)
+        self.assertEqual(outcome.reason, "INSUFFICIENT_MARGIN")
+        self.assertEqual(transition.after, snapshot)
+
+    def test_e08_negative_unrealized_pnl_does_not_reduce_admission_capacity(self):
+        # E-08 case B: available_capital is sufficient even though
+        # available_resources is insufficient due to a large negative
+        # unrealized PnL. Open/add admission is still decided by
+        # available_capital (frozen semantic); it is not silently switched to
+        # an equity model.
+        snapshot = self._open_snapshot(Decimal("100"), Decimal("-1000"), "pos-b")
+        required = Decimal("10.25")
+        self.assertGreaterEqual(snapshot.available_capital, required)
+        self.assertLess(snapshot.available_resources, required)
+        outcome, _ = self.apply_admission(snapshot)
+        self.assertEqual(outcome.status, FillStatus.FILLED)
+
+    def test_e08_margin_admission_resource_binds_available_capital_only(self):
+        # E-08 case C: CapitalMarginAssumptions identity is bound to
+        # AVAILABLE_CAPITAL_ONLY; no other runtime admission-resource option is
+        # supported, and the field participates in the identity.
+        self.assertEqual(self.capital_assumptions.margin_admission_resource, "AVAILABLE_CAPITAL_ONLY")
+        same = CapitalMarginAssumptions("capital-v1", Decimal("1"), Decimal("0.1"), "SYNTH")
+        self.assertEqual(self.capital_assumptions.identity_id, same.identity_id)
+        with self.assertRaisesRegex(ValueError, "unsupported margin admission resource"):
+            CapitalMarginAssumptions(
+                "capital-v1",
+                Decimal("1"),
+                Decimal("0.1"),
+                "SYNTH",
+                margin_admission_resource="EQUITY",
+            )
+        # Prove the field is part of identity: a raw object carrying a
+        # different resource hashes differently even though no valid
+        # constructor allows it (frozen single-value semantic).
+        raw = object.__new__(CapitalMarginAssumptions)
+        object.__setattr__(raw, "model_version", "capital-v1")
+        object.__setattr__(raw, "contract_multiplier", Decimal("1"))
+        object.__setattr__(raw, "initial_margin_rate", Decimal("0.1"))
+        object.__setattr__(raw, "currency", "SYNTH")
+        object.__setattr__(raw, "maintenance_margin_rate", Decimal("0.05"))
+        object.__setattr__(raw, "breach_rule", "EQUITY_BELOW_MAINTENANCE_REQUIREMENT")
+        object.__setattr__(raw, "liquidation_rule_version", "FULL_POSITION_NEXT_TRADABLE_OBSERVATION_V1")
+        object.__setattr__(raw, "margin_admission_resource", "EQUITY")
+        self.assertNotEqual(raw.identity_id, self.capital_assumptions.identity_id)
 
 
 if __name__ == "__main__":

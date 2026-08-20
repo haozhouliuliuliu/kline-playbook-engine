@@ -17,6 +17,7 @@ from src.data_substrate import CompletedBar, SessionMetadata, SessionWindow
 from src.portfolio_semantics import (
     AttributedPosition,
     PortfolioCandidate,
+    PortfolioCapitalBinding,
     PortfolioConflictPolicy,
     PortfolioCoordinator,
     PortfolioEvaluationBindings,
@@ -145,7 +146,15 @@ class PortfolioSemanticsTests(unittest.TestCase):
             ),
         )
 
-    def make_candidate(self, member, request_id, symbol, direction, quantity=Decimal("1")):
+    def make_bindings(self, members, concrete_contract_id="A", capital_assumptions=None):
+        assumptions = capital_assumptions if capital_assumptions is not None else self.capital_assumptions
+        bindings = [
+            PortfolioCapitalBinding(member.strategy.identity_id, concrete_contract_id, assumptions)
+            for member in members
+        ]
+        return tuple(sorted(bindings, key=lambda item: item.key))
+
+    def make_candidate(self, member, request_id, symbol, direction, quantity=Decimal("1"), capital_assumption_id=None):
         decision_at = at(9, 5)
         validation_input = ValidationInput(
             request_id,
@@ -173,7 +182,7 @@ class PortfolioSemanticsTests(unittest.TestCase):
             ),
             direction,
             self.execution_assumptions.identity_id,
-            self.capital_assumptions.identity_id,
+            capital_assumption_id if capital_assumption_id is not None else self.capital_assumptions.identity_id,
         )
 
     def run_portfolio(
@@ -183,9 +192,15 @@ class PortfolioSemanticsTests(unittest.TestCase):
         starting_capital=Decimal("100"),
         dataset_class=DatasetClass.VALIDATION,
         mode=ValidationMode.CONFIRMATORY,
+        capital_bindings=None,
+        master=None,
+        schedule=None,
+        sessions=None,
+        limit_facts=None,
     ):
         ledger = EvidenceLedger()
         coordinator = PortfolioCoordinator(ledger, FinalUnseenFirewall(ledger))
+        bindings = capital_bindings if capital_bindings is not None else self.make_bindings(members)
         result = coordinator.evaluate(
             PortfolioRequest(
                 mode,
@@ -195,12 +210,12 @@ class PortfolioSemanticsTests(unittest.TestCase):
                 starting_capital,
                 self.conflict_policy,
                 self.shared_policy,
-                self.master,
-                self.schedule,
-                self.sessions,
-                (self.limit_fact,),
+                master if master is not None else self.master,
+                schedule if schedule is not None else self.schedule,
+                sessions if sessions is not None else self.sessions,
+                limit_facts if limit_facts is not None else (self.limit_fact,),
                 self.execution_assumptions,
-                self.capital_assumptions,
+                bindings,
                 self.offset_costs,
                 at(9, 30),
             )
@@ -228,7 +243,7 @@ class PortfolioSemanticsTests(unittest.TestCase):
             "mapping-schedule-id",
             "session-metadata-v1",
             "execution-assumption-id",
-            "capital-assumption-id",
+            ("capital-binding-b", "capital-binding-a"),
             ("limit-fact-b", "limit-fact-a"),
             "offset-cost-id",
         )
@@ -301,7 +316,7 @@ class PortfolioSemanticsTests(unittest.TestCase):
             self.schedule.identity_id,
             self.sessions.version,
             self.execution_assumptions.identity_id,
-            self.capital_assumptions.identity_id,
+            (self.capital_assumptions.identity_id,),
             (self.limit_fact.identity_id,),
             self.offset_costs.identity_id,
         )
@@ -460,13 +475,267 @@ class PortfolioSemanticsTests(unittest.TestCase):
                     self.sessions,
                     (self.limit_fact,),
                     self.execution_assumptions,
-                    self.capital_assumptions,
+                    self.make_bindings((member_a, member_b)),
                     self.offset_costs,
                     at(9, 30),
                 )
             )
         # No legacy coarse grant, no execution, no capital mutation, no confirmation.
         self.assertEqual(ledger.records, ())
+
+    def hetero_world(self):
+        contract_a = ContractSpecification(
+            "SYNTH_EX",
+            "SYNTH_PRODUCT",
+            "A",
+            at(8, 0),
+            at(18, 0),
+            Decimal("5"),
+            Decimal("0.5"),
+            "SYNTH",
+            "SYNTH_UNIT",
+            "synthetic-portfolio-limit-rule-v1",
+            self.offset_costs.identity_id,
+            "hetero-contract-a-v1",
+        )
+        contract_b = ContractSpecification(
+            "SYNTH_EX",
+            "SYNTH_PRODUCT",
+            "B",
+            at(8, 0),
+            at(18, 0),
+            Decimal("10"),
+            Decimal("0.5"),
+            "SYNTH",
+            "SYNTH_UNIT",
+            "synthetic-portfolio-limit-rule-v1",
+            self.offset_costs.identity_id,
+            "hetero-contract-b-v1",
+        )
+        master = ContractMaster("hetero-master-v1", (contract_a, contract_b))
+        entries = (
+            ContractMappingEntry("MAIN_A", "A", at(8, 0), at(18, 0), at(8, 0), "hetero-mapping-a-v1"),
+            ContractMappingEntry("MAIN_B", "B", at(8, 0), at(18, 0), at(8, 0), "hetero-mapping-b-v1"),
+        )
+        schedule = ContractMappingSchedule("hetero-schedule-v1", ("MAIN_A", "MAIN_B"), entries)
+        sessions = SessionMetadata(
+            "hetero-session-v1",
+            (
+                SessionWindow("SYNTH_EX", "A", DAY, at(9, 0), at(11, 0), "DAY"),
+                SessionWindow("SYNTH_EX", "B", DAY, at(9, 0), at(11, 0), "DAY"),
+            ),
+        )
+        limit_a = PriceLimitFact(
+            "hetero-limit-a",
+            "A",
+            contract_a.identity_id,
+            DAY,
+            Decimal("90"),
+            Decimal("110"),
+            at(8, 50),
+            at(8, 50),
+            "synthetic-portfolio-limit-rule-v1",
+        )
+        limit_b = PriceLimitFact(
+            "hetero-limit-b",
+            "B",
+            contract_b.identity_id,
+            DAY,
+            Decimal("90"),
+            Decimal("110"),
+            at(8, 50),
+            at(8, 50),
+            "synthetic-portfolio-limit-rule-v1",
+        )
+        cap_a = CapitalMarginAssumptions("hetero-cap-a-v1", Decimal("5"), Decimal("0.1"), "SYNTH", Decimal("0.05"))
+        cap_b = CapitalMarginAssumptions("hetero-cap-b-v1", Decimal("10"), Decimal("0.1"), "SYNTH", Decimal("0.05"))
+        return master, schedule, sessions, (limit_a, limit_b), cap_a, cap_b
+
+    def sorted_bindings(self, *bindings):
+        return tuple(sorted(bindings, key=lambda item: item.key))
+
+    def test_e05_heterogeneous_multiplier_bindings_resolve_structurally(self):
+        # E05-A: member A resolves contract multiplier 5 and member B resolves
+        # contract multiplier 10, each with its own correct binding. Structural
+        # resolution must succeed; a single global multiplier must not reject
+        # either side. The outcome path remains closed (E05-G).
+        master, schedule, sessions, limit_facts, cap_a, cap_b = self.hetero_world()
+        member_a = self.make_member("a", "MAIN_A")
+        member_b = self.make_member("b", "MAIN_B")
+        candidate_a = self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG, capital_assumption_id=cap_a.identity_id)
+        candidate_b = self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG, capital_assumption_id=cap_b.identity_id)
+        bindings = self.sorted_bindings(
+            PortfolioCapitalBinding(member_a.strategy.identity_id, "A", cap_a),
+            PortfolioCapitalBinding(member_b.strategy.identity_id, "B", cap_b),
+        )
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            self.run_portfolio(
+                (member_a, member_b),
+                (candidate_a, candidate_b),
+                capital_bindings=bindings,
+                master=master,
+                schedule=schedule,
+                sessions=sessions,
+                limit_facts=limit_facts,
+            )
+
+    def test_e05_wrong_binding_multiplier_fails_closed(self):
+        # E05-B: member A's binding multiplier does not match the resolved
+        # concrete contract multiplier -> fail closed.
+        master, schedule, sessions, limit_facts, cap_a, cap_b = self.hetero_world()
+        wrong_cap_a = CapitalMarginAssumptions("hetero-cap-a-wrong-v1", Decimal("6"), Decimal("0.1"), "SYNTH", Decimal("0.05"))
+        member_a = self.make_member("a", "MAIN_A")
+        member_b = self.make_member("b", "MAIN_B")
+        candidate_a = self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG, capital_assumption_id=wrong_cap_a.identity_id)
+        candidate_b = self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG, capital_assumption_id=cap_b.identity_id)
+        bindings = self.sorted_bindings(
+            PortfolioCapitalBinding(member_a.strategy.identity_id, "A", wrong_cap_a),
+            PortfolioCapitalBinding(member_b.strategy.identity_id, "B", cap_b),
+        )
+        with self.assertRaisesRegex(ValueError, "contract multiplier is inconsistent"):
+            self.run_portfolio(
+                (member_a, member_b),
+                (candidate_a, candidate_b),
+                capital_bindings=bindings,
+                master=master,
+                schedule=schedule,
+                sessions=sessions,
+                limit_facts=limit_facts,
+            )
+
+    def test_e05_candidate_cannot_borrow_another_member_capital_assumption(self):
+        # E05-C: candidate A referencing member B's capital assumption fails.
+        master, schedule, sessions, limit_facts, cap_a, cap_b = self.hetero_world()
+        member_a = self.make_member("a", "MAIN_A")
+        member_b = self.make_member("b", "MAIN_B")
+        candidate_a = self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG, capital_assumption_id=cap_b.identity_id)
+        candidate_b = self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG, capital_assumption_id=cap_b.identity_id)
+        bindings = self.sorted_bindings(
+            PortfolioCapitalBinding(member_a.strategy.identity_id, "A", cap_a),
+            PortfolioCapitalBinding(member_b.strategy.identity_id, "B", cap_b),
+        )
+        with self.assertRaisesRegex(ValueError, "capital assumption identity mismatch"):
+            self.run_portfolio(
+                (member_a, member_b),
+                (candidate_a, candidate_b),
+                capital_bindings=bindings,
+                master=master,
+                schedule=schedule,
+                sessions=sessions,
+                limit_facts=limit_facts,
+            )
+
+    def test_e05_duplicate_binding_fails_closed(self):
+        # E05-D: duplicate binding for the same strategy + concrete contract fails.
+        member_a = self.make_member("a", "MAIN_A")
+        member_b = self.make_member("b", "MAIN_B")
+        candidate_a = self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG)
+        with self.assertRaisesRegex(ValueError, "must be unique by strategy and concrete contract"):
+            PortfolioRequest(
+                ValidationMode.CONFIRMATORY,
+                DatasetClass.VALIDATION,
+                (member_a, member_b),
+                (candidate_a,),
+                Decimal("100"),
+                self.conflict_policy,
+                self.shared_policy,
+                self.master,
+                self.schedule,
+                self.sessions,
+                (self.limit_fact,),
+                self.execution_assumptions,
+                (
+                    PortfolioCapitalBinding(member_a.strategy.identity_id, "A", self.capital_assumptions),
+                    PortfolioCapitalBinding(member_a.strategy.identity_id, "A", self.capital_assumptions),
+                ),
+                self.offset_costs,
+                at(9, 30),
+            )
+
+    def test_e05_missing_member_binding_fails_closed(self):
+        # E05-E: a member without any capital binding is rejected; no global
+        # fallback exists.
+        member_a = self.make_member("a", "MAIN_A")
+        member_b = self.make_member("b", "MAIN_B")
+        candidate_a = self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG)
+        with self.assertRaisesRegex(ValueError, "every portfolio member requires at least one capital binding"):
+            PortfolioRequest(
+                ValidationMode.CONFIRMATORY,
+                DatasetClass.VALIDATION,
+                (member_a, member_b),
+                (candidate_a,),
+                Decimal("100"),
+                self.conflict_policy,
+                self.shared_policy,
+                self.master,
+                self.schedule,
+                self.sessions,
+                (self.limit_fact,),
+                self.execution_assumptions,
+                self.make_bindings((member_b,)),
+                self.offset_costs,
+                at(9, 30),
+            )
+
+    def test_e05_evaluation_identity_tracks_member_capital_bindings(self):
+        # E05-F: changing one member's capital binding changes the portfolio
+        # evaluation identity.
+        member_a = self.make_member("a", "MAIN_A")
+        member_b = self.make_member("b", "MAIN_B")
+        bindings_v1 = self.make_bindings((member_a, member_b), "A", self.capital_assumptions)
+        changed_assumptions = CapitalMarginAssumptions("synthetic-portfolio-capital-v2", Decimal("1"), Decimal("0.1"), "SYNTH", Decimal("0.05"))
+        bindings_v2 = self.sorted_bindings(
+            PortfolioCapitalBinding(member_a.strategy.identity_id, "A", changed_assumptions),
+            PortfolioCapitalBinding(member_b.strategy.identity_id, "A", self.capital_assumptions),
+        )
+        bindings_obj_v1 = PortfolioEvaluationBindings(
+            DatasetClass.VALIDATION,
+            self.master.identity_id,
+            self.schedule.identity_id,
+            self.sessions.version,
+            self.execution_assumptions.identity_id,
+            (item.identity_id for item in bindings_v1),
+            (self.limit_fact.identity_id,),
+            self.offset_costs.identity_id,
+        )
+        bindings_obj_v2 = PortfolioEvaluationBindings(
+            DatasetClass.VALIDATION,
+            self.master.identity_id,
+            self.schedule.identity_id,
+            self.sessions.version,
+            self.execution_assumptions.identity_id,
+            (item.identity_id for item in bindings_v2),
+            (self.limit_fact.identity_id,),
+            self.offset_costs.identity_id,
+        )
+        self.assertNotEqual(bindings_obj_v1.identity_id, bindings_obj_v2.identity_id)
+        self.assertNotEqual(
+            PortfolioEvaluationIdentity.create((member_a, member_b), self.conflict_policy, self.shared_policy, bindings_obj_v1).identity_id,
+            PortfolioEvaluationIdentity.create((member_a, member_b), self.conflict_policy, self.shared_policy, bindings_obj_v2).identity_id,
+        )
+
+    def test_e05_outcome_path_remains_closed(self):
+        # E05-G: even after a fully heterogeneous structure resolves
+        # structurally, the candidate outcome path stays closed.
+        master, schedule, sessions, limit_facts, cap_a, cap_b = self.hetero_world()
+        member_a = self.make_member("a", "MAIN_A")
+        member_b = self.make_member("b", "MAIN_B")
+        candidate_a = self.make_candidate(member_a, "request-a", "MAIN_A", PositionDirection.LONG, capital_assumption_id=cap_a.identity_id)
+        candidate_b = self.make_candidate(member_b, "request-b", "MAIN_B", PositionDirection.LONG, capital_assumption_id=cap_b.identity_id)
+        bindings = self.sorted_bindings(
+            PortfolioCapitalBinding(member_a.strategy.identity_id, "A", cap_a),
+            PortfolioCapitalBinding(member_b.strategy.identity_id, "B", cap_b),
+        )
+        with self.assertRaisesRegex(ValueError, "PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED"):
+            self.run_portfolio(
+                (member_a, member_b),
+                (candidate_a, candidate_b),
+                capital_bindings=bindings,
+                master=master,
+                schedule=schedule,
+                sessions=sessions,
+                limit_facts=limit_facts,
+            )
 
 
 if __name__ == "__main__":
