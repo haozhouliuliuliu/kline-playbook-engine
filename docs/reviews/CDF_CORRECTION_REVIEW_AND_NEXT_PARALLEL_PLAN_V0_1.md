@@ -65,27 +65,29 @@ After merge resolution run focused cross-package tests plus the entire test suit
 
 While the C/D/F integration lane runs, two additional isolated lanes are allowed.
 
-### Lane E-Core — unambiguous execution repairs
+### Lane E-Core — only unambiguous execution repairs
 
-Production repair is allowed for findings that do not depend on the new D-05 session identity and do not require a new semantic decision:
+Production repair is allowed only for findings whose repair semantics are already determined by existing behavior/evidence and do not depend on accepted D-05 session identity:
 
 ```text
-E-01,E-02,E-03,E-04,E-05,E-09,E-11,E-12,E-13
+E-01,E-02,E-03,E-09,E-11,E-12,E-13
 ```
 
-Do NOT repair E-08 in this lane. Do NOT repair E-10 until accepted D-05 is on the main integration path. E-13 remains explicitly bootstrap/feasibility scope.
+Do NOT repair E-04 here: generic CLOSE split allocation/fee semantics require an explicit authority decision if no existing rule resolves the split. Do NOT repair E-05 here: heterogeneous portfolio capital-assumption representation must be specified before implementation. Do NOT repair E-08 here. Do NOT repair E-10 until accepted D-05 is on the main integration path. E-13 remains explicitly bootstrap/feasibility scope.
 
 ### Lane E-Governance — authority research only
 
 Research/documentation lane for:
 
 ```text
+E-04 generic CLOSE split allocation / fee semantics
+E-05 heterogeneous portfolio capital-assumption representation
 E-06 historical realistic fee/margin authority
 E-07 concrete-contract/main-contract mapping authority
 E-08 margin-admission resource semantics
 ```
 
-This lane must not choose a new outcome-affecting rule when existing authority is absent. E-07 and E-08 are Owner-gated if the repository does not already contain a binding answer. Source acquisition follows FREE_PUBLIC_UNAUTHENTICATED_FIRST; no paid purchase/login, no candidate outcomes.
+This lane must not choose a new outcome-affecting rule when existing authority is absent. E-04/E-05/E-07/E-08 are Owner-gated if the repository/formal external authority does not already contain a binding answer. Source acquisition follows FREE_PUBLIC_UNAUTHENTICATED_FIRST; no paid purchase/login, no candidate outcomes.
 
 ## Current three-lane orchestration
 
@@ -105,6 +107,8 @@ CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 SHADOW_FORWARD=NOT_AUTHORIZED
+E04_SPLIT_RULE_CHOICE=NOT_DELEGATED_TO_WORKER
+E05_PORTFOLIO_REPRESENTATION_CHOICE=NOT_DELEGATED_TO_WORKER
 E08_SEMANTIC_CHOICE=NOT_DELEGATED_TO_WORKER
 E07_MAPPING_RULE_CHOICE=NOT_DELEGATED_TO_WORKER
 ```
