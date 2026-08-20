@@ -2,113 +2,134 @@
 
 This repository is in `RESEARCH_FOUNDATION`.
 
-Read current authority/navigation in this order:
-1. `OWNER_COLLABORATION_CONTRACT.md`
-2. `ARCHITECTURE_BASELINE.md` — Skeleton v1.0 ACCEPTED
-3. `CURRENT_STATE.md` — current status / authorization / next action
-4. `RESEARCH_DIRECTION.md` — Human Playbook First, Owner-approved, with anti-regression guard
-5. `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md` — FROZEN / BINDING
-6. `docs/research/HUMAN_PLAYBOOK_CHRONOLOGICAL_SPLIT_V1_0.md` — FROZEN 12/6/6
-7. `docs/research/HUMAN_PLAYBOOK_SELECTION_FIREWALL_REQUIREMENTS_V1_0.md`
-8. `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`
-9. `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md`
-10. `docs/reviews/HANDOFF_THIRD_PASS_FAILURE_MODE_REVIEW_2026-08-19.md`
-11. `KLINE_PLAYBOOK_ENGINE_HANDOFF_CURRENT_2026-08-19_V3.md` — derived continuity snapshot only
+Canonical repository:
 
-Important current evidence:
-- Owner protocol freeze: `docs/evidence/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_OWNER_FREEZE_2026-08-19.md`
-- Pre-outcome firewall implementation: `docs/evidence/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_IMPLEMENTATION_V1_0.md`
-- Final firewall acceptance: `docs/reviews/HUMAN_PLAYBOOK_PREOUTCOME_FIREWALL_FINAL_ACCEPTANCE_V1_2.md`
-- Common Statistical Profile v1 first candidate (historical candidate; NOT_LOCKED): `docs/research/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE.md`
-- Statistical engine capability audit (integrated): `docs/evidence/HUMAN_PLAYBOOK_STATISTICAL_ENGINE_CAPABILITY_AUDIT_V1.md`
-- Engine compatibility crosswalk (integrated to main; original branch commit `05ad7f9a94c1a6b885402a4417a0d095dbfa7c56`; main integration `4b2c882331f855c730d125517e6b7fd563025055`): `docs/evidence/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ENGINE_COMPATIBILITY_CROSSWALK.md`
-- Independent adversarial statistical review (integrated to main; original branch commit `5e78605d312ee2e6c22e82dc4d91d651eacac4b2`; main integration `4650e5fe24e4ac50377a2e7440b81921c57c0a87`): `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADVERSARIAL_REVIEW.md`
-- Project-brain adjudication of both parallel lines: `docs/reviews/HUMAN_PLAYBOOK_COMMON_STATISTICAL_PROFILE_V1_ADJUDICATION_V0_1.md`
-- Third-pass handoff/anti-regression review: `docs/reviews/HANDOFF_THIRD_PASS_FAILURE_MODE_REVIEW_2026-08-19.md`
-- Known limitations/debt: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`
-- Adopted governance: `CROSS_PROJECT_OPERATING_CONTRACT.md` Version 3.1, pinned by SHA256 in `CURRENT_STATE.md`
+```text
+REPOSITORY_FULL_NAME=haozhouliuliuliu/kline-playbook-engine
+```
+
+## Read current authority in this order
+
+1. `OWNER_COLLABORATION_CONTRACT.md` — stable Owner collaboration preferences.
+2. `ARCHITECTURE_BASELINE.md` — Skeleton v1.0, ACCEPTED.
+3. `CURRENT_STATE.md` — current status, locks, next action, current prerequisites.
+4. `RESEARCH_DIRECTION.md` — Owner-approved Human Playbook First research route and anti-regression guard.
+5. `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md` — FROZEN / BINDING.
+6. `docs/research/HUMAN_PLAYBOOK_CHRONOLOGICAL_SPLIT_V1_0.md` — FROZEN 12/6/6 chronology.
+7. `docs/research/HUMAN_PLAYBOOK_SELECTION_FIREWALL_REQUIREMENTS_V1_0.md`.
+8. `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`.
+9. `docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md` — final disposition of the original 62 second-pass findings.
+10. `docs/reviews/SECOND_PASS_REPAIR_FINAL_CLOSURE_RECORD_2026-08-20.md` — formal repair-node closure record.
+11. `KNOWN_LIMITATIONS_AND_TECH_DEBT.md` — active/deferred prerequisites that must survive handoff.
+12. `CROSS_PROJECT_OPERATING_CONTRACT.md` — adopted Version 3.1 governance constitution.
+13. `TOOL_REGISTRY.md` — capability catalog; appearance here does not mean this project adopted the tool.
+14. `PROJECT_HANDOFF_CURRENT.md` — derived continuity snapshot only; read it last, never as a replacement for the authorities above.
+
+`CURRENT_STATE.md` is the authority for mutable project state and the next action. A handoff or chat summary cannot override current Git, current code/tests, frozen protocols, Owner decisions, or accepted evidence.
+
+## Current phase summary
+
+```text
+SECOND_PASS_REPAIR_MODE=EXITED
+SECOND_PASS_REPAIR_CLOSURE_AUDIT=COMPLETE
+ORIGINAL_FINDINGS_DISPOSITIONED=62_OF_62
+UNRESOLVED_CRITICAL_SILENT_BYPASS=0
+UNRESOLVED_HIGH_STRUCTURAL_REPAIR_DEFECT=0
+NEXT_NORMAL_PHASE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
+PERFORMANCE_RESEARCH_STARTED=NO
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
+HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
+SHADOW_FORWARD=NOT_AUTHORIZED
+REAL_MONEY=NOT_AUTHORIZED
+BROKER_ACCESS=NOT_AUTHORIZED
+```
+
+Repair completion does **not** mean candidate-performance readiness. The project has returned from repair mode to normal pre-outcome research/foundation work while important prerequisites remain fail-closed.
 
 ## Catastrophic anti-regression rule
 
-Do **not** reinterpret the broad Skeleton statement that AI may "find candidate ideas" as permission to return to data-first K-line/chart-pattern/indicator/parameter mining.
+Do **not** reinterpret broad architecture language such as AI may “find candidate ideas” as permission to return to data-first K-line/chart-pattern/indicator/parameter mining.
 
-Binding current route is:
+Binding route:
 
 ```text
 traceable human trading experience
--> source-faithful AI extraction/structuring
+-> source-faithful AI extraction / structuring
 -> versioned Playbook Contract
--> machine operationalization
+-> deterministic / versioned machine operationalization
 -> governed historical validation
+-> strict validation / protected holdout governance
+-> accepted or rejected playbook
 ```
 
-The following is **not** the current authorized research route:
+The following is not the current authorized strategy-discovery route:
 
 ```text
 mine K-line/chart patterns / indicators / rule grids / parameters
--> rank by historical PnL/Sharpe
--> retrofit a narrative or human source afterward
+-> rank by historical PnL / Sharpe / trade outcomes
+-> retrofit a human source or narrative afterward
 ```
 
-`RESEARCH_DIRECTION.md` now contains the formal anti-regression interpretation guard. Any future shift back toward data-first automatic strategy/pattern mining is an Owner-gated research-direction change.
+Any material return to data-first strategy/pattern mining is an Owner-gated research-direction change.
 
-Current state summary:
-- Canonical BALANCED corpus ACCEPTED: cu/al/ni/au/ag/rb, 2024-01-01..2025-12-31, 1-minute, 212 contracts, 15,280,452 rows.
-- Human Playbook First = binding research direction.
-- Research Protocol v1.0 = FROZEN / BINDING.
-- Chronology = FROZEN 12/6/6.
-- `INSUFFICIENT_EVIDENCE` = frozen legitimate result.
-- Pre-outcome firewall = ACCEPTED / COMPLETE_VERIFIED.
-- SOURCE_ONLY real claim-extraction environment = VERIFIED / NOT_STARTED.
-- Candidate outcome-bearing performance backtest = NOT_AUTHORIZED.
-- Common Statistical Profile v1 first candidate = `CANDIDATE_REVISION_REQUIRED_NOT_LOCKED` after independent review/adjudication.
-- Current work package = `COMMON_STATISTICAL_PROFILE_V1_REVISION_AFTER_PARALLEL_REVIEW`.
-- Current tool decision = `USE_EXISTING`.
-- Paid ChatGPT↔DS API relay/orchestrator = NOT_ADOPTED_CURRENTLY; brittle VS Code UI relay automation = NOT_ADOPTED_CURRENTLY.
-- Current local-agent relay = Owner manual relay only when a DS/local worker is genuinely needed; GPT should do safe repo-only GitHub work directly when capable.
-- Conversation handoff = third-pass ready, waiting for Owner acceptance of the fresh conversation's read-only takeover report.
-- Owner research/product semantic action = NONE.
+## Important current prerequisites
 
-Frozen chronology:
+Do not silently promote any of these into solved facts:
 
 ```text
-DEVELOPMENT: 2024-01-01 .. 2024-12-31
-VALIDATION: 2025-01-01 .. 2025-06-30
-PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT: 2025-07-01 .. 2025-12-31
+PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
+E06_CONTINUOUS_HISTORICAL_EXCHANGE_FEE_MARGIN_SCHEDULE=INSUFFICIENT_EVIDENCE
+E07_SOURCE_GOVERNED_TQSDK_HISTORICAL_MAIN_MAPPING=INCOMPLETE_FAIL_CLOSED
+HOLY_GRAIL_MACHINE_READY=NO
+HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION=NOT_ADOPTED
+REAL_COMMON_STATISTICAL_PROFILE=NOT_ADOPTED
+PORTFOLIO_CANDIDATE_OUTCOME_AUTHORITY=NOT_IMPLEMENTED
+SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
+LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
 ```
 
-Current statistical-profile revision facts:
-- keep the common-profile direction;
-- current draft must not be locked;
-- remove `ESS=N/max(1,2H-1)` as a deterministic hard gate;
-- pin one `position_id` as one round-trip observation and aggregate add/partial-close legs;
-- define holding/multi-week dependence semantics explicitly;
-- separate economic materiality from detectability/power interpretation;
-- distinguish fee stress from slippage/friction stress;
-- make data-governance blocking explicit (`DATA_BLOCKED` or equivalent);
-- make multiplicity counting machine-consistent with Research Wave/search identities;
-- no candidate outcomes may be used to tune the revised profile.
+Canonical historical price values were not revoked, but the accepted corpus has not yet been re-certified under the repaired D-01/D-02 completeness rules.
 
-Do **not** treat the adversarial reviewer's `RECOMMENDED_SIMPLIFIED_V1`, illustrative volatility assumptions, suggested thresholds, 2x cost stress, Holm choice, or block-length formula as adopted/frozen project facts. The adjudication accepted revision requirements, not the reviewer's exact replacement numbers/methods.
+## Fresh-conversation takeover rule
 
-Parallel-work rule:
-- isolated worktrees/branches for independent workers;
-- one integration lane owns `main` and shared authority/state;
-- parallel workers do not push `main` or edit shared authority unless assigned;
-- normally use 2–3 high-value lanes, not many conflicting agents;
-- when several independent lanes are ready, give all runnable prompts together;
-- before creating/reusing a worktree, inspect `git worktree list` and branch/remote state.
+A fresh project-brain conversation starts with **read-only takeover verification only**.
 
-Fresh-conversation takeover rule:
-- first takeover turn is read-only verification only;
-- do not modify GitHub, issue DS prompts, adopt tools, start profile revision, extract real claims, or otherwise advance project state;
-- report reconstructed authority/state and wait for Owner confirmation.
+During the first takeover turn it must:
 
-Recorded next project action **after takeover acceptance**:
-`REVISE_COMMON_STATISTICAL_PROFILE_V1_CANDIDATE_FROM_ADJUDICATED_REVIEW`
+- fetch the real repository using the exact canonical repository identity above;
+- read the authority set in the order above;
+- reconstruct current state, locks, active prerequisites, research direction, and next normal phase;
+- report any contradiction, stale reference, missing file, or ambiguity it finds;
+- explicitly distinguish repository facts from the derived handoff snapshot;
+- stop and wait for Owner acceptance.
 
-Status authority: `CURRENT_STATE.md`.
-Frozen protocol authority: `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md`.
+During that first turn it must **not**:
 
-Canonical verification path:
-`python -m unittest discover -s tests -v`
+```text
+REPO_WRITE
+START_NEXT_WORK_PACKAGE
+GENERATE_CODEX_OR_DEEPSEEK_WORKER_PROMPTS
+ADOPT_NEW_TOOLS
+RUN_CANDIDATE_OUTCOME_RESEARCH
+UNLOCK_VALIDATION_OR_FINAL_HOLDOUT
+MAKE_NEW_PRODUCT_OR_RESEARCH_DIRECTION_DECISIONS
+```
+
+Only after the Owner accepts the takeover report may the new conversation choose and execute the next normal bounded package from current authority.
+
+## Handoff hygiene
+
+Only one active derived handoff entry should exist at the repository root: `PROJECT_HANDOFF_CURRENT.md`.
+
+Old superseded derived handoff snapshots/pointer chains should not be used for takeover. Git history preserves them if historical reconstruction is ever needed. Historical evidence, frozen protocols, accepted reviews, and Owner decisions are not handoff clutter and must not be deleted merely to reduce context.
+
+## Verification path
+
+Canonical bootstrap verification command:
+
+```text
+python -m unittest discover -s tests -v
+```
+
+Test counts are evidence about a particular executed suite, not a substitute for repository authority or project readiness.
