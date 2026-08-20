@@ -97,6 +97,181 @@ Do not infer historical limits from a current webpage or use a constant rule wit
 
 ---
 
+## LIMIT-002 — Accepted canonical corpus requires explicit revalidation under repaired completeness rules
+
+```text
+STATUS=DEFERRED
+PRIORITY=CRITICAL_BEFORE_CANDIDATE_USE
+CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
+ACTIVATE_BEFORE=any accepted canonical corpus is used as candidate-performance evidence
+AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md
+```
+
+Second-pass Package D repaired the production completeness/provenance path: full requested
+coverage is required for PASS, zero-bar expected sessions/windows are represented, canonical
+storage is PASS-only, and session authority is content-derived. The historical accepted
+15,280,452-row corpus was **not** rebuilt or re-certified under those repaired D-01/D-02 rules.
+
+This does not revoke the recorded OHLC values or the existing cross-source comparison. It
+means the old acceptance cannot be promoted into a new claim that repaired completeness has
+already been re-proven.
+
+Before candidate-performance use, run an explicit governed corpus revalidation/rebuild package
+against the repaired pipeline. Do not auto-migrate old session identities or silently retain
+legacy PASS status.
+
+---
+
+## LIMIT-003 — Continuous 2024-2025 historical exchange fee/margin schedule remains incomplete
+
+```text
+STATUS=DEFERRED
+PRIORITY=CRITICAL_BEFORE_CANDIDATE_QUALITY_EXECUTION
+CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
+ACTIVATE_BEFORE=historical candidate validation claims realistic China-futures fees/margins
+AUTHORITY=docs/research/E06_HISTORICAL_FEE_MARGIN_EVIDENCE_ASSESSMENT_V0_2.md
+REOPEN_TRIGGER=NEW_OFFICIAL_SOURCE_OR_ACCESS_CHANGE_OR_OWNER_POLICY_CHANGE
+```
+
+The final bounded official-source pass materially improved point-in-time SHFE evidence but did
+not establish a continuous exchange-level fee/margin schedule over 2024-01-01..2025-12-31 for
+cu/al/ni/au/ag/rb.
+
+Binding current status:
+
+```text
+E06_FINAL_JUDGMENT=PARTIALLY_BUILDABLE_WITH_GAPS
+E06_EXCHANGE_LEVEL_SCHEDULE_JUDGMENT=INSUFFICIENT_EVIDENCE
+E06_FURTHER_REPEAT_ACQUISITION_DEFAULT=NO
+```
+
+Current-rate backfill, third-party substitution, and inferred historical values remain
+forbidden. This is a long-lived governed prerequisite, not a reason to reopen the completed
+second-pass repair loop.
+
+---
+
+## LIMIT-004 — Source-governed TqSdk historical main-contract mapping is unavailable under current source policy
+
+```text
+STATUS=DEFERRED_OWNER_GATED_SOURCE_PREREQUISITE
+PRIORITY=CRITICAL_BEFORE_CANDIDATE_CONTRACT_MAPPING
+CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
+ACTIVATE_BEFORE=research-symbol candidate execution maps to canonical concrete contracts
+AUTHORITY=docs/evidence/E07_TQSDK_HISTORICAL_MAIN_MAPPING_AVAILABILITY_V0_1.md
+```
+
+Owner froze E-07 to the source-governed historical TqSdk `KQ.m@` mapping applied only to the
+project's canonical concrete-contract bars. The documented historical mapping interface
+requires an authenticated TqSdk account, while project source policy currently forbids login.
+
+Current status:
+
+```text
+TQSDK_HISTORY_ACCESS=LOGIN_REQUIRED
+E07_MAPPING_COMPLETENESS=INCOMPLETE
+E07_RUNTIME_MAPPING_STATUS=FAIL_CLOSED_PREREQUISITE
+```
+
+The generic `ContractMappingSchedule` type is structural/synthetic machinery and is **not** a
+candidate mapping authority. Do not substitute a project-authored OI/volume/calendar formula,
+do not use pseudo-main price bars, and do not select a mapping by outcomes.
+
+---
+
+## LIMIT-005 — Holy Grail still has explicit machine-operationalization prerequisites
+
+```text
+STATUS=DEFERRED_RESEARCH_OPERATIONALIZATION
+PRIORITY=HIGH_BEFORE_HOLY_GRAIL_MACHINE_READY
+CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
+ACTIVATE_BEFORE=Holy Grail Playbook is promoted to MACHINE_READY / PRIMARY_FREEZE_READY
+AUTHORITY=docs/reviews/FGH_SEMANTIC_GATE_OWNER_APPROVAL_2026-08-20.md
+```
+
+The Owner-approved F/G/H semantic decisions close the repair-stage ambiguity, but the current
+historical Holy Grail V0.2 draft remains intentionally `NOT_MACHINE_READY`. A later normal
+research package must create a new version and explicitly bind at least:
+
+- `BASE` source timeframe -> one concrete machine interval;
+- deterministic/versioned ADX rising window as a project `INFERRED` convention;
+- explicit/versioned left/right swing confirmation counts;
+- a trailing-stop machine definition, which is currently **not adopted** until source evidence
+  is pinned or a new Owner decision is made.
+
+The later “exit on push to new highs” wording remains an optional versioned variant, not the
+PRIMARY exit and cannot rescue the PRIMARY after outcomes.
+
+No one may use outcome data to choose any of the still-explicit machine parameters.
+
+---
+
+## LIMIT-006 — No real Common Statistical Profile is adopted for positive PASS
+
+```text
+STATUS=DEFERRED_RESEARCH_POLICY
+PRIORITY=CRITICAL_BEFORE_REAL_CANDIDATE_OUTCOME_ACCESS
+CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
+ACTIVATE_BEFORE=any non-TEST_ONLY candidate outcome access is proposed
+AUTHORITY=docs/research/HUMAN_PLAYBOOK_HISTORICAL_V1_EVIDENCE_POLICY_V1_0.md
+```
+
+The current historical-v1 evidence policy has no adopted lockable positive-PASS Common
+Statistical Profile. Production firewall code therefore permits locking only explicitly
+`TEST_ONLY` profiles for synthetic engine fixtures.
+
+Do not create a real-looking profile by filling descriptive strings, and do not treat test
+profile success as permission to inspect candidate outcomes.
+
+---
+
+## LIMIT-007 — Portfolio candidate-outcome authority is not implemented
+
+```text
+STATUS=DEFERRED_ARCHITECTURE
+PRIORITY=HIGH_WHEN_ACTIVATED
+CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
+ACTIVATE_BEFORE=multi-strategy portfolio candidate-performance evaluation
+```
+
+Package E fixed heterogeneous per-member/per-resolved-contract capital assumptions, but the
+portfolio confirmatory outcome path remains intentionally hard closed after structural
+validation with:
+
+```text
+PORTFOLIO_CANDIDATE_OUTCOME_ACCESS_NOT_IMPLEMENTED
+```
+
+Do not remove this fail-closed boundary as an incidental implementation change. A future
+portfolio candidate authority requires a dedicated identity/access design and appropriate
+project approval.
+
+---
+
+## LIMIT-008 — SOURCE_ONLY and local project state do not prove hostile-process tamper resistance
+
+```text
+STATUS=DEFERRED_THREAT_MODEL_LIMIT
+PRIORITY=MEDIUM_UNLESS_THREAT_MODEL_CHANGES
+CURRENT_BLOCKER=NO
+```
+
+SOURCE_ONLY now has material-bound evidence, project-issued session verification, a protected
+outcome API that always denies, and durable governance state. These controls are normal
+project API/session boundaries.
+
+They do not prove:
+
+- OS/process sandbox isolation from shell/repository/files;
+- malicious Python introspection resistance;
+- local state-file tamper resistance;
+- cryptographic protection against a hostile actor who already controls the process/filesystem.
+
+Historical source bytes that were never recorded also cannot be retroactively proven. Do not
+upgrade these boundaries in future status language without a new threat-model package.
+
+---
+
 ## DECISION-001 — Live AI market-reading implementation remains unresolved
 
 ```text
