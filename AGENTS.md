@@ -15,8 +15,9 @@ Read first, in this order:
 1. `OWNER_COLLABORATION_CONTRACT.md`
 2. `ARCHITECTURE_BASELINE.md`
 3. `CURRENT_STATE.md`
-4. `CROSS_PROJECT_OPERATING_CONTRACT.md`
-5. `TOOL_REGISTRY.md`
+4. `00_READ_FIRST.md` — owns the current detailed navigation/read order; follow it before substantive project work.
+5. `CROSS_PROJECT_OPERATING_CONTRACT.md`
+6. `TOOL_REGISTRY.md`
 
 Project-specific mandatory rules:
 - This is a clean-room project. Other projects and project-external chat are not project fact sources.
