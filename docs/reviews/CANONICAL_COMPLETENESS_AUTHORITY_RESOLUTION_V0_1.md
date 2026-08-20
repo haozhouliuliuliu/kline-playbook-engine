@@ -1,7 +1,7 @@
 # CANONICAL_COMPLETENESS_AUTHORITY_RESOLUTION_V0_1
 
-> Date: 2026-08-21  
-> Branch: `preoutcome/canonical-revalidation-v01`  
+> Date: 2026-08-21
+> Branch: `preoutcome/canonical-revalidation-v01`
 > Scope: authority/design resolution only; no market download, no TqSdk login,
 > no 116 or 32,980 re-run, no repaired corpus materialization, and no outcome access.
 
