@@ -1,0 +1,178 @@
+{
+  "artifact": "FGH_SEMANTIC_GATE_MATRIX",
+  "version": "0.1",
+  "date": "2026-08-20",
+  "repository": "haozhouliuliuliu/kline-playbook-engine",
+  "branch": "research/fgh-semantic-gate-decision-package-v01",
+  "status": "PROPOSAL_ONLY_NOT_ADOPTED",
+  "decision_preparation_doc": "docs/reviews/FGH_SEMANTIC_GATE_OWNER_DECISION_PROPOSAL_V0_1.md",
+  "authority_chain": [
+    "CURRENT_STATE.md",
+    "docs/reviews/R2_FOUR_LANE_EXECUTION_PLAN_V0_1.md",
+    "docs/reviews/FGH_CODEX_REBUILD_PREPARATION_V0_1.md",
+    "docs/reviews/FGH_CODEX_REBUILD_FINDING_MATRIX_V0_1.json",
+    "docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md",
+    "docs/research/semantic_completion/RASCHKE_HOLY_GRAIL_SEMANTIC_COMPLETION_V0_1.md",
+    "docs/research/semantic_completion/RASCHKE_HOLY_GRAIL_PLAYBOOK_HANDOFF_V0_1.md",
+    "docs/evidence/HUMAN_PLAYBOOK_SOURCE_BUNDLE_RASCHKE_HOLY_GRAIL_V0_1.json"
+  ],
+  "candidate_outcome_data_used": "NO",
+  "recommendation_basis": [
+    "FAIL_CLOSED",
+    "SOURCE_FAITHFUL",
+    "CAUSAL",
+    "REPRODUCIBLE",
+    "MINIMUM_HIDDEN_DEGREES_OF_FREEDOM"
+  ],
+  "forbidden_basis": ["PNL", "SHARPE", "TRADE_COUNT"],
+  "gates": [
+    {
+      "decision_id": "FGH-GATE-01",
+      "source_status": "SOURCE_NOT_PINNED (EMA price input and touch bar definition)",
+      "question": "Which EMA price input AND which bar-level touch definition does the Holy Grail PRIMARY adopt?",
+      "options": {
+        "OPTION_A": "close-based EMA + intrabar touch low<=EMA<=high (old F INFERRED; requires same-bar causality resolved or is look-ahead)",
+        "OPTION_B": "prior-available EMA reference (EMA from prior completed bars only; touch on the bar where prior EMA is observable); causal",
+        "OPTION_C": "other EMA price input (typical/high-low) with explicit touch rule"
+      },
+      "project_brain_recommendation": "OPTION_B (prior-available EMA reference; standard close-based EMA on prior bars; touch=bar.low<=EMA_prior<=bar.high)",
+      "recommendation_reason": "FAIL_CLOSED + CAUSAL: close-based same-bar EMA comparison is look-ahead; prior-available reference is causal, source-faithful, reproducible, minimal hidden DOF. SOURCE_NOT_PINNED retained for price basis.",
+      "outcome_effect": "defines EMA-touch bars and entry-stop placement; changes entry bars/prices",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    },
+    {
+      "decision_id": "FGH-GATE-02",
+      "source_status": "ADX>30 and 'rising' pinned as initial context; slope window NOT pinned; pullback 'usually accompanied by turndown in ADX' (qualitative)",
+      "question": "At which bar/window is 'ADX rising' evaluated relative to the pullback/touch?",
+      "options": {
+        "OPTION_A": "old F one-bar ADX[t]>ADX[t-1] at context/touch bar (project-added; NOT source fact; conflicts with pullback-turndown nuance)",
+        "OPTION_B": "ADX>30 and rising over an explicit lookback window, evaluated as initial context before the pullback; touch bar need not be rising",
+        "OPTION_C": "explicit pullback-phase model (rising window + ADX turndown during pullback)"
+      },
+      "project_brain_recommendation": "OPTION_B (source-faithful initial-context interpretation, labeled INFERRED)",
+      "recommendation_reason": "SOURCE_FAITHFUL + FAIL_CLOSED: OPTION_A is not source-supported and conflicts with the source's own pullback-turndown wording; OPTION_B preserves initial-context meaning with a single explicit slope-window convention.",
+      "outcome_effect": "defines which bars qualify as Holy Grail contexts; entry timing and trade count",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    },
+    {
+      "decision_id": "FGH-GATE-03",
+      "source_status": "SOURCE_SILENT (numeric implementation cannot be decided by source)",
+      "question": "Which numeric implementation (seed/warmup/init/rounding/precision) for EMA and Wilder ADX?",
+      "options": {
+        "OPTION_A": "documented standard conventions: SMA-seeded EMA; Wilder init; exact Decimal; single explicit 6dp ROUND_HALF_UP output quantization (ENGINEERING feature semantics)",
+        "OPTION_B": "exact Decimal, no intermediate quantization (quantize only at output boundaries)",
+        "OPTION_C": "another explicit policy"
+      },
+      "project_brain_recommendation": "OPTION_A (documented standard conventions, ENGINEERING feature semantics)",
+      "recommendation_reason": "STANDARD + REPRODUCIBLE + IMPLEMENTATION_STABLE: SMA-seeded EMA and Wilder init are the widely documented standard conventions with deterministic warmup; single explicit quantization policy makes every intermediate reproducible. Never chosen by outcome.",
+      "outcome_effect": "EMA-touch and ADX>30 classification change with seed/warmup/rounding",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    },
+    {
+      "decision_id": "FGH-GATE-04",
+      "source_status": "entry-trigger concept EXPLICITLY_PINNED; intra-bar ordering NOT observable at 1m",
+      "question": "When EMA touch and the entry-stop threshold are both reached inside one 1-minute bar, what is the machine policy?",
+      "options": {
+        "OPTION_A": "FAIL_CLOSED same-bar ambiguous (AMBIGUOUS_INTRABAR_SEQUENCE): no entry on that bar",
+        "OPTION_B": "defer to next bar (touch on prior completed bar; entry-stop from next bar)",
+        "OPTION_C": "require finer data (intrabar-ordered chronology; not available at 1m)"
+      },
+      "project_brain_recommendation": "OPTION_A (fail-closed same-bar ambiguous)",
+      "recommendation_reason": "FAIL_CLOSED + MINIMUM_HIDDEN_DEGREES_OF_FREEDOM: ordering unobservable at 1m; OPTION_A declines to invent ordering; OPTION_B silently imposes ordering that changes entry prices; OPTION_C unavailable.",
+      "outcome_effect": "whether ambiguous same-bar bars produce entries; entry/trade-count effect",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    },
+    {
+      "decision_id": "FGH-GATE-05",
+      "source_status": "'Once filled, enter a protective stop' EXPLICITLY_PINNED; INTRABAR_ORDERING=NOT_OBSERVABLE_AT_1M; old F next-bar activation OBSOLETE sub-construct",
+      "question": "Which conservative policy covers same-bar fill + protective-stop ordering, and which execution chronology does the stop bridge claim?",
+      "options": {
+        "OPTION_A": "completed-bar conservative + AMBIGUOUS_INTRABAR_SEQUENCE for same-bar fill/stop (fail-closed; never called exchange-resting)",
+        "OPTION_B": "next-bar-only protective-stop activation (old F INT-STOP-ACTIVATION-AFTER-FILL); REJECTED as silent same-bar risk suppression unless Owner overrides",
+        "OPTION_C": "finer intrabar evidence (intrabar/gap-through chronology; requires intrabar evidence not available at 1m)"
+      },
+      "project_brain_recommendation": "OPTION_A (completed-bar conservative + ambiguity; explicit chronology claim)",
+      "recommendation_reason": "FAIL_CLOSED + SOURCE_FAITHFUL: protective stop exists after fill; OPTION_A does not pretend to know same-bar ordering nor erase same-bar risk; OPTION_B silently suppresses risk; OPTION_C unavailable.",
+      "outcome_effect": "protective-stop loss path; interacts with entry fill, gap-through, OCO",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    },
+    {
+      "decision_id": "FGH-GATE-06",
+      "source_status": "multi-timeframe EXPLICIT (base then 30/60/120-minute); no single operating timeframe pinned",
+      "question": "Which single operating timeframe is the Holy Grail PRIMARY?",
+      "options": {
+        "OPTION_A": "BASE",
+        "OPTION_B": "30MIN",
+        "OPTION_C": "60MIN / 120MIN"
+      },
+      "project_brain_recommendation": "OPTION_A (BASE) as proposal only; TIMEFRAME_PRIMARY remains UNRESOLVED until Owner selects with non-outcome justification",
+      "recommendation_reason": "SOURCE_PROMINENCE + SEMANTIC_FIDELITY + DATA_OBSERVABILITY: source 4-step core rules anchor on the base chart; BASE has highest source prominence/fidelity and full observability. Not chosen by PnL.",
+      "outcome_effect": "bridge requires exactly one timeframe_scope (Package C P-05); no PRIMARY/MACHINE_READY until resolved; machinery must not hard-code it",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    },
+    {
+      "decision_id": "NEWLY_FORMED_SWING_LOW_MACHINE_DEFINITION",
+      "source_status": "SOURCE_NOT_PINNED (concept pinned; pivot algorithm not pinned)",
+      "question": "Which deterministic swing-low definition for the protective stop reference?",
+      "options": {
+        "OPTION_A": "FRACTAL PIVOT (explicit left/right confirmation bars; SAME_BAR_AVAILABILITY=NO; stop activation after confirmation; short side mirrors swing high)",
+        "OPTION_B": "LEG/ZIGZAG PIVOT (confirmed by explicit subsequent move threshold; SAME_BAR_AVAILABILITY=NO)",
+        "OPTION_C": "ROLLING-MINIMUM over fixed lookback (SAME_BAR_AVAILABILITY=NO)"
+      },
+      "project_brain_recommendation": "OPTION_A (fractal pivot with explicit confirmation; fail-closed same-bar)",
+      "recommendation_reason": "FAIL_CLOSED + REPRODUCIBLE + MINIMUM_HIDDEN_DEGREES_OF_FREEDOM: fractal pivot is a well-defined deterministic pivot with explicit confirmation and availability semantics; never claims same-bar availability.",
+      "outcome_effect": "defines protective-stop reference level and availability/activation timing",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    },
+    {
+      "decision_id": "TRAILING_STOP_MACHINE_DEFINITION",
+      "source_status": "SOURCE_NOT_PINNED (concept pinned; no precise algorithm)",
+      "question": "Which deterministic trailing convention does the Holy Grail PRIMARY adopt?",
+      "options": {
+        "OPTION_A": "NO_MACHINE_TRAILING_UNTIL_SOURCE_PINNED (fail-closed; trailing stays not machine-ready until a convention is adopted)",
+        "OPTION_B": "explicit deterministic trailing: trail below the most recent swing low (reuses swing-low definition)",
+        "OPTION_C": "fixed-distance or ATR-based trailing"
+      },
+      "project_brain_recommendation": "OPTION_A (NO_MACHINE_TRAILING_UNTIL_SOURCE_PINNED); if Owner wants a trailing, OPTION_B (trail below most recent swing low) as most source-faithful/deterministic",
+      "recommendation_reason": "FAIL_CLOSED + SOURCE_FAITHFUL + MINIMUM_HIDDEN_DEGREES_OF_FREEDOM: source gives no algorithm; honest default is not to machine-trail until a convention is adopted. No profitability justification.",
+      "outcome_effect": "defines the exit/trailing path for held positions",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    },
+    {
+      "decision_id": "EXIT_ON_PUSH_TO_NEW_HIGHS_MACHINE_DEFINITION",
+      "source_status": "SOURCE_NOT_PINNED (not a source claim in accepted bundle; 2004 wording is qualitative top context; original core exit is 'trail as profits grow')",
+      "question": "Is 'exit on a push to new highs' a PRIMARY exit, an alternative variant, or an unfrozen optional exit?",
+      "options": {
+        "OPTION_A": "UNFROZEN OPTIONAL EXIT VARIANT (not part of PRIMARY; PRIMARY exit stays 'trail as profits grow')",
+        "OPTION_B": "ALTERNATIVE VARIANT (labeled INFERRED, non-PRIMARY)",
+        "OPTION_C": "PRIMARY EXIT (requires non-outcome Owner justification source does not provide)"
+      },
+      "project_brain_recommendation": "OPTION_A (unfrozen optional exit variant)",
+      "recommendation_reason": "SOURCE_FAITHFUL + FAIL_CLOSED: the accepted source does not state an 'exit on push to new highs' rule; it is an old-F candidate. The 2004 wording is qualitative. Keeping it an unfrozen optional variant adds no hidden DOF to PRIMARY.",
+      "outcome_effect": "which exit path is PRIMARY and whether the old-F 'push to new highs' candidate participates as alternative/optional",
+      "can_codex_implement_generic_machinery_before_decision": "YES",
+      "blocks_holy_grail_machine_ready": "YES"
+    }
+  ],
+  "approval_block_prefix": "PROPOSAL_ONLY_NOT_ADOPTED=YES",
+  "approval_block": {
+    "APPROVE_FGH_GATE_01": "OPTION_B (prior-available EMA reference; close-based EMA on prior completed bars; touch=bar.low<=EMA_prior<=bar.high; price-input labeled INFERRED)",
+    "APPROVE_FGH_GATE_02": "OPTION_B (ADX>30 and rising over an explicit lookback window, initial context before the pullback; touch bar need not be rising; INFERRED slope window)",
+    "APPROVE_FGH_GATE_03": "OPTION_A (documented standard conventions: SMA-seeded EMA, Wilder init, exact Decimal, single explicit 6dp ROUND_HALF_UP output quantization; ENGINEERING feature semantics)",
+    "APPROVE_FGH_GATE_04": "OPTION_A (fail-closed AMBIGUOUS_INTRABAR_SEQUENCE for same-bar EMA-touch + entry-stop)",
+    "APPROVE_FGH_GATE_05": "OPTION_A (completed-bar conservative + AMBIGUOUS_INTRABAR_SEQUENCE for same-bar fill/protective-stop; INTRABAR_ORDERING=NOT_OBSERVABLE_AT_1M; never exchange-resting)",
+    "APPROVE_FGH_GATE_06": "OPTION_A (BASE) as PRIMARY timeframe proposal (non-outcome justification; otherwise TIMEFRAME_PRIMARY=UNRESOLVED)",
+    "APPROVE_SWING_LOW": "OPTION_A (fractal pivot with explicit left/right confirmation bars; SAME_BAR_AVAILABILITY=NO; stop activation after confirmation; short side mirrors swing high)",
+    "APPROVE_TRAILING_STOP": "OPTION_A (NO_MACHINE_TRAILING_UNTIL_SOURCE_PINNED) [or OPTION_B: trail below most recent swing low]",
+    "APPROVE_EXIT_NEW_HIGHS": "OPTION_A (unfrozen optional exit variant; PRIMARY exit remains 'trail as profits grow')"
+  },
+  "note": "Nothing here is adopted. Owner is the only authority that may turn a proposal into an adoption. Any declined line keeps that gate open and blocks Holy Grail MACHINE_READY/PRIMARY."
+}
