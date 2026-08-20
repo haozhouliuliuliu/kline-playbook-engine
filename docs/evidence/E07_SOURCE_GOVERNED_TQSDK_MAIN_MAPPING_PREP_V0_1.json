@@ -1,0 +1,98 @@
+{
+  "binding": "SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_APPLIED_TO_CANONICAL_CONCRETE_BARS",
+  "blocked_api_contract_not_pinned": true,
+  "canonical_universe": {
+    "concrete_contract_count": 212,
+    "products": [
+      "cu",
+      "al",
+      "ni",
+      "au",
+      "ag",
+      "rb"
+    ],
+    "window_end": "2025-12-31",
+    "window_start": "2024-01-01"
+  },
+  "created_at": "2026-08-21",
+  "decode_adapter_implemented": "NO",
+  "demo_membership_validation": {
+    "member_target_count": 2,
+    "violation_count": 0,
+    "violations": []
+  },
+  "demo_resolution": {
+    "after_second_switch": {
+      "concrete_instrument_id": "SHFE.cu2402",
+      "effective_trading_date": "2024-01-15",
+      "resolution_identity_id": "819b027d787b9544a882ec97f1b8dbf45ff5844cfa74f4690905cd6986d690f4"
+    },
+    "on_first_effective_day": {
+      "concrete_instrument_id": "SHFE.cu2401",
+      "effective_trading_date": "2024-01-02",
+      "resolution_identity_id": "048b8beffa0663b154c957615d779863a2be3ff0dd002f14406562ccf0bd9f30"
+    }
+  },
+  "demo_schedule": {
+    "records": [
+      {
+        "concrete_instrument_id": "SHFE.cu2401",
+        "effective_trading_date": "2024-01-02",
+        "record_identity_id": "89fc909dc7d38a2451993b4971c6fd80a022234ec19240c9ce04c56dd204ae2c",
+        "research_symbol": "MAIN:SHFE:cu",
+        "source_symbol": "KQ.m@SHFE.cu"
+      },
+      {
+        "concrete_instrument_id": "SHFE.cu2402",
+        "effective_trading_date": "2024-01-15",
+        "record_identity_id": "354d1febf61d4ed4bc76632a88adce6f75399a0035b6841df56911a88348ec1c",
+        "research_symbol": "MAIN:SHFE:cu",
+        "source_symbol": "KQ.m@SHFE.cu"
+      }
+    ],
+    "research_symbols": [
+      "MAIN:SHFE:cu"
+    ],
+    "schedule_identity_id": "1e6349740bb28a38df29a85fbf1c9c411b567ff9fee073b9ac9c36164346a09b",
+    "version": "synthetic-demo-v1"
+  },
+  "disclaimer": "Demo records are synthetic machinery fixtures only and are NOT candidate mapping authority. They are never applied to any corpus. A real mapping requires an Owner-authorized authenticated TqSdk retrieval whose exact response contract is first pinned by evidence.",
+  "fail_closed_checks": {
+    "conflict": "MappingConflictError",
+    "missing": "MappingUnavailableError",
+    "pseudo_main": "PseudoMainBarForbidden",
+    "substitution": "MappingSubstitutionForbidden",
+    "unknown_symbol": "MappingUnavailableError"
+  },
+  "implemented_machinery": [
+    "source-governed mapping record schema (SourceGovernedMappingRecord)",
+    "provenance (MappingProvenance; exact-bytes-bound consistency)",
+    "effective timestamp/date (source-defined next-trading-day switch day)",
+    "deterministic normalization (canonical ordering / dedup)",
+    "mapping identity (content sha256 over normalized fields)",
+    "fail-closed missing (MappingUnavailableError) and conflict (MappingConflictError)",
+    "canonical-contract membership validation (MAPPING_CONTRACT_NOT_IN_CANONICAL_UNIVERSE)",
+    "terminal-only auth capture interface (TerminalOnlyAuthCapture / TerminalAuthCapture)",
+    "no pseudo-main price bars (PseudoMainBarForbidden)",
+    "no project-authored mapping substitution (MappingSubstitutionForbidden)"
+  ],
+  "login_used": "NO",
+  "network_used": "NO",
+  "not_implemented": [
+    "TqSdk query_his_cont_quotes decode adapter (BLOCKED_API_CONTRACT_NOT_PINNED)",
+    "runtime ContractMappingSchedule wiring (future Owner-gated package)"
+  ],
+  "outcome_data_used": "NO",
+  "role": "API-independent engineering prep ONLY. No login, no network, no outcome, no TqSdk decode.",
+  "schema_version": "e07-source-governed-tqsdk-main-mapping-prep-v0.1",
+  "source_policy": "FREE_PUBLIC_UNAUTHENTICATED_FIRST",
+  "status": {
+    "E07_MAPPING_COMPLETENESS": "INCOMPLETE",
+    "E07_PROJECT_AUTHORED_SUBSTITUTE": "FORBIDDEN",
+    "E07_PSEUDO_MAIN_PRICE_BARS": "FORBIDDEN",
+    "E07_RUNTIME_MAPPING_STATUS": "FAIL_CLOSED_PREREQUISITE",
+    "TQSDK_HISTORY_ACCESS": "LOGIN_REQUIRED"
+  },
+  "task": "E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_PREP_V0_1",
+  "tqsdk_import_used": "NO"
+}
