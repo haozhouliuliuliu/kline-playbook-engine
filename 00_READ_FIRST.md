@@ -40,7 +40,8 @@ HOLY_GRAIL_MACHINE_READY=NO
 RASCHKE_NR7_PLAYBOOK_CURRENT_VERSION=V0_1
 RASCHKE_NR7_MACHINE_READY=NO
 CANONICAL_REPAIRED_D01_D02_REVALIDATION=COMPLETE_FAIL
-CANONICAL_TARGETED_REPAIR_STATUS=BLOCKED_AUTH
+CANONICAL_TARGETED_REPAIR_STATUS=ROOT_CAUSE_RESOLUTION_IN_PROGRESS
+CANONICAL_116_FAILURE_ROOT_CAUSE_REVIEW=MIXED_ROOT_CAUSES
 PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
 CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 NEXT_NORMAL_PHASE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
@@ -60,6 +61,7 @@ Key integrated evidence (2026-08-21):
 - `docs/evidence/RASCHKE_NR7_INTERPRETATION_STATUS_V0_1.md` + `RASCHKE_NR7_PLAYBOOK_CONTRACT_DRAFT_V0_1.json` / `.md`
 - `docs/evidence/CANONICAL_CORPUS_REVALIDATION_D01_D02_V0_1.md` (+ `.json`)
 - `docs/evidence/CANONICAL_D01_D02_TARGETED_REPAIR_QUALIFICATION_V0_1.md` (+ `.json`)
+- `docs/reviews/CANONICAL_D01_D02_116_FAILURE_ROOT_CAUSE_REVIEW_V0_1.md` (+ `.json`)
 
 ## Catastrophic anti-regression rule
 
@@ -92,7 +94,7 @@ Any material return to data-first strategy/pattern mining is an Owner-gated rese
 Do not silently promote any of these into solved facts:
 
 ```text
-PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES (REVALIDATION=COMPLETE_FAIL; TARGETED_REPAIR=BLOCKED_AUTH)
+PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES (REVALIDATION=COMPLETE_FAIL; ROOT_CAUSE=MIXED; TARGETED_REPAIR=ROOT_CAUSE_RESOLUTION_IN_PROGRESS)
 CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 E06_CONTINUOUS_HISTORICAL_EXCHANGE_FEE_MARGIN_SCHEDULE=INSUFFICIENT_EVIDENCE
 E07_SOURCE_GOVERNED_TQSDK_HISTORICAL_MAIN_MAPPING=INCOMPLETE_FAIL_CLOSED
@@ -105,7 +107,7 @@ SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
 LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
 ```
 
-Canonical historical price values were not revoked, but explicit revalidation under the repaired D-01/D-02 rules failed (32980 revalidated, 116 FAIL, 13008 missing expected bars). Targeted repair is blocked on TQSDK existing authentication; the accepted corpus remains NOT authorized for candidate use.
+Canonical historical price values were not revoked, but explicit revalidation under the repaired D-01/D-02 rules failed (32980 revalidated, 116 FAIL, 13008 missing expected bars). Root cause is under resolution (provider first-day availability/scope plus adjudication of two listing-boundary defects); the accepted corpus remains NOT authorized for candidate use.
 
 ## Fresh-conversation takeover rule
 

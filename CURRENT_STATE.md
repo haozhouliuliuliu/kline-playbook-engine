@@ -12,8 +12,7 @@ SECOND_PASS_REPAIR_MODE=EXITED
 HANDOFF_STATUS=TAKEOVER_ACCEPTED_INTEGRATION_EXECUTED
 CURRENT_WORK_PACKAGE=MAIN_INTEGRATION_PRE_OUTCOME_PLAYBOOK_DRAFTS_AND_CANONICAL_REVALIDATION
 CURRENT_WORK_PACKAGE_STATUS=INTEGRATED_FAIL_CLOSED
-CURRENT_BLOCKER=CANONICAL_TARGETED_REPAIR_BLOCKED_AUTH
-CANONICAL_TARGETED_REPAIR_BLOCKER=TQSDK_EXISTING_AUTH_NOT_AVAILABLE
+CURRENT_BLOCKER=CANONICAL_FIRST_DAY_PROVIDER_AVAILABILITY_AND_SCOPE_RESOLUTION
 PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
 CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 NEXT_NORMAL_PHASE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
@@ -104,17 +103,26 @@ CANONICAL_PARTITIONS_REVALIDATED=32980
 CANONICAL_PARTITIONS_PASS=32864
 CANONICAL_PARTITIONS_FAIL=116
 CANONICAL_MISSING_EXPECTED_BARS=13008
-CANONICAL_TARGETED_REPAIR_STATUS=BLOCKED_AUTH
-CANONICAL_TARGETED_REPAIR_BLOCKER=TQSDK_EXISTING_AUTH_NOT_AVAILABLE
+CANONICAL_TARGETED_REPAIR_STATUS=ROOT_CAUSE_RESOLUTION_IN_PROGRESS
+CANONICAL_116_FAILURE_ROOT_CAUSE_REVIEW=MIXED_ROOT_CAUSES
+CANONICAL_FAILED_PARTITIONS=116
+CANONICAL_FAILED_DISTINCT_CONTRACTS=116
+CANONICAL_FAILURE_FIRST_PARTITION_COUNT=116
+CANONICAL_FAILURE_FIRST_TRADING_DAY_COUNT=116
+CANONICAL_FAILURE_START_ONLY_COUNT=116
+CANONICAL_PROVIDER_REPEATABLE_TRUNCATION=HIGH_CONFIDENCE_NOT_YET_LIVE_REPRODUCED
+CANONICAL_FIRST_DAY_SESSION_AUTHORITY_DEFECT=REVIEW_IDENTIFIED_REQUIRES_ADJUDICATION
+CANONICAL_FIRST_DAY_ACQUISITION_PLANNER_DEFECT=REVIEW_IDENTIFIED_REQUIRES_ADJUDICATION
 CANONICAL_TARGETED_REACQUISITION_ATTEMPTED=NO
 PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
 CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 ```
 
-The historical accepted values/identity were not proven wrong. Explicit revalidation under the repaired D01/D02 rules was executed but did **not** pass (32980 revalidated, 116 FAIL, 13008 missing expected bars), so the pre-candidate prerequisite is not yet satisfied. Targeted repair of the 116 truncated partitions is blocked on TQSDK existing authentication (`TQSDK_EXISTING_AUTH_NOT_AVAILABLE`); no reacquisition was attempted and no accepted artifact was modified. Candidate use of the current canonical corpus is **not** authorized.
+The historical accepted values/identity were not proven wrong. Explicit revalidation under the repaired D01/D02 rules was executed but did **not** pass (32980 revalidated, 116 FAIL, 13008 missing expected bars), so the pre-candidate prerequisite is not yet satisfied. An independent root-cause review is complete and integrated: **MIXED_ROOT_CAUSES** — primary provider-side first-day stored-data truncation (high confidence, not yet live reproduced) plus two real project-side listing-boundary defects (session authority / acquisition planner) that require adjudication. No reacquisition has been attempted (`CANONICAL_TARGETED_REACQUISITION_ATTEMPTED=NO`) and no accepted artifact was modified. Candidate use of the current canonical corpus is **not** authorized.
 
 Revalidation evidence: `docs/evidence/CANONICAL_CORPUS_REVALIDATION_D01_D02_V0_1.md` / `.json`.
 Repair qualification evidence: `docs/evidence/CANONICAL_D01_D02_TARGETED_REPAIR_QUALIFICATION_V0_1.md` / `.json`.
+Root-cause review: `docs/reviews/CANONICAL_D01_D02_116_FAILURE_ROOT_CAUSE_REVIEW_V0_1.md` / `.json`.
 
 ## Current governed prerequisites
 
@@ -122,7 +130,7 @@ Authority/index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
 
 ```text
 LIMIT-001=HISTORICAL_PRICE_LIMIT_METADATA
-LIMIT-002=PRE_CANDIDATE_CANONICAL_REVALIDATION (REVALIDATION=COMPLETE_FAIL; TARGETED_REPAIR=BLOCKED_AUTH)
+LIMIT-002=PRE_CANDIDATE_CANONICAL_REVALIDATION (REVALIDATION=COMPLETE_FAIL; ROOT_CAUSE=MIXED; TARGETED_REPAIR=ROOT_CAUSE_RESOLUTION_IN_PROGRESS)
 LIMIT-003=E06_HISTORICAL_EXCHANGE_FEE_MARGIN_SCHEDULE
 LIMIT-004=E07_SOURCE_GOVERNED_TQSDK_MAPPING
 LIMIT-005=HOLY_GRAIL_MACHINE_OPERATIONALIZATION
@@ -245,7 +253,11 @@ INTEGRATED_HOLY_GRAIL_V0_3=07977875215ce2501da5bf4ef277f6c202dae3cf
 INTEGRATED_NR7_V0_1=b27beaedc3b834afd9df164aadcd6ad155185910
 INTEGRATED_CANONICAL_REVALIDATION=a9e306550c5dc47695e4c27c1812de4c3cad5641
 INTEGRATED_CANONICAL_TARGETED_QUALIFICATION=e98df52a427a23c85fac70125a1f20dbd5f2a353
+INTEGRATED_CANONICAL_116_ROOT_CAUSE_REVIEW=72e2e9a1a966d52b5d6dd18179fd9477d0157523
+INTEGRATED_ROOT_CAUSE_REVIEW_STATUS_FILL=2f49603fe5dafb4bd8293ba817db8291df6faba8
+NOT_INTEGRATED_CANONICAL_REPAIR_APPLICATION_PREP=1ef3f182d6665262696c33fc94489f08cd26dfd7 (retained on feature branch; 116 replacement semantics not final)
 REVIEW_STATUS=HOLY_GRAIL_PASS_NR7_PASS_CROSS_BRANCH_COMPATIBILITY_PASS_CRITICAL_0_HIGH_0
+ROOT_CAUSE_REVIEW_VERDICT=MIXED_ROOT_CAUSES (CRITICAL_FINDINGS=2, HIGH_FINDINGS=4)
 FULL_TESTS_AFTER_INTEGRATION=574_OK
 COMPILEALL=OK
 DIFF_CHECK=OK
@@ -253,13 +265,13 @@ NO_CANDIDATE_OUTCOME_DATA_USED=YES
 FEATURE_BRANCHES_PRESERVED=YES
 ```
 
-This integration does not alter the reviewed Holy Grail / NR7 semantics, the historical V0.2, the old canonical dataset acceptance, or any frozen protocol. The canonical 116 FAIL status is recorded as FAIL, not PASS. No reacquisition was executed and no candidate outcome was authorized or viewed.
+This integration does not alter the reviewed Holy Grail / NR7 semantics, the historical V0.2, the old canonical dataset acceptance, or any frozen protocol. The canonical 116 FAIL status is recorded as FAIL, not PASS. No reacquisition was executed and no candidate outcome was authorized or viewed. The root-cause review conclusions are integrated unchanged; the repaired-corpus application prep is deliberately not integrated.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=CANONICAL_TARGETED_REPAIR_AUTH_GATE_AND_PRE_CANDIDATE_REVALIDATION
-OWNER_ACTION=RESOLVE_TQSDK_EXISTING_AUTH_FOR_TARGETED_REACQUISITION_OF_116_PARTITIONS
+CURRENT_NEXT_ACTION=CANONICAL_FIRST_DAY_PROVIDER_AVAILABILITY_AND_SCOPE_RESOLUTION
+OWNER_ACTION=RESOLVE_TQSDK_FIRST_DAY_BAR_AVAILABILITY_SEMANTICS_AND_REACQUISITION_SCOPE_AND_ADJUDICATE_LISTING_BOUNDARY_DEFECTS
 NEXT_NORMAL_WORK_AFTER_CANONICAL_REVALIDATION_PASS=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
 PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
 CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
@@ -272,4 +284,4 @@ REAL_MONEY=NOT_AUTHORIZED
 BROKER_ACCESS=NOT_AUTHORIZED
 ```
 
-Explicit canonical revalidation was executed but did not pass, so the pre-candidate prerequisite is not yet satisfied. Candidate use of the current canonical corpus remains unauthorized. Holy Grail V0.3 and NR7 V0.1 remain fail-closed pre-outcome drafts; their operationalization prerequisites must be resolved through versioned non-outcome choices before any machine-ready work.
+Explicit canonical revalidation was executed but did not pass, so the pre-candidate prerequisite is not yet satisfied. The 116 root cause is now under resolution: first-day provider availability/scope must be established (official TqSdk bar-availability semantics still being checked) and the two listing-boundary project-side defects require adjudication. Candidate use of the current canonical corpus remains unauthorized. Holy Grail V0.3 and NR7 V0.1 remain fail-closed pre-outcome drafts; their operationalization prerequisites must be resolved through versioned non-outcome choices before any machine-ready work.
