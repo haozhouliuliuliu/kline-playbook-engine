@@ -118,12 +118,28 @@ class SequenceConflict(ValueError):
     pass
 
 
+class CrossTradingDayConflict(ValueError):
+    """E-13 cross-trading-day chronology barrier in the feasibility fixture.
+
+    A late prior-day event after a later trading day already applied, or an
+    attempt to apply a future trading day while an earlier trading day still
+    has a buffered sequence gap, fails closed instead of mutating the shared
+    position out of order.
+    """
+
+
 class TradingState:
     """Only mutable real-time owner in this feasibility fixture.
 
     Out-of-order policy: future sequence numbers are buffered until gaps arrive.
     Duplicate event IDs with identical payload are ignored. Conflicting reuse of
     an event ID or sequence fails closed.
+
+    Cross-trading-day chronology barrier (E-13): a new trading day may only
+    begin once every earlier trading day has no buffered sequence gap, and a
+    late prior-day event can never apply after a later trading day has already
+    applied.  The fixture remains a feasibility fixture, not a production
+    trading engine.
     """
 
     def __init__(self) -> None:
@@ -132,6 +148,7 @@ class TradingState:
         self._seen_events: Dict[str, BrokerEvent] = {}
         self._buffered_by_sequence: Dict[tuple[date, int], BrokerEvent] = {}
         self._applied_event_ids: set[str] = set()
+        self._latest_applied_trading_day: date | None = None
 
     def position(self, instrument: str) -> int:
         return self._positions.get(instrument, 0)
@@ -150,6 +167,21 @@ class TradingState:
         occupied = self._buffered_by_sequence.get(key)
         if occupied is not None and occupied != event:
             raise SequenceConflict("same trading_day/sequence received with different event")
+
+        # E-13 rule A: a late event from an earlier trading day can never apply
+        # after a later trading day already applied.
+        if self._latest_applied_trading_day is not None and event.trading_day < self._latest_applied_trading_day:
+            raise CrossTradingDayConflict(
+                "late event from an earlier trading day cannot apply after a later trading day"
+            )
+        # E-13 rule B: a future trading day may only begin once every earlier
+        # trading day has no buffered sequence gap.
+        if (
+            self._latest_applied_trading_day is None or event.trading_day > self._latest_applied_trading_day
+        ) and any(day < event.trading_day for (day, _) in self._buffered_by_sequence):
+            raise CrossTradingDayConflict(
+                "a future trading day cannot apply while an earlier trading day has a buffered sequence gap"
+            )
 
         expected = self._expected_sequence.setdefault(event.trading_day, 1)
         if event.sequence < expected:
@@ -184,6 +216,13 @@ class TradingState:
                 )
             )
             self._expected_sequence[event.trading_day] = next_seq + 1
+
+        if applied:
+            if (
+                self._latest_applied_trading_day is None
+                or event.trading_day > self._latest_applied_trading_day
+            ):
+                self._latest_applied_trading_day = event.trading_day
 
         return IngestResult(duplicate=False, buffered=False, applied=tuple(applied))
 

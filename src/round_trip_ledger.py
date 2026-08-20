@@ -63,6 +63,17 @@ def _round_trip_hash(value: object) -> str:
     return sha256(encoded.encode("utf-8")).hexdigest()
 
 
+def _completed_trip_order_key(trip: "CompletedRoundTrip") -> tuple[datetime, datetime, str]:
+    """Canonical completed-round-trip ordering (E-11).
+
+    One shared key used by both ``RoundTripLedger.__post_init__`` (the
+    ordering invariant) and ``RoundTripMaterializer.materialize`` (the output
+    order): terminal close time, then opened time, then position_id.  This is
+    trade chronology, not lexical position-id ordering.
+    """
+    return (trip.terminal_closed_at, trip.opened_at, trip.position_id)
+
+
 TERMINAL_REASON_FULL_CLOSE = "FULL_CLOSE"
 TERMINAL_REASON_FORCED_LIQUIDATION = "FORCED_LIQUIDATION"
 
@@ -149,6 +160,7 @@ class RoundTripLedger:
 
     completed_round_trips: tuple[CompletedRoundTrip, ...] = ()
     open_position_ids: tuple[str, ...] = ()
+    open_position_evidence_identities: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.completed_round_trips, tuple) or not isinstance(self.open_position_ids, tuple):
@@ -158,9 +170,17 @@ class RoundTripLedger:
         completed_ids = {trip.position_id for trip in self.completed_round_trips}
         if completed_ids.intersection(self.open_position_ids):
             raise ValueError("a position_id cannot be both completed and still open")
-        ordered_ids = tuple(trip.position_id for trip in self.completed_round_trips)
-        if tuple(sorted(ordered_ids)) != ordered_ids:
-            raise ValueError("completed round trips must be ordered by position_id")
+        ordered_keys = tuple(_completed_trip_order_key(trip) for trip in self.completed_round_trips)
+        if tuple(sorted(ordered_keys)) != ordered_keys:
+            raise ValueError(
+                "completed round trips must be ordered by terminal close time, "
+                "then opened time, then position_id"
+            )
+        evidence_ids = tuple(item[0] for item in self.open_position_evidence_identities)
+        if evidence_ids != self.open_position_ids:
+            raise ValueError("open_position_ids must exactly match open position evidence identities")
+        if tuple(sorted(evidence_ids)) != evidence_ids:
+            raise ValueError("open position evidence identities must be ordered by position_id")
 
     @property
     def completed_count(self) -> int:
@@ -174,7 +194,7 @@ class RoundTripLedger:
         return _round_trip_hash(
             {
                 "completed": [trip.ledger_identity for trip in self.completed_round_trips],
-                "open_position_ids": self.open_position_ids,
+                "open_position_evidence_identities": self.open_position_evidence_identities,
             }
         )
 
@@ -264,7 +284,16 @@ class RoundTripMaterializer:
         completed round trips.
         """
         ordered = tuple(capital_transitions)
-        outcomes_by_request = {outcome.request_id: outcome for outcome in execution_outcomes}
+        ordered_outcomes = tuple(execution_outcomes)
+        # E-09: duplicate request_id execution outcomes are rejected instead of
+        # silently last-wins/first-wins collapsing before cost cross-checking,
+        # so round-trip evidence cannot silently drop a conflicting cost
+        # outcome.
+        outcomes_by_request: dict[str, ExecutionOutcome] = {}
+        for outcome in ordered_outcomes:
+            if outcome.request_id in outcomes_by_request:
+                raise ValueError("duplicate execution outcome request_id")
+            outcomes_by_request[outcome.request_id] = outcome
         self._validate_lifecycle_order(ordered)
         accumulators: dict[str, _RoundTripAccumulator] = {}
         completed: list[CompletedRoundTrip] = []
@@ -293,14 +322,41 @@ class RoundTripMaterializer:
                 del accumulators[position_id]
 
         open_ids = tuple(sorted(accumulators))
-        completed_sorted = tuple(sorted(completed, key=lambda trip: trip.position_id))
-        return RoundTripLedger(completed_round_trips=completed_sorted, open_position_ids=open_ids)
+        # E-12: each still-open position contributes an immutable evidence
+        # identity derived from its actual source transition references, so a
+        # material change to an incomplete position changes the ledger
+        # identity instead of leaving it bound only to the bare open id.
+        open_evidence = tuple(
+            (position_id, self._open_evidence_identity(accumulators[position_id]))
+            for position_id in open_ids
+        )
+        completed_sorted = tuple(sorted(completed, key=_completed_trip_order_key))
+        return RoundTripLedger(
+            completed_round_trips=completed_sorted,
+            open_position_ids=open_ids,
+            open_position_evidence_identities=open_evidence,
+        )
 
     # -- private helpers ----------------------------------------------------
 
     @staticmethod
     def _position_id_of(transition: CapitalTransition) -> str | None:
         return transition.after.position_id or transition.before.position_id
+
+    @staticmethod
+    def _open_evidence_identity(accumulator: _RoundTripAccumulator) -> str:
+        """Immutable evidence identity of one still-open position (E-12).
+
+        Binds the position_id to the ordered source transition references,
+        which in turn bind the before/after CapitalSnapshots, so quantity,
+        average price, cost, and state changes all enter the identity.
+        """
+        return _round_trip_hash(
+            {
+                "position_id": accumulator.position_id,
+                "source_transition_references": tuple(accumulator.source_transition_refs),
+            }
+        )
 
     @staticmethod
     def _state_at(transition: CapitalTransition) -> datetime | None:
