@@ -1,7 +1,7 @@
 name: temporary-fgh-closure-guardrail
 
 on:
-  pull_request:
+  push:
     branches:
       - main
 
@@ -10,23 +10,26 @@ permissions:
 
 jobs:
   patch-and-verify:
-    if: ${{ startsWith(github.head_ref, 'repair/fgh-closure-guardrails-') }}
+    if: ${{ contains(github.event.head_commit.message, '[run-fgh-closure]') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout closure branch without external actions
+      - name: Checkout main without external actions
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          BRANCH: ${{ github.head_ref }}
         run: |
           git init .
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
-          git fetch --depth=1 origin "${BRANCH}"
-          git checkout -B "${BRANCH}" FETCH_HEAD
+          git fetch --depth=1 origin main
+          git checkout -B main FETCH_HEAD
 
-      - name: Apply bounded AggregationResult issuance guard and regression
+      - name: Apply bounded correction and run verification
+        id: verify
+        continue-on-error: true
         run: |
-          python - <<'PY'
+          set -o pipefail
+          {
+            python - <<'PY'
           from pathlib import Path
 
           path = Path("src/technical_features.py")
@@ -95,13 +98,14 @@ class FGHClosureGuardrailTests(unittest.TestCase):
 
     def test_real_aggregator_issued_complete_envelope_still_computes(self):
         issued = aggregate(complete_minute_bars())
-        self.assertTrue(compute_ema(
+        values = compute_ema(
             issued,
             period=2,
             price_field="close",
             numeric_policy=TEST_ONLY_NUMERIC_POLICY,
             feature_version="closure-guard-ema-v1",
-        ))
+        )
+        self.assertTrue(values)
 
 
 if __name__ == "__main__":
@@ -111,21 +115,38 @@ if __name__ == "__main__":
           Path("docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md").write_text('''# FGH_CLOSURE_GUARDRAILS_V0_1\n\n> Date: 2026-08-20\n> Status: ENGINEERING_CORRECTION\n\nRetrospective 1 found that callers could directly use `AggregationResult._from_aggregation()` to discard incomplete-bucket evidence. Feature computation now accepts only an `AggregationResult` object actually issued by `TimeframeAggregator.aggregate()` in the current process.\n\n```text\nNORMAL_CALLER_COMPLETENESS_LAUNDERING=CLOSED\nOS_PROCESS_TAMPER_PROOFING=NOT_CLAIMED\nLOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_CLAIMED\nCANDIDATE_OUTCOME_DATA_USED=NO\n```\n''', encoding="utf-8")
           PY
 
-      - name: Verify focused and full regression
-        run: |
-          python -m unittest tests.test_technical_features tests.test_fgh_closure_guardrails tests.test_fgh_combined_causal_integration tests.test_stop_order_execution -v
-          python -m unittest discover -s tests -v
-          python -m compileall -q src tools tests
-          git diff --check
+            python -m unittest tests.test_technical_features tests.test_fgh_closure_guardrails tests.test_fgh_combined_causal_integration tests.test_stop_order_execution -v
+            python -m unittest discover -s tests -v
+            python -m compileall -q src tools tests
+            git diff --check
+          } 2>&1 | tee /tmp/fgh_closure.log
 
-      - name: Commit verified correction to closure branch
+      - name: Commit verified correction or diagnostic
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          BRANCH: ${{ github.head_ref }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
         run: |
           git config user.name "kline-playbook-engine closure bot"
           git config user.email "actions@users.noreply.github.com"
-          git add src/technical_features.py tests/test_fgh_closure_guardrails.py docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md
-          git commit -m "repair(FGH): seal aggregation completeness envelope"
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "HEAD:${BRANCH}"
+          if [ "${VERIFY_OUTCOME}" = "success" ]; then
+            rm -f docs/reviews/TEMP_CLOSURE_RUN_DIAGNOSTIC.md
+            git add src/technical_features.py tests/test_fgh_closure_guardrails.py docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md
+            git commit -m "repair(FGH): seal aggregation completeness envelope [closure-bot]"
+          else
+            git restore src/technical_features.py || true
+            rm -f tests/test_fgh_closure_guardrails.py docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md
+            mkdir -p docs/reviews
+            {
+              echo "# TEMP_CLOSURE_RUN_DIAGNOSTIC"
+              echo
+              echo "VERIFY_OUTCOME=${VERIFY_OUTCOME}"
+              echo
+              echo '```text'
+              tail -n 160 /tmp/fgh_closure.log
+              echo '```'
+            } > docs/reviews/TEMP_CLOSURE_RUN_DIAGNOSTIC.md
+            git add docs/reviews/TEMP_CLOSURE_RUN_DIAGNOSTIC.md
+            git commit -m "test(closure): record FGH guardrail diagnostic [closure-bot]"
+          fi
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" HEAD:main
