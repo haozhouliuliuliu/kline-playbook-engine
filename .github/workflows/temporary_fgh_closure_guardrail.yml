@@ -4,23 +4,19 @@ on:
   push:
     branches:
       - repair/fgh-closure-guardrails-v01
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: write
 
 jobs:
   patch-and-verify:
-    if: ${{ !contains(github.event.head_commit.message || '', '[closure-bot]') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout target branch without external actions
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          BRANCH: ${{ github.head_ref || github.ref_name }}
+          BRANCH: ${{ github.ref_name }}
         run: |
           git init .
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
@@ -37,9 +33,10 @@ jobs:
 
           old_import = "from pathlib import Path\nfrom typing import Iterable\n"
           new_import = "from pathlib import Path\nfrom typing import Iterable\nfrom weakref import WeakValueDictionary\n"
-          if old_import not in text:
+          if old_import in text:
+              text = text.replace(old_import, new_import, 1)
+          elif new_import not in text:
               raise SystemExit("expected import anchor not found")
-          text = text.replace(old_import, new_import, 1)
 
           class_anchor = "\n\nclass TimeframeAggregator:\n"
           registry = (
@@ -50,21 +47,25 @@ jobs:
               "_ISSUED_AGGREGATION_RESULTS: WeakValueDictionary[int, AggregationResult] = WeakValueDictionary()\n"
               "\n\nclass TimeframeAggregator:\n"
           )
-          if class_anchor not in text:
-              raise SystemExit("TimeframeAggregator anchor not found")
-          text = text.replace(class_anchor, registry, 1)
+          if registry not in text:
+              if class_anchor not in text:
+                  raise SystemExit("TimeframeAggregator anchor not found")
+              text = text.replace(class_anchor, registry, 1)
 
           old_return = '''        return AggregationResult._from_aggregation(\n            aggregates=tuple(aggregates),\n            incomplete_buckets=tuple(incomplete),\n            expected_bucket_identities=tuple(expected_ids),\n            exchange=exchange,\n            concrete_instrument=concrete_instrument,\n            timeframe_spec=spec,\n            session_metadata_version=self._sessions.version,\n            coverage_start=coverage_start,\n            coverage_end=coverage_end,\n        )\n'''
           new_return = '''        result = AggregationResult._from_aggregation(\n            aggregates=tuple(aggregates),\n            incomplete_buckets=tuple(incomplete),\n            expected_bucket_identities=tuple(expected_ids),\n            exchange=exchange,\n            concrete_instrument=concrete_instrument,\n            timeframe_spec=spec,\n            session_metadata_version=self._sessions.version,\n            coverage_start=coverage_start,\n            coverage_end=coverage_end,\n        )\n        _ISSUED_AGGREGATION_RESULTS[id(result)] = result\n        return result\n'''
-          if old_return not in text:
+          if old_return in text:
+              text = text.replace(old_return, new_return, 1)
+          elif new_return not in text:
               raise SystemExit("AggregationResult return anchor not found")
-          text = text.replace(old_return, new_return, 1)
 
           old_validation = '''def _validated_feature_input(result: AggregationResult) -> tuple[AggregatedBar, ...]:\n    if not isinstance(result, AggregationResult):\n        raise ValueError("feature computation requires an AggregationResult completeness envelope")\n    if result.incomplete_buckets:\n'''
           new_validation = '''def _validated_feature_input(result: AggregationResult) -> tuple[AggregatedBar, ...]:\n    if not isinstance(result, AggregationResult):\n        raise ValueError("feature computation requires an AggregationResult completeness envelope")\n    if _ISSUED_AGGREGATION_RESULTS.get(id(result)) is not result:\n        raise ValueError("feature computation requires an aggregator-issued AggregationResult")\n    if result.incomplete_buckets:\n'''
-          if old_validation not in text:
+          if old_validation in text:
+              text = text.replace(old_validation, new_validation, 1)
+          elif new_validation not in text:
               raise SystemExit("feature validation anchor not found")
-          text = text.replace(old_validation, new_validation, 1)
+
           path.write_text(text, encoding="utf-8")
 
           test = Path("tests/test_fgh_closure_guardrails.py")
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 ''', encoding="utf-8")
 
           evidence = Path("docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md")
-          evidence.write_text('''# FGH_CLOSURE_GUARDRAILS_V0_1\n\n> Date: 2026-08-20\n> Status: ENGINEERING_CORRECTION\n\n## AggregationResult issuance guard\n\nRetrospective 1 identified that `AggregationResult._from_aggregation()` could be called directly to discard `incomplete_buckets` and create a structurally clean-looking envelope. Feature computation now accepts only an `AggregationResult` object actually issued by `TimeframeAggregator.aggregate()` in the current process. A weak in-memory issued-object registry binds object identity without creating durable state or a new framework.\n\nThe new regression constructs the exact forged-clean envelope and verifies `compute_ema` rejects it. A real complete aggregator-issued result still computes.\n\n```text\nNORMAL_CALLER_COMPLETENESS_LAUNDERING=CLOSED\nOS_PROCESS_TAMPER_PROOFING=NOT_CLAIMED\nLOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_CLAIMED\nCANDIDATE_OUTCOME_DATA_USED=NO\n```\n''', encoding="utf-8")
+          evidence.write_text('''# FGH_CLOSURE_GUARDRAILS_V0_1\n\n> Date: 2026-08-20\n> Status: ENGINEERING_CORRECTION\n\n## AggregationResult issuance guard\n\nRetrospective 1 identified that `AggregationResult._from_aggregation()` could be called directly to discard `incomplete_buckets` and create a structurally clean-looking envelope. Feature computation now accepts only an `AggregationResult` object actually issued by `TimeframeAggregator.aggregate()` in the current process. A weak in-memory issued-object registry binds object identity without creating durable state or a new framework.\n\nThe regression constructs the exact forged-clean envelope and verifies `compute_ema` rejects it. A real complete aggregator-issued result still computes.\n\n```text\nNORMAL_CALLER_COMPLETENESS_LAUNDERING=CLOSED\nOS_PROCESS_TAMPER_PROOFING=NOT_CLAIMED\nLOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_CLAIMED\nCANDIDATE_OUTCOME_DATA_USED=NO\n```\n''', encoding="utf-8")
           PY
 
       - name: Verify focused and full regression
@@ -133,12 +134,16 @@ if __name__ == "__main__":
           python -m compileall -q src tools tests
           git diff --check
 
-      - name: Commit verified correction
+      - name: Commit verified correction when needed
         env:
-          BRANCH: ${{ github.head_ref || github.ref_name }}
+          BRANCH: ${{ github.ref_name }}
         run: |
+          if git diff --quiet -- src/technical_features.py tests/test_fgh_closure_guardrails.py docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md; then
+            echo "No closure correction diff remains; verification only."
+            exit 0
+          fi
           git config user.name "kline-playbook-engine closure bot"
           git config user.email "actions@users.noreply.github.com"
           git add src/technical_features.py tests/test_fgh_closure_guardrails.py docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md
-          git commit -m "repair(FGH): seal aggregation completeness envelope [closure-bot]"
+          git commit -m "repair(FGH): seal aggregation completeness envelope"
           git push origin "HEAD:${BRANCH}"
