@@ -1,0 +1,329 @@
+{
+  "schema_version": "historical-price-limit-authority-v0_1",
+  "task": "HISTORICAL_PRICE_LIMIT_METADATA_AUTHORITY_PREP_V0_1",
+  "repository": "haozhouliuliuliu/kline-playbook-engine",
+  "branch": "preoutcome/historical-price-limit-prep-v01",
+  "baseline_main": "e87315dd622689eb165dbe81f1728c868cc06a26",
+  "created_at": "2026-08-21",
+  "exchange": "SHFE",
+  "products": [
+    "cu",
+    "al",
+    "ni",
+    "au",
+    "ag",
+    "rb"
+  ],
+  "window": {
+    "start": "2024-01-01",
+    "end": "2025-12-31"
+  },
+  "purpose": "Point-in-time governed authority for SHFE price-limit (涨跌停板) rules for cu, al, ni, au, ag, rb over 2024-01-01..2025-12-31. Reduces LIMIT-001 by binding the contract-text base daily price-limit rule per effective period and explicitly classifying per-day exchange-adjustment and special-day layers as GAP / UNKNOWN / RETRIEVAL_BLOCKED. It never backfills historical values with a current rule and never fabricates a per-day fact.",
+  "source_policy": {
+    "free_public_unauthenticated_first": true,
+    "paid_source_used": false,
+    "login_source_used": false,
+    "captcha_bypass_used": false,
+    "current_rule_backfill_used": false,
+    "retrieval_note": "On 2026-08-21 the live SHFE site (www.shfe.com.cn) serves a Safeline WAF bot-challenge (js-challenge) for ALL HTML paths probed this pass, including the /products/ contract-specification pages that E06 had retrieved and hashed on 2026-08-20. No challenge was bypassed. Wayback Machine (web.archive.org) returned HTTP 429 this pass. Base-limit evidence below is therefore bound from already-committed repository official evidence (E06 hashed contract pages S01-S06 and CANONICAL_CONTRACT_SPECS.json binding-notice chain), not from a fresh live retrieval."
+  },
+  "evidence_status_enum": [
+    "BASE_CONTRACT_TEXT_BOUND",
+    "PER_DAY_ADJUSTMENT_BOUND",
+    "SPECIAL_DAY_RULE_BOUND",
+    "HISTORICAL_GAP",
+    "RETRIEVAL_BLOCKED",
+    "UNKNOWN"
+  ],
+  "sources": [
+    {
+      "source_id": "S01",
+      "authority": "SHFE official product specification page (free public official; live bytes hashed in E06 pass 2026-08-20)",
+      "title": "上海期货交易所阴极铜期货合约（修订版）",
+      "source_url": "https://www.shfe.com.cn/products/futures/metal/nonferrousmetal/cu_f/",
+      "product": "cu",
+      "binding_notice": "[2023]2号公告",
+      "retrieved_at": "2026-08-20T00:00:00+08:00",
+      "sha256": "82e0ba93c5a5847097268416541c66c72753cb0b58ec1d5021826cd327f3be3a",
+      "classification": "EXACT_OFFICIAL_BOUND",
+      "content_notes": "Contract text: contract-size 5吨/手, minimum transaction margin 合约价值的5%, delivery unit 25吨, price limit ±3%."
+    },
+    {
+      "source_id": "S02",
+      "authority": "SHFE official product specification page (free public official; live bytes hashed in E06 pass 2026-08-20)",
+      "title": "上海期货交易所铝期货合约（修订版）",
+      "source_url": "https://www.shfe.com.cn/products/futures/metal/nonferrousmetal/al_f/",
+      "product": "al",
+      "binding_notice": "[2023]2号公告; in-window [2024]105号 (delivery grade only)",
+      "retrieved_at": "2026-08-20T00:00:00+08:00",
+      "sha256": "a07a59ed96c9060df2646c8b2bde41947b8c7cdc2e217fe4c8467e748aeec184",
+      "classification": "EXACT_OFFICIAL_BOUND",
+      "content_notes": "Contract text: contract-size 5吨/手, minimum transaction margin 合约价值的5%, delivery unit 25吨, price limit ±3%."
+    },
+    {
+      "source_id": "S03",
+      "authority": "SHFE official product specification page (free public official; live bytes hashed in E06 pass 2026-08-20)",
+      "title": "上海期货交易所镍期货合约（修订版）",
+      "source_url": "https://www.shfe.com.cn/products/futures/metal/nonferrousmetal/ni_f/",
+      "product": "ni",
+      "binding_notice": "[2023]2号公告; 2025-10-31 text update (delivery grade only)",
+      "retrieved_at": "2026-08-20T00:00:00+08:00",
+      "sha256": "140b5543b0924f3e88a4f614f3b3b1e46dc2c24240dc7eeb14e1dfd28c1cbbf3",
+      "classification": "EXACT_OFFICIAL_BOUND",
+      "content_notes": "Contract text: contract-size 1吨/手, minimum transaction margin 合约价值的5%, delivery unit 6吨, price limit ±4%."
+    },
+    {
+      "source_id": "S04",
+      "authority": "SHFE official product specification page (free public official; live bytes hashed in E06 pass 2026-08-20)",
+      "title": "上海期货交易所黄金期货合约（修订版）",
+      "source_url": "https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/au_f/",
+      "product": "au",
+      "binding_notice": "[2020]134号公告",
+      "retrieved_at": "2026-08-20T00:00:00+08:00",
+      "sha256": "7481ac53e5bea1d7f43ea406081f8d118c59193f459525fcf3e6151414c471f1",
+      "classification": "EXACT_OFFICIAL_BOUND",
+      "content_notes": "Contract text: contract-size 1000克/手, minimum transaction margin 合约价值的4%, delivery unit 3000克, price limit ±3%."
+    },
+    {
+      "source_id": "S05",
+      "authority": "SHFE official product specification page (free public official; live bytes hashed in E06 pass 2026-08-20)",
+      "title": "上海期货交易所白银期货合约（修订版）",
+      "source_url": "https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/ag_f/",
+      "product": "ag",
+      "binding_notice": "[2023]2号公告",
+      "retrieved_at": "2026-08-20T00:00:00+08:00",
+      "sha256": "b865ca530f561bcc140ece7a5105146931ec02db4d13dc0b05835ebeab5a6cb9",
+      "classification": "EXACT_OFFICIAL_BOUND",
+      "content_notes": "Contract text: contract-size 15千克/手, minimum transaction margin 合约价值的4%, delivery unit 30千克, price limit ±3%."
+    },
+    {
+      "source_id": "S06",
+      "authority": "SHFE official product specification page (free public official; live bytes hashed in E06 pass 2026-08-20)",
+      "title": "上海期货交易所螺纹钢期货合约（修订版）",
+      "source_url": "https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/rb_f/",
+      "product": "rb",
+      "binding_notice": "[2023]2号公告; in-window [2024]116号 (delivery grade only)",
+      "retrieved_at": "2026-08-20T00:00:00+08:00",
+      "sha256": "615de796ffc99ee1757067f95585285cee332f66da6f004d22e4681253a2063a",
+      "classification": "EXACT_OFFICIAL_BOUND",
+      "content_notes": "Contract text: contract-size 10吨/手, minimum transaction margin 合约价值的5%, delivery unit 300吨, price limit ±3%."
+    },
+    {
+      "source_id": "S08",
+      "authority": "Repository verified official reference (committed; not re-fetched this pass)",
+      "title": "CANONICAL_CONTRACT_SPECS.json (product spec provenance; binding notices; effective periods; in-window delivery-grade-only revisions)",
+      "source_url": "docs/evidence/CANONICAL_CONTRACT_SPECS.json",
+      "products": [
+        "cu",
+        "al",
+        "ni",
+        "au",
+        "ag",
+        "rb"
+      ],
+      "retrieved_at": "2026-08-16T16:00:00+08:00",
+      "sha256": null,
+      "classification": "REPOSITORY_VERIFIED_REFERENCE",
+      "content_notes": "Effective periods and binding notices for the six product specs including price_limit_pct; in-window revisions recorded as delivery-grade-only and value-unchanging."
+    },
+    {
+      "source_id": "S10",
+      "authority": "SHFE official risk-control rules (candidate official reference; not bound this pass)",
+      "title": "上海期货交易所风险控制管理办法（及交易细则）",
+      "source_url": "https://www.shfe.com.cn/regulation/",
+      "products": [
+        "cu",
+        "al",
+        "ni",
+        "au",
+        "ag",
+        "rb"
+      ],
+      "retrieved_at": null,
+      "sha256": null,
+      "classification": "RETRIEVAL_BLOCKED",
+      "content_notes": "Live regulation path WAF-blocked on 2026-08-21; no archived official copy bound this pass; Wayback HTTP 429. This is the authoritative source for special-day exceptions (new-listing first day, resumption after suspension, consecutive same-direction limit handling, pre-holiday adjustments). Not bypassed; not inferred."
+    }
+  ],
+  "product_rules": {
+    "cu": {
+      "trading_code": "CU",
+      "base_limit_pct": "3",
+      "limit_unit": "percent",
+      "symmetric": true,
+      "basis": "symmetric_percent_of_previous_settlement",
+      "binding_notice": "[2023]2号公告",
+      "effective_start": "2023-01-17",
+      "effective_end": "2025-12-31",
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17，15个合约修订版）",
+      "in_window_delivery_grade_revisions_only": [],
+      "source_references": [
+        "S01",
+        "S08"
+      ],
+      "classification": "BASE_CONTRACT_TEXT_BOUND",
+      "notes": "Contract-text base daily price limit (涨跌停板幅度), normal-day default clause. Does NOT bind per-day exchange adjustments or special-day exceptions."
+    },
+    "al": {
+      "trading_code": "AL",
+      "base_limit_pct": "3",
+      "limit_unit": "percent",
+      "symmetric": true,
+      "basis": "symmetric_percent_of_previous_settlement",
+      "binding_notice": "[2023]2号公告",
+      "effective_start": "2023-01-17",
+      "effective_end": "2025-12-31",
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17）；[2024]105号（2024-07-12，铝合约修订版，仅交割品级）",
+      "in_window_delivery_grade_revisions_only": [
+        "上期所公告[2024]105号 2024-07-12"
+      ],
+      "source_references": [
+        "S02",
+        "S08"
+      ],
+      "classification": "BASE_CONTRACT_TEXT_BOUND",
+      "notes": "Contract-text base daily price limit (涨跌停板幅度), normal-day default clause. [2024]105号 in-window revision was delivery-grade-only; it did not change the price-limit value."
+    },
+    "ni": {
+      "trading_code": "NI",
+      "base_limit_pct": "4",
+      "limit_unit": "percent",
+      "symmetric": true,
+      "basis": "symmetric_percent_of_previous_settlement",
+      "binding_notice": "[2023]2号公告",
+      "effective_start": "2023-01-17",
+      "effective_end": "2025-12-31",
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17）；[2025-10-31]文本更新（交割品级 GB/T 6516-2025）",
+      "in_window_delivery_grade_revisions_only": [],
+      "source_references": [
+        "S03",
+        "S08"
+      ],
+      "classification": "BASE_CONTRACT_TEXT_BOUND",
+      "notes": "Contract-text base daily price limit (涨跌停板幅度), normal-day default clause. 2025-10-31 text update was delivery-grade-only; price-limit value unchanged."
+    },
+    "au": {
+      "trading_code": "AU",
+      "base_limit_pct": "3",
+      "limit_unit": "percent",
+      "symmetric": true,
+      "basis": "symmetric_percent_of_previous_settlement",
+      "binding_notice": "[2020]134号公告",
+      "effective_start": "2020-08-31",
+      "effective_end": "2025-12-31",
+      "effective_period_proof": "上期所公告[2020]134号（2020-08-31）",
+      "in_window_delivery_grade_revisions_only": [],
+      "source_references": [
+        "S04",
+        "S08"
+      ],
+      "classification": "BASE_CONTRACT_TEXT_BOUND",
+      "notes": "Contract-text base daily price limit (涨跌停板幅度), normal-day default clause."
+    },
+    "ag": {
+      "trading_code": "AG",
+      "base_limit_pct": "3",
+      "limit_unit": "percent",
+      "symmetric": true,
+      "basis": "symmetric_percent_of_previous_settlement",
+      "binding_notice": "[2023]2号公告",
+      "effective_start": "2023-01-17",
+      "effective_end": "2025-12-31",
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17）",
+      "in_window_delivery_grade_revisions_only": [],
+      "source_references": [
+        "S05",
+        "S08"
+      ],
+      "classification": "BASE_CONTRACT_TEXT_BOUND",
+      "notes": "Contract-text base daily price limit (涨跌停板幅度), normal-day default clause."
+    },
+    "rb": {
+      "trading_code": "RB",
+      "base_limit_pct": "3",
+      "limit_unit": "percent",
+      "symmetric": true,
+      "basis": "symmetric_percent_of_previous_settlement",
+      "binding_notice": "[2023]2号公告",
+      "effective_start": "2023-01-17",
+      "effective_end": "2025-12-31",
+      "effective_period_proof": "上期所公告[2023]2号（2023-01-17）；[2024]116号（2024-07-29，螺纹钢/线材合约及交割细则修订版，仅交割品级）",
+      "in_window_delivery_grade_revisions_only": [
+        "上期所公告[2024]116号 2024-07-29"
+      ],
+      "source_references": [
+        "S06",
+        "S08"
+      ],
+      "classification": "BASE_CONTRACT_TEXT_BOUND",
+      "notes": "Contract-text base daily price limit (涨跌停板幅度), normal-day default clause. [2024]116号 in-window revision was delivery-grade-only; it did not change the price-limit value."
+    }
+  },
+  "special_day_rules": {
+    "first_trading_day_new_listing": {
+      "exists_in_official_rules": "UNKNOWN",
+      "classification": "UNKNOWN",
+      "source_references": [],
+      "note": "Whether the price limit differs on the first trading day of a newly listed contract month is governed by SHFE risk-control rules (S10). That official text was not bound this pass (RETRIEVAL_BLOCKED / Wayback 429). No value or exception is asserted."
+    },
+    "resumption_after_suspension": {
+      "exists_in_official_rules": "UNKNOWN",
+      "classification": "UNKNOWN",
+      "source_references": [],
+      "note": "Whether the price limit differs on resumption of trading after suspension is governed by SHFE risk-control rules (S10). Not bound this pass; no value or exception is asserted."
+    },
+    "consecutive_same_direction_limit": {
+      "exists_in_official_rules": "UNKNOWN",
+      "classification": "UNKNOWN",
+      "source_references": [],
+      "note": "Whether the price limit expands after consecutive same-direction limit sessions (multi-tier handling) is governed by SHFE risk-control rules (S10). Not bound this pass; no value or exception is asserted."
+    },
+    "pre_holiday_adjustment": {
+      "exists_in_official_rules": "UNKNOWN",
+      "classification": "UNKNOWN",
+      "source_references": [],
+      "note": "Whether exchange price-limit adjustments were in force before/around holidays for these products during 2024-2025 is governed by official exchange notices. No bound notice for the window; no value or exception is asserted."
+    }
+  },
+  "per_day_coverage": {
+    "cu": {
+      "classification": "HISTORICAL_GAP",
+      "bound_days": 0,
+      "note": "No bound per-day exchange price-limit adjustment fact for 2024-2025. Fail-closed: per-day operative limit is UNKNOWN for every day in the window."
+    },
+    "al": {
+      "classification": "HISTORICAL_GAP",
+      "bound_days": 0,
+      "note": "No bound per-day exchange price-limit adjustment fact for 2024-2025. Fail-closed: per-day operative limit is UNKNOWN for every day in the window."
+    },
+    "ni": {
+      "classification": "HISTORICAL_GAP",
+      "bound_days": 0,
+      "note": "No bound per-day exchange price-limit adjustment fact for 2024-2025. Fail-closed: per-day operative limit is UNKNOWN for every day in the window."
+    },
+    "au": {
+      "classification": "HISTORICAL_GAP",
+      "bound_days": 0,
+      "note": "No bound per-day exchange price-limit adjustment fact for 2024-2025. Fail-closed: per-day operative limit is UNKNOWN for every day in the window."
+    },
+    "ag": {
+      "classification": "HISTORICAL_GAP",
+      "bound_days": 0,
+      "note": "No bound per-day exchange price-limit adjustment fact for 2024-2025. Fail-closed: per-day operative limit is UNKNOWN for every day in the window."
+    },
+    "rb": {
+      "classification": "HISTORICAL_GAP",
+      "bound_days": 0,
+      "note": "No bound per-day exchange price-limit adjustment fact for 2024-2025. Fail-closed: per-day operative limit is UNKNOWN for every day in the window."
+    }
+  },
+  "per_day_facts": [],
+  "fail_closed_interface": {
+    "base_rules_bound": true,
+    "per_day_operative_facts_bound_for_window": false,
+    "real_price_limit_fill_claim_for_window": "NOT_AUTHORIZED",
+    "policy": "resolve_per_day returns BOUND only when exactly one bound per-day fact exists in per_day_facts; otherwise it returns UNKNOWN (or CONFLICT on non-identical duplicates). The authority NEVER derives a per-day operative fact from a base rule and NEVER applies a current rule to a historical day. Execution simulation that claims a real price-limit fill for any 2024-2025 day must consume an exactly-one bound per-day fact; with none bound, the claim is rejected (fail closed).",
+    "consumer_note": "This prep binds the rule authority and the fail-closed interface. Absolute per-day lower/upper bounds additionally require the official previous-settlement price per concrete contract per day, which is outside this rule-metadata prep and remains unbound for a future governed step."
+  },
+  "identity": "a283d4e611915b131d39b1cea135da7107689faa232e7a0226065f9e7dae7245"
+}
