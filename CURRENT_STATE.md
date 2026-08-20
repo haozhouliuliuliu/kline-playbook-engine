@@ -7,15 +7,16 @@ PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
-CURRENT_BLOCKER=FINAL_SECOND_PASS_EXECUTION_AND_FGH_REPAIR_CLOSURE
+CURRENT_BLOCKER=FINAL_SECOND_PASS_EXECUTION_E06_AND_FGH_REPAIR_CLOSURE
 CURRENT_WORK_PACKAGE=POST_CDF_E_CORE_REPAIR_EXIT_ROUND_R1
 CURRENT_WORK_PACKAGE_STATUS=THREE_LANES_READY
 CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/POST_CDF_E_CORE_GOVERNANCE_REVIEW_AND_REPAIR_EXIT_PLAN_V0_1.md
+OWNER_DECISION_AUTHORITY=docs/reviews/PACKAGE_E_OWNER_DECISION_APPROVAL_2026-08-20.md
 SECOND_PASS_AUDIT_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md
-OWNER_ACTION=RUN_R1_NOW_AND_RESOLVE_FOUR_OWNER_GATES
+OWNER_ACTION=RUN_R1_NOW
 ```
 
-Package A/B are integrated on main. Package C/D/F corrected branches have passed project-brain review and their combined integration branch has passed the worker combined regression; it is ready for final main-path integration. Package E-Core has passed project-brain code review and is ready for integration with accepted D-05 plus E-10. E-Governance research is accepted as decision input.
+Package A/B are integrated on main. Package C/D/F corrected branches have passed project-brain review and their combined integration branch has passed the worker combined regression; it is ready for final main-path integration. Package E-Core has passed project-brain code review and is ready for integration with accepted D-05 plus E-10. E-Governance research is accepted as decision input. The Owner has now approved the four previously open E-04/E-05/E-07/E-08 semantics; workers may implement only those approved choices.
 
 ## Binding research / access boundary
 
@@ -84,20 +85,28 @@ E13=REPAIRED_ON_BRANCH_BOOTSTRAP_SCOPE_ONLY
 E10=NEXT_AFTER_ACCEPTED_D05
 ```
 
-Governance research:
+Owner-approved binding semantics:
 
 ```text
-E04_STATUS=OWNER_DECISION_REQUIRED
-E05_STATUS=OWNER_DECISION_REQUIRED
-E06_STATUS=INSUFFICIENT_EVIDENCE
-E07_STATUS=OWNER_DECISION_REQUIRED
-E08_STATUS=OWNER_DECISION_REQUIRED
-E06_HISTORICAL_REALISTIC_FEE_MARGIN_SCHEDULE=NOT_ESTABLISHED
-E07_MAPPING_RULE_ALREADY_FROZEN=NO
-E08_RESOURCE_RULE_ALREADY_FROZEN=NO
+E04_STATUS=OWNER_APPROVED_BINDING
+E04_RULE=OPTION_C_EXPLICIT_BUCKET_CHILD_ORDERS
+E05_STATUS=OWNER_APPROVED_BINDING
+E05_RULE=PER_MEMBER_RESOLVED_CONTRACT_ASSUMPTIONS
+E07_STATUS=OWNER_APPROVED_BINDING
+E07_RULE=SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_APPLIED_TO_CANONICAL_CONCRETE_BARS
+E08_STATUS=OWNER_APPROVED_BINDING
+E08_RULE=AVAILABLE_CAPITAL_ONLY
+OWNER_GATES_E04_E05_E07_E08=RESOLVED
 ```
 
-No worker may silently choose E-04/E-05/E-07/E-08. E-06 current rates must not be backfilled into 2024-2025.
+E-06 remains an evidence prerequisite:
+
+```text
+E06_STATUS=INSUFFICIENT_EVIDENCE
+E06_HISTORICAL_REALISTIC_FEE_MARGIN_SCHEDULE=NOT_ESTABLISHED
+```
+
+The approved E-07 rule does not authorize pseudo-main bars in the canonical corpus and does not permit an outcome-tuned replacement rule. If the historical source-governed TqSdk mapping cannot be obtained and provenance-bound under the project source policy, implementation must fail closed and return to the Owner. E-06 current rates must not be backfilled into 2024-2025.
 
 ## Canonical data status
 
@@ -113,7 +122,7 @@ CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
 CANONICAL_PRICE_VALUES_REVOKED=NO
 CANONICAL_CORPUS_REBUILT_DURING_SECOND_PASS=NO
 CANONICAL_ACCEPTANCE_REWRITTEN_DURING_SECOND_PASS=NO
-CONCRETE_CONTRACT_RESEARCH_MAPPING_RULE=NOT_FROZEN
+CONCRETE_CONTRACT_RESEARCH_MAPPING_RULE=OWNER_APPROVED_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING
 HISTORICAL_REALISTIC_MARGIN_FEE_AUTHORITY=NOT_IMPLEMENTED_FOR_CANDIDATE_QUALITY
 ```
 
@@ -134,7 +143,7 @@ CODEX_PRIORITY=OLD_F_G_H_REBUILD_AND_COMBINED_CAUSAL_TIMING_INTEGRATION
 
 ## Repair-exit plan
 
-Repair mode ends when every second-pass finding is either fixed/tested or converted into an explicit governed prerequisite / Owner-gated semantic that cannot be silently bypassed. Candidate outcome access can remain locked after repair mode ends.
+Repair mode ends when every second-pass finding is either fixed/tested or converted into an explicit governed prerequisite / Owner-approved semantic that cannot be silently bypassed. Candidate outcome access can remain locked after repair mode ends.
 
 Expected remaining path, absent a new critical integration defect:
 
@@ -143,7 +152,6 @@ ROUND_R1_NOW=
   CDF + E-Core combined integration
   + E-10 using accepted D-05 SessionMetadata identity
   + E-06 bounded official evidence collection
-  + Owner decisions E-04/E-05/E-07/E-08
 
 ROUND_R2=
   implement Owner-approved E-04/E-05/E-07/E-08
