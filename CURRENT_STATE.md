@@ -131,18 +131,20 @@ The next parallel plan is:
 
 ```text
 LANE_1=CDF_COMBINED_INTEGRATION_AND_REGRESSION
-LANE_2=PACKAGE_E_UNAMBIGUOUS_EXECUTION_REPAIRS_E01_E05_E09_E11_E13
-LANE_3=PACKAGE_E_GOVERNANCE_AUTHORITY_RESEARCH_E06_E07_E08
+LANE_2=PACKAGE_E_UNAMBIGUOUS_EXECUTION_REPAIRS_E01_E02_E03_E09_E11_E12_E13
+LANE_3=PACKAGE_E_GOVERNANCE_AUTHORITY_RESEARCH_E04_E05_E06_E07_E08
 ```
 
-Lane 2 may repair only `E-01,E-02,E-03,E-04,E-05,E-09,E-11,E-12,E-13`. It must not repair E-08, and must not repair E-10 until accepted D-05 is on the main integration path. E-13 remains bootstrap/feasibility scope.
+Lane 2 may repair only `E-01,E-02,E-03,E-09,E-11,E-12,E-13`. It must not repair E-04, E-05, E-08, or E-10. E-10 waits until accepted D-05 is on the main integration path. E-13 remains bootstrap/feasibility scope.
 
-Lane 3 is research/documentation only. E-07 concrete-contract mapping and E-08 margin-admission resource semantics remain Owner-gated if no existing binding authority answers them. No worker may choose those rules. Source acquisition follows `FREE_PUBLIC_UNAUTHENTICATED_FIRST`; no paid purchase/login and no candidate outcomes.
+Lane 3 is research/documentation only for E-04/E-05/E-06/E-07/E-08. E-04/E-05/E-07/E-08 remain Owner-gated if repository/formal external authority does not already contain a binding answer. No worker may choose those rules. Source acquisition follows `FREE_PUBLIC_UNAUTHENTICATED_FIRST`; no paid purchase/login and no candidate outcomes.
 
 ```text
 E10_ROUND_TRIP_SESSION_IDENTITY_DEPENDS_ON_ACCEPTED_D05=YES
 E08_MARGIN_ADMISSION_RESOURCE_SEMANTICS=UNRESOLVED_FORMAL_AUTHORITY_REQUIRED
 E07_CONCRETE_CONTRACT_MAPPING_RULE=NOT_FROZEN_OWNER_GATED
+E04_GENERIC_CLOSE_SPLIT_RULE=NOT_DELEGATED_TO_WORKER
+E05_PORTFOLIO_REPRESENTATION=NOT_DELEGATED_TO_WORKER
 OLD_HOLY_GRAIL_F_BRANCH=NOT_MERGED
 OLD_FEATURE_G_BRANCH=NOT_MERGED
 OLD_STOP_H_BRANCH=NOT_MERGED
@@ -170,7 +172,7 @@ C/D/F [CORRECTIONS REVIEWED; COMBINED INTEGRATION PENDING]
 + E governance authority research [PARALLEL ALLOWED]
 -> project-brain integration review
 -> E-10 after accepted D-05
--> resolve Owner-gated E-07/E-08 if needed
+-> resolve Owner-gated E-04/E-05/E-07/E-08 if needed
 -> rebuild/correct old F/G/H + combined regression
 -> first machine-operationalized Playbook pre-outcome integration
 ```
