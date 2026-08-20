@@ -105,10 +105,13 @@ class CompletedRoundTrip:
     active_official_trading_days: tuple[date, ...]
     ledger_identity: str
     concrete_contract_id: str | None = None
+    session_metadata_version: str | None = None
 
     def __post_init__(self) -> None:
         if not self.position_id or not self.instrument:
             raise ValueError("a completed round trip requires position_id and instrument")
+        if self.session_metadata_version is not None and not isinstance(self.session_metadata_version, str):
+            raise ValueError("session metadata version must be a string or None")
         if not isinstance(self.direction, PositionDirection):
             raise ValueError("round trip direction must be an explicit position direction")
         if self.opened_at.tzinfo is None or self.terminal_closed_at.tzinfo is None:
@@ -479,7 +482,17 @@ class RoundTripMaterializer:
                     "fail closed instead of guessing a missing day"
                 )
             if snapshot_day is not None and day != snapshot_day:
-                raise ValueError("SessionMetadata trading day is inconsistent with the snapshot trading day")
+                # E-02: a forced liquidation may be observed on the NEXT
+                # official trading day after a session-end breach (the today
+                # bucket ages to previous).  The snapshot's position day is the
+                # established day, so a LATER session-mapped observation day is
+                # legal for FORCED_LIQUIDATION only.  An EARLIER day, or any
+                # mismatch on a normal transition, remains fail-closed.
+                if not (
+                    transition.transition_type == "FORCED_LIQUIDATION"
+                    and day > snapshot_day
+                ):
+                    raise ValueError("SessionMetadata trading day is inconsistent with the snapshot trading day")
             week = self._session_metadata.trading_week_at(self._exchange, instrument, timestamp)
             if week is None:
                 raise ValueError(
@@ -510,12 +523,28 @@ class RoundTripMaterializer:
         average_open_price = terminal_transition.before.average_open_price
         ordered_refs = tuple(accumulator.source_transition_refs)
         ordered_outcome_refs = tuple(accumulator.source_outcome_refs)
+        # E-10: the session authority identity is bound from the actual
+        # SessionMetadata object (D-05 content-derived ``version``), never from
+        # a caller-supplied label string.  A no-session path binds None.
+        session_metadata_version = (
+            self._session_metadata.version if self._session_metadata is not None else None
+        )
+        active_days = tuple(sorted(accumulator.transition_official_days))
+        # E-10: the ledger identity binds both the session authority version
+        # AND the derived official day/week facts, so changing the session
+        # authority changes the identity even when the derived facts coincide.
         identity_input = {
             "position_id": accumulator.position_id,
             "terminal_reason": terminal_reason,
             "forced_liquidation": forced,
             "ordered_transition_references": ordered_refs,
             "ordered_outcome_references": ordered_outcome_refs,
+            "session_metadata_version": session_metadata_version,
+            "entry_official_trading_day": entry_day.isoformat(),
+            "exit_official_trading_day": exit_day.isoformat(),
+            "entry_official_trading_week": list(entry_week),
+            "exit_official_trading_week": list(exit_week),
+            "active_official_trading_days": [day.isoformat() for day in active_days],
         }
         return CompletedRoundTrip(
             position_id=accumulator.position_id,
@@ -538,7 +567,8 @@ class RoundTripMaterializer:
             exit_official_trading_day=exit_day,
             entry_official_trading_week=entry_week,
             exit_official_trading_week=exit_week,
-            active_official_trading_days=tuple(sorted(accumulator.transition_official_days)),
+            active_official_trading_days=active_days,
             ledger_identity=_round_trip_hash(identity_input),
             concrete_contract_id=accumulator.concrete_contract_id,
+            session_metadata_version=session_metadata_version,
         )
