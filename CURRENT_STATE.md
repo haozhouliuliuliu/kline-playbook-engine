@@ -7,15 +7,16 @@ PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
-CURRENT_BLOCKER=FINAL_SECOND_PASS_EXECUTION_AND_FGH_REPAIR_CLOSURE
-CURRENT_WORK_PACKAGE=POST_CDF_E_CORE_REPAIR_EXIT_ROUND_R1
-CURRENT_WORK_PACKAGE_STATUS=THREE_LANES_READY
-CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/POST_CDF_E_CORE_GOVERNANCE_REVIEW_AND_REPAIR_EXIT_PLAN_V0_1.md
+CURRENT_BLOCKER=R2_EXECUTION_AND_FINAL_SECOND_PASS_CLOSURE
+CURRENT_WORK_PACKAGE=POST_R1_REVIEW_R2_EXECUTION
+CURRENT_WORK_PACKAGE_STATUS=THREE_DS_LANES_READY_CODEX_RESERVED_FOR_FGH
+CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/POST_R1_REVIEW_AND_R2_EXECUTION_PLAN_V0_1.md
+OWNER_DECISION_AUTHORITY=docs/reviews/PACKAGE_E_OWNER_DECISION_APPROVAL_2026-08-20.md
 SECOND_PASS_AUDIT_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md
-OWNER_ACTION=RUN_R1_NOW_AND_RESOLVE_FOUR_OWNER_GATES
+OWNER_ACTION=RUN_R2_DS_LANES_NOW
 ```
 
-Package A/B are integrated on main. Package C/D/F corrected branches have passed project-brain review and their combined integration branch has passed the worker combined regression; it is ready for final main-path integration. Package E-Core has passed project-brain code review and is ready for integration with accepted D-05 plus E-10. E-Governance research is accepted as decision input.
+Package A/B are integrated on main. The R1 combined branch contains reviewed C/D/F + E-Core + E-10 and passed 478 full tests; it now needs only latest-main authority sync/regression before final main integration. E-06 evidence collection and the F/G/H Codex rebuild preparation have passed project-brain review.
 
 ## Binding research / access boundary
 
@@ -24,8 +25,6 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 SOURCE_CLAIM != PROJECT_AI_INTERPRETATION != MACHINE_OPERATIONALIZATION
 UNKNOWN_OVER_GUESSING=REQUIRED
-EXACTLY_ONE_SOURCE_JUSTIFIED_PRIMARY_BEFORE_ANY_FUTURE_OUTCOME_TEST=REQUIRED
-AMBIGUOUS_PRIMARY=STOP
 RESEARCH_PROTOCOL_VERSION=1.0
 RESEARCH_PROTOCOL_STATUS=FROZEN_BINDING
 CHRONOLOGICAL_SPLIT_STATUS=FROZEN_12_6_6
@@ -41,63 +40,64 @@ PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 
 No project-recorded real candidate outcome exposure has been established.
 
-## Accepted foundation on main
+## Accepted foundation / reviewed R1
 
 ```text
 PACKAGE_A_STATUS=INTEGRATED_ACCEPTED_WITH_EXPLICIT_RESIDUAL_BOUNDARY
 PACKAGE_B_STATUS=INTEGRATED_ACCEPTED
+R1_BRANCH=integration/r1-cdf-ecore-e10-v01
+R1_PROJECT_BRAIN_REVIEW=PASS_READY_FOR_FINAL_MAIN_SYNC
+R1_FULL_TESTS=478_OK
+R1_COMPILEALL=OK
+R1_DIFF_CHECK=OK
+R1_PRODUCTION_REPAIR_REOPEN_REQUIRED=NO
+```
+
+R1 preserves Package A/B firewall invariants and combines:
+
+```text
+PACKAGE_C=CLAIM_LEVEL_PRIMARY_AND_MACHINE_READY_PLAYBOOK_BINDING
+PACKAGE_D=CANONICAL_COMPLETENESS_PROVENANCE_AND_CONTENT_DERIVED_SESSION_IDENTITY
+PACKAGE_F=MATERIAL_BOUND_SOURCE_ONLY_EVIDENCE
+E01_E02_E03_E09_E11_E12_E13=REPAIRED
+E10=SESSION_METADATA_AUTHORITY_BOUND_IN_ROUND_TRIP_IDENTITY
+```
+
+Residual foundation boundaries remain explicit:
+
+```text
 SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN
 LOCAL_STATE_TAMPER_PROOFING=NO
 VALIDATION_ROW_TO_CANONICAL_ARTIFACT_BYTE_PROVENANCE=NOT_YET_PROVEN
 ```
 
-## C / D / F combined integration
+## Binding Owner-approved Package E semantics
 
 ```text
-CDF_INTEGRATION_BRANCH=integration/cdf-final-v01
-CDF_PROJECT_BRAIN_REVIEW=PASS_READY_FOR_MAIN_INTEGRATION
-CDF_WORKER_FOCUSED_TESTS=260_OK
-CDF_WORKER_FULL_TESTS=451_OK
-CDF_COMPILEALL=OK
-CDF_DIFF_CHECK=OK
-CDF_CONFLICT_MARKERS=NONE
-PACKAGE_C_INVARIANTS=PRESERVED
-PACKAGE_D_INVARIANTS=PRESERVED
-PACKAGE_F_INVARIANTS=PRESERVED
-PACKAGE_A_B_INVARIANTS=PRESERVED
+E04_STATUS=OWNER_APPROVED_BINDING
+E04_RULE=OPTION_C_EXPLICIT_BUCKET_CHILD_ORDERS
+E05_STATUS=OWNER_APPROVED_BINDING
+E05_RULE=PER_MEMBER_RESOLVED_CONTRACT_ASSUMPTIONS
+E07_STATUS=OWNER_APPROVED_BINDING
+E07_RULE=SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_APPLIED_TO_CANONICAL_CONCRETE_BARS
+E08_STATUS=OWNER_APPROVED_BINDING
+E08_RULE=AVAILABLE_CAPITAL_ONLY
+OWNER_GATES_E04_E05_E07_E08=RESOLVED
 ```
 
-Important accepted semantics include claim-level PRIMARY and machine-ready Playbook registration; Playbook->Strategy bridge equivalence; canonical completeness/provenance and PASS-only storage admission; material-bound SOURCE_ONLY bundle/session/claim provenance; historical source bytes are not retroactively upgraded.
+The approved E-07 rule never authorizes pseudo-main price bars in the canonical corpus and never permits an outcome-tuned replacement mapping. If a complete source-governed historical TqSdk mapping cannot be obtained under the free/public/no-login source policy or cannot be provenance-bound, E-07 must fail closed and return to the Owner.
 
-## Package E current state
+## E-06 evidence status
 
 ```text
-PACKAGE_E_CORE_BRANCH=repair/package-e-core-execution-v01
-PACKAGE_E_CORE_REVIEW=PASS_READY_FOR_COMBINED_INTEGRATION
-E01=REPAIRED_ON_BRANCH
-E02=REPAIRED_ON_BRANCH
-E03=REPAIRED_ON_BRANCH
-E09=REPAIRED_ON_BRANCH
-E11=REPAIRED_ON_BRANCH
-E12=REPAIRED_ON_BRANCH
-E13=REPAIRED_ON_BRANCH_BOOTSTRAP_SCOPE_ONLY
-E10=NEXT_AFTER_ACCEPTED_D05
+E06_BRANCH=research/e06-official-fee-margin-evidence-v01
+E06_PROJECT_BRAIN_REVIEW=ACCEPTED_EVIDENCE_WITH_GAPS
+E06_FINAL_JUDGMENT=PARTIALLY_BUILDABLE_WITH_GAPS
+E06_EXCHANGE_LEVEL_SCHEDULE=INSUFFICIENT_EVIDENCE
+CURRENT_RATE_BACKFILL=FORBIDDEN
 ```
 
-Governance research:
-
-```text
-E04_STATUS=OWNER_DECISION_REQUIRED
-E05_STATUS=OWNER_DECISION_REQUIRED
-E06_STATUS=INSUFFICIENT_EVIDENCE
-E07_STATUS=OWNER_DECISION_REQUIRED
-E08_STATUS=OWNER_DECISION_REQUIRED
-E06_HISTORICAL_REALISTIC_FEE_MARGIN_SCHEDULE=NOT_ESTABLISHED
-E07_MAPPING_RULE_ALREADY_FROZEN=NO
-E08_RESOURCE_RULE_ALREADY_FROZEN=NO
-```
-
-No worker may silently choose E-04/E-05/E-07/E-08. E-06 current rates must not be backfilled into 2024-2025.
+Official contract-text minimum transaction margins are bound for cu/al/ni/au/ag/rb and one exact AU2506 fee point is bound for 2025-04-23. A complete 2024-2025 exchange-level fee/margin point-in-time schedule is not established. This is now an explicit governed evidence prerequisite, not permission to fabricate or backfill values.
 
 ## Canonical data status
 
@@ -113,79 +113,73 @@ CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
 CANONICAL_PRICE_VALUES_REVOKED=NO
 CANONICAL_CORPUS_REBUILT_DURING_SECOND_PASS=NO
 CANONICAL_ACCEPTANCE_REWRITTEN_DURING_SECOND_PASS=NO
-CONCRETE_CONTRACT_RESEARCH_MAPPING_RULE=NOT_FROZEN
-HISTORICAL_REALISTIC_MARGIN_FEE_AUTHORITY=NOT_IMPLEMENTED_FOR_CANDIDATE_QUALITY
+CONCRETE_CONTRACT_RESEARCH_MAPPING_RULE=OWNER_APPROVED_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING
+HISTORICAL_REALISTIC_MARGIN_FEE_AUTHORITY=INCOMPLETE_GOVERNED_PREREQUISITE
 ```
 
 Package D repairs do not establish that accepted OHLC values are numerically wrong. Legacy session identity requires explicit revalidation/rebuild; there is no automatic migration.
 
-## Human Playbook / old F-G-H
+## F/G/H rebuild status
 
 ```text
-RASCHKE_HOLY_GRAIL=SOURCE_SEMANTICALLY_DRAFTABLE_NOT_MACHINE_READY
-PRIMARY_FREEZE_READY=NO
-CURRENT_PROJECT_PRODUCT_TRANSFER=INFERRED
-OLD_HOLY_GRAIL_F_BRANCH=NOT_MERGED
-OLD_FEATURE_G_BRANCH=NOT_MERGED
-OLD_STOP_H_BRANCH=NOT_MERGED
+FGH_PREP_BRANCH=prep/fgh-codex-rebuild-v01
+FGH_PREP_PROJECT_BRAIN_REVIEW=ACCEPTED_CONSTRUCTION_AUTHORITY
+FGH_UNAMBIGUOUS_IMPLEMENTATION_FIXES=12
+FGH_SOURCE_SEMANTIC_PREREQUISITES=2
+FGH_OWNER_GATED_CAUSAL_CHOICES=4
+OLD_FGH_DIRECT_MERGE=FORBIDDEN
 OLD_F_G_H_REBUILD=HIGHEST_REMAINING_CROSS_MODULE_IMPLEMENTATION_DIFFICULTY
 CODEX_PRIORITY=OLD_F_G_H_REBUILD_AND_COMBINED_CAUSAL_TIMING_INTEGRATION
+RASCHKE_HOLY_GRAIL=SOURCE_SEMANTICALLY_DRAFTABLE_NOT_MACHINE_READY
+PRIMARY_FREEZE_READY=NO
 ```
 
-## Repair-exit plan
+Unresolved Holy Grail semantic choices remain normal governed research prerequisites. Workers/Codex may rebuild generic feature/trigger machinery and port the draft while keeping it NOT_MACHINE_READY; they may not silently freeze those semantic choices.
 
-Repair mode ends when every second-pass finding is either fixed/tested or converted into an explicit governed prerequisite / Owner-gated semantic that cannot be silently bypassed. Candidate outcome access can remain locked after repair mode ends.
-
-Expected remaining path, absent a new critical integration defect:
+## R2 current lanes
 
 ```text
-ROUND_R1_NOW=
-  CDF + E-Core combined integration
-  + E-10 using accepted D-05 SessionMetadata identity
-  + E-06 bounded official evidence collection
-  + Owner decisions E-04/E-05/E-07/E-08
-
-ROUND_R2=
-  implement Owner-approved E-04/E-05/E-07/E-08
-  + rebuild/correct old F-G-H against repaired foundation
-  + combined causal regression
-
-FINAL_CLOSURE=
-  full second-pass closure audit
-  + only bounded corrections for concrete blockers
-```
-
-Planning expectation: two substantive repair rounds plus one final closure audit. This is not a guarantee that the final audit finds zero minor defects; another open-ended audit/repair loop is not the planned default.
-
-## Current three lanes
-
-```text
-LANE_1=INTEGRATE_CDF_E_CORE_AND_IMPLEMENT_E10
-LANE_2=E06_OFFICIAL_HISTORICAL_FEE_MARGIN_EVIDENCE_COLLECTION
-LANE_3=FGH_REBUILD_PREPARATION_NOW_THEN_CODEX_EXECUTION_WHEN_AVAILABLE
-MAX_ACTIVE_LANES=3
+LANE_1=R1_FINAL_MAIN_AUTHORITY_SYNC_PLUS_E06_FGH_PREP_ARTIFACT_INTEGRATION
+LANE_2=IMPLEMENT_OWNER_APPROVED_E04_E05_E08
+LANE_3=E07_TQSDK_HISTORICAL_MAIN_MAPPING_PROVENANCE_ACQUISITION
+MAX_ACTIVE_DS_LANES=3
 MAIN=SOLE_FINAL_INTEGRATION_AUTHORITY
 TOOL_DECISION=USE_EXISTING
 NEW_TOOL_REQUIRED=NO
 ```
 
-Do not idle waiting for Codex. Use current workers for deterministic integration/E-10 and E-06 evidence work; reserve Codex for the old F/G/H rebuild and combined causal-timing integration when quota becomes available.
+Do not idle waiting for Codex quota. DS completes the three R2 lanes now. When Codex quota is available, reserve it for F/G/H rebuild on the latest accepted R2 foundation rather than ordinary merges, evidence inventory, or documentation.
+
+## Repair-exit plan
+
+Repair mode ends after:
+
+```text
+1. R1 final main sync/integration accepted;
+2. E04/E05/E08 approved semantics implemented/tested;
+3. E07 mapping provenance either established or an explicit fail-closed prerequisite recorded;
+4. E06 remains explicit evidence prerequisite with no fabricated backfill;
+5. F/G/H generic rebuild and combined synthetic causal regression accepted;
+6. one final second-pass closure audit finds no new critical structural blocker.
+```
+
+Holy Grail may remain NOT_MACHINE_READY after repair mode ends because explicit unresolved semantic choices are research prerequisites, not repair defects, provided they cannot be bypassed.
+
+Planning expectation remains: R2 is the last substantive deterministic repair round; F/G/H Codex rebuild is the final hard implementation package; then one closure audit. Open-ended repair loops are not the planned default.
 
 ## Progress estimate
 
 ```text
 PLANNING_ESTIMATE_ONLY=YES
 ACCEPTED_MAIN_OVERALL_ENGINEERING_PROGRESS=ABOUT_59_PERCENT
-INCLUDING_PROJECT_BRAIN_REVIEWED_READY_UNMERGED_WORK=ABOUT_66_PERCENT
-RESEARCH_AND_VALIDATION_FOUNDATION_INCLUDING_REVIEWED_READY_WORK=ABOUT_82_PERCENT
+INCLUDING_PROJECT_BRAIN_REVIEWED_READY_UNMERGED_WORK=ABOUT_68_PERCENT
+RESEARCH_AND_VALIDATION_FOUNDATION_INCLUDING_REVIEWED_READY_WORK=ABOUT_84_PERCENT
 ```
-
-The accepted-main percentage does not count CDF/E-Core until final integrated-tree regression is accepted.
 
 ## Current next action
 
 ```text
-CURRENT_NEXT_ACTION=RUN_R1_WITHOUT_WAITING_FOR_CODEX
+CURRENT_NEXT_ACTION=RUN_R2_DS_LANES_NOW_THEN_CODEX_FGH_ON_ACCEPTED_R2_FOUNDATION
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
