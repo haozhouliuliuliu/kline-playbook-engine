@@ -663,5 +663,267 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
         self.assertEqual([record.event_type for record in ledger.records], ["DATASET_ACCESS_DENIED"])
 
 
+class ForcedLiquidationCrossDayOffsetRepairTests(unittest.TestCase):
+    """E-02 / E-03: forced liquidation may cross to the next official trading
+    day (with ordinary bucket aging) and must resolve close-today/close-previous
+    offset fees against the effective buckets with a fail-closed identity check."""
+
+    DAY_1 = date(2024, 6, 17)
+    DAY_2 = date(2024, 6, 18)
+    DAY_3 = date(2024, 6, 19)
+
+    def setUp(self):
+        self.strategy = make_strategy(
+            research_lineage_id="package-e-contract-lineage-fixture",
+            family_id="neutral-package-e-contract-family",
+            source="deterministic-synthetic-contract-fixture",
+            applicable_instruments=("A",),
+            data_exposure_history_reference="package-e-contract-exposure-fixture-v1",
+        )
+        self.experiment = make_experiment(
+            self.strategy,
+            dataset_exposure_reference="package-e-contract-exposure-fixture-v1",
+        )
+        self.execution_assumptions = ExecutionAssumptions(
+            "package-e-contract-execution-v1", Decimal("0"), Decimal("0.25")
+        )
+        self.capital_assumptions = CapitalMarginAssumptions(
+            "package-e-contract-capital-v1", Decimal("1"), Decimal("0.1"), "SYNTH", Decimal("0.05")
+        )
+        self.offset_costs = OffsetCostAssumptions(
+            "package-e-offset-v1", Decimal("1"), Decimal("2")
+        )
+        self.contract_a = ContractSpecification(
+            exchange="SYNTH_EX",
+            product_family="SYNTH_PRODUCT",
+            instrument_id="A",
+            listed_at=at(self.DAY_1, 8, 0),
+            deactivated_at=at(self.DAY_3, 0, 0),
+            contract_multiplier=Decimal("1"),
+            minimum_price_tick=Decimal("0.5"),
+            currency="SYNTH",
+            unit="SYNTH_UNIT",
+            price_limit_rule_identity="synthetic-limit-rule-v1",
+            offset_fee_metadata_identity=self.offset_costs.identity_id,
+            metadata_version="synthetic-contract-metadata-v1",
+        )
+        self.master = ContractMaster("synthetic-master-v1", (self.contract_a,))
+        self.mapping_a = ContractMappingEntry(
+            "SYNTH_MAIN",
+            "A",
+            at(self.DAY_1, 8, 0),
+            at(self.DAY_3, 0, 0),
+            at(self.DAY_1, 8, 0),
+            "synthetic-roll-v1",
+        )
+        self.schedule = ContractMappingSchedule(
+            "synthetic-schedule-v1", ("SYNTH_MAIN",), (self.mapping_a,)
+        )
+        self.sessions = SessionMetadata(
+            "synthetic-contract-sessions-v1",
+            (
+                SessionWindow("SYNTH_EX", "A", self.DAY_1, at(self.DAY_1, 9, 0), at(self.DAY_1, 11, 0), "DAY"),
+                SessionWindow("SYNTH_EX", "A", self.DAY_2, at(self.DAY_1, 21, 0), at(self.DAY_1, 23, 0), "NIGHT"),
+            ),
+        )
+        self.limit_facts = (
+            PriceLimitFact(
+                "limit-A-d1", "A", self.contract_a.identity_id, self.DAY_1,
+                Decimal("30"), Decimal("120"), at(self.DAY_1, 8, 50), at(self.DAY_1, 8, 50),
+                "synthetic-limit-rule-v1", False,
+            ),
+            PriceLimitFact(
+                "limit-A-d2", "A", self.contract_a.identity_id, self.DAY_2,
+                Decimal("30"), Decimal("120"), at(self.DAY_1, 20, 50), at(self.DAY_1, 20, 50),
+                "synthetic-limit-rule-v1", False,
+            ),
+        )
+
+    def observation(self, request_id, timestamp, price, contract="A"):
+        return ExecutionObservation(
+            request_id, timestamp, timestamp, Decimal(price), concrete_contract_id=contract
+        )
+
+    def run_case(
+        self,
+        inputs,
+        observations,
+        specifications,
+        *,
+        mark=None,
+        liquidation_observations=(),
+        cutoff=None,
+        starting_capital=Decimal("20"),
+        offset_costs=None,
+    ):
+        ledger = EvidenceLedger()
+        firewall, hypothesis_test_id = build_synthetic_firewall(
+            ledger, self.strategy, self.experiment
+        )
+        runner = ChronologicalValidationRunner(ledger, firewall)
+        result = runner.run(
+            mode=ValidationMode.CONFIRMATORY,
+            strategy=self.strategy,
+            experiment=self.experiment,
+            dataset_class=DatasetClass.DEVELOPMENT,
+            inputs=inputs,
+            disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=hypothesis_test_id,
+            execution_observations=observations,
+            execution_cutoff_at=(
+                cutoff if cutoff is not None else inputs[-1].decision_at + timedelta(minutes=30)
+            ),
+            execution_assumptions=self.execution_assumptions,
+            order_specifications=specifications,
+            capital_snapshot=CapitalSnapshot(starting_capital),
+            capital_margin_assumptions=self.capital_assumptions,
+            contract_master=self.master,
+            contract_mapping_schedule=self.schedule,
+            session_metadata=self.sessions,
+            price_limit_facts=self.limit_facts,
+            offset_cost_assumptions=self.offset_costs if offset_costs is None else offset_costs,
+            mark_observations=() if mark is None else (mark,),
+            forced_liquidation_observations=tuple(liquidation_observations),
+        )
+        return result
+
+    def open_breach_liquidation(self, *, liquidation_at, starting_capital=Decimal("20"), offset_costs=None):
+        """Run OPEN -> breach mark -> forced liquidation and return the result."""
+        opening_input = make_input("open-1", "A", self.DAY_1, at(self.DAY_1, 9, 5))
+        opening_observation = self.observation("open-1", at(self.DAY_1, 9, 6), "100")
+        opening_spec = OrderSpecification("open-1", Decimal("1"))
+        opened = self.run_case(
+            (opening_input,),
+            (opening_observation,),
+            (opening_spec,),
+            starting_capital=starting_capital,
+            offset_costs=offset_costs,
+        )
+        snapshot = opened.final_capital_snapshot
+        mark = MarkObservation(
+            "breach-mark",
+            snapshot.position_id,
+            snapshot.position_request_id,
+            "A",
+            at(self.DAY_1, 10, 50),
+            at(self.DAY_1, 10, 50),
+            Decimal("40"),
+        )
+        breached = self.run_case(
+            (opening_input,),
+            (opening_observation,),
+            (opening_spec,),
+            mark=mark,
+            cutoff=at(self.DAY_1, 21, 30),
+            starting_capital=starting_capital,
+            offset_costs=offset_costs,
+        )
+        requirement = breached.liquidation_requirement
+        self.assertIsNotNone(requirement)
+        observation = self.observation(requirement.request_id, liquidation_at, "39")
+        return self.run_case(
+            (opening_input,),
+            (opening_observation,),
+            (opening_spec,),
+            mark=mark,
+            liquidation_observations=(observation,),
+            cutoff=liquidation_at + timedelta(minutes=30),
+            starting_capital=starting_capital,
+            offset_costs=offset_costs,
+        )
+
+    def test_today_only_forced_liquidation_resolves_close_today_fee(self):
+        # Breach and liquidation both on DAY_1: today=1, previous=0.
+        result = self.open_breach_liquidation(liquidation_at=at(self.DAY_1, 10, 55))
+        outcome = result.liquidation_outcome.execution_outcome
+        transition = result.liquidation_outcome.capital_transition
+        self.assertEqual(outcome.status, FillStatus.FILLED)
+        self.assertEqual(outcome.total_cost, Decimal("1.25"))  # 0.25 fee + 1.00 close-today
+        self.assertEqual(outcome.resolved_close_offset, CloseOffset.CLOSE_TODAY)
+        self.assertEqual(outcome.offset_cost_assumption_id, self.offset_costs.identity_id)
+        self.assertEqual(transition.required_cost, Decimal("1.25"))
+        self.assertEqual(transition.resolved_close_offset, CloseOffset.CLOSE_TODAY)
+        self.assertEqual(transition.aged_quantity, Decimal("0"))
+
+    def test_d1_to_d2_aging_forced_liquidation_resolves_close_previous_fee(self):
+        # Breach at DAY_1 session tail; liquidation on DAY_2 night (official
+        # DAY_2).  The today bucket ages to previous, so the whole position is
+        # closed as CLOSE_PREVIOUS with the close-previous fee.
+        result = self.open_breach_liquidation(liquidation_at=at(self.DAY_1, 21, 5))
+        outcome = result.liquidation_outcome.execution_outcome
+        transition = result.liquidation_outcome.capital_transition
+        self.assertEqual(outcome.status, FillStatus.FILLED)
+        self.assertEqual(outcome.total_cost, Decimal("2.25"))  # 0.25 fee + 2.00 close-previous
+        self.assertEqual(outcome.resolved_close_offset, CloseOffset.CLOSE_PREVIOUS)
+        self.assertEqual(outcome.offset_cost_assumption_id, self.offset_costs.identity_id)
+        self.assertEqual(transition.required_cost, Decimal("2.25"))
+        self.assertEqual(transition.resolved_close_offset, CloseOffset.CLOSE_PREVIOUS)
+        # E-02: the full DAY_1 today bucket aged to previous exactly once.
+        self.assertEqual(transition.aged_quantity, Decimal("1"))
+        self.assertEqual(result.final_capital_snapshot.charged_costs, Decimal("2.50"))
+
+    def test_mixed_bucket_forced_liquidation_resolves_full_close_fee(self):
+        # OPEN 1 @100 on DAY_1 (today=1), ADD 1 @102 on DAY_2 night (today->1
+        # previous, then +1 today), then breach and full liquidation on DAY_2.
+        # Effective today=1, previous=1 -> CLOSE with close-today + close-previous.
+        opening_input = make_input("open-1", "A", self.DAY_1, at(self.DAY_1, 9, 5))
+        opening_observation = self.observation("open-1", at(self.DAY_1, 9, 6), "100")
+        opening_spec = OrderSpecification("open-1", Decimal("1"))
+        add_input = make_input("add-1", "A", self.DAY_2, at(self.DAY_1, 21, 5))
+        add_observation = self.observation("add-1", at(self.DAY_1, 21, 6), "102")
+        add_spec = OrderSpecification("add-1", Decimal("1"))
+        inputs = (opening_input, add_input)
+        observations = (opening_observation, add_observation)
+        specifications = (opening_spec, add_spec)
+        dry_run = self.run_case(inputs, observations, specifications, starting_capital=Decimal("100"))
+        snapshot = dry_run.final_capital_snapshot
+        self.assertEqual(snapshot.today_quantity, Decimal("1"))
+        self.assertEqual(snapshot.previous_quantity, Decimal("1"))
+        mark = MarkObservation(
+            "breach-mark",
+            snapshot.position_id,
+            snapshot.position_request_id,
+            "A",
+            at(self.DAY_1, 21, 10),
+            at(self.DAY_1, 21, 10),
+            Decimal("40"),
+        )
+        breached = self.run_case(
+            inputs, observations, specifications, mark=mark, starting_capital=Decimal("100")
+        )
+        requirement = breached.liquidation_requirement
+        self.assertIsNotNone(requirement)
+        observation = self.observation(requirement.request_id, at(self.DAY_1, 21, 12), "39")
+        result = self.run_case(
+            inputs,
+            observations,
+            specifications,
+            mark=mark,
+            liquidation_observations=(observation,),
+            cutoff=at(self.DAY_1, 21, 30),
+            starting_capital=Decimal("100"),
+        )
+        outcome = result.liquidation_outcome.execution_outcome
+        transition = result.liquidation_outcome.capital_transition
+        self.assertEqual(outcome.status, FillStatus.FILLED)
+        self.assertEqual(outcome.total_cost, Decimal("3.25"))  # 0.25 + 1*1 + 1*2
+        self.assertEqual(outcome.resolved_close_offset, CloseOffset.CLOSE)
+        self.assertEqual(transition.required_cost, Decimal("3.25"))
+        self.assertEqual(transition.resolved_close_offset, CloseOffset.CLOSE)
+        # No further aging: the liquidation observation is on the position day.
+        self.assertEqual(transition.aged_quantity, Decimal("0"))
+        # OPEN 0.25 + ADD 0.25 + liquidation 3.25 charged exactly once.
+        self.assertEqual(result.final_capital_snapshot.charged_costs, Decimal("3.75"))
+
+    def test_forced_liquidation_offset_assumption_mismatch_fails_closed(self):
+        mismatched = OffsetCostAssumptions("package-e-offset-mismatch-v1", Decimal("9"), Decimal("9"))
+        self.assertNotEqual(mismatched.identity_id, self.offset_costs.identity_id)
+        with self.assertRaisesRegex(ValueError, "offset-cost assumption identity is inconsistent"):
+            self.open_breach_liquidation(
+                liquidation_at=at(self.DAY_1, 10, 55),
+                offset_costs=mismatched,
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

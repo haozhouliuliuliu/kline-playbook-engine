@@ -1,9 +1,10 @@
 import inspect
 import unittest
 from decimal import Decimal
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from src.contract_semantics import OrderAction, PositionDirection
 from src.data_substrate import CompletedBar
 from src.research_firewall import TEST_ONLY_SYNTHETIC_DATA_VERSION
 from src.strategy_evidence import DatasetClass, EvidenceLedger, ExperimentIdentity
@@ -14,6 +15,7 @@ from src.validation_runner import (
     ChronologyError,
     ExecutionAssumptions,
     ExecutionObservation,
+    ExecutionOutcome,
     FillStatus,
     OrderSpecification,
     ValidationDisposition,
@@ -306,6 +308,179 @@ class ValidationRunnerTests(unittest.TestCase):
         self.assertIsNone(result.validation_record)
         self.assertEqual(result.access_record.event_type, "DATASET_ACCESS_DENIED")
         self.assertEqual(len(self.ledger.records), 1)
+
+
+class PackageECoreExecutionRepairTests(unittest.TestCase):
+    """E-01: after an ADD fill, unrealized PnL is re-marked at the fill price.
+
+    The earlier tranche's unrealized PnL at the new fill price plus the new
+    tranche's zero is exactly (fill - new average) * next_quantity, so the
+    equity path never passes through a spurious intermediate zero.  A fresh
+    OPEN still starts at zero unrealized PnL.
+    """
+
+    def setUp(self):
+        self.strategy = make_strategy(
+            research_lineage_id="package-e-lineage-fixture",
+            family_id="neutral-package-e-family",
+        )
+        self.experiment = make_experiment(self.strategy)
+        # Zero slippage/fee keeps the E-01 fill arithmetic exact.
+        self.execution_assumptions = ExecutionAssumptions(
+            "package-e-execution-v1", Decimal("0"), Decimal("0")
+        )
+        self.capital_assumptions = CapitalMarginAssumptions(
+            "package-e-capital-v1", Decimal("1"), Decimal("0.1"), "SYNTH"
+        )
+
+    def run_orders(self, prices, quantities, actions, directions):
+        """Run a deterministic multi-order OPEN/ADD lifecycle through the runner."""
+        ledger = EvidenceLedger()
+        firewall, hypothesis_test_id = build_synthetic_firewall(
+            ledger, self.strategy, self.experiment
+        )
+        runner = ChronologicalValidationRunner(ledger, firewall)
+        inputs = []
+        observations = []
+        specifications = []
+        for index, (price, quantity, action, direction) in enumerate(
+            zip(prices, quantities, actions, directions)
+        ):
+            request_id = f"request-{index + 1}"
+            decision_at = at(9, 5) + timedelta(minutes=2 * index)
+            inputs.append(
+                make_validation_input(
+                    request_id,
+                    CompletedBar(
+                        "TEST",
+                        DAY,
+                        decision_at - timedelta(minutes=5),
+                        decision_at,
+                        decision_at,
+                    ),
+                    decision_at,
+                    data_version=self.experiment.data_version,
+                )
+            )
+            observations.append(
+                ExecutionObservation(
+                    request_id,
+                    decision_at + timedelta(minutes=1),
+                    decision_at + timedelta(minutes=1),
+                    Decimal(price),
+                )
+            )
+            specifications.append(
+                OrderSpecification(
+                    request_id,
+                    Decimal(quantity),
+                    action=action,
+                    direction=direction,
+                )
+            )
+        return runner.run(
+            mode=ValidationMode.CONFIRMATORY,
+            strategy=self.strategy,
+            experiment=self.experiment,
+            dataset_class=DatasetClass.DEVELOPMENT,
+            inputs=tuple(inputs),
+            disposition=ValidationDisposition.CONFIRMED,
+            hypothesis_test_id=hypothesis_test_id,
+            execution_observations=tuple(observations),
+            execution_cutoff_at=at(9, 30),
+            execution_assumptions=self.execution_assumptions,
+            order_specifications=tuple(specifications),
+            capital_snapshot=CapitalSnapshot(Decimal("100")),
+            capital_margin_assumptions=self.capital_assumptions,
+        )
+
+    def test_long_add_remarks_unrealized_pnl_at_fill_price(self):
+        result = self.run_orders(
+            prices=(100, 110),
+            quantities=(1, 1),
+            actions=(OrderAction.OPEN, OrderAction.OPEN),
+            directions=(PositionDirection.LONG, PositionDirection.LONG),
+        )
+        final = result.final_capital_snapshot
+        self.assertEqual(final.position_quantity, Decimal("2"))
+        self.assertEqual(final.average_open_price, Decimal("105"))
+        # (110 - 105) * 2 * multiplier(1) = +10, never a spurious zero.
+        self.assertEqual(final.unrealized_pnl, Decimal("10"))
+
+    def test_short_add_remarks_unrealized_pnl_at_fill_price(self):
+        result = self.run_orders(
+            prices=(100, 90),
+            quantities=(1, 1),
+            actions=(OrderAction.OPEN, OrderAction.OPEN),
+            directions=(PositionDirection.SHORT, PositionDirection.SHORT),
+        )
+        final = result.final_capital_snapshot
+        self.assertEqual(final.position_quantity, Decimal("2"))
+        self.assertEqual(final.average_open_price, Decimal("95"))
+        # SHORT: (95 - 90) * 2 * multiplier(1) = +10.
+        self.assertEqual(final.unrealized_pnl, Decimal("10"))
+
+    def test_fresh_open_still_starts_at_zero_unrealized_pnl(self):
+        result = self.run_orders(
+            prices=(100,),
+            quantities=(1,),
+            actions=(OrderAction.OPEN,),
+            directions=(PositionDirection.LONG,),
+        )
+        final = result.final_capital_snapshot
+        self.assertEqual(final.position_quantity, Decimal("1"))
+        self.assertEqual(final.unrealized_pnl, Decimal("0"))
+
+    def test_add_after_marked_position_does_not_clear_unrealized_pnl(self):
+        # Reproduction state space: the marked position carries +10 unrealized
+        # (marked at 110) with the mark reference unset, then ADD 1 @110.  The
+        # ADD branch must re-mark at the fill price, never clear to zero.
+        current = CapitalSnapshot(
+            starting_capital=Decimal("100"),
+            reserved_margin=Decimal("10"),
+            unrealized_pnl=Decimal("10"),
+            position_quantity=Decimal("1"),
+            average_open_price=Decimal("100"),
+            position_instrument="TEST",
+            position_id="e01-pos",
+            position_request_id="open-1",
+            execution_assumption_id=self.execution_assumptions.identity_id,
+            capital_assumption_id=self.capital_assumptions.identity_id,
+            state_at=at(9, 6),
+            today_quantity=Decimal("1"),
+            previous_quantity=Decimal("0"),
+            position_direction=PositionDirection.LONG,
+        )
+        outcome = ExecutionOutcome(
+            "add-1",
+            FillStatus.FILLED,
+            at(9, 11),
+            self.execution_assumptions.identity_id,
+            Decimal("110"),
+            Decimal("0"),
+            "TRADABLE_OBSERVATION",
+        )
+        specification = OrderSpecification(
+            "add-1", Decimal("1"), action=OrderAction.OPEN, direction=PositionDirection.LONG
+        )
+        item = make_validation_input(
+            "add-1",
+            CompletedBar("TEST", DAY, at(9, 0), at(9, 10), at(9, 10)),
+            at(9, 10),
+            data_version=self.experiment.data_version,
+        )
+        _, transitions = ChronologicalValidationRunner._apply_capital_constraints(
+            (outcome,),
+            (specification,),
+            (item,),
+            current,
+            self.capital_assumptions,
+            self.execution_assumptions,
+        )
+        after = transitions[0].after
+        self.assertEqual(after.position_quantity, Decimal("2"))
+        self.assertEqual(after.average_open_price, Decimal("105"))
+        self.assertEqual(after.unrealized_pnl, Decimal("10"))
 
 
 if __name__ == "__main__":

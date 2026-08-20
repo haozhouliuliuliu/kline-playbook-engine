@@ -45,7 +45,17 @@ def _required_text(value: str, name: str) -> None:
 
 @dataclass(frozen=True)
 class GovernedSource:
-    """Binding metadata for one official source artifact (or explicit pending)."""
+    """Binding metadata for one official source artifact (or explicit pending).
+
+    ``artifact_sha256`` is retained as the single-hash convenience form;
+    ``artifact_sha256s`` may bind one or more additional exact artifact SHA256
+    values.  Every exact hash participates in the source identity, so changing
+    a bound byte hash changes the source identity.  ``OFFICIAL_AVAILABLE`` /
+    ``ARCHIVED_OFFICIAL`` classifications are legal only when at least one
+    exact artifact hash is bound; sources whose exact bytes are not presently
+    recorded must be explicitly ``OFFICIAL_PARTIAL`` or
+    ``PENDING_OFFICIAL_BINDING`` and can never pretend to be exact-byte-bound.
+    """
 
     resource_identity: str
     url: str
@@ -55,6 +65,7 @@ class GovernedSource:
     classification: str
     effective_period_start: date
     effective_period_end: date
+    artifact_sha256s: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         for value, name in (
@@ -68,6 +79,11 @@ class GovernedSource:
             raise ValueError("governed source retrieval timestamp must be timezone-aware")
         if self.artifact_sha256 is not None and not _SHA256.fullmatch(self.artifact_sha256):
             raise ValueError("governed source artifact SHA256 must be 64 lowercase hex characters")
+        if not isinstance(self.artifact_sha256s, tuple):
+            raise ValueError("governed source artifact SHA256s must be a tuple")
+        for value in self.artifact_sha256s:
+            if not isinstance(value, str) or not _SHA256.fullmatch(value):
+                raise ValueError("governed source artifact SHA256s must be 64 lowercase hex characters")
         if self.effective_period_end < self.effective_period_start:
             raise ValueError("governed source effective period end must follow its start")
         if self.classification not in {
@@ -77,6 +93,24 @@ class GovernedSource:
             "PENDING_OFFICIAL_BINDING",
         }:
             raise ValueError("governed source classification is not recognized")
+        exact = {value for value in (self.artifact_sha256,) if value is not None}
+        exact.update(self.artifact_sha256s)
+        object.__setattr__(self, "_exact_sha256s", tuple(sorted(exact)))
+        if self.classification in {"OFFICIAL_AVAILABLE", "ARCHIVED_OFFICIAL"} and not self._exact_sha256s:
+            raise ValueError(
+                "OFFICIAL_AVAILABLE/ARCHIVED_OFFICIAL requires at least one exact artifact SHA256; "
+                "use OFFICIAL_PARTIAL or PENDING_OFFICIAL_BINDING when exact bytes are not bound"
+            )
+
+    @property
+    def exact_sha256s(self) -> tuple[str, ...]:
+        """Canonical sorted unique exact artifact SHA256 values bound here."""
+        return self._exact_sha256s
+
+    @property
+    def byte_bound(self) -> bool:
+        """True when at least one exact artifact SHA256 is bound."""
+        return bool(self._exact_sha256s)
 
     def identity(self) -> str:
         return canonical_hash(
@@ -84,7 +118,7 @@ class GovernedSource:
                 "resource_identity": self.resource_identity,
                 "url": self.url,
                 "retrieved_at": self.retrieved_at.isoformat(),
-                "artifact_sha256": self.artifact_sha256,
+                "artifact_sha256s": list(self._exact_sha256s),
                 "schema_version": self.schema_version,
                 "classification": self.classification,
                 "effective_period_start": self.effective_period_start.isoformat(),
@@ -362,7 +396,14 @@ def build_session_metadata(
     *,
     night_closed_days: frozenset[date] | None = None,
 ) -> SessionMetadata:
-    """Build the explicit SessionMetadata for one contract across trading days."""
+    """Build the explicit SessionMetadata for one contract across trading days.
+
+    The supplied authority reference deterministically binds the trading
+    calendar identity, the product session-schedule identity, the concrete
+    contract and the effective night-closed day set, so the computed
+    ``SessionMetadata.version`` changes whenever any of those authority facts
+    change (not only when the caller label changes).
+    """
     windows: list[SessionWindow] = []
     for day in sorted(trading_days):
         windows.extend(
@@ -370,7 +411,20 @@ def build_session_metadata(
                 calendar, schedule, concrete_contract, day, night_closed_days=night_closed_days
             )
         )
-    return SessionMetadata(schedule.identity(), windows)
+    closed = (
+        calendar.night_closed_trading_days
+        if night_closed_days is None
+        else frozenset(night_closed_days)
+    )
+    authority_reference = canonical_hash(
+        {
+            "calendar_identity": calendar.identity(),
+            "schedule_identity": schedule.identity(),
+            "concrete_contract": concrete_contract,
+            "night_closed_days": sorted(d.isoformat() for d in closed),
+        }
+    )
+    return SessionMetadata(authority_reference, windows)
 
 
 @dataclass(frozen=True)

@@ -159,15 +159,15 @@ class HistoricalBarNormalizationTests(unittest.TestCase):
             "completed-historical-bar-v1",
             "bar-start-plus-duration-v1",
         )
+        sessions = SessionMetadata("shfe-ni-session-v1", windows)
         data_version = DataVersionIdentity(
             (source,),
             (artifact,),
             normalizer,
-            "shfe-ni-session-v1",
+            sessions.version,
             "bar-start-plus-duration-v1",
             "ni2509-contract-v1",
         )
-        sessions = SessionMetadata("shfe-ni-session-v1", windows)
         return payload, artifact, data_version, sessions
 
     @staticmethod
@@ -226,17 +226,17 @@ class HistoricalBarNormalizationTests(unittest.TestCase):
             "completed-historical-bar-v1",
             "bar-start-plus-duration-v1",
         )
+        sessions = SessionMetadata(
+            "shfe-ni-session-v1",
+            [SessionWindow("SHFE", "SHFE.ni2509", date(2025, 6, 16), start, end, "day")],
+        )
         data_version = DataVersionIdentity(
             (source,),
             (artifact,),
             normalizer,
-            "shfe-ni-session-v1",
+            sessions.version,
             "bar-start-plus-duration-v1",
             "ni2509-contract-v1",
-        )
-        sessions = SessionMetadata(
-            "shfe-ni-session-v1",
-            [SessionWindow("SHFE", "SHFE.ni2509", date(2025, 6, 16), start, end, "day")],
         )
 
         batch = normalize_tqsdk_historical_bars(

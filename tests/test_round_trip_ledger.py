@@ -25,6 +25,7 @@ from src.validation_runner import (
     ChronologicalValidationRunner,
     ExecutionAssumptions,
     ExecutionObservation,
+    ExecutionOutcome,
     FillStatus,
     MarkObservation,
     OrderSpecification,
@@ -837,6 +838,289 @@ class RoundTripLedgerGuardTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "flat no-op"):
             RoundTripMaterializer().materialize((open_transition, bad_flat))
+
+
+class PackageECoreRepairTests(unittest.TestCase):
+    """E-09 / E-11 / E-12 round-trip ledger repair invariants."""
+
+    def test_duplicate_execution_outcome_request_id_fails_closed(self):
+        # E-09: two outcomes with the same request_id are rejected even when
+        # they differ only in cost; never last-wins / first-wins collapse.
+        pos = "e09-pos"
+        opened_at = datetime(2025, 6, 16, 9, 36, tzinfo=CN)
+        open_transition = hand_built_open(pos, state_at=opened_at, trading_day=DAY)
+        first = ExecutionOutcome(
+            "open-1", FillStatus.FILLED, opened_at, "exec-assumption-v1",
+            Decimal("101.5"), Decimal("1"), "TRADABLE_OBSERVATION",
+        )
+        second = ExecutionOutcome(
+            "open-1", FillStatus.FILLED, opened_at, "exec-assumption-v1",
+            Decimal("101.5"), Decimal("2"), "TRADABLE_OBSERVATION",
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate execution outcome request_id"):
+            RoundTripMaterializer().materialize((open_transition,), (first, second))
+
+    def test_identical_duplicate_execution_outcome_request_id_also_fails_closed(self):
+        # E-09: even two byte-identical outcomes with the same request_id are
+        # rejected; a duplicate is never silently collapsed.
+        pos = "e09-dup-identical"
+        opened_at = datetime(2025, 6, 16, 9, 36, tzinfo=CN)
+        open_transition = hand_built_open(pos, state_at=opened_at, trading_day=DAY)
+        outcome = ExecutionOutcome(
+            "open-1", FillStatus.FILLED, opened_at, "exec-assumption-v1",
+            Decimal("101.5"), Decimal("1"), "TRADABLE_OBSERVATION",
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate execution outcome request_id"):
+            RoundTripMaterializer().materialize((open_transition,), (outcome, outcome))
+
+    def test_completed_round_trips_ordered_by_chronology_not_position_id(self):
+        # E-11: z-position closes 10:00, a-position closes 11:00; chronology
+        # requires z before a even though "a" is lexically earlier.
+        a_open = hand_built_open(
+            "a-position", state_at=datetime(2025, 6, 16, 9, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_open = hand_built_open(
+            "z-position", state_at=datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_close = hand_built_close(
+            "z-position", state_at=datetime(2025, 6, 16, 10, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        a_close = hand_built_close(
+            "a-position", state_at=datetime(2025, 6, 16, 11, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        ledger = RoundTripMaterializer().materialize((a_open, z_open, z_close, a_close))
+        self.assertEqual(
+            [trip.position_id for trip in ledger.completed_round_trips],
+            ["z-position", "a-position"],
+        )
+
+    def test_completed_round_trip_tie_order_is_deterministic(self):
+        # E-11 tie case: same terminal close time -> opened_at, then position_id.
+        z_open = hand_built_open(
+            "z-position", state_at=datetime(2025, 6, 16, 9, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        a_open = hand_built_open(
+            "a-position", state_at=datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_close = hand_built_close(
+            "z-position", state_at=datetime(2025, 6, 16, 10, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        a_close = hand_built_close(
+            "a-position", state_at=datetime(2025, 6, 16, 10, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        ledger = RoundTripMaterializer().materialize((z_open, a_open, z_close, a_close))
+        # Both close at 10:00; z opened at 09:00 < a opened at 09:30 -> z first.
+        self.assertEqual(
+            [trip.position_id for trip in ledger.completed_round_trips],
+            ["z-position", "a-position"],
+        )
+
+    def test_ledger_rejects_non_chronological_completed_order(self):
+        # E-11: RoundTripLedger.__post_init__ enforces the same canonical order.
+        a_open = hand_built_open(
+            "a-position", state_at=datetime(2025, 6, 16, 9, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_open = hand_built_open(
+            "z-position", state_at=datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_close = hand_built_close(
+            "z-position", state_at=datetime(2025, 6, 16, 10, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        a_close = hand_built_close(
+            "a-position", state_at=datetime(2025, 6, 16, 11, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        ledger = RoundTripMaterializer().materialize((a_open, z_open, z_close, a_close))
+        trips = ledger.completed_round_trips
+        with self.assertRaisesRegex(ValueError, "terminal close time"):
+            RoundTripLedger(completed_round_trips=(trips[1], trips[0]))
+
+    def test_open_position_evidence_binds_ledger_identity(self):
+        # E-12: same open position id, different transition evidence -> the
+        # ledger identity differs because it binds evidence, not only the id.
+        pos = "e12-pos"
+        stream_a = hand_built_open(
+            pos, state_at=datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"), price=Decimal("100"),
+        )
+        stream_b = hand_built_open(
+            pos, state_at=datetime(2025, 6, 16, 9, 45, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("2"), price=Decimal("105"),
+        )
+        ledger_a = RoundTripMaterializer().materialize((stream_a,))
+        ledger_b = RoundTripMaterializer().materialize((stream_b,))
+        self.assertEqual(ledger_a.open_position_ids, ("e12-pos",))
+        self.assertEqual(ledger_b.open_position_ids, ("e12-pos",))
+        self.assertNotEqual(ledger_a.identity_id, ledger_b.identity_id)
+        self.assertEqual(len(ledger_a.open_position_evidence_identities), 1)
+        self.assertNotEqual(
+            ledger_a.open_position_evidence_identities[0][1],
+            ledger_b.open_position_evidence_identities[0][1],
+        )
+
+    def test_open_ids_must_exactly_match_evidence_identity_ids(self):
+        # E-12: open_position_ids and open_position_evidence_identities ids
+        # must be exactly consistent and ordered by position_id.
+        with self.assertRaisesRegex(ValueError, "must exactly match"):
+            RoundTripLedger(
+                open_position_ids=("p1",),
+                open_position_evidence_identities=(("p2", "evidence-1"),),
+            )
+
+
+class PackageE10SessionAuthorityIdentityTests(unittest.TestCase):
+    """E-10: CompletedRoundTrip binds the D-05 session authority identity.
+
+    The round-trip ledger identity must bind ``SessionMetadata.version`` (the
+    D-05 content-derived identity) AND the derived official day/week facts, so
+    a change of session authority changes the identity even when the derived
+    facts coincide.  The no-session generic path stays deterministic.
+    """
+
+    MONDAY = date(2025, 6, 16)
+    FRIDAY = date(2025, 6, 13)
+
+    def test_E10A_different_authority_mapping_changes_day_and_identity(self):
+        # Same civil transition timestamps, different authoritative windows /
+        # trading-day mapping: version differs, at least one entry/exit
+        # day/week differs, and the ledger identity must differ.
+        opened_at = datetime(2025, 6, 13, 21, 30, tzinfo=CN)  # civil Friday night
+        closed_at = datetime(2025, 6, 16, 9, 30, tzinfo=CN)  # civil Monday morning
+        session_a = SessionMetadata(
+            "e10-a-ref",
+            (
+                SessionWindow(
+                    "SHFE", "CU2507", self.MONDAY,
+                    opened_at - timedelta(minutes=30), opened_at + timedelta(hours=2),
+                    "NIGHT",
+                ),
+                SessionWindow(
+                    "SHFE", "CU2507", self.MONDAY,
+                    closed_at - timedelta(minutes=30), closed_at + timedelta(hours=2),
+                    "DAY",
+                ),
+            ),
+        )
+        # Session B maps the same night civil timestamp to Friday instead.
+        session_b = SessionMetadata(
+            "e10-b-ref",
+            (
+                SessionWindow(
+                    "SHFE", "CU2507", self.FRIDAY,
+                    opened_at - timedelta(minutes=30), opened_at + timedelta(hours=2),
+                    "NIGHT",
+                ),
+                SessionWindow(
+                    "SHFE", "CU2507", self.MONDAY,
+                    closed_at - timedelta(minutes=30), closed_at + timedelta(hours=2),
+                    "DAY",
+                ),
+            ),
+        )
+        self.assertNotEqual(session_a.version, session_b.version)
+        open_a = hand_built_open("e10-pos", state_at=opened_at, trading_day=self.MONDAY, instrument="CU2507")
+        close_a = hand_built_close("e10-pos", state_at=closed_at, trading_day=self.MONDAY, instrument="CU2507")
+        open_b = hand_built_open("e10-pos", state_at=opened_at, trading_day=self.FRIDAY, instrument="CU2507")
+        close_b = hand_built_close("e10-pos", state_at=closed_at, trading_day=self.MONDAY, instrument="CU2507")
+        trip_a = RoundTripMaterializer(session_a, "SHFE").materialize((open_a, close_a)).completed_round_trips[0]
+        trip_b = RoundTripMaterializer(session_b, "SHFE").materialize((open_b, close_b)).completed_round_trips[0]
+        self.assertEqual(trip_a.entry_official_trading_day, self.MONDAY)
+        self.assertEqual(trip_b.entry_official_trading_day, self.FRIDAY)
+        self.assertNotEqual(trip_a.entry_official_trading_day, trip_b.entry_official_trading_day)
+        self.assertNotEqual(trip_a.ledger_identity, trip_b.ledger_identity)
+        self.assertEqual(trip_a.session_metadata_version, session_a.version)
+        self.assertEqual(trip_b.session_metadata_version, session_b.version)
+
+    def test_E10B_identical_authority_yields_identical_identity(self):
+        # Two SessionMetadata with identical authority facts and version plus
+        # the same transition stream must yield the same ledger identity.
+        opened_at = datetime(2025, 6, 16, 9, 30, tzinfo=CN)
+        closed_at = datetime(2025, 6, 16, 10, 30, tzinfo=CN)
+        windows = (
+            SessionWindow(
+                "SHFE", "CU2507", self.MONDAY,
+                opened_at - timedelta(minutes=30), closed_at + timedelta(hours=2),
+                "DAY",
+            ),
+        )
+        session_1 = SessionMetadata("e10-same-ref", windows)
+        session_2 = SessionMetadata("e10-same-ref", windows)
+        self.assertEqual(session_1.version, session_2.version)
+        open_t = hand_built_open("e10-pos", state_at=opened_at, trading_day=self.MONDAY, instrument="CU2507")
+        close_t = hand_built_close("e10-pos", state_at=closed_at, trading_day=self.MONDAY, instrument="CU2507")
+        trip_1 = RoundTripMaterializer(session_1, "SHFE").materialize((open_t, close_t)).completed_round_trips[0]
+        trip_2 = RoundTripMaterializer(session_2, "SHFE").materialize((open_t, close_t)).completed_round_trips[0]
+        self.assertEqual(trip_1.ledger_identity, trip_2.ledger_identity)
+        self.assertEqual(trip_1.session_metadata_version, session_1.version)
+
+    def test_E10C_same_label_window_change_same_day_still_changes_identity(self):
+        # E-10 + D-05 proof: the SAME caller authority label with different
+        # windows yields a different content-derived version; the round-trip
+        # identity must change even when the derived entry/exit day/week
+        # coincidentally stay identical.  This proves the identity binds the
+        # authority, not only the derived result, and it uses the D-05
+        # content-derived version, not the caller label string.
+        opened_at = datetime(2025, 6, 16, 9, 30, tzinfo=CN)
+        closed_at = datetime(2025, 6, 16, 10, 30, tzinfo=CN)
+        session_a = SessionMetadata(
+            "e10-shared-label",
+            (
+                SessionWindow(
+                    "SHFE", "CU2507", self.MONDAY,
+                    opened_at - timedelta(minutes=30), closed_at + timedelta(minutes=30),
+                    "DAY",
+                ),
+            ),
+        )
+        session_c = SessionMetadata(
+            "e10-shared-label",
+            (
+                SessionWindow(
+                    "SHFE", "CU2507", self.MONDAY,
+                    opened_at - timedelta(minutes=45), closed_at + timedelta(minutes=45),
+                    "DAY",
+                ),
+            ),
+        )
+        self.assertNotEqual(session_a.version, session_c.version)
+        open_t = hand_built_open("e10-pos", state_at=opened_at, trading_day=self.MONDAY, instrument="CU2507")
+        close_t = hand_built_close("e10-pos", state_at=closed_at, trading_day=self.MONDAY, instrument="CU2507")
+        trip_a = RoundTripMaterializer(session_a, "SHFE").materialize((open_t, close_t)).completed_round_trips[0]
+        trip_c = RoundTripMaterializer(session_c, "SHFE").materialize((open_t, close_t)).completed_round_trips[0]
+        # Derived facts coincide exactly ...
+        self.assertEqual(trip_a.entry_official_trading_day, trip_c.entry_official_trading_day)
+        self.assertEqual(trip_a.exit_official_trading_day, trip_c.exit_official_trading_day)
+        self.assertEqual(trip_a.entry_official_trading_week, trip_c.entry_official_trading_week)
+        self.assertEqual(trip_a.exit_official_trading_week, trip_c.exit_official_trading_week)
+        self.assertEqual(trip_a.active_official_trading_days, trip_c.active_official_trading_days)
+        # ... but the identity still changes because the authority version changed.
+        self.assertNotEqual(trip_a.ledger_identity, trip_c.ledger_identity)
+
+    def test_E10D_no_session_path_is_deterministic_and_binds_derived_facts(self):
+        # The generic no-session path must not crash, must be deterministic,
+        # must keep session_metadata_version None, and the identity must still
+        # bind the actually produced entry/exit day/week/active days.
+        opened_at = datetime(2025, 6, 16, 9, 30, tzinfo=CN)
+        closed_at = datetime(2025, 6, 16, 10, 30, tzinfo=CN)
+        open_t = hand_built_open("e10-pos", state_at=opened_at, trading_day=self.MONDAY, instrument="CU2507")
+        close_t = hand_built_close("e10-pos", state_at=closed_at, trading_day=self.MONDAY, instrument="CU2507")
+        trip_1 = RoundTripMaterializer().materialize((open_t, close_t)).completed_round_trips[0]
+        trip_2 = RoundTripMaterializer().materialize((open_t, close_t)).completed_round_trips[0]
+        self.assertIsNone(trip_1.session_metadata_version)
+        self.assertEqual(trip_1.entry_official_trading_day, self.MONDAY)
+        self.assertEqual(trip_1.exit_official_trading_day, self.MONDAY)
+        self.assertEqual(trip_1.ledger_identity, trip_2.ledger_identity)
 
 
 if __name__ == "__main__":

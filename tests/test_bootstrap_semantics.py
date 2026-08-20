@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 
 from src.bootstrap_semantics import (
     BrokerEvent,
+    CrossTradingDayConflict,
     EventIdentityConflict,
     Ledger,
     NormalizedSessionCalendar,
@@ -221,6 +222,56 @@ class StateLedgerBoundaryTests(unittest.TestCase):
             ledger.append_transition(transition)
         self.assertEqual(len(ledger.records), 1)
         self.assertEqual(state.position("AD2508"), 4)
+
+
+class CrossTradingDayChronologyBarrierTests(unittest.TestCase):
+    """E-13: the feasibility TradingState enforces a cross-trading-day
+    chronology barrier so a missing prior-day event can never mutate the
+    shared position after a future trading day has already applied."""
+
+    D1 = date(2025, 6, 16)
+    D2 = date(2025, 6, 17)
+
+    def test_prior_day_gap_blocks_future_trading_day(self):
+        state = TradingState()
+        # D1 seq1 applied, D1 seq3 buffered (seq2 missing).
+        state.ingest(BrokerEvent("D1E1", self.D1, 1, "AD2508", 1))
+        state.ingest(BrokerEvent("D1E3", self.D1, 3, "AD2508", 2))
+        self.assertEqual(state.position("AD2508"), 1)
+        # D2 seq1 must fail closed while D1 still has a buffered gap.
+        with self.assertRaises(CrossTradingDayConflict):
+            state.ingest(BrokerEvent("D2E1", self.D2, 1, "AD2508", 4))
+        # The shared position is not mutated by the rejected future day.
+        self.assertEqual(state.position("AD2508"), 1)
+        # Filling the D1 gap then allows D2 to begin normally.
+        applied_d1 = state.ingest(BrokerEvent("D1E2", self.D1, 2, "AD2508", 3))
+        self.assertEqual([x.event_id for x in applied_d1.applied], ["D1E2", "D1E3"])
+        self.assertEqual(state.position("AD2508"), 6)
+        applied_d2 = state.ingest(BrokerEvent("D2E1", self.D2, 1, "AD2508", 4))
+        self.assertEqual([x.event_id for x in applied_d2.applied], ["D2E1"])
+        self.assertEqual(state.position("AD2508"), 10)
+
+    def test_late_prior_day_event_after_future_day_is_rejected(self):
+        state = TradingState()
+        # D1 complete, D2 seq1 applied.
+        state.ingest(BrokerEvent("D1E1", self.D1, 1, "AD2508", 1))
+        state.ingest(BrokerEvent("D1E2", self.D1, 2, "AD2508", 2))
+        state.ingest(BrokerEvent("D2E1", self.D2, 1, "AD2508", 3))
+        self.assertEqual(state.position("AD2508"), 6)
+        # A late prior-day event after D2 already applied is rejected.
+        with self.assertRaises(CrossTradingDayConflict):
+            state.ingest(BrokerEvent("D1E3", self.D1, 3, "AD2508", 1))
+        self.assertEqual(state.position("AD2508"), 6)
+
+    def test_same_day_sequence_behavior_is_preserved(self):
+        state = TradingState()
+        # Out-of-order within one trading day is still buffered then applied.
+        r2 = state.ingest(BrokerEvent("E2", self.D1, 2, "AD2508", 2))
+        self.assertTrue(r2.buffered)
+        r1 = state.ingest(BrokerEvent("E1", self.D1, 1, "AD2508", 1))
+        self.assertEqual([x.event_id for x in r1.applied], ["E1", "E2"])
+        self.assertEqual(state.position("AD2508"), 3)
+        self.assertEqual(state.last_sequence(self.D1), 2)
 
 
 if __name__ == "__main__":

@@ -1048,6 +1048,7 @@ class ChronologicalValidationRunner:
                 continue
             next_quantity = current.position_quantity + specification.quantity
             weighted_cost = current.average_open_price * current.position_quantity + outcome.fill_price * specification.quantity
+            next_average_open_price = weighted_cost / next_quantity
             position_id = current.position_id or _execution_hash(
                 {
                     "instrument": concrete_instrument,
@@ -1060,14 +1061,31 @@ class ChronologicalValidationRunner:
                     "position_direction": specification.direction.value,
                 }
             )
+            if current.position_quantity > 0:
+                # E-01: after an ADD fill at price P, re-mark the whole
+                # position at the explicitly observable fill price P.  The
+                # earlier tranche's unrealized PnL at P plus the new tranche's
+                # zero is exactly (P - new average) * next_quantity, so the
+                # equity path never passes through a spurious intermediate
+                # zero after a mark-carrying ADD.
+                pnl_sign = Decimal("1") if current.position_direction is PositionDirection.LONG else Decimal("-1")
+                next_unrealized_pnl = (
+                    (outcome.fill_price - next_average_open_price)
+                    * next_quantity
+                    * capital_assumptions.contract_multiplier
+                    * pnl_sign
+                )
+            else:
+                # A fresh OPEN has no earlier tranche; unrealized PnL is zero.
+                next_unrealized_pnl = Decimal("0")
             next_snapshot = CapitalSnapshot(
                 starting_capital=current.starting_capital,
                 reserved_margin=current.reserved_margin + required_margin,
                 charged_costs=current.charged_costs + required_cost,
                 realized_pnl=current.realized_pnl,
-                unrealized_pnl=Decimal("0"),
+                unrealized_pnl=next_unrealized_pnl,
                 position_quantity=next_quantity,
-                average_open_price=weighted_cost / next_quantity,
+                average_open_price=next_average_open_price,
                 position_instrument=concrete_instrument,
                 position_id=position_id,
                 position_request_id=specification.request_id,
@@ -1205,6 +1223,7 @@ class ChronologicalValidationRunner:
         contract_master: ContractMaster | None = None,
         session_metadata: SessionMetadata | None = None,
         price_limit_facts: tuple[PriceLimitFact, ...] = (),
+        offset_cost_assumptions: OffsetCostAssumptions | None = None,
     ) -> ForcedLiquidationOutcome:
         observations = tuple(observations)
         if len(observations) > 1:
@@ -1276,6 +1295,19 @@ class ChronologicalValidationRunner:
         if fill_price <= 0:
             raise ValueError("synthetic liquidation slippage produces an invalid fill price")
         limit_fact = None
+        # E-02: forced liquidation is eligible at the next tradable
+        # observation, which may belong to the next official trading day after
+        # a session-end breach.  The effective today/previous buckets are aged
+        # with the same semantics as ordinary order processing, without
+        # generating a new implicit position or guessing a civil date.
+        aged_quantity = Decimal("0")
+        effective_today = snapshot.today_quantity
+        effective_previous = snapshot.previous_quantity
+        # E-03: a contract-bound full liquidation resolves the applicable
+        # close-today/close-previous offset fee against the effective buckets.
+        offset_fee = Decimal("0")
+        resolved_close_offset: CloseOffset | None = None
+        offset_cost_assumption_id: str | None = None
         if snapshot.concrete_contract_id is not None:
             if contract_master is None or session_metadata is None:
                 raise ValueError("contract-bound forced liquidation requires master and session metadata")
@@ -1286,13 +1318,19 @@ class ChronologicalValidationRunner:
                 raise ValueError("forced-liquidation observation does not bind the position's concrete contract")
             if not contract.is_active_at(observation.available_at):
                 raise ValueError("forced-liquidation contract is inactive at execution observation time")
-            trading_day = session_metadata.trading_day_at(
+            observation_trading_day = session_metadata.trading_day_at(
                 contract.exchange,
                 contract.instrument_id,
                 observation.observed_at,
             )
-            if trading_day != snapshot.position_trading_day:
-                raise ValueError("forced-liquidation observation is outside the position trading day")
+            if observation_trading_day is None:
+                raise ValueError("forced-liquidation observation has no official trading day")
+            if observation_trading_day < snapshot.position_trading_day:
+                raise ValueError("forced-liquidation observation is before the position trading day")
+            if observation_trading_day > snapshot.position_trading_day:
+                aged_quantity = snapshot.today_quantity
+                effective_today = Decimal("0")
+                effective_previous = snapshot.previous_quantity + snapshot.today_quantity
             if not contract.is_on_tick(observation.price) or not contract.is_on_tick(fill_price):
                 outcome = ExecutionOutcome(
                     requirement.request_id,
@@ -1311,7 +1349,7 @@ class ChronologicalValidationRunner:
                     price_limit_facts,
                     contract.identity_id,
                     contract.instrument_id,
-                    trading_day,
+                    observation_trading_day,
                     contract.price_limit_rule_identity,
                     observation.available_at,
                 )
@@ -1335,6 +1373,22 @@ class ChronologicalValidationRunner:
                         **contract_fields,
                     )
                     return ForcedLiquidationOutcome(requirement, outcome, None)
+            if offset_cost_assumptions is None:
+                raise ValueError("contract-bound forced liquidation requires offset-cost assumptions")
+            if contract.offset_fee_metadata_identity != offset_cost_assumptions.identity_id:
+                raise ValueError("offset-cost assumption identity is inconsistent with contract metadata")
+            offset_fee = (
+                effective_today * offset_cost_assumptions.close_today_fee_per_unit
+                + effective_previous * offset_cost_assumptions.close_previous_fee_per_unit
+            )
+            if effective_today > 0 and effective_previous == 0:
+                resolved_close_offset = CloseOffset.CLOSE_TODAY
+            elif effective_today == 0 and effective_previous > 0:
+                resolved_close_offset = CloseOffset.CLOSE_PREVIOUS
+            elif effective_today > 0 and effective_previous > 0:
+                resolved_close_offset = CloseOffset.CLOSE
+            offset_cost_assumption_id = offset_cost_assumptions.identity_id
+        total_cost = execution_assumptions.synthetic_fee + offset_fee
         pnl_sign = Decimal("1") if snapshot.position_direction is PositionDirection.LONG else Decimal("-1")
         realized_pnl_change = (
             (fill_price - snapshot.average_open_price)
@@ -1348,15 +1402,17 @@ class ChronologicalValidationRunner:
             observation.available_at,
             execution_assumptions.identity_id,
             fill_price,
-            execution_assumptions.synthetic_fee,
+            total_cost,
             "FORCED_LIQUIDATION_TRADABLE_OBSERVATION",
             capital_assumptions.identity_id,
             price_limit_fact_id=limit_fact.identity_id if limit_fact else None,
+            resolved_close_offset=resolved_close_offset,
+            offset_cost_assumption_id=offset_cost_assumption_id,
             **contract_fields,
         )
         next_snapshot = CapitalSnapshot(
             starting_capital=snapshot.starting_capital,
-            charged_costs=snapshot.charged_costs + execution_assumptions.synthetic_fee,
+            charged_costs=snapshot.charged_costs + total_cost,
             realized_pnl=snapshot.realized_pnl + realized_pnl_change,
             state_at=observation.available_at,
             latest_mark_reference=snapshot.latest_mark_reference,
@@ -1366,11 +1422,14 @@ class ChronologicalValidationRunner:
             snapshot,
             next_snapshot,
             Decimal("0"),
-            execution_assumptions.synthetic_fee,
+            total_cost,
             quantity_change=-snapshot.position_quantity,
             realized_pnl_change=realized_pnl_change,
             released_margin=snapshot.reserved_margin,
             transition_type="FORCED_LIQUIDATION",
+            aged_quantity=aged_quantity,
+            resolved_close_offset=resolved_close_offset,
+            offset_cost_assumption_id=offset_cost_assumption_id,
         )
         return ForcedLiquidationOutcome(requirement, outcome, transition)
 
@@ -1626,6 +1685,7 @@ class ChronologicalValidationRunner:
                     contract_master,
                     session_metadata,
                     price_limit_facts,
+                    offset_cost_assumptions,
                 )
                 liquidation_event = (
                     "FORCED_LIQUIDATION_FILLED"
