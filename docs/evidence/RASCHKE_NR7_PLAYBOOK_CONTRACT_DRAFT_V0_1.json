@@ -1,0 +1,1089 @@
+{
+  "ambiguity_notes": "The accepted SOURCE_ONLY evidence does not pin the post-entry risk loop (INITIAL_STOP=NOT_PINNED; POST_ENTRY_INVALIDATION=NOT_PINNED, integration correction IC-1), does not justify a unique early-morning-range PRIMARY (45-minute and 60-minute are both SOURCE_PERMITTED), and leaves order-mechanics, exit/target, no-trade, and Chinese-futures session-boundary conventions unresolved. No implementation convention is PRIMARY; no Holy Grail stop semantics are imported.",
+  "ambiguity_status": "UNRESOLVED_CRITICAL",
+  "artifact": "RASCHKE_NR7_PLAYBOOK_CONTRACT_DRAFT_V0_1",
+  "claim_semantics": [
+    {
+      "claim_category": "OBSERVED_CUE",
+      "claim_id": "C-RAS-NR7-SEM-001",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "OBSERVABLE_NOW",
+      "observability_missing_inputs": "none (bar ranges from owned OHLCV + governed session metadata)",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "EXPLICITLY_PINNED",
+      "semantic_field": "NR7_DAILY_BAR_DEFINITION",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_SETUP",
+      "source_context_note": "The NR7 is explicitly defined as a bar with the narrowest range of the past seven bars, on the daily bar (the source says 'day' / 'trading range in the last seven days'). The daily-bar boundary construction for Chinese futures (including night-session aggregation) is a governed-metadata project convention, not defined by the source.",
+      "source_excerpt_short_or_paraphrase": "'...such as an NR7 day, which is a bar with the narrowest range of the past seven bars.' (Figure 2 caption, SR-V0-M02: 'A narrow range seven-day (NR7) in today's trading range is the narrowest trading range in the last seven days. The low volatility leads to a trend.')",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "OBSERVED_CUE",
+      "claim_id": "C-RAS-NR7-SEM-002",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "OBSERVABLE_NOW",
+      "observability_missing_inputs": "window alignment needs an interpreted convention (INFERRED); no unavailable input",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "NR7_LOOKBACK_SEMANTICS",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_SETUP",
+      "source_context_note": "The lookback length (seven) is explicit. The exact inclusive/exclusive window alignment is not unambiguously stated: the text reads 'narrowest range of the past seven bars' (a 7-bar window) while the figure reads 'in today's trading range is the narrowest trading range in the last seven days' (today compared with the last seven days). Both readings exist in the accepted bundle.",
+      "source_excerpt_short_or_paraphrase": "'a bar with the narrowest range of the past seven bars' versus Figure 2 caption 'in today's trading range is the narrowest trading range in the last seven days.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "MARKET_CONTEXT",
+      "claim_id": "C-RAS-NR7-SEM-003",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "session boundary construction for Chinese futures is INFERRED (governed metadata)",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "NEXT_SESSION_DEFINITION",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "The source pins the entry session as 'the day after an NR7 day' (next trading session). The exact session/bar construction for Chinese futures (which session 'early morning' maps to; night-session aggregation; calendar-day boundary) is not defined by the source.",
+      "source_excerpt_short_or_paraphrase": "'Something I'll almost always do the day after an NR7 day is bracket stops around the early morning range...'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "OBSERVED_CUE",
+      "claim_id": "C-RAS-NR7-SEM-004",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "OBSERVABLE_NOW",
+      "observability_missing_inputs": "none (1-minute bars + session metadata)",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "SOURCE_PERMITTED_MULTIPLE_VARIANTS",
+      "semantic_field": "EARLY_MORNING_RANGE_WINDOW",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "The source explicitly states that both the first-45-minutes range and the first-hour range worked in her own test. Neither variant is uniquely primary in the source. Both identities are preserved explicitly.",
+      "source_excerpt_short_or_paraphrase": "'...it didn't matter whether you bracketed the first 45 minutes range or the first hour's range. If there's going to be a trend day, you're going to catch it.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "ACTION_PERMISSION",
+      "claim_id": "C-RAS-NR7-SEM-005",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "OBSERVABLE_NOW",
+      "observability_missing_inputs": "none (price + session metadata)",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "EXPLICITLY_PINNED",
+      "semantic_field": "BRACKET_ENTRY_LONG_LEVEL",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "A bracket of stops around the early morning range means a buy stop above the range high (long entry) and a sell stop below the range low (short entry). The long entry level is the early-morning-range high. The exact tick offset above the high is NOT_PINNED (separate field ENTRY_OFFSET_OR_TICK_CONVENTION).",
+      "source_excerpt_short_or_paraphrase": "'...bracket stops around the early morning range...' (long side: buy stop above the early-morning-range high)",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "ACTION_PERMISSION",
+      "claim_id": "C-RAS-NR7-SEM-006",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "OBSERVABLE_NOW",
+      "observability_missing_inputs": "none (price + session metadata)",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "EXPLICITLY_PINNED",
+      "semantic_field": "BRACKET_ENTRY_SHORT_LEVEL",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "The short bracket entry is a sell stop below the early-morning-range low. The level concept is explicit; the exact tick offset below the low is NOT_PINNED (separate field ENTRY_OFFSET_OR_TICK_CONVENTION).",
+      "source_excerpt_short_or_paraphrase": "'...bracket stops around the early morning range...' (short side: sell stop below the early-morning-range low)",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "ACTION_PERMISSION",
+      "claim_id": "C-RAS-NR7-SEM-007",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "exact order subtype is an INFERRED project convention",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "EXPLICITLY_PINNED",
+      "semantic_field": "ENTRY_ORDER_TYPE",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "The source literally says 'bracket stops', which pins the entry order type as stop orders (buy stop above, sell stop below). The exact order subtype (stop-market vs stop-limit) and resting/OCO state machine are not stated by the source (see UNTRIGGERED_OPPOSITE_ORDER_CANCELLATION).",
+      "source_excerpt_short_or_paraphrase": "'...bracket stops around the early morning range...' (the entries are stop orders)",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "ACTION_PERMISSION",
+      "claim_id": "C-RAS-NR7-SEM-008",
+      "claim_status": "UNKNOWN",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "offset is an INFERRED project convention (tick size available from governed metadata)",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "NOT_PINNED",
+      "semantic_field": "ENTRY_OFFSET_OR_TICK_CONVENTION",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "The source does not state any tick or price offset for placing the bracket stops relative to the early-morning-range high/low. (The 'one tick above the high' language appears only for the separate Three-Day Unfilled Gap Reversal pattern in SR-V0-M01, which is a different family.)",
+      "source_excerpt_short_or_paraphrase": "'bracket stops around the early morning range' - no offset/tick convention is stated for the NR7 bracket.",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "ACTION_PERMISSION",
+      "claim_id": "C-RAS-NR7-SEM-009",
+      "claim_status": "UNKNOWN",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "cancellation semantics are an INFERRED project convention",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "NOT_PINNED",
+      "semantic_field": "UNTRIGGERED_OPPOSITE_ORDER_CANCELLATION",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "The source describes bracketing stops around the early morning range but does not state what happens to the untriggered opposite order once one side fills. No OCO / cancel-on-fill semantics for this bracket are given. (The separate gap-reversal pattern states 'if not filled after three trading sessions, cancel the initial buy stop', but that belongs to a different family.)",
+      "source_excerpt_short_or_paraphrase": "No source statement about the untriggered opposite bracket order after one side fills.",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "ACTION_PERMISSION",
+      "claim_id": "C-RAS-NR7-SEM-010",
+      "claim_status": "UNKNOWN",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "same-bar handling is an INFERRED project convention",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "NOT_PINNED",
+      "semantic_field": "SIMULTANEOUS_OR_SAME_BAR_TRIGGER_HANDLING",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "The source does not state how to handle a bar that trades through both the early-morning-range high and low (both bracket sides triggering on the same bar).",
+      "source_excerpt_short_or_paraphrase": "No source statement about handling both bracket sides triggering on the same bar.",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "INVALIDATION",
+      "claim_id": "C-RAS-NR7-SEM-011",
+      "claim_status": "UNKNOWN",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "no source-defined invalidation boundary; a project boundary would be invented",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "NOT_PINNED",
+      "semantic_field": "POST_ENTRY_INVALIDATION",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY; SR-V0-M04:rituals:section:MANAGEMENT_EXIT",
+      "source_context_note": "Integration correction IC-1: the bracket statement defines ENTRY placement only. It does NOT prove that the opposite bracket side is the post-entry stop/invalidation for the selected family. The generic management statement is qualitative and does not define a unique numerical invalidation boundary.",
+      "source_excerpt_short_or_paraphrase": "No source statement establishes a post-entry invalidation boundary for the NR7 early-morning-range bracket. (Generic: 'The minute the market gives back more than it should, you get out on the first reaction or pause.')",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "RISK_PROCESS",
+      "claim_id": "C-RAS-NR7-SEM-012",
+      "claim_status": "UNKNOWN",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "no source-defined initial stop; a project stop would be invented",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "NOT_PINNED",
+      "semantic_field": "INITIAL_STOP",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY; SR-V0-M01:august1997:section:STOP_PROCESS",
+      "source_context_note": "The source does not state an initial stop for the day-after-NR7 early-morning-range bracket. The general discretionary stop process is not a pinned stop for this family.",
+      "source_excerpt_short_or_paraphrase": "No source-stated initial protective stop for the NR7 bracket entry. (Generic: 'Most often, I'll get out if the market fails to do what I thought it would do.')",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "OBSERVED_CUE",
+      "claim_id": "C-RAS-NR7-SEM-013",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "OBSERVABLE_NOW",
+      "observability_missing_inputs": "none (price from owned OHLCV); thresholds for 'expansion'/'steady' are INFERRED if operationalized",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "EXPLICITLY_PINNED",
+      "semantic_field": "TREND_DAY_DEFINITION",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_DEFINITION",
+      "source_context_note": "Explicit, price-based trend-day definition. The defining semantics (open on one end, close on the opposite, range expansion, steady higher highs/higher lows) are stated. The numerical thresholds for 'range expansion' and 'steady pattern' are not quantified by the source (operationalization detail).",
+      "source_excerpt_short_or_paraphrase": "'A trend day opens on one end of its range and closes on the opposite end, has range expansion, and makes a steady pattern of higher highs and higher lows, or vice versa, throughout the day. In the index futures, there are two or three trend days a month.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "CONFIRMATION",
+      "claim_id": "C-RAS-NR7-SEM-014",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "breadth/TICK component NOT_OBSERVABLE_WITH_CURRENT_DATA (see BREADTH_TICK_ROLE)",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "TREND_DAY_CONFIRMATION",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION",
+      "source_context_note": "Confirmation components are price/session/volume observable except breadth (NYSE TICK, unavailable). The source explicitly leaves the 'big bar' threshold to the trader ('compare it to the past five opening 15-minute bars or the past 20. You can quantify this type of thing a zillion different ways'). Confirmation is a handicap, not the NR7 bracket entry trigger itself.",
+      "source_excerpt_short_or_paraphrase": "Trend-day confirmation: a very large 15-minute bar to open the session (Crabel) with 'you can determine the threshold of significance yourself'; 'a significant increase in volume in the first 15 minutes relative to the past two weeks'; leadership (IBM/Microsoft/Intel/GE); 'trendiness between say, 10 and 10:30 or 10:45 a.m.'; and 'trend in the market breadth - the difference between advancing issues and declining issues.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "CONFIRMATION",
+      "claim_id": "C-RAS-NR7-SEM-015",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "OBSERVABLE_NOW",
+      "observability_missing_inputs": "no unavailable input; threshold is INFERRED if operationalized",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "ORDINARY_VOLUME_ROLE",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION",
+      "source_context_note": "Ordinary volume is used as a confirmation/enlargement component (not a gated entry condition): a volume increase supports a higher trending day and a big-target hold ('if I see volume, trend in the breadth and strong money flows, I'll play for a big target'). No numeric threshold or relative-volume baseline is pinned.",
+      "source_excerpt_short_or_paraphrase": "'Which of those stocks have had a significant increase in volume in the first 15 minutes relative to the past two weeks?' and 'The other things we look for in terms of a higher trending day include a volume increase.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "CONFIRMATION",
+      "claim_id": "C-RAS-NR7-SEM-016",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "NOT_OBSERVABLE_WITH_CURRENT_DATA",
+      "observability_missing_inputs": "NYSE TICK / breadth (US market internals) not owned; no proxy",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "REQUIRES_UNAVAILABLE_INPUT",
+      "semantic_field": "BREADTH_TICK_ROLE",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION; SR-V0-M04:rituals:section:TICK_AS_MOMENTUM",
+      "source_context_note": "The source's trend-day confirmation and momentum read use NYSE TICK/breadth (advancing minus declining) and TIKI. These are US-market internals NOT owned by the Chinese-futures 1-minute OHLCV corpus and are not ordinary volume. No OHLCV proxy is authorized. Breadth/TICK is a confirmation handicap, not the NR7 bracket entry trigger.",
+      "source_excerpt_short_or_paraphrase": "'the last and most important thing is that I want to see trend in the market breadth - the difference between advancing issues and declining issues' (NYSE TICK); 'I use the TICKs like a momentum oscillator... The bottoms of sell-offs will be accompanied by negative TICK extremes, like -1,000.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "EXIT",
+      "claim_id": "C-RAS-NR7-SEM-017",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "no unique target level; exit convention is INFERRED if operationalized",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "EXIT_OR_TARGET",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION; SR-V0-M04:rituals:section:MANAGEMENT_EXIT",
+      "source_context_note": "Exit/target semantics are 'ride the trend day': hold to end of day / add / hold part overnight on a confirmed trend day; exit on the first reaction/pause when price gives back more than it should; take at least half off at an uncertain price objective. These are qualitative management principles; no numeric target is pinned.",
+      "source_excerpt_short_or_paraphrase": "'I'm looking to hold that position until the end of the day, or add to the position during the day, or maybe hold part of it overnight'; 'The minute the market gives back more than it should, you get out on the first reaction or pause'; 'if the market reaches a price objective and you're really not sure if it's going to continue, you have to at least take half the position off.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "EXIT",
+      "claim_id": "C-RAS-NR7-SEM-018",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "no deterministic end-of-session rule; convention is INFERRED if operationalized",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "END_OF_SESSION_HANDLING",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION; SR-V0-M02:discerning-trader:section:THREE_DAY_STRUCTURE",
+      "source_context_note": "End-of-session handling is present: on a confirmed trend day, hold to the end of the day, add during the day, or hold part overnight; the last hour's behavior decides whether to carry the trade. Multiple allowed options are qualitative, not a deterministic rule.",
+      "source_excerpt_short_or_paraphrase": "'I'm looking to hold that position until the end of the day, or add to the position during the day, or maybe hold part of it overnight'; 'The last hour's action is very important to me... if I like how it acts at the end of the day I will continue to carry the trade'; 'if you ever get a middle, or a good trend day... you should always carry that trade overnight.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "NO_TRADE",
+      "claim_id": "C-RAS-NR7-SEM-019",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "no deterministic gate; the breadth component is unavailable",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "NO_TRADE",
+      "source_anchor": "SR-V0-M03:raschke0204:section:BREAKOUT_GUESS_FAILURE; SR-V0-M01:august1997:section:MARKET_TIMING",
+      "source_context_note": "Explicit no-trade constraints: do not guess breakout direction; do not buy in the middle of a trading range; without volume/breadth improvement the market is likely range-bound (scalp mode, not a big-target trend-day trade). These are qualitative constraints, not a deterministic no-trade gate.",
+      "source_excerpt_short_or_paraphrase": "'If I try to guess a breakout, I'm wrong 90 percent of the time'; 'The worst thing you can do in terms of market timing is to buy in the middle of a trading range'; 'If there's no improvement in volume or breadth, the market is more likely to stay within a trading range.'",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "FAILURE_OR_COUNTEREXAMPLE",
+      "claim_id": "C-RAS-NR7-SEM-020",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "no systematic loss ledger; qualitative only",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "FAILURE_OR_COUNTEREXAMPLE",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY; SR-V0-M03:raschke0204:section:FLAGS_VOLATILITY; SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_context_note": "Source-explicit failure/counterexample context: the bracket only catches a trend day if one develops; breakout guessing fails ~90%; continuation flags fail at volatility extremes and in contracting volatility; a no-trade failure example (Eaton Corp). No systematic loss ledger is provided (source-quality limitation, recorded not manufactured).",
+      "source_excerpt_short_or_paraphrase": "NR7 does not guarantee a trend day ('If there's going to be a trend day, you're going to catch it' - only if there is one); 'If I try to guess a breakout, I'm wrong 90 percent of the time'; flags 'will fail after a volatility extreme... and in contracting volatility... Statistical reliability only comes with a volatility filter'; Eaton Corp example ('no reason to be in the trade').",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "APPLICABILITY",
+      "claim_id": "C-RAS-NR7-SEM-021",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "OBSERVABLE_NOW",
+      "observability_missing_inputs": "none (all timeframes derivable from owned data)",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "PARTIALLY_PINNED",
+      "semantic_field": "TIMEFRAME_SCOPE",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_SETUP; SR-V0-M04:rituals:section:MANAGEMENT_EXIT",
+      "source_context_note": "The family spans daily (setup), intraday (entry), 15-minute (confirmation), and hourly (management) timeframes. No single operating timeframe is pinned for the whole loop.",
+      "source_excerpt_short_or_paraphrase": "NR7 defined on the daily bar; bracket entry intraday (first 45 minutes or first hour); confirmation on opening 15-minute bars; management on hourly charts ('continuation patterns on an hourly chart - little bull flags, triangles').",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "APPLICABILITY",
+      "claim_id": "C-RAS-NR7-SEM-022",
+      "claim_status": "EXPLICIT",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "the source universe is not the current corpus; transfer is a separate INFERRED field",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "EXPLICITLY_PINNED",
+      "semantic_field": "INSTRUMENT_SCOPE",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_DEFINITION; SR-V0-M02:discerning-trader:section:NR7_BREAKOUT",
+      "source_context_note": "SOURCE_INSTRUMENT_SCOPE=US_EQUITY_INDEX_FUTURES_AND_US_EQUITIES_AND_COMMODITY_FUTURES. SOURCE_SUPPORTS_COMMODITY_FUTURES=YES (NR7/contraction-expansion concept explicitly shown on cocoa). SOURCE_SUPPORTS_CROSS_MARKET_TRANSFER=UNKNOWN (no explicit statement about transferring the exact bracket trade across asset classes).",
+      "source_excerpt_short_or_paraphrase": "'In the index futures, there are two or three trend days a month' (S&P index-futures bracket context); NR7 concept chart example is September Cocoa (commodity futures, 1993); 2004 context also covers US equities.",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_category": "APPLICABILITY",
+      "claim_id": "C-RAS-NR7-SEM-023",
+      "claim_status": "INFERRED",
+      "lineage_id": "L-RAS-NR7",
+      "machine_operationalization_status": "NOT_STARTED",
+      "observability_compatibility": "PARTIALLY_OBSERVABLE",
+      "observability_missing_inputs": "transfer to Chinese futures is an INFERRED project hypothesis",
+      "primary_branch_status": "PRIMARY_NOT_YET_JUSTIFIED",
+      "semantic_classification": "INFERRED_PROJECT_TRANSFER",
+      "semantic_field": "CHINESE_FUTURES_TRANSFER_STATUS",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_context_note": "The NR7 / contraction-expansion concept has a commodity-futures anchor (September Cocoa, 1993), but the exact bracket practice is stated in an index-futures (S&P) context. Transferring the exact bracket entry/management to Chinese futures is an INFERRED project hypothesis, not an explicit source claim.",
+      "source_excerpt_short_or_paraphrase": "Transfer of the exact day-after-NR7 early-morning-range bracket practice to cu/al/ni/au/ag/rb is NOT an explicit source claim.",
+      "source_id": "SR-V0-M03"
+    }
+  ],
+  "contract_id": "PC-RASCHKE-NR7-RANGE-CONTRACTION-DRAFT-V0-1",
+  "contract_identity": "8db69498539fbc76d7adb319decb6b9fc4b15542b5bcb35ce7caeb5fdb690e93",
+  "contract_version": "0.1.0",
+  "early_range_primary_status": "NONE_SOURCE_JUSTIFIED",
+  "early_range_variants": [
+    "EARLY_RANGE_VARIANT_45MIN",
+    "EARLY_RANGE_VARIANT_60MIN"
+  ],
+  "family_id": "RASCHKE_NR7_RANGE_CONTRACTION_TREND_DAY_BREAKOUT",
+  "final_decision": {
+    "CANDIDATE_OUTCOME_DATA_USED": "NO",
+    "MACHINE_READY": "NO",
+    "OUTCOME_TEST_REGISTERED": "NO",
+    "PRIMARY_FREEZE_READY": "NO",
+    "STRATEGY_IDENTITY_CREATED": "NO"
+  },
+  "instrument_scope": [
+    "ag",
+    "al",
+    "au",
+    "cu",
+    "ni",
+    "rb"
+  ],
+  "interpretations": [
+    {
+      "branch_id": "SOURCE-PINNED-NR7-DAY-DEFINITION",
+      "branch_identity": "1af2420ad98e85e5e3150078e12a7d9ade1756aa69197eaa47702e9e955fffbd",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned: an NR7 day is a bar with the narrowest range of the past seven bars, on the daily bar. The governed daily-bar boundary for Chinese futures is a project convention, not a source fact.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-001"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-NR7-LOOKBACK-WINDOW",
+      "branch_identity": "dc61f514c293ab52791952a211386dd0631596d677a7919a6ab8929439f1f3b3",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned: the lookback window is seven bars. The exact inclusive/exclusive window alignment is ambiguous (see UNRESOLVED-NR7-LOOKBACK-ALIGNMENT).",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-002"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-DAY-AFTER-NR7-SESSION",
+      "branch_identity": "dc1dbfedbdc2090fa4ffe7684f10589d11a42825d613ec1733b93b9b8f08ba7a",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned: the bracket entry session is 'the day after an NR7 day' (next trading session). The Chinese-futures session boundary construction is a project convention (see UNRESOLVED-NEXT-SESSION-BOUNDARY).",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-003"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-EARLY-RANGE-45MIN-VARIANT",
+      "branch_identity": "713c0c0642cae4f789096572baf30de007a5f038c8e4f9e9bad22e445eaae0d7",
+      "interpretation_note": "EARLY_RANGE_VARIANT_45MIN",
+      "primary_selected": false,
+      "source_basis": "Source-permitted alternative: bracketing the first 45 minutes range worked in the source's own test. Preserved as an explicit source-supported alternative; no PRIMARY is selected.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-004"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-EARLY-RANGE-60MIN-VARIANT",
+      "branch_identity": "55a31bdaaaf75b667461ee24e399842bb9b4b94ab3a5c5be4b3a373c542b8ef1",
+      "interpretation_note": "EARLY_RANGE_VARIANT_60MIN",
+      "primary_selected": false,
+      "source_basis": "Source-permitted alternative: bracketing the first hour's range worked in the source's own test. Preserved as an explicit source-supported alternative; no PRIMARY is selected.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-004"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-BRACKET-LONG-ENTRY",
+      "branch_identity": "4673bc729bdba87c65d36760f75dd4008b7c3c75c563a4c1282a08a8b952cbd4",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned: the long bracket entry is a buy stop above the early-morning-range high. The exact tick offset above the high is NOT_PINNED (see UNRESOLVED-ENTRY-OFFSET-TICK).",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-005"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-BRACKET-SHORT-ENTRY",
+      "branch_identity": "fff408d33880d015f262c84b248675712efcd367a5a781189564aa0f99952aba",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned: the short bracket entry is a sell stop below the early-morning-range low. The exact tick offset below the low is NOT_PINNED (see UNRESOLVED-ENTRY-OFFSET-TICK).",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-006"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-ENTRY-ORDER-TYPE-STOP",
+      "branch_identity": "347b2ef0c2d45b4a94a2103e2ea3c72106c11a68d2eaffe258c39a3203f528db",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned: 'bracket stops' pins stop-entry orders. The exact order subtype (stop-market vs stop-limit) and resting/OCO state machine are not stated by the source.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-007"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-TREND-DAY-DEFINITION",
+      "branch_identity": "5da049bbd765b31ee8cb552ccf0497ec68036455c1324b38088fbaa40ac451b5",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned, price-based: a trend day opens on one end of its range, closes on the opposite end, has range expansion, and makes a steady pattern of higher highs and higher lows (or vice versa). Numerical thresholds for 'range expansion' / 'steady' are not quantified by the source.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-013"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-CONFIRMATION-COMPONENTS",
+      "branch_identity": "fb72df8e6eb85de400711f7382f24bdeda441564a1a632928f93717a55d24ce5",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned, qualitative: trend-day confirmation includes a very large 15-minute opening bar (Crabel), a significant volume increase in the first 15 minutes relative to the past two weeks, leadership names, and a trendiness window. Thresholds are left to the trader; breadth is a separate unavailable-input field.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-014",
+        "C-RAS-NR7-SEM-015"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-BREADTH-TICK-CONFIRMATION-HANDICAP",
+      "branch_identity": "e6f1085ee939ddfb39af3248dc8e0cbcfedffaa5de309b77720947527377310a",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned (concept): the source uses NYSE TICK / advancing-minus-declining breadth as a confirmation handicap, NOT the NR7 bracket entry trigger. This surface is NOT_OBSERVABLE_WITH_CURRENT_DATA; no OHLCV proxy is authorized.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-016"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-EXIT-MANAGEMENT-CONCEPT",
+      "branch_identity": "d7c3b4302787c635d642f6f8020855451b4bc1fb74c6508241116ddd11196c1d",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned, qualitative: ride the trend day (hold to end of day / add during the day / maybe hold part overnight); get out on the first reaction or pause when price gives back more than it should; take at least half off at an uncertain price objective. No numeric target or deterministic end-of-session rule is pinned.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-017",
+        "C-RAS-NR7-SEM-018"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-NO-TRADE-FAILURE-CONTEXT",
+      "branch_identity": "7ea8d13b948866091d75e827d3417b01a8152f8e3cd0e43a2d09c49089916d8a",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned, qualitative: do not guess breakout direction (wrong ~90% of the time); do not buy in the middle of a trading range; without volume/breadth improvement the market is likely range-bound; flags fail at volatility extremes; Eaton Corp no-trade example. No deterministic no-trade gate is pinned.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-019",
+        "C-RAS-NR7-SEM-020"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-TIMEFRAME-SCOPE",
+      "branch_identity": "7740db9175250af1d194920569d0f54703b5d9d7584bfff27d21346bc818823b",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned: the family is explicitly multi-timeframe (daily setup, intraday entry, 15-minute confirmation, hourly management). No single operating timeframe is pinned for the whole loop.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-021"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "SOURCE-PINNED-INSTRUMENT-SCOPE",
+      "branch_identity": "9edd4eaaba67b28a6a6249a8c7b2efea3e593b49894c1fcd8f1a03b35954c5ab",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Source-pinned: SOURCE_INSTRUMENT_SCOPE is US equity index futures + US equities + commodity futures (NR7 concept); the exact bracket practice is stated in an index-futures context. SOURCE_SUPPORTS_CROSS_MARKET_TRANSFER=UNKNOWN.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-022"
+      ],
+      "transfer_status": "EXPLICIT",
+      "variant_label": null
+    },
+    {
+      "branch_id": "PROJECT-INFERRED-CHINESE-FUTURES-TRANSFER",
+      "branch_identity": "1ed3d77967396a3b64e5a350aa1d2e5667400241a5c328592c4e948574bf45f8",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "INFERRED_PROJECT_TRANSFER: transferring the exact day-after-NR7 early-morning-range bracket practice to cu/al/ni/au/ag/rb is a project hypothesis, NOT an explicit source claim. SOURCE_SUPPORTS_CURRENT_PROJECT_PRODUCTS=UNKNOWN.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-023"
+      ],
+      "transfer_status": "INFERRED",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-NR7-LOOKBACK-ALIGNMENT",
+      "branch_identity": "d60c1c9c6ed43fd36033a45f5c17d06ecdb58f7d7612c8e18b0cf1067e5b4264",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Inclusive vs exclusive seven-bar window alignment is ambiguous between the two accepted source statements; no project window convention is chosen here.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-002"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-NEXT-SESSION-BOUNDARY",
+      "branch_identity": "d6085b4619bbe6b0fee33a815ee0aeff7bc80fbaf983c46d77389d8bebe554b1",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "The Chinese-futures session boundary construction (night session vs calendar day; which session 'early morning' maps to) is a governed-metadata project convention, not source-defined.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-003"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-EARLY-RANGE-PRIMARY",
+      "branch_identity": "3db57f0412845d577f6ff6c0b8ed40f7022f21c41facb6046dc27481984788e7",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "The 45-minute and 60-minute early-range formulations are both SOURCE_PERMITTED; the accepted evidence justifies no unique PRIMARY. Neither variant is outcome-selected.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-004"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-ENTRY-OFFSET-TICK",
+      "branch_identity": "87e6ffc3201db794960f006c2173ae541ee124aebfa5b8e48255130ce757dd5d",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "No source offset/tick convention is pinned for placing the bracket stops relative to the early-morning-range high/low. Any offset is a clearly labeled project convention.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-008"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-OPPOSITE-ORDER-CANCELLATION",
+      "branch_identity": "0755605c7ece490a99ec4c4eb78ea9c29cf8f92fa43c3729c9c41deddc1577a8",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "No source statement defines what happens to the untriggered opposite bracket order after one side fills; OCO / cancel-on-fill is a project convention, not a source claim.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-009"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-SAME-BAR-TRIGGER-HANDLING",
+      "branch_identity": "6c161697da0c81a1ac7402553427fd9b0a0c7ae027a527854daf92bc5686ec9a",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "No source statement defines same-bar / simultaneous handling when a bar trades through both bracket sides.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-010"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-POST-ENTRY-INVALIDATION",
+      "branch_identity": "71f1bbdf11d4f75f9a9303c7f68aef60fbbb0a4a59ef80b7554a3dfe63d55b3a",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "No source evidence establishes a post-entry invalidation boundary for the day-after-NR7 early-morning-range bracket family (integration correction IC-1: the opposite bracket side is an ENTRY placement, not an established source stop/invalidation). A project boundary would be invented.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-011"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-INITIAL-STOP",
+      "branch_identity": "9026db8ae799f9c0d8ae7d693b490f6691517a373886b7f2f7c0f09f9f9740c3",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "No source-pinned initial protective stop exists for the day-after-NR7 early-morning-range bracket family (INITIAL_STOP=NOT_PINNED). A numeric initial stop would be invented. No ATR / opposite-range / percentage / fixed-tick / time stop rule is imported from any other family.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-012"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-CONFIRMATION-THRESHOLDS",
+      "branch_identity": "416693b5f5f3bf5b823aaff34d225d08264ba198f42f9d62b1f69b152c6c621f",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "'Very large' 15-minute bar, 'significant increase' in volume and the trendiness window are not numerically pinned; the source explicitly leaves the 'big bar' threshold to the trader.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-014"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-EXIT-TARGET-CONVENTION",
+      "branch_identity": "0dd458f5eb1067182abaecf37c1a33d1c58dab7eeeb595ab30f6b39edbdbafef",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "'Gives back more than it should', 'price objective' and 'big target' are qualitative; no unique numeric target / give-back convention is pinned.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-017"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-END-OF-SESSION-RULE",
+      "branch_identity": "1b9f1a569e97b9cd58157a4b924dac676e20ee6f099b48d155facdce4bc4ce39",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "Hold all / add during the day / maybe hold part overnight are qualitative options, not a deterministic end-of-session rule.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-018"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-NO-TRADE-GATE",
+      "branch_identity": "938c4b6e8800564252fba3abe6fecd24849fede692107e55a6398bcfbaa0f69b",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "'Middle of a trading range', 'no improvement' and 'scalp mode' are qualitative; no deterministic no-trade gate is pinned, and the breadth component is unavailable.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-019"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-MULTI-TIMEFRAME-PRIMARY",
+      "branch_identity": "ed8425c99f2d5d0480587c575922ba87357a0e8ade16db85569d13ec4c252936",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "The multi-timeframe source does not pin one machine PRIMARY operating timeframe for the whole loop.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-021"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-CROSS-MARKET-TRANSFER",
+      "branch_identity": "00ca66dfa2407d904b3e8c5bac7cc398a9c202834f556d64e411bd38ed14800b",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "SOURCE_SUPPORTS_CROSS_MARKET_TRANSFER=UNKNOWN; no explicit source statement authorizes transferring the exact bracket trade across asset classes.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-022"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    },
+    {
+      "branch_id": "UNRESOLVED-BREADTH-TICK-UNAVAILABLE",
+      "branch_identity": "f5043e282d8f53b4f8ae8fb8907638ade3c957610ec08b2833af5a7b4272afe6",
+      "interpretation_note": null,
+      "primary_selected": false,
+      "source_basis": "NYSE TICK / advance-decline breadth / TIKI are US market internals NOT owned by the Chinese-futures corpus. Recorded as NOT_OBSERVABLE_WITH_CURRENT_DATA; no price/volume/ADX/RSI/MACD/open-interest proxy is authorized.",
+      "source_claim_ids": [
+        "C-RAS-NR7-SEM-016"
+      ],
+      "transfer_status": "UNKNOWN",
+      "variant_label": null
+    }
+  ],
+  "machine_operationalization": null,
+  "machine_readiness": "NOT_MACHINE_READY",
+  "machine_readiness_blockers": [
+    "UNRESOLVED_CRITICAL_AMBIGUITY",
+    "REQUIRED_INPUT_NOT_FULLY_OBSERVABLE",
+    "CLAIM_PRIMARY_MISSING",
+    "MACHINE_OPERATIONALIZATION_MISSING",
+    "MULTIPLE_TIMEFRAMES_UNRESOLVED"
+  ],
+  "observation_surfaces": [
+    {
+      "missing_inputs": [],
+      "observability_status": "OBSERVABLE_NOW",
+      "required": true,
+      "surface_id": "NR7_DAILY_BAR_SETUP",
+      "surface_identity": "1693e12f0bae30198aead0282e0e5488c2b13460a333d6a4b675c0979932a4f9"
+    },
+    {
+      "missing_inputs": [
+        "chinese_futures_daily_bar_boundary_convention"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "NEXT_SESSION_DAILY_BAR_BOUNDARY",
+      "surface_identity": "5a5483e33e6b0dd625288b13611c6150c1ed1459ea914df013fb17d990efda16"
+    },
+    {
+      "missing_inputs": [],
+      "observability_status": "OBSERVABLE_NOW",
+      "required": true,
+      "surface_id": "EARLY_MORNING_RANGE",
+      "surface_identity": "182debb4a747b0374e6ec88fb7a8217849fe106fa6cacf17a9cf72c0983e59cd"
+    },
+    {
+      "missing_inputs": [
+        "entry_offset_or_tick_convention",
+        "oco_cancellation_semantics",
+        "order_subtype",
+        "same_bar_trigger_ordering"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "BRACKET_ENTRY_ORDER_SEMANTICS",
+      "surface_identity": "c86676324ca1c41bb2c8ddae68485d81e683a0b334dca13b2339a586fe1a4e6d"
+    },
+    {
+      "missing_inputs": [
+        "initial_stop",
+        "post_entry_invalidation"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "POST_ENTRY_RISK_LOOP",
+      "surface_identity": "5204df3e92e9257d1bd2fdb54fc6756ae586857f032512348901528c53968008"
+    },
+    {
+      "missing_inputs": [],
+      "observability_status": "OBSERVABLE_NOW",
+      "required": true,
+      "surface_id": "TREND_DAY_PRICE_SURFACE",
+      "surface_identity": "2e6035c74f0931b52c91c0b738487dc2a8803aec36a70211b9d69abb7718e61c"
+    },
+    {
+      "missing_inputs": [
+        "confirmation_thresholds"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "TREND_DAY_CONFIRMATION",
+      "surface_identity": "acbc2c88a8624b403a6e68029bcb95b7e924844fe190d3b4becb49e776ba3815"
+    },
+    {
+      "missing_inputs": [
+        "ADVANCE_DECLINE_BREADTH",
+        "NYSE_TICK",
+        "TIKI"
+      ],
+      "observability_status": "NOT_OBSERVABLE_WITH_CURRENT_DATA",
+      "required": false,
+      "surface_id": "BREADTH_TICK_HANDICAP",
+      "surface_identity": "0737bdde62fcbc688d50f035501774f94f949fbf5f5440a6d8c57b6ea51b6c08"
+    },
+    {
+      "missing_inputs": [
+        "end_of_session_rule",
+        "exit_or_target_convention"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "EXIT_AND_END_OF_SESSION",
+      "surface_identity": "81af399c0fe4d230c060029fb74d449bd302918854b3e8ebd65b46d71a467c5f"
+    },
+    {
+      "missing_inputs": [
+        "no_trade_gate_thresholds"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "NO_TRADE_AND_FAILURE_CONTEXT",
+      "surface_identity": "bf2f649cf08f378b5d801fa2b582eba7b5f040c64178b4c1a86a9260969ecc19"
+    },
+    {
+      "missing_inputs": [],
+      "observability_status": "OBSERVABLE_NOW",
+      "required": true,
+      "surface_id": "MULTI_TIMEFRAME_SCOPE",
+      "surface_identity": "39e3cc169fd660848351261c72bf38f45b7fd04c1affb42d2354f4b222a18a2a"
+    },
+    {
+      "missing_inputs": [
+        "cross_market_transfer_justification"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "INSTRUMENT_SCOPE",
+      "surface_identity": "5cbb782456a13ac609b32724aa5c47402fe4b23ec5aa82ecee4d4d195f4e0912"
+    }
+  ],
+  "playbook_semantically_draftable": "NO",
+  "primary_blocker": "SOURCE_POST_ENTRY_RISK_SEMANTICS_NOT_PINNED (INITIAL_STOP=NOT_PINNED; POST_ENTRY_INVALIDATION=NOT_PINNED)",
+  "project_transfer_status": "INFERRED",
+  "research_lineage_id": "L-RAS-NR7",
+  "schema_version": "0.2",
+  "source_bundle_hash": "6304a630430871cdfd197ea38a2a22556d7854bff05fd5a7fad20a934bd06f11",
+  "source_bundle_identity": "SB-RASCHKE-NR7-SEMANTIC-V1",
+  "source_claims": [
+    {
+      "claim_id": "C-RAS-NR7-SEM-001",
+      "claim_identity": "a284c9165febce6821992091ab4e983aed59ba4ad2766150f7c32da6a33fcd18",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_SETUP",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-002",
+      "claim_identity": "753ae74ecdc7dff6cff153485c1849b5b62983015a03c122b6e573e6ccbe84d8",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_SETUP",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-003",
+      "claim_identity": "d7c59852735a4d8fe88ab660216fc5d00b7ff5a56d8b094b913df0c46ed87dcf",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-004",
+      "claim_identity": "80a7a310180fdbc72bd82328c12542429c0dc8c787b047d8e9b2934aa904f503",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-005",
+      "claim_identity": "90b5d113285ffdf8b4d64b5cc965f87348db616e0907250a82cff39f0399154d",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-006",
+      "claim_identity": "82c90a6de03900214b0fdfd0d5b25bbb290432a829fe2bd82c4ba5a64b0c2380",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-007",
+      "claim_identity": "02cb9c7a37fa24e27fc356667c436fef56baf79d01798fb1fcee7c411c35dd24",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-008",
+      "claim_identity": "fe0fa052105c5ba1db26391abe1739b5c9e73849ce8829e599a8793834bef972",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-009",
+      "claim_identity": "44813f747fcd24aa7f07b95ce32c6ce6f9b6c7fd5813de41c8ca690773973fc0",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-010",
+      "claim_identity": "9b15f5f64ea667e7a050d62937a0a6b31345b8f3d31c3ee0b7ebc5009d3749cc",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-011",
+      "claim_identity": "6f3a86cf6874d4faf00e7d58345e5797b49c4058932b11c8fc558434c3825b79",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY; SR-V0-M04:rituals:section:MANAGEMENT_EXIT",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-012",
+      "claim_identity": "23abbf12657f6138b8caf94c666b66ab67d3bc3f2c842bdba7639b5aca3ab560",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY; SR-V0-M01:august1997:section:STOP_PROCESS",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-013",
+      "claim_identity": "c64a3ab84ecf20e51e26cb3c092d91dd1c96697c204745aa4b4fa7a3f6397713",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_DEFINITION",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-014",
+      "claim_identity": "2d0aebf798125d90d0e0525242845e87f20331cd91b0a884952393c21d8348a8",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-015",
+      "claim_identity": "c08ef574981e5009ec88bc21705e47e8b3f6919ee570826cffbee8a609b68cfb",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-016",
+      "claim_identity": "59f05526b62c1021271467799af03fca5273eb82343682eeb9fd6a692e7df0a1",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION; SR-V0-M04:rituals:section:TICK_AS_MOMENTUM",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-017",
+      "claim_identity": "f3fb0d3bb8aaadd81d5804ab6ceda29aecda01ec860a865ec0124e30bf699a94",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION; SR-V0-M04:rituals:section:MANAGEMENT_EXIT",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-018",
+      "claim_identity": "eeed06333fe2b6bcbf441d0c4dcffee3a09327e6e13fc6d556b339033fd03be2",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_CONFIRMATION; SR-V0-M02:discerning-trader:section:THREE_DAY_STRUCTURE",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-019",
+      "claim_identity": "2de3a8bb07de93016218283c39bee6f39bfc5d9a320d5277af05b601dbe9d77a",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:BREAKOUT_GUESS_FAILURE; SR-V0-M01:august1997:section:MARKET_TIMING",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-020",
+      "claim_identity": "479adb3c7e9b277aedbee164d02e5b06f60bc8babf4f23fc9ccde333bfe03442",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY; SR-V0-M03:raschke0204:section:FLAGS_VOLATILITY; SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-021",
+      "claim_identity": "b4de36a548f6f794b150ca406c44fcd9d4abf8fd94bfef083d55dff7edc8d2ae",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_SETUP; SR-V0-M04:rituals:section:MANAGEMENT_EXIT",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-022",
+      "claim_identity": "81cbc445f58fdd8325de1c47c9c243c2c0188bf5c79ef246b53436ed23b6fa81",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M03:raschke0204:section:TREND_DAY_DEFINITION; SR-V0-M02:discerning-trader:section:NR7_BREAKOUT",
+      "source_id": "SR-V0-M03"
+    },
+    {
+      "claim_id": "C-RAS-NR7-SEM-023",
+      "claim_identity": "17c986927486697adbd69d61405dd669f33ca255dcb5537a3cb451c580b5c6a2",
+      "claim_status": "INFERRED",
+      "source_anchor": "SR-V0-M03:raschke0204:section:NR7_BRACKET_ENTRY",
+      "source_id": "SR-V0-M03"
+    }
+  ],
+  "source_evidence_recorded_claim_count": 23,
+  "source_only_session_identity": "a3b5be2f845649d4af7a010b8428ce5d88f9144d394ca7acf5954aa1fe8e57f1",
+  "source_scope": "US_EQUITY_INDEX_FUTURES_AND_US_EQUITIES_AND_COMMODITY_FUTURES",
+  "source_supports_current_project_products": "UNKNOWN",
+  "source_variant_count": 1,
+  "timeframe_scope": [
+    "15MIN",
+    "60MIN",
+    "DAILY",
+    "INTRADAY"
+  ],
+  "unresolved_machine_definitions": [
+    "CHINESE_FUTURES_DAILY_BAR_BOUNDARY",
+    "CONFIRMATION_THRESHOLDS",
+    "EARLY_MORNING_RANGE_PRIMARY_45MIN_VS_60MIN",
+    "END_OF_SESSION_HANDLING",
+    "ENTRY_OFFSET_OR_TICK_CONVENTION",
+    "EXIT_OR_TARGET_CONVENTION",
+    "INITIAL_STOP",
+    "NO_TRADE_GATE",
+    "POST_ENTRY_INVALIDATION",
+    "SIMULTANEOUS_OR_SAME_BAR_TRIGGER_HANDLING",
+    "SINGLE_OPERATING_TIMEFRAME",
+    "UNTRIGGERED_OPPOSITE_ORDER_CANCELLATION"
+  ]
+}
