@@ -1,0 +1,393 @@
+{
+  "ambiguity_notes": "FGH-GATE-01..06 and the required swing-low, trailing-stop, and exit-on-new-highs machine definitions remain unresolved. No implementation convention is PRIMARY.",
+  "ambiguity_status": "UNRESOLVED_CRITICAL",
+  "artifact": "RASCHKE_HOLY_GRAIL_PLAYBOOK_CONTRACT_DRAFT_V0_2",
+  "contract_id": "PC-RASCHKE-HOLY-GRAIL-PULLBACK-DRAFT-V0-2",
+  "contract_identity": "f0e2e4a12f70a1e0db81ff2147f15e1ebb85b82b42bb2c448dc00dca1c6cb355",
+  "contract_version": "0.2.0",
+  "family_id": "RASCHKE_HOLY_GRAIL_PULLBACK",
+  "final_decision": {
+    "CANDIDATE_OUTCOME_DATA_USED": "NO",
+    "MACHINE_READY": "NO",
+    "OUTCOME_TEST_REGISTERED": "NO",
+    "PRIMARY_FREEZE_READY": "NO",
+    "STRATEGY_IDENTITY_CREATED": "NO"
+  },
+  "instrument_scope": [
+    "ag",
+    "al",
+    "au",
+    "cu",
+    "ni",
+    "rb"
+  ],
+  "interpretations": [
+    {
+      "branch_id": "SOURCE-PINNED-ADX-EMA-CONCEPTS",
+      "branch_identity": "fb3f16ba054c9ecbdb2fd4d2bdb790ec62f1adff9162d822a9111e6f7a7801f2",
+      "primary_selected": false,
+      "source_basis": "Source-pinned facts only: 14-period ADX, initially greater than 30 and rising, and the 20-period EMA concept. Numeric algorithms and timing remain unresolved.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-002",
+        "C-RAS-HG-SEM-003",
+        "C-RAS-HG-SEM-004",
+        "C-RAS-HG-SEM-005",
+        "C-RAS-HG-SEM-006"
+      ],
+      "transfer_status": "EXPLICIT"
+    },
+    {
+      "branch_id": "SOURCE-PINNED-ENTRY-RISK-EXIT-CONCEPTS",
+      "branch_identity": "5526cffc85c6ab611c581910eca18625a340a84847efd66f10803a256f9a2d12",
+      "primary_selected": false,
+      "source_basis": "Source-pinned concepts only: EMA pullback/touch, buy stop above the previous-bar high, protective stop at the newly formed swing low once filled, trailing stops, and exit on a push to new highs. Machine definitions remain unresolved.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-009",
+        "C-RAS-HG-SEM-010",
+        "C-RAS-HG-SEM-013",
+        "C-RAS-HG-SEM-015",
+        "C-RAS-HG-SEM-016",
+        "C-RAS-HG-SEM-017",
+        "C-RAS-HG-SEM-019"
+      ],
+      "transfer_status": "EXPLICIT"
+    },
+    {
+      "branch_id": "SOURCE-PINNED-MULTI-TIMEFRAME-CONCEPT",
+      "branch_identity": "886145d46dd767c227376d4fa3d18461515be054cb368de7f5e9716d44f13815",
+      "primary_selected": false,
+      "source_basis": "The source is explicitly multi-timeframe, including base, 30, 60 and 120 minute contexts; it does not pin a single project PRIMARY timeframe.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-024"
+      ],
+      "transfer_status": "EXPLICIT"
+    },
+    {
+      "branch_id": "UNRESOLVED-FGH-GATE-01-EMA-PRICE-AND-TOUCH",
+      "branch_identity": "bd80a6ef4e20d14069286a0be6528843fe925a506d08eaa3e8a3ad8fb8825c00",
+      "primary_selected": false,
+      "source_basis": "EMA price basis and exact touch/penetration semantics are not source-pinned.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-007",
+        "C-RAS-HG-SEM-009"
+      ],
+      "transfer_status": "UNKNOWN"
+    },
+    {
+      "branch_id": "UNRESOLVED-FGH-GATE-02-ADX-RISING-SEQUENCE",
+      "branch_identity": "6e6cb3736ae0d2a05ca1e5c5ef40abc8af6d31ef6e6143cf887d70a666d2a286",
+      "primary_selected": false,
+      "source_basis": "The rising window and its timing relative to the pullback are not pinned.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-004"
+      ],
+      "transfer_status": "UNKNOWN"
+    },
+    {
+      "branch_id": "UNRESOLVED-FGH-GATE-03-NUMERIC-POLICY",
+      "branch_identity": "76c79f4adb1a898d12fd7ad76166a063ad1dd3a04e375dbadad9d341bbe0f301",
+      "primary_selected": false,
+      "source_basis": "EMA seed, ADX initialization, precision and quantization are machine choices.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-002",
+        "C-RAS-HG-SEM-005"
+      ],
+      "transfer_status": "UNKNOWN"
+    },
+    {
+      "branch_id": "UNRESOLVED-FGH-GATE-04-TOUCH-ENTRY-ORDERING",
+      "branch_identity": "9efda1a72c6b2a6884237f2374292c9ca481051bd1d899fc03d8e661eb5f5e56",
+      "primary_selected": false,
+      "source_basis": "One-minute OHLC cannot order a same-bar EMA touch and entry-stop trigger.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-009",
+        "C-RAS-HG-SEM-010"
+      ],
+      "transfer_status": "UNKNOWN"
+    },
+    {
+      "branch_id": "UNRESOLVED-FGH-GATE-05-FILL-PROTECTIVE-STOP-CHRONOLOGY",
+      "branch_identity": "be3b0247a73ec1615364a81471f3e18b6bc4498e8328bdd3adfc39202e5b508f",
+      "primary_selected": false,
+      "source_basis": "One-minute OHLC cannot order entry fill and protective-stop touch in one bar.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-015",
+        "C-RAS-HG-SEM-016"
+      ],
+      "transfer_status": "UNKNOWN"
+    },
+    {
+      "branch_id": "UNRESOLVED-FGH-GATE-06-PRIMARY-TIMEFRAME",
+      "branch_identity": "632f48d0d135a3dbc511be158b06f6612c957b4af2a54bb8e019f4e84aa4b0e2",
+      "primary_selected": false,
+      "source_basis": "The multi-timeframe source does not select one machine PRIMARY timeframe.",
+      "source_claim_ids": [
+        "C-RAS-HG-SEM-024"
+      ],
+      "transfer_status": "UNKNOWN"
+    }
+  ],
+  "machine_operationalization": null,
+  "machine_readiness": "NOT_MACHINE_READY",
+  "machine_readiness_blockers": [
+    "UNRESOLVED_CRITICAL_AMBIGUITY",
+    "REQUIRED_INPUT_NOT_FULLY_OBSERVABLE",
+    "CLAIM_PRIMARY_MISSING",
+    "MACHINE_OPERATIONALIZATION_MISSING",
+    "MULTIPLE_TIMEFRAMES_UNRESOLVED"
+  ],
+  "observation_surfaces": [
+    {
+      "missing_inputs": [],
+      "observability_status": "OBSERVABLE_NOW",
+      "required": true,
+      "surface_id": "ADX_OHLC_DERIVED",
+      "surface_identity": "96e8bf384a0a637bd75ee22e075923879801c84f2d2e71074d42f1a0db33757d"
+    },
+    {
+      "missing_inputs": [],
+      "observability_status": "OBSERVABLE_NOW",
+      "required": true,
+      "surface_id": "EMA_OHLC_DERIVED",
+      "surface_identity": "bc45cc2f7ddfacbed33ca75193e0b406c649890e8d8c1d0e1b7296d3faece1f8"
+    },
+    {
+      "missing_inputs": [
+        "intrabar_ordering_at_one_minute"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "ENTRY_AND_PROTECTIVE_STOP_CHRONOLOGY",
+      "surface_identity": "be5eb8103945882d8d6138f4d5a25085099ce9a018e25beb5a037746ac070b37"
+    },
+    {
+      "missing_inputs": [
+        "EXIT_ON_PUSH_TO_NEW_HIGHS_MACHINE_DEFINITION",
+        "NEWLY_FORMED_SWING_LOW_MACHINE_DEFINITION",
+        "TRAILING_STOP_MACHINE_DEFINITION"
+      ],
+      "observability_status": "PARTIALLY_OBSERVABLE",
+      "required": true,
+      "surface_id": "SWING_TRAILING_AND_EXIT_MACHINE_DEFINITIONS",
+      "surface_identity": "977134b74995bb86c94120d2fc840cd0be4a4e79f2e38754abd5510f03fbbb99"
+    }
+  ],
+  "project_transfer_status": "INFERRED",
+  "research_lineage_id": "L-RAS-HOLYGRAIL",
+  "schema_version": "0.2",
+  "source_bundle_hash": "7e6cd5cf02eefa7ba7483eeda9a036433e5a07320455c0594971fc2e37bf882c",
+  "source_bundle_identity": "SB-RASCHKE-HOLY-GRAIL-SEMANTIC-V1",
+  "source_claims": [
+    {
+      "claim_id": "C-RAS-HG-SEM-001",
+      "claim_identity": "223d8c37b0bfa258292f2f80ce0ca7b0a54c8b1b1b0d6484aa839417599da2e7",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP; SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M05"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-002",
+      "claim_identity": "60bf3524f73e2c7ac0d32cf9e96535b68454765b2154e718466878e20cd36674",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-003",
+      "claim_identity": "4388f580c3204df43ac5bf462947f9ff6be0299e37fdc1571c86e1ff677cd4cc",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-004",
+      "claim_identity": "dea84ddad2c98b8f028e18bc8d971193f00cae508052efc5dd7c2425cdcf53e8",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-005",
+      "claim_identity": "2206ffd20836e99f534cc40721e00ebf0b71bf7dc23c1452ce3255a4c403e73f",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M02:discerning-trader:section:PULLBACK_TO_MA; SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-006",
+      "claim_identity": "b54a22a078485c01a7d91d439946a42e828d5a22427cf6b679cc8efaba4e14f2",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M02:discerning-trader:section:PULLBACK_TO_MA; SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-007",
+      "claim_identity": "aa1a6ba89800af45d70bed8625855b55d30a1766389cda2f9b651aabd3045ab5",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M02:discerning-trader:section:PULLBACK_TO_MA; SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-008",
+      "claim_identity": "446e0ddee94f8b2eb7264de208e7417cb864d8eef05489e3350b6573c0f296f5",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M02:discerning-trader:section:PULLBACK_TO_MA",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-009",
+      "claim_identity": "dac75a65697e6e65484ad300f65aa722a56b390d2037842ce718f4244b2c65f0",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-010",
+      "claim_identity": "4b4df023ab8bdda98a8254162d7237c48b016ac3995e0872c22a0314947c0e1a",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-011",
+      "claim_identity": "0eb3b8f53a1b96983470e9d5e62b923b4873c75cd95175e2b5b053222f839241",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-012",
+      "claim_identity": "b9a6a59567a499d4596731690201e4ddea753d39edf2fafe9461ed5970181d6d",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-013",
+      "claim_identity": "60745bc29d6afc06f84eb94d21215c7b8b372d17686c42ac7de3751661f44206",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-014",
+      "claim_identity": "e56e76e41c55379eea4b19d3fec95475224ec38e4840c7818bf92445091f0608",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-015",
+      "claim_identity": "cd0666714692b8243dbf83bd55d5ea9e2afc2ede0b00f0fc267f684d4dff0e46",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-016",
+      "claim_identity": "9b03795bed6665a69f18ed7d197ddca203689570d51765b1af2f2ea022a7f768",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M04:rituals:section:MANAGEMENT_EXIT",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-017",
+      "claim_identity": "4006edce85075a93f161d8a1f99e67456f33648710d1c441d799ec5b04180f3b",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-018",
+      "claim_identity": "e94693ad679cad06aa1a87d85915b2d00f3062bc56232afc6a7e9c42138717ab",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M04:rituals:section:MANAGEMENT_EXIT; SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP",
+      "source_id": "SR-V0-M04"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-019",
+      "claim_identity": "cf84c1adf9f6f4474d5aa244913256e11903c9d6dc1efce8ecc8d4ebe5a224ca",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M04:rituals:section:MANAGEMENT_EXIT",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-020",
+      "claim_identity": "733f7be90afe456291c601de44758459c3ef2439fe0e702a96e747a1cd8ac205",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-021",
+      "claim_identity": "37b69fa73ecf2eff1a6c40952e930f4e9497263d7cd6df945e80a5d0d7492f6e",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP",
+      "source_id": "SR-V0-M05"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-022",
+      "claim_identity": "77572b0bc049a2c415bb8699c8c84fbe772283f30379788d5883021c0b69e5c5",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:MARKET_TIMING; SR-V0-M02:discerning-trader:section:ADX_RULES; SR-V0-M03:raschke0204:section:BREAKOUT_GUESS_FAILURE",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-023",
+      "claim_identity": "9791f22c7b3561791a7845548fe5f1e7dc5532569b271d32fb9507511fd9cbcf",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M03:raschke0204:section:BREAKOUT_GUESS_FAILURE",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-024",
+      "claim_identity": "5e23b09146d401218851beaca105b74c7b9045299d68feda3020d27c5c6847ba",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M05:toolbox:section:HOLY_GRAIL_SETUP",
+      "source_id": "SR-V0-M05"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-025",
+      "claim_identity": "6bbefb5675d4537e3c2732c1d2517e1e4850ef91b88c06beef6bedd842d4f983",
+      "claim_status": "EXPLICIT",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES; SR-V0-M02:discerning-trader:section:PULLBACK_TO_MA",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-026",
+      "claim_identity": "01fd73f75f166015b85218f5c062cbdfe5377e41dacc1f9b4e51f0dbbb0c7e9b",
+      "claim_status": "UNKNOWN",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    },
+    {
+      "claim_id": "C-RAS-HG-SEM-027",
+      "claim_identity": "2a33c454e257377d0fb087b521065b76f3204b7d8a0c017fe7fe6e6a84ab5447",
+      "claim_status": "INFERRED",
+      "source_anchor": "SR-V0-M01:august1997:section:HOLY_GRAIL_RULES",
+      "source_id": "SR-V0-M01"
+    }
+  ],
+  "source_evidence_recorded_claim_count": 27,
+  "source_only_session_identity": "618d1e429d08dbdfacb629e64b9b33c64957307ec341d8544cbcac464f08c376",
+  "source_scope": "US_EQUITIES_AND_US_INDEX",
+  "timeframe_scope": [
+    "120MIN",
+    "30MIN",
+    "60MIN",
+    "BASE"
+  ],
+  "unresolved_machine_definitions": [
+    "EXIT_ON_PUSH_TO_NEW_HIGHS_MACHINE_DEFINITION",
+    "NEWLY_FORMED_SWING_LOW_MACHINE_DEFINITION",
+    "TRAILING_STOP_MACHINE_DEFINITION"
+  ],
+  "unresolved_owner_gates": [
+    "FGH-GATE-01",
+    "FGH-GATE-02",
+    "FGH-GATE-03",
+    "FGH-GATE-04",
+    "FGH-GATE-05",
+    "FGH-GATE-06"
+  ]
+}
