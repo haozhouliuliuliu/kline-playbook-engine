@@ -11,4 +11,5 @@ venv/
 *.parquet
 /data/raw/historical/
 /data/raw/scale_probe/
+/data/revalidation_repair_v01/
 /data/canonical/
