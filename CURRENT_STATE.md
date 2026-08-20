@@ -7,15 +7,20 @@ PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
-CURRENT_BLOCKER=SECOND_PASS_CLOSURE_ONE_HIGH_CORRECTION
-CURRENT_WORK_PACKAGE=FGH_CLOSURE_CORRECTION_THEN_RETROSPECTIVE_2_AND_FINAL_AUDIT
-CURRENT_WORK_PACKAGE_STATUS=READY_FOR_SINGLE_CODEX_EXECUTION
-CURRENT_WORK_PACKAGE_AUTHORITY=docs/reviews/FGH_CLOSURE_CORRECTION_SPEC_V0_1.md
+SECOND_PASS_REPAIR_MODE=EXITED
+CURRENT_WORK_PACKAGE=SECOND_PASS_REPAIR_CLOSURE
+CURRENT_WORK_PACKAGE_STATUS=COMPLETE
+CURRENT_BLOCKER=NONE_AT_REPAIR_LEVEL
+CLOSURE_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md
+FINAL_CLOSURE_RECORD=docs/reviews/SECOND_PASS_REPAIR_FINAL_CLOSURE_RECORD_2026-08-20.md
 SECOND_PASS_AUDIT_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md
-OWNER_ACTION=RELAY_SINGLE_CODEX_CLOSURE_CORRECTION
+OWNER_ACTION=NONE_FOR_REPAIR_CLOSURE
+NEXT_NORMAL_PHASE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
 ```
 
-The four R2 lanes have completed and their reviewed results have been integrated by the project-brain lane. The project is no longer running the four-lane package. It is at the second-pass repair closure gate.
+The full second-pass repair program is closed. The original 62 findings have all received an explicit closure disposition; two project-brain retrospectives were completed; no reviewed CRITICAL silent bypass or HIGH structural implementation defect remains in the repair scope.
+
+Repair completion does **not** mean candidate-performance readiness. Missing data/source/research prerequisites remain explicit and fail closed.
 
 ## Binding research / access boundary
 
@@ -35,11 +40,13 @@ CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
+REAL_MONEY=NOT_AUTHORIZED
+BROKER_ACCESS=NOT_AUTHORIZED
 ```
 
 No project-recorded real candidate outcome exposure has been established.
 
-## Integrated second-pass foundation
+## Accepted second-pass repair foundation
 
 ```text
 PACKAGE_A=INTEGRATED_ACCEPTED_WITH_EXPLICIT_RESIDUAL_BOUNDARY
@@ -53,23 +60,36 @@ E10=INTEGRATED_ACCEPTED
 E04=INTEGRATED_OWNER_APPROVED
 E05=INTEGRATED_OWNER_APPROVED
 E08=INTEGRATED_OWNER_APPROVED
-E07=INTEGRATED_FAIL_CLOSED_PREREQUISITE
-FGH_DETERMINISTIC_REBUILD=INTEGRATED_PENDING_ONE_CLOSURE_GUARDRAIL
+E06=CLOSED_GOVERNED_PREREQUISITE
+E07=CLOSED_GOVERNED_PREREQUISITE_FAIL_CLOSED
+FGH_DETERMINISTIC_REBUILD=INTEGRATED_ACCEPTED
+FGH_CLOSURE_GUARDRAIL=INTEGRATED_ACCEPTED
 ```
 
-Accepted invariants include claim-level PRIMARY and Playbook-to-Strategy binding; canonical completeness/provenance with content-derived SessionMetadata identity and PASS-only storage admission; material-bound SOURCE_ONLY evidence; execution cross-day/offset/round-trip corrections; E-10 round-trip SessionMetadata authority binding; explicit close-bucket child orders; per-member resolved-contract capital assumptions; and AVAILABLE_CAPITAL_ONLY admission.
+Accepted invariants now include:
 
-Residual security/authority boundaries remain explicit:
+- authoritative candidate execution choke point through `ResearchFirewall`;
+- actual-date cohort derivation and actual input data-version binding;
+- artifact-bound outcome registration, durable governance state and lineage continuity;
+- claim-level PRIMARY and deterministic Playbook->Strategy equivalence;
+- canonical completeness/provenance production rules with content-derived SessionMetadata identity and PASS-only storage admission;
+- material-bound prospective SOURCE_ONLY evidence with honest historical `NOT_RECORDED` limits;
+- corrected execution/capital/forced-liquidation/round-trip semantics;
+- explicit close-bucket child orders, per-member resolved-contract capital assumptions and `AVAILABLE_CAPITAL_ONLY` margin admission;
+- point-in-time feature aggregation, full dependency-prefix identity, actual feature implementation byte binding, stop evaluated-sequence identity and OCO cancellation lifecycle;
+- normal-caller aggregation-completeness laundering closed before EMA/ADX.
+
+Residual threat-model boundaries remain explicit:
 
 ```text
-SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN
-LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NO
-VALIDATION_ROW_TO_CANONICAL_ARTIFACT_BYTE_PROVENANCE=NOT_YET_PROVEN
+SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
+LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
+VALIDATION_ROW_TO_CANONICAL_ARTIFACT_BYTE_PROVENANCE=NOT_FULL_END_TO_END_ATTESTATION
 ```
 
-## Package E governed prerequisites
+## Owner-approved Package E semantics
 
-Owner-approved semantics authority:
+Authority:
 `docs/reviews/PACKAGE_E_OWNER_DECISION_APPROVAL_2026-08-20.md`
 
 ```text
@@ -82,12 +102,12 @@ E08_RULE=AVAILABLE_CAPITAL_ONLY
 Current prerequisite status:
 
 ```text
-E06_FINAL_BOUNDED_PASS=COMPLETE
 E06_FINAL_JUDGMENT=PARTIALLY_BUILDABLE_WITH_GAPS
 E06_EXCHANGE_LEVEL_SCHEDULE=INSUFFICIENT_EVIDENCE
 E06_CURRENT_RATE_BACKFILL=FORBIDDEN
 E06_FURTHER_REPEAT_ACQUISITION_DEFAULT=NO
 E06_REMAINING_GAPS=LONG_LIVED_GOVERNED_PREREQUISITE
+E06_REOPEN_TRIGGER=NEW_OFFICIAL_SOURCE_OR_ACCESS_CHANGE_OR_OWNER_POLICY_CHANGE
 
 E07_TQSDK_HISTORY_ACCESS=LOGIN_REQUIRED
 E07_MAPPING_COMPLETENESS=INCOMPLETE
@@ -96,7 +116,7 @@ E07_PROJECT_AUTHORED_SUBSTITUTE=FORBIDDEN
 E07_PSEUDO_MAIN_PRICE_BARS=FORBIDDEN
 ```
 
-E-06 and E-07 are no longer open-ended repair loops. They are explicit governed prerequisites that may be reopened only under their recorded source/access triggers or a new Owner decision.
+E-06/E-07 are governed prerequisites, not open-ended repair loops. A future candidate-enablement package must satisfy them or remain fail closed.
 
 ## Canonical data status
 
@@ -112,62 +132,114 @@ CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
 CANONICAL_PRICE_VALUES_REVOKED=NO
 CANONICAL_CORPUS_REBUILT_DURING_SECOND_PASS=NO
 CANONICAL_ACCEPTANCE_REWRITTEN_DURING_SECOND_PASS=NO
-CANONICAL_INTRADAY_COMPLETENESS_PROOF=REAUDIT_REQUIRED
+CANONICAL_CORPUS_REVALIDATED_UNDER_REPAIRED_D01_D02=NO
+PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
 ```
 
-The second-pass qualification means the accepted historical values/identity were not proven wrong, while the previous completeness proof cannot be overclaimed after D-package findings and must be explicitly revalidated before candidate-quality use.
+The historical accepted values/identity were not proven wrong. However, the accepted corpus was not rebuilt or re-certified under the repaired completeness rules; old PASS status must not be silently promoted into a new repaired-completeness proof.
 
-## F/G/H state
+## F/G/H / Holy Grail state
 
-Deterministic rebuild authority/evidence:
+Authorities:
 
 - `docs/reviews/FGH_CODEX_REBUILD_PREPARATION_V0_1.md`
 - `docs/reviews/FGH_CODEX_REBUILD_FINDING_MATRIX_V0_1.json`
 - `docs/evidence/FGH_DETERMINISTIC_REBUILD_ENGINEERING_V0_1.md`
-- `docs/reviews/FGH_SEMANTIC_GATE_OWNER_DECISION_PROPOSAL_V0_1.md`
 - `docs/reviews/FGH_SEMANTIC_GATE_OWNER_APPROVAL_2026-08-20.md`
+- `docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md`
 
 ```text
 OLD_FGH_DIRECT_MERGE=FORBIDDEN
-FGH_GENERIC_FEATURE_CORE=INTEGRATED
-FGH_GENERIC_STOP_OCO_CORE=INTEGRATED
-FGH_COMBINED_SYNTHETIC_CAUSAL_CHAIN=INTEGRATED
-HOLY_GRAIL_OWNER_DECISIONS=RECORDED
+FGH_GENERIC_FEATURE_CORE=INTEGRATED_ACCEPTED
+FGH_GENERIC_STOP_OCO_CORE=INTEGRATED_ACCEPTED
+FGH_COMBINED_SYNTHETIC_CAUSAL_CHAIN=INTEGRATED_ACCEPTED
+FGH_NORMAL_CALLER_COMPLETENESS_LAUNDERING=CLOSED
+HOLY_GRAIL_OWNER_DECISIONS=RECORDED_BINDING
 HOLY_GRAIL_MACHINE_READY=NO
 PRIMARY_FREEZE_READY=NO
 CANDIDATE_OUTCOME_DATA_USED=NO
 ```
 
-Owner approval adopts the project-brain recommendations from the semantic proposal. Any recommendation whose value is to remain unpinned / wait for better source evidence remains a blocker, not an invented machine rule. In particular, approval does not convert source-unknown trailing-stop semantics into a fabricated precise rule.
+Owner-approved F/G/H semantics include prior-available close-based EMA touch, pre-pullback ADX context, explicit numeric engineering convention, same-bar ambiguity fail-closed, completed-bar conservative stop chronology, BASE as the first source-primary timeframe branch, confirmed-pivot swing semantics, no invented trailing algorithm, and new-high exit as an optional variant.
 
-## Retrospective 1
+Normal research operationalization still must explicitly version/bind:
 
-Authority:
-`docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_1_2026-08-20.md`
+```text
+HOLY_GRAIL_BASE_TO_MACHINE_INTERVAL=OPEN
+HOLY_GRAIL_ADX_RISING_WINDOW=OPEN_VERSIONED_NON_OUTCOME_CHOICE
+HOLY_GRAIL_SWING_CONFIRMATION_COUNTS=OPEN_VERSIONED_NON_OUTCOME_CHOICE
+HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION=NOT_ADOPTED
+```
+
+These are future normal research prerequisites, not unresolved second-pass repair defects.
+
+## Mandatory post-repair retrospectives
 
 ```text
 RETROSPECTIVE_1=COMPLETE
+RETROSPECTIVE_1_AUTHORITY=docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_1_2026-08-20.md
 RETROSPECTIVE_1_NEW_CRITICAL=0
 RETROSPECTIVE_1_NEW_HIGH=1
 RETROSPECTIVE_1_HIGH=AGGREGATION_RESULT_COMPLETENESS_LAUNDERING
+RETROSPECTIVE_1_HIGH_STATUS=CORRECTED_AND_MERGED
+
+RETROSPECTIVE_2=COMPLETE
+RETROSPECTIVE_2_AUTHORITY=docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_2_2026-08-20.md
+RETROSPECTIVE_2_NEW_CRITICAL=0
+RETROSPECTIVE_2_NEW_HIGH_REPAIR_FINDINGS=0
 ```
 
-The remaining HIGH is narrow: `AggregationResult._from_aggregation(...)` can be called directly by a normal Python caller to discard genuine `incomplete_buckets` before feature computation. The bounded correction authority is:
-`docs/reviews/FGH_CLOSURE_CORRECTION_SPEC_V0_1.md`.
+Retrospective 1's bounded correction was merged through PR #14 at merge commit `7961244961f532fd2ff5bcb839bcf52082b58ef4`.
 
-Temporary GitHub Actions runners used while diagnosing execution availability were removed and are NOT_ADOPTED. Temporary PRs were closed. They are not project test infrastructure.
+## Final 62-finding closure audit
 
-## Closure sequence
+Authority:
+`docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md`
 
 ```text
-STEP_1=CODEX_APPLY_FGH_CLOSURE_CORRECTION_AND_RUN_FULL_TESTS
-STEP_2=PROJECT_BRAIN_VERIFY_BRANCH_AND_INTEGRATE
-STEP_3=PROJECT_BRAIN_RETROSPECTIVE_2
-STEP_4=PROJECT_BRAIN_FINAL_SECOND_PASS_62_FINDING_CLOSURE_AUDIT
-STEP_5=UPDATE_CURRENT_STATE_AND_CLOSURE_RECORD
+SECOND_PASS_REPAIR_CLOSURE_AUDIT=COMPLETE
+ORIGINAL_FINDINGS=62
+ORIGINAL_FINDINGS_DISPOSITIONED=62_OF_62
+UNRESOLVED_CRITICAL_SILENT_BYPASS=0
+UNRESOLVED_HIGH_STRUCTURAL_REPAIR_DEFECT=0
+SECOND_PASS_REPAIR_MODE=EXITED
+REPAIR_COMPLETE_DOES_NOT_EQUAL_CANDIDATE_READY=YES
 ```
 
-Second-pass repair mode ends only if Retrospective 2 and the final closure audit find no unresolved critical silent bypass or structural implementation defect. Candidate outcome access does not need to be unlocked for repair mode to end.
+Closure dispositions deliberately distinguish implementation repairs from governed prerequisites, historical evidence limits, and explicit scope/threat-model limits.
+
+## Persisted post-repair prerequisites
+
+Authority/index:
+`KNOWN_LIMITATIONS_AND_TECH_DEBT.md`
+
+Important active/deferred items:
+
+```text
+LIMIT-001=HISTORICAL_PRICE_LIMIT_METADATA
+LIMIT-002=PRE_CANDIDATE_CANONICAL_REVALIDATION
+LIMIT-003=E06_HISTORICAL_EXCHANGE_FEE_MARGIN_SCHEDULE
+LIMIT-004=E07_SOURCE_GOVERNED_TQSDK_MAPPING
+LIMIT-005=HOLY_GRAIL_MACHINE_OPERATIONALIZATION
+LIMIT-006=REAL_COMMON_STATISTICAL_PROFILE_NOT_ADOPTED
+LIMIT-007=PORTFOLIO_CANDIDATE_OUTCOME_AUTHORITY_NOT_IMPLEMENTED
+LIMIT-008=SOURCE_ONLY_AND_LOCAL_STATE_THREAT_MODEL_LIMIT
+DECISION-001=LIVE_AI_MARKET_READING_FUTURE_OWNER_GATE
+```
+
+## Test / evidence-quality qualification
+
+```text
+R2_FOUNDATION_FULL_TESTS=478_OK_BEFORE_FINAL_FGH_CLOSURE_CORRECTION
+R2_FOUNDATION_COMPILEALL=OK
+R2_FOUNDATION_DIFF_CHECK=OK
+FINAL_CLOSURE_CORRECTION_PROJECT_BRAIN_CODE_REVIEW=COMPLETE
+FINAL_CLOSURE_CORRECTION_REGRESSION_ARTIFACTS=COMMITTED
+INDEPENDENT_PROJECT_BRAIN_FINAL_FULL_SUITE_RERUN=NOT_AVAILABLE_IN_CONNECTOR_ENVIRONMENT
+TEMPORARY_GITHUB_ACTIONS_APPROACH=ABANDONED_NOT_ADOPTED
+```
+
+The final Codex correction was explicitly tasked to run focused/full tests, compileall and diff-check and committed its adversarial regression tests. The project-brain independently reviewed the code/test delta but cannot truthfully claim an independent final Python execution from the connector environment.
 
 ## Tool decision
 
@@ -175,16 +247,32 @@ Second-pass repair mode ends only if Retrospective 2 and the final closure audit
 TOOL_DECISION=USE_EXISTING
 NEW_TOOL_REQUIRED=NO
 TEMPORARY_GITHUB_ACTIONS_APPROACH=ABANDONED_NOT_ADOPTED
-CODEX_ROLE=BOUNDED_IMPLEMENTATION_AND_TEST_EXECUTION_ONLY
+CODEX_ROLE=BOUNDED_DIFFICULT_IMPLEMENTATION_AND_TEST_EXECUTION
 MAIN=SOLE_FINAL_INTEGRATION_AUTHORITY
 ```
 
-## Current next action
+No temporary GitHub Actions runner was adopted as project infrastructure.
+
+## Progress estimate
 
 ```text
-CURRENT_NEXT_ACTION=RUN_SINGLE_CODEX_FGH_CLOSURE_CORRECTION
+PLANNING_ESTIMATE_ONLY=YES
+ACCEPTED_MAIN_OVERALL_ENGINEERING_PROGRESS=ABOUT_74_PERCENT
+RESEARCH_AND_VALIDATION_FOUNDATION_ACCEPTED_PROGRESS=ABOUT_92_PERCENT
+```
+
+The gap to 100% is now predominantly normal product/research/runtime work and explicit prerequisites, not the second-pass repair program. Major future areas include normal Holy Grail operationalization, candidate-enablement prerequisites, and eventually Trading Loop / OMS / RiskGate / broker/reconciliation/live-control work under their own authorities.
+
+## Current next action / stopping point
+
+```text
+CURRENT_NEXT_ACTION=STOP_AT_REPAIR_CLOSURE_NODE_FOR_CONTEXT_HANDOFF
+NEXT_NORMAL_WORK_AFTER_RETAKE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
+OWNER_ACTION=NONE_FOR_REPAIR_CLOSURE
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 SHADOW_FORWARD=NOT_AUTHORIZED
 ```
+
+This is the requested stopping point. A new conversation must re-read repository authority rather than infer state from chat memory.
