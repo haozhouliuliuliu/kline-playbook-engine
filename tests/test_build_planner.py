@@ -26,7 +26,7 @@ def _source() -> GovernedSource:
     return GovernedSource(
         resource_identity="r", url="https://example.com/official",
         retrieved_at=datetime(2026, 8, 16, tzinfo=CN),
-        artifact_sha256=None, schema_version="v1", classification="OFFICIAL_AVAILABLE",
+        artifact_sha256="a" * 64, schema_version="v1", classification="OFFICIAL_AVAILABLE",
         effective_period_start=date(2024, 1, 1), effective_period_end=date(2025, 12, 31),
     )
 

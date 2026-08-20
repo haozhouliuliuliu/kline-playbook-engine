@@ -378,21 +378,41 @@ class PlaybookContractFailClosedValidationTests(unittest.TestCase):
         )
 
     def test_missing_primary_blocks_when_required(self):
+        # P-01: claim-level PRIMARY. A claim whose only interpretation is not
+        # primary_selected has no PRIMARY -> blocker.
         self.assert_not_ready(
             contract(interpretations=(interpretation(primary=False),)),
-            "PRIMARY_MISSING",
+            "CLAIM_PRIMARY_MISSING",
         )
 
-    def test_multiple_primary_selected_blocks(self):
-        self.assert_not_ready(
+    def test_each_claim_with_exactly_one_primary_is_machine_ready(self):
+        # P-01/C02: two claims, each with its own PRIMARY branch -> PRIMARY check
+        # passes. The old contract-wide single-PRIMARY rule would have rejected
+        # this multi-component contract.
+        result = validate_contract(
             contract(
                 source_claims=(source_claim("c1"), source_claim("c2", source_id="s2")),
                 interpretations=(
                     interpretation("b1", ("c1",), primary=True),
                     interpretation("b2", ("c2",), primary=True),
                 ),
+            )
+        )
+        self.assertEqual(result.readiness, MachineReadiness.MACHINE_READY)
+        self.assertTrue(result.ready)
+        self.assertEqual(result.blockers, ())
+
+    def test_duplicate_primary_for_one_claim_blocks(self):
+        # P-01/C03: two PRIMARY branches for the SAME claim -> blocker.
+        self.assert_not_ready(
+            contract(
+                source_claims=(source_claim("c1"),),
+                interpretations=(
+                    interpretation("b1", ("c1",), primary=True),
+                    interpretation("b2", ("c1",), primary=True),
+                ),
             ),
-            "MULTIPLE_PRIMARY_SELECTED",
+            "CLAIM_PRIMARY_MULTIPLE",
         )
 
     def test_missing_machine_identities_blocks(self):
@@ -643,6 +663,253 @@ class PlaybookContractStrategyBridgeTests(unittest.TestCase):
         self.assertEqual(identity.lifecycle_state, LifecycleState.DRAFT)
         catalog = StrategyCatalog()
         self.assertEqual(catalog.records, ())
+        instance = contract(machine=machine(parameter_identities=self.machine_ids))
+        self.assertTrue(validate_contract(instance).ready)
+        with self.assertRaisesRegex(ValueError, "required feature versions do not match"):
+            bridge_to_strategy_identity(
+                instance,
+                parameters=self.parameters,
+                code_hash="code-hash-v1",
+                environment_hash="env-hash-v1",
+                required_feature_versions=(),
+                data_exposure_history_reference="exposure-fixture-v1",
+            )
+
+    def test_playbook_module_cannot_authorize_research_firewall_access(self):
+        import src.playbook_contract as playbook_contract
+
+        source = inspect.getsource(playbook_contract)
+        # The module must not import the firewall and must expose no outcome API.
+        for forbidden_import in (
+            "import src.research_firewall",
+            "from src.research_firewall",
+            "from src import research_firewall",
+        ):
+            self.assertNotIn(forbidden_import, source)
+        for forbidden_api in (
+            "request_candidate_outcome_access",
+            "request_protected_market_outcome",
+            "OutcomeTestRegistration",
+        ):
+            self.assertNotIn(forbidden_api, source)
+        self.assertFalse(hasattr(playbook_contract, "request_candidate_outcome_access"))
+        self.assertFalse(hasattr(playbook_contract, "ResearchFirewall"))
+        self.assertFalse(hasattr(playbook_contract, "OutcomeTestRegistration"))
+        # The module source must state the sole-owner boundary.
+        self.assertIn("sole outcome-access owner", source)
+
+        # Bridging alone performs no registration and grants no access.
+        identity = bridge_to_strategy_identity(
+            self.instance,
+            **bridge_kwargs(self.parameters),
+        )
+        self.assertEqual(identity.lifecycle_state, LifecycleState.DRAFT)
+        catalog = StrategyCatalog()
+        self.assertEqual(catalog.records, ())
+
+
+class PlaybookContractPackageCProtocolInvariantTests(unittest.TestCase):
+    """Package C protocol invariant regressions (P-01..P-05 / C01..C13).
+
+    Synthetic contracts only. Proves machine-readiness is derived from claim-level
+    PRIMARY, ambiguity, observability, transfer and timeframe facts instead of
+    caller self-attestation.
+    """
+
+    def _two_claim_contract(self, **overrides):
+        """Machine-ready two-claim contract: c1->b1 PRIMARY, c2->b2 PRIMARY."""
+        base = dict(
+            source_claims=(source_claim("c1"), source_claim("c2", source_id="s2")),
+            interpretations=(
+                interpretation("b1", ("c1",), primary=True),
+                interpretation("b2", ("c2",), primary=True),
+            ),
+        )
+        base.update(overrides)
+        return contract(**base)
+
+    def assert_not_ready(self, instance, *expected_blockers):
+        result = validate_contract(instance)
+        self.assertIsInstance(result, ContractValidationResult)
+        self.assertEqual(result.readiness, MachineReadiness.NOT_MACHINE_READY)
+        self.assertFalse(result.ready)
+        for blocker in expected_blockers:
+            self.assertIn(blocker, result.blockers)
+        return result
+
+    # -- C01: two claims, only C1 has a PRIMARY -> NOT_MACHINE_READY. ----------
+    def test_c01_claim_without_primary_not_machine_ready(self):
+        instance = self._two_claim_contract(
+            interpretations=(
+                interpretation("b1", ("c1",), primary=True),
+                interpretation("b2", ("c2",), primary=False),
+            )
+        )
+        self.assert_not_ready(instance, "CLAIM_PRIMARY_MISSING")
+
+    # -- C02: each claim exactly one PRIMARY -> PRIMARY check passes. ----------
+    def test_c02_each_claim_exactly_one_primary_passes(self):
+        result = validate_contract(self._two_claim_contract())
+        self.assertEqual(result.readiness, MachineReadiness.MACHINE_READY)
+        self.assertTrue(result.ready)
+        self.assertEqual(result.blockers, ())
+
+    # -- C03: two PRIMARY branches for one claim -> blocker. -------------------
+    def test_c03_duplicate_primary_for_one_claim_blocks(self):
+        instance = self._two_claim_contract(
+            interpretations=(
+                interpretation("b1", ("c1",), primary=True),
+                interpretation("b3", ("c1",), primary=True),
+                interpretation("b2", ("c2",), primary=True),
+            )
+        )
+        self.assert_not_ready(instance, "CLAIM_PRIMARY_MULTIPLE")
+
+    # -- C04: PRIMARY missing + ambiguity_status=NONE still blocks. ------------
+    def test_c04_primary_missing_with_ambiguity_none_still_blocks(self):
+        instance = self._two_claim_contract(
+            interpretations=(
+                interpretation("b1", ("c1",), primary=True),
+                interpretation("b2", ("c2",), primary=False),
+            ),
+            ambiguity_status=AmbiguityStatus.NONE,
+        )
+        self.assert_not_ready(instance, "CLAIM_PRIMARY_MISSING")
+
+    # -- C05: PRIMARY missing + ambiguity_status=RESOLVED still blocks. --------
+    def test_c05_primary_missing_with_ambiguity_resolved_still_blocks(self):
+        instance = self._two_claim_contract(
+            interpretations=(
+                interpretation("b1", ("c1",), primary=True),
+                interpretation("b2", ("c2",), primary=False),
+            ),
+            ambiguity_status=AmbiguityStatus.RESOLVED,
+            ambiguity_notes="source resolved the choice",
+        )
+        self.assert_not_ready(instance, "CLAIM_PRIMARY_MISSING")
+
+    # -- C06: PRIMARY complete + UNRESOLVED_CRITICAL still blocks. -------------
+    def test_c06_primary_complete_with_unresolved_critical_blocks(self):
+        instance = self._two_claim_contract(
+            ambiguity_status=AmbiguityStatus.UNRESOLVED_CRITICAL,
+        )
+        self.assert_not_ready(instance, "UNRESOLVED_CRITICAL_AMBIGUITY")
+
+    # -- C07: required PARTIALLY_OBSERVABLE -> blocker. ------------------------
+    def test_c07_required_partially_observable_blocks(self):
+        instance = contract(
+            observation_surfaces=(
+                observation_surface(
+                    obs=ObservabilityStatus.PARTIALLY_OBSERVABLE,
+                    missing=("order-flow",),
+                ),
+            )
+        )
+        self.assert_not_ready(instance, "REQUIRED_INPUT_NOT_FULLY_OBSERVABLE")
+
+    # -- C08: UNKNOWN project transfer -> blocker. -----------------------------
+    def test_c08_unknown_project_transfer_blocks(self):
+        instance = contract(project_transfer_status=TransferStatus.UNKNOWN)
+        self.assert_not_ready(instance, "PROJECT_TRANSFER_UNKNOWN")
+        # INFERRED remains allowed, only as explicitly labeled inferred transfer.
+        inferred_ok = contract(
+            interpretations=(interpretation(transfer=TransferStatus.INFERRED),),
+            project_transfer_status=TransferStatus.INFERRED,
+        )
+        self.assertTrue(validate_contract(inferred_ok).ready)
+
+    # -- C09: two timeframes -> blocker. ---------------------------------------
+    def test_c09_multiple_timeframes_block(self):
+        instance = contract(timeframe_scope=("15m", "60m"))
+        self.assert_not_ready(instance, "MULTIPLE_TIMEFRAMES_UNRESOLVED")
+
+    # -- C10: bridge refuses multi-timeframe (fail closed). --------------------
+    def test_c10_bridge_refuses_multiple_timeframes(self):
+        params, machine_ids = ready_machine_params()
+        instance = contract(
+            timeframe_scope=("15m", "60m"),
+            machine=machine(parameter_identities=machine_ids),
+        )
+        with self.assertRaisesRegex(ValueError, "not machine ready|MULTIPLE_TIMEFRAMES"):
+            bridge_to_strategy_identity(instance, **bridge_kwargs(params))
+
+    # -- C11: single timeframe bridges the exact value. ------------------------
+    def test_c11_single_timeframe_bridges_exact_value(self):
+        params, machine_ids = ready_machine_params()
+        instance = contract(machine=machine(parameter_identities=machine_ids))
+        identity = bridge_to_strategy_identity(instance, **bridge_kwargs(params))
+        self.assertEqual(identity.timeframe, "5m")
+        self.assertEqual(identity.timeframe, instance.timeframe_scope[0])
+
+    # -- C12: primary_selection_identity is deterministic. ---------------------
+    def test_c12_primary_selection_identity_is_deterministic(self):
+        first = self._two_claim_contract()
+        second = self._two_claim_contract()
+        self.assertEqual(first.primary_selection_identity, second.primary_selection_identity)
+        self.assertTrue(first.primary_selection_identity)
+        self.assertTrue(first.primary_selection_identity.isalnum())
+
+    # -- C13: changing a claim's PRIMARY changes the identity. -----------------
+    def test_c13_changing_claim_primary_changes_identity(self):
+        def variant(select_b1: bool):
+            return self._two_claim_contract(
+                interpretations=(
+                    interpretation("b1", ("c1",), primary=select_b1),
+                    interpretation("b3", ("c1",), primary=not select_b1),
+                    interpretation("b2", ("c2",), primary=True),
+                )
+            )
+
+        contract_a = variant(True)
+        contract_b = variant(False)
+        self.assertTrue(validate_contract(contract_a).ready)
+        self.assertTrue(validate_contract(contract_b).ready)
+        self.assertNotEqual(
+            contract_a.primary_selection_identity,
+            contract_b.primary_selection_identity,
+        )
+
+    # -- C14 companion: incomplete PRIMARY resolution yields no fake identity. --
+    def test_c14_primary_selection_identity_raises_when_incomplete(self):
+        instance = self._two_claim_contract(
+            interpretations=(
+                interpretation("b1", ("c1",), primary=True),
+                interpretation("b2", ("c2",), primary=False),
+            )
+        )
+        with self.assertRaisesRegex(ValueError, "PRIMARY"):
+            _ = instance.primary_selection_identity
+
+    # -- C-C02: duplicate source claim ids fail closed (no fuzzy equivalence). --
+
+    def _duplicate_claim_contract(self):
+        return contract(
+            source_claims=(
+                source_claim("C1", anchor="book:A"),
+                source_claim("C1", anchor="book:B"),
+            ),
+            interpretations=(
+                interpretation("b1", ("C1",), primary=True),
+            ),
+        )
+
+    def test_cc02a_duplicate_claim_id_blocks_machine_readiness(self):
+        self.assert_not_ready(
+            self._duplicate_claim_contract(), "DUPLICATE_SOURCE_CLAIM_ID"
+        )
+
+    def test_cc02b_primary_selection_identity_raises_on_duplicate_claim_ids(self):
+        instance = self._duplicate_claim_contract()
+        with self.assertRaisesRegex(ValueError, "duplicate source claim ids"):
+            _ = instance.primary_selection_identity
+
+    def test_cc02c_single_primary_branch_cannot_cover_duplicate_claim_ids(self):
+        # Even one branch referencing ("C1",) with primary_selected=True cannot
+        # make a duplicate-claim contract machine-ready.
+        instance = self._duplicate_claim_contract()
+        result = validate_contract(instance)
+        self.assertEqual(result.readiness, MachineReadiness.NOT_MACHINE_READY)
+        self.assertIn("DUPLICATE_SOURCE_CLAIM_ID", result.blockers)
 
 
 if __name__ == "__main__":

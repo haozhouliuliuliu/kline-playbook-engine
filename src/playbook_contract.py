@@ -27,10 +27,12 @@ Hard boundaries (guaranteed by this module):
   because a playbook draft exists; registration into a `StrategyCatalog` is an
   explicit caller action.
 - Validation is fail-closed: missing source references, missing interpretation
-  provenance, unresolved critical ambiguity, a non-observable required input,
-  silently collapsed source variants, a missing or duplicated PRIMARY, missing
-  machine identities, missing instrument/timeframe scope, and an INFERRED
-  transfer mislabeled EXPLICIT all mark the contract `NOT_MACHINE_READY`.
+  provenance, unresolved critical ambiguity, a non-observable or only
+  PARTIALLY_OBSERVABLE required input, silently collapsed source variants, a
+  missing or duplicated claim-level PRIMARY, an UNKNOWN project transfer, a
+  multi-timeframe scope, missing machine identities, missing
+  instrument/timeframe scope, and an INFERRED transfer mislabeled EXPLICIT all
+  mark the contract `NOT_MACHINE_READY`.
 """
 
 from __future__ import annotations
@@ -234,6 +236,41 @@ class MachineOperationalization:
         )
 
 
+def _referencing_branches(
+    contract: "PlaybookContract", claim_id: str
+) -> tuple[InterpretationBranch, ...]:
+    """Interpretation branches that reference a given source claim id."""
+    return tuple(
+        branch
+        for branch in contract.interpretations
+        if claim_id in branch.source_claim_ids
+    )
+
+
+def resolve_claim_primary(contract: "PlaybookContract", claim_id: str) -> InterpretationBranch:
+    """Resolve the unique PRIMARY interpretation branch for one source claim.
+
+    Protocol v1.0 section 2 (and Claim Schema v1.0 section 8): every
+    source-faithful claim must have exactly one source-justified PRIMARY_BRANCH.
+    Raises ``ValueError`` when the claim has no referencing branch or not exactly
+    one ``primary_selected`` branch, so incomplete PRIMARY resolution never yields
+    a fake identity.
+    """
+    referencing = _referencing_branches(contract, claim_id)
+    if not referencing:
+        raise ValueError(
+            f"source claim has no referencing interpretation branch: {claim_id}"
+        )
+    selected = [branch for branch in referencing if branch.primary_selected]
+    if not selected:
+        raise ValueError(f"source claim has no PRIMARY interpretation branch: {claim_id}")
+    if len(selected) > 1:
+        raise ValueError(
+            f"source claim has multiple PRIMARY interpretation branches: {claim_id}"
+        )
+    return selected[0]
+
+
 @dataclass(frozen=True)
 class PlaybookContract:
     """Generic deterministic Playbook Contract core representation.
@@ -323,6 +360,37 @@ class PlaybookContract:
             }
         )
 
+    @property
+    def primary_selection_identity(self) -> str:
+        """Canonical whole-contract PRIMARY selection identity (Package C / P-01).
+
+        Deterministic hash of the sorted ``(claim_id,
+        selected_primary_branch.branch_identity)`` pairs, one entry per unique
+        source claim (Protocol v1.0 section 2: every source-faithful claim must
+        have exactly one source-justified PRIMARY_BRANCH). Raises ``ValueError``
+        while any source claim's PRIMARY is unresolved or the contract has no
+        source claims; no fake identity is ever produced for incomplete PRIMARY
+        resolution.
+        """
+        if not self.source_claims:
+            raise ValueError(
+                "playbook contract has no source claims; "
+                "PRIMARY selection identity is undefined"
+            )
+        # C-C02: duplicate source claim ids would collapse two distinct source
+        # records onto one PRIMARY; fail closed instead of hashing a collapsed set.
+        claim_ids = [claim.claim_id for claim in self.source_claims]
+        if len(claim_ids) != len(set(claim_ids)):
+            raise ValueError(
+                "duplicate source claim ids in playbook contract; "
+                "PRIMARY selection identity is undefined"
+            )
+        pairs = []
+        for claim_id in sorted(claim_ids):
+            branch = resolve_claim_primary(self, claim_id)
+            pairs.append((claim_id, branch.branch_identity))
+        return canonical_hash(tuple(pairs))
+
     def machine_readiness(self) -> "ContractValidationResult":
         return validate_contract(self)
 
@@ -356,6 +424,13 @@ class ContractValidationResult:
 def _collect_blockers(contract: PlaybookContract) -> tuple[str, ...]:
     """Deterministic fail-closed blocker collection. Empty means machine-ready."""
     blockers: list[str] = []
+
+    # 0. Source claim ids must be unique for claim-level PRIMARY resolution
+    #    (C-C02). Two distinct source records sharing one claim id would collapse
+    #    onto one branch/PRIMARY; do not invent fuzzy source-claim equivalence.
+    claim_ids = [claim.claim_id for claim in contract.source_claims]
+    if len(claim_ids) != len(set(claim_ids)):
+        blockers.append("DUPLICATE_SOURCE_CLAIM_ID")
 
     # 1. Source references must be present (SOURCE layer).
     source_missing = not contract.source_claims or any(
@@ -397,6 +472,15 @@ def _collect_blockers(contract: PlaybookContract) -> tuple[str, ...]:
         for surface in required_surfaces
     ):
         blockers.append("REQUIRED_INPUT_NOT_OBSERVABLE")
+    # P-03: a required surface that is only PARTIALLY_OBSERVABLE is not
+    # machine-ready in this package. No surrogate / subset-resolution object is
+    # invented here; a future explicitly governed inferred surrogate must be a
+    # separate interpretation / contract version.
+    if any(
+        surface.observability_status is ObservabilityStatus.PARTIALLY_OBSERVABLE
+        for surface in required_surfaces
+    ):
+        blockers.append("REQUIRED_INPUT_NOT_FULLY_OBSERVABLE")
     if {surface.surface_id for surface in required_surfaces} & set(contract.unavailable_inputs):
         blockers.append("REQUIRED_INPUT_NOT_OBSERVABLE")
 
@@ -414,12 +498,26 @@ def _collect_blockers(contract: PlaybookContract) -> tuple[str, ...]:
         if len(labels) > 1:
             blockers.append("SOURCE_VARIANTS_INVENTED")
 
-    # 6. Exactly one explicit PRIMARY where one is required.
-    primary_count = sum(1 for branch in contract.interpretations if branch.primary_selected)
-    if primary_count > 1:
-        blockers.append("MULTIPLE_PRIMARY_SELECTED")
-    if contract.primary_required and primary_count == 0:
-        blockers.append("PRIMARY_MISSING")
+    # 6. Every source-faithful claim must have exactly one PRIMARY branch
+    #    (Protocol v1.0 section 2 / P-01). This is claim-level and unconditional:
+    #    one branch may be the PRIMARY for several claims it explicitly
+    #    references, but each claim must have exactly one PRIMARY selected among
+    #    its referencing branches. `primary_required` remains descriptive schema
+    #    metadata and no longer gates this derivation.
+    for claim in contract.source_claims:
+        referencing = [
+            branch
+            for branch in contract.interpretations
+            if claim.claim_id in branch.source_claim_ids
+        ]
+        if not referencing:
+            blockers.append("CLAIM_PRIMARY_MISSING")
+            continue
+        selected = [branch for branch in referencing if branch.primary_selected]
+        if not selected:
+            blockers.append("CLAIM_PRIMARY_MISSING")
+        elif len(selected) > 1:
+            blockers.append("CLAIM_PRIMARY_MULTIPLE")
 
     # 7. Machine identities required for StrategyIdentity must be present.
     # Empty `parameter_identities` / `required_feature_versions` are legitimate
@@ -439,6 +537,11 @@ def _collect_blockers(contract: PlaybookContract) -> tuple[str, ...]:
     # 8. Instrument and timeframe scope must be declared.
     if not contract.instrument_scope or not contract.timeframe_scope:
         blockers.append("SCOPE_MISSING")
+    # P-05: a machine-ready contract must have exactly one timeframe_scope value.
+    # Multiple source-permitted timeframes may remain in drafts/variants but must
+    # never bridge into a single StrategyIdentity timeframe string.
+    if len(contract.timeframe_scope) > 1:
+        blockers.append("MULTIPLE_TIMEFRAMES_UNRESOLVED")
 
     # 9. An INFERRED transfer must not be mislabeled EXPLICIT.
     if contract.project_transfer_status is TransferStatus.EXPLICIT:
@@ -447,6 +550,12 @@ def _collect_blockers(contract: PlaybookContract) -> tuple[str, ...]:
             for branch in contract.interpretations
         ):
             blockers.append("INFERRED_TRANSFER_MISLABELED_EXPLICIT")
+
+    # 10. UNKNOWN project transfer status must not be machine-ready (P-04).
+    #     INFERRED remains allowed, but only as explicitly labeled inferred
+    #     project transfer; it is never treated as source-explicit.
+    if contract.project_transfer_status is TransferStatus.UNKNOWN:
+        blockers.append("PROJECT_TRANSFER_UNKNOWN")
 
     return tuple(dict.fromkeys(blockers))
 
@@ -462,6 +571,72 @@ def validate_contract(contract: PlaybookContract) -> ContractValidationResult:
 def parameter_identity(parameter: TypedParameter) -> str:
     """Canonical identity of a typed parameter (matches the machine-layer declaration)."""
     return canonical_hash(parameter.as_dict())
+
+
+def validate_strategy_against_playbook_contract(
+    contract: PlaybookContract, strategy: StrategyIdentity
+) -> None:
+    """Single semantic authority for Playbook -> Strategy bridge equivalence.
+
+    Proves ``strategy`` carries exactly the deterministic machine/scope facts the
+    existing ``bridge_to_strategy_identity`` produces for this contract. The
+    contract must already be MACHINE_READY (validated here through the single
+    existing authority ``validate_contract``). Raises ``ValueError`` on the first
+    exact fact mismatch. Both ``bridge_to_strategy_identity`` and
+    ``ResearchFirewall.register_outcome_test`` call this one validator so the
+    comparison set can never drift into a second bridge implementation.
+    """
+    readiness = validate_contract(contract)
+    if not readiness.ready:
+        raise ValueError(
+            "PLAYBOOK_CONTRACT_NOT_MACHINE_READY: " + ",".join(readiness.blockers)
+        )
+    machine = contract.machine
+    if machine is None:
+        raise ValueError("playbook contract has no machine operationalization")
+    if strategy.research_lineage_id != contract.research_lineage_id:
+        raise ValueError(
+            "strategy research lineage does not match the contract research lineage"
+        )
+    if strategy.family_id != contract.family_id:
+        raise ValueError("strategy family does not match the contract family")
+    if strategy.playbook_contract_identity != contract.contract_identity:
+        raise ValueError("strategy is not bound to this playbook contract")
+    if strategy.applicable_instruments != tuple(sorted(set(contract.instrument_scope))):
+        raise ValueError(
+            "strategy applicable instruments do not match the contract instrument scope"
+        )
+    if len(contract.timeframe_scope) != 1:
+        raise ValueError(
+            "MULTIPLE_TIMEFRAMES_UNRESOLVED: strategy equivalence requires exactly "
+            "one contract timeframe scope value"
+        )
+    if strategy.timeframe != contract.timeframe_scope[0]:
+        raise ValueError("strategy timeframe does not match the contract timeframe scope")
+    if strategy.code_hash != machine.code_hash:
+        raise ValueError("strategy code hash does not match the contract machine layer")
+    if strategy.environment_hash != machine.environment_hash:
+        raise ValueError(
+            "strategy environment hash does not match the contract machine layer"
+        )
+    if strategy.required_feature_versions != machine.required_feature_versions:
+        raise ValueError(
+            "strategy required feature versions do not match the contract machine layer"
+        )
+    strategy_parameter_ids = tuple(
+        sorted({parameter_identity(parameter) for parameter in strategy.parameters})
+    )
+    if strategy_parameter_ids != machine.parameter_identities:
+        raise ValueError("strategy parameters do not match the contract parameter identities")
+    if strategy.data_exposure_history_reference != contract.data_exposure_history_reference:
+        raise ValueError("strategy data exposure reference does not match the contract")
+    if strategy.source != (contract.source_scope or contract.family_id):
+        raise ValueError("strategy source does not match the contract source scope")
+    expected_version = f"pc-{contract.contract_version}-{contract.contract_identity}"
+    if strategy.strategy_version != expected_version:
+        raise ValueError(
+            "strategy version does not match the playbook bridge deterministic version"
+        )
 
 
 def bridge_to_strategy_identity(
@@ -494,33 +669,30 @@ def bridge_to_strategy_identity(
         raise ValueError(
             "playbook contract is not machine ready: " + ",".join(result.blockers)
         )
-    machine = contract.machine
-    if machine is None:
-        raise ValueError("playbook contract has no machine operationalization")
-    if machine.code_hash != code_hash:
-        raise ValueError("code hash does not match the contract machine layer")
-    if machine.environment_hash != environment_hash:
-        raise ValueError("environment hash does not match the contract machine layer")
-    canonical_features = tuple(sorted(set(required_feature_versions)))
-    if machine.required_feature_versions != canonical_features:
-        raise ValueError("required feature versions do not match the contract machine layer")
-    caller_parameter_ids = tuple(sorted({parameter_identity(p) for p in parameters}))
-    if caller_parameter_ids != machine.parameter_identities:
-        raise ValueError("parameters do not match the contract parameter identities")
-    if data_exposure_history_reference != contract.data_exposure_history_reference:
-        raise ValueError("data exposure reference does not match the contract")
-    return StrategyIdentity(
+    # P-05: the bridge only fires for a machine-ready contract with exactly one
+    # timeframe value; a multi-timeframe scope can never collapse into one
+    # StrategyIdentity.timeframe string.
+    if len(contract.timeframe_scope) != 1:
+        raise ValueError(
+            "MULTIPLE_TIMEFRAMES_UNRESOLVED: bridge requires exactly one "
+            "timeframe scope value"
+        )
+    identity = StrategyIdentity(
         research_lineage_id=contract.research_lineage_id,
         family_id=contract.family_id,
         strategy_version=f"pc-{contract.contract_version}-{contract.contract_identity}",
         source=contract.source_scope or contract.family_id,
         applicable_instruments=tuple(sorted(set(contract.instrument_scope))),
-        timeframe=",".join(sorted(contract.timeframe_scope)),
+        timeframe=contract.timeframe_scope[0],
         parameters=parameters,
         code_hash=code_hash,
         environment_hash=environment_hash,
-        required_feature_versions=canonical_features,
+        required_feature_versions=tuple(sorted(set(required_feature_versions))),
         lifecycle_state=lifecycle_state,
         data_exposure_history_reference=data_exposure_history_reference,
         playbook_contract_identity=contract.contract_identity,
     )
+    # C-C03: the constructed StrategyIdentity must equal the deterministic bridge
+    # semantics for this contract (single shared validator).
+    validate_strategy_against_playbook_contract(contract, identity)
+    return identity

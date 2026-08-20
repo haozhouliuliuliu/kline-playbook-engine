@@ -138,6 +138,15 @@ class ManifestPartition:
         # returned coverage must lie within requested coverage
         if self.requested_start > self.returned_start or self.returned_end > self.requested_end:
             raise ValueError("manifest returned coverage must lie within requested coverage")
+        # PASS is legal only when the returned coverage equals the requested
+        # coverage; a truncated returned response must never be recorded as
+        # PASS (fail closed at construction and at load).
+        if self.quality_status == "PASS" and (
+            self.returned_start != self.requested_start or self.returned_end != self.requested_end
+        ):
+            raise ValueError(
+                "PASS requires full requested coverage (returned coverage must equal requested coverage)"
+            )
 
     @property
     def partition_key(self) -> tuple:

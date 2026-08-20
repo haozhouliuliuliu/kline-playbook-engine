@@ -120,13 +120,26 @@ def load_calendar() -> TradingCalendar:
         for year_days in data.get("night_closed_trading_days", {}).values()
         for d in year_days
     ]
+    # Committed evidence records exact per-year SHA256 for the official annual
+    # raw; bind them all (canonical sorted unique) so the governed source is
+    # genuinely byte-bound instead of claiming availability with no hash.
+    committed_sha256s = tuple(
+        sorted(str(h) for h in data["source"].get("artifact_sha256s", {}).values())
+    )
+    classification = data["source"].get("classification", "OFFICIAL_AVAILABLE")
+    if committed_sha256s:
+        source_classification = classification
+    else:
+        # No committed byte hash: never pretend exact byte binding.
+        source_classification = "OFFICIAL_PARTIAL"
     source = GovernedSource(
         resource_identity=data["source"]["resource"],
         url=data["source"]["url"],
         retrieved_at=datetime.fromisoformat(data["source"]["retrieved_at"]),
         artifact_sha256=None,
+        artifact_sha256s=committed_sha256s,
         schema_version="shfe-official-annual-daily-v2",
-        classification=data["source"]["classification"],
+        classification=source_classification,
         effective_period_start=COVERAGE_START,
         effective_period_end=COVERAGE_END,
     )
@@ -156,7 +169,9 @@ def load_specs() -> dict[str, ContractSpec]:
             retrieved_at=datetime.fromisoformat(item["retrieved_at"]),
             artifact_sha256=None,
             schema_version="shfe-contract-text-v2",
-            classification="OFFICIAL_AVAILABLE",
+            # No historical byte hash is recorded in committed evidence for
+            # contract text; stay explicitly partial, never exact-byte-bound.
+            classification="OFFICIAL_PARTIAL",
             effective_period_start=eff_start,
             effective_period_end=eff_end,
         )
@@ -182,7 +197,9 @@ def load_schedules() -> dict[str, ProductSessionSchedule]:
             retrieved_at=datetime.fromisoformat(item["retrieved_at"]),
             artifact_sha256=None,
             schema_version="shfe-trading-hours-v1",
-            classification="OFFICIAL_AVAILABLE",
+            # No historical byte hash is recorded in committed evidence for
+            # session schedules; stay explicitly partial, never exact-byte-bound.
+            classification="OFFICIAL_PARTIAL",
             effective_period_start=COVERAGE_START,
             effective_period_end=COVERAGE_END,
         )
@@ -299,6 +316,28 @@ def build_contract_configs(
         for contract in sorted(universe[product]):
             days = calendar.trading_days(spec.effective_start, spec.effective_end)
             sessions = build_session_metadata(calendar, schedule, contract, days)
+            # Derive the metadata-fact evidence classification from the
+            # governed source instead of hardcoding VERIFIED_OFFICIAL, so an
+            # OFFICIAL_PARTIAL source is never re-promoted downstream.
+            source_sha256s = spec.source.exact_sha256s
+            governed = spec.source.classification
+            if governed in ("OFFICIAL_AVAILABLE", "ARCHIVED_OFFICIAL"):
+                if len(source_sha256s) != 1:
+                    raise ValueError(
+                        f"contract-spec source for {product} claims official availability "
+                        "but does not bind exactly one attributable artifact SHA256; "
+                        "cannot build a single VERIFIED_OFFICIAL metadata fact"
+                    )
+                evidence_classification = "VERIFIED_OFFICIAL"
+                source_artifact_sha256 = source_sha256s[0]
+            elif governed in ("OFFICIAL_PARTIAL", "PENDING_OFFICIAL_BINDING"):
+                # No exact historical byte binding: stay explicitly partial.
+                evidence_classification = "OFFICIAL_PARTIAL"
+                source_artifact_sha256 = None
+            else:
+                raise ValueError(
+                    f"unrecognized governed source classification {governed!r} for {product}"
+                )
             metadata_fact = ContractMetadataFact(
                 exchange="SHFE",
                 concrete_instrument=contract,
@@ -310,7 +349,8 @@ def build_contract_configs(
                     "CANONICAL_CONTRACT_SPECS.json effective_period "
                     + spec.binding_notice
                 ),
-                evidence_classification="VERIFIED_OFFICIAL",
+                evidence_classification=evidence_classification,
+                source_artifact_sha256=source_artifact_sha256,
             )
             configs[contract] = ContractConfig(
                 concrete_instrument=contract,
@@ -404,6 +444,20 @@ def main() -> None:
                 p for p in normalize_partitions
                 if p.contract.split(".")[1][:2].lower() in selected_products
             ]
+        # Fail closed up front instead of silently skipping ANOMALY partitions:
+        # the operator must be told which partitions are non-PASS so an
+        # incomplete corpus is never masked.  The reusable
+        # ``normalize_and_store_partition`` boundary enforces the same rule.
+        non_pass = [p for p in normalize_partitions if p.quality_status != "PASS"]
+        if non_pass:
+            preview = ", ".join(
+                f"{p.contract} {p.trading_day.isoformat()} ({p.quality_status})"
+                for p in non_pass[:10]
+            )
+            raise SystemExit(
+                "CANONICAL_STORAGE_REQUIRES_PASS_PARTITION: normalize blocked by "
+                f"{len(non_pass)} non-PASS partition(s); first: {preview}"
+            )
         catalog = CanonicalCatalog(Path(args.catalog))
         catalog.set_meta("schema_version", "canonical-catalog-v1")
         catalog.set_meta("manifest_identity", manifest.identity())
@@ -494,7 +548,22 @@ def _reconstruct_and_normalize(
 
     Returns (batch, source).  Fails closed if the raw artifact on disk does not
     match the recorded raw SHA256 or any reconstructed identity conflicts.
+
+    A manifest whose recorded session metadata version differs from the current
+    content-derived ``SessionMetadata.version`` is a legacy-identity mismatch
+    and requires explicit revalidation/rebuild (it is never auto-migrated and
+    never interpreted as generic data corruption).
     """
+    # Explicit legacy-identity gate, checked before reading the raw file or
+    # constructing a DataVersionIdentity, so no parquet can be written and no
+    # manifest field is silently rewritten.
+    if partition.session_metadata_version != sessions.version:
+        raise ValueError(
+            "SESSION_METADATA_IDENTITY_REVALIDATION_REQUIRED: manifest session "
+            f"identity {partition.session_metadata_version!r} differs from current "
+            f"content-derived session identity {sessions.version!r}; explicit "
+            "canonical revalidation/rebuild required"
+        )
     raw_path = _find_raw_file(raw_dir, partition)
     payload = raw_path.read_bytes()
     if sha256_hex(payload) != partition.raw_sha256:
@@ -559,11 +628,18 @@ def reevaluate_manifest(
         batch, _source = _reconstruct_and_normalize(
             partition, raw_dir, config.sessions, config.minimum_price_tick
         )
-        quality = (
-            "PASS"
-            if not batch.missing_expected_starts
-            else f"ANOMALY:missing_expected_starts={len(batch.missing_expected_starts)}"
+        # Truncated returned coverage can never be PASS (matches the
+        # acquisition path's quality semantics).
+        truncated = (
+            partition.returned_start != partition.requested_start
+            or partition.returned_end != partition.requested_end
         )
+        flags: list[str] = []
+        if truncated:
+            flags.append("returned_coverage_truncated")
+        if batch.missing_expected_starts:
+            flags.append(f"missing_expected_starts={len(batch.missing_expected_starts)}")
+        quality = "PASS" if not flags else "ANOMALY:" + ";".join(flags)
         if quality != partition.quality_status:
             changed += 1
         partition = ManifestPartition(
@@ -606,9 +682,19 @@ def normalize_and_store_partition(
 ) -> StoredPartition:
     """Reconstruct the raw artifact + data version, normalize, store to Parquet.
 
-    Uses the accepted normalization path (src.historical_data).  Fails closed
-    if the raw artifact on disk does not match the recorded raw SHA256.
+    Canonical storage accepts PASS partitions only.  This reusable boundary
+    fails closed (before reading the raw file, normalizing, or writing any
+    Parquet) when ``quality_status != "PASS"``, so an ANOMALY partition can
+    never enter the canonical corpus even from an alternate caller.
     """
+    # Exact equality: ANOMALY / WARNING / UNKNOWN must never be admitted.
+    if partition.quality_status != "PASS":
+        raise ValueError(
+            "CANONICAL_STORAGE_REQUIRES_PASS_PARTITION: "
+            f"{partition.contract} {partition.trading_day.isoformat()} has "
+            f"quality_status {partition.quality_status!r}; only PASS partitions "
+            "may enter canonical storage"
+        )
     batch, source = _reconstruct_and_normalize(partition, raw_dir, sessions, minimum_price_tick)
     product = partition.contract.split(".")[1][:2].lower()
     rows = []
@@ -628,10 +714,14 @@ def normalize_and_store_partition(
                 high=bar.high,
                 low=bar.low,
                 close=bar.close,
-                volume=int(bar.volume) if bar.volume is not None else 0,
+                # Missing/unknown volume stays None (nullable int64), never 0.
+                volume=None if bar.volume is None else int(bar.volume),
                 open_interest_start=int(bar.open_interest_start) if bar.open_interest_start is not None else None,
                 open_interest_end=int(bar.open_interest_end) if bar.open_interest_end is not None else None,
-                raw_artifact_identity_id=partition.raw_sha256,
+                # raw_artifact_identity_id is the RawArtifact.identity_id carried
+                # on the normalized bar; it is NOT the raw SHA256 (a different
+                # provenance fact).
+                raw_artifact_identity_id=bar.raw_artifact_identity_id,
                 source_identity_id=source.identity_id,
                 data_version_id=partition.data_version_id,
                 contract_metadata_identity=partition.contract_metadata_identity,

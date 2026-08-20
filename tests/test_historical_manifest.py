@@ -85,6 +85,7 @@ class ManifestIdentityTests(unittest.TestCase):
         same_start_longer = replace(
             a,
             requested_end=longer_end,
+            returned_end=longer_end,
             request_parameters=params,
             request_identity=req_id,
         )

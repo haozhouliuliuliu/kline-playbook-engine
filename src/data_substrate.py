@@ -9,7 +9,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Iterable
+from hashlib import sha256
+import json
+from typing import Any, Iterable
+
+
+def canonical_hash(value: Any) -> str:
+    """Deterministic JSON-stable SHA256 (matches repository identity style)."""
+    encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    return sha256(encoded.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -36,12 +44,20 @@ class SessionWindow:
 
 
 class SessionMetadata:
-    """Versioned, explicit exchange session facts; no weekday inference."""
+    """Versioned, explicit exchange session facts; no weekday inference.
 
-    def __init__(self, version: str, windows: Iterable[SessionWindow]) -> None:
-        if not version.strip():
-            raise ValueError("session metadata version is required")
-        self.version = version
+    ``version`` is a deterministic content identity computed from the
+    ``authority_reference`` and the exact canonical session windows
+    ``(exchange, instrument, trading_day, start, end, kind)``.  The same
+    caller label with different windows (or different calendar/schedule
+    authority facts bound into the reference) can therefore never yield the
+    same ``version``.
+    """
+
+    def __init__(self, authority_reference: str, windows: Iterable[SessionWindow]) -> None:
+        if not authority_reference.strip():
+            raise ValueError("session metadata authority reference is required")
+        self.authority_reference = authority_reference
         self._windows = tuple(windows)
         # Overlap check is O(n log n) (group by instrument, then adjacent
         # windows in start order) instead of O(n^2); semantically identical:
@@ -58,6 +74,30 @@ class SessionMetadata:
                     and right.start < left.end
                 ):
                     raise ValueError("overlapping session windows are not allowed")
+        self.version = self._content_identity()
+
+    def _content_identity(self) -> str:
+        return canonical_hash(
+            {
+                "authority_reference": self.authority_reference,
+                "windows": sorted(
+                    (
+                        window.exchange,
+                        window.instrument,
+                        window.trading_day.isoformat(),
+                        window.start.isoformat(),
+                        window.end.isoformat(),
+                        window.kind,
+                    )
+                    for window in self._windows
+                ),
+            }
+        )
+
+    @property
+    def identity(self) -> str:
+        """Public identity alias of the computed content ``version``."""
+        return self.version
 
     def trading_day_at(self, exchange: str, instrument: str, timestamp: datetime) -> date | None:
         matches = [
@@ -95,6 +135,39 @@ class SessionMetadata:
             start = window.start
             while start + interval <= window.end:
                 starts.append(start)
+                start += interval
+        return tuple(sorted(starts))
+
+    def expected_bar_starts_between(
+        self,
+        exchange: str,
+        instrument: str,
+        coverage_start: datetime,
+        coverage_end: datetime,
+        interval: timedelta,
+    ) -> tuple[datetime, ...]:
+        """Every expected complete bar start within ``[coverage_start, coverage_end)``.
+
+        Enumerated directly from the authoritative session windows, not from
+        any observed bars, so an entirely absent session window that the
+        declared coverage claims to cover still yields expected starts.  A bar
+        is expected only when its whole ``[start, start + interval)`` span lies
+        inside both its session window and the declared coverage range.
+        """
+        if interval <= timedelta(0):
+            raise ValueError("bar interval must be positive")
+        if coverage_start.tzinfo is None or coverage_end.tzinfo is None:
+            raise ValueError("coverage must be timezone-aware")
+        if coverage_end <= coverage_start:
+            raise ValueError("coverage end must follow its start")
+        starts: list[datetime] = []
+        for window in self._windows:
+            if (window.exchange, window.instrument) != (exchange, instrument):
+                continue
+            start = window.start
+            while start + interval <= window.end:
+                if coverage_start <= start and start + interval <= coverage_end:
+                    starts.append(start)
                 start += interval
         return tuple(sorted(starts))
 
