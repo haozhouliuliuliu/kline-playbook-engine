@@ -25,6 +25,7 @@ from src.validation_runner import (
     ChronologicalValidationRunner,
     ExecutionAssumptions,
     ExecutionObservation,
+    ExecutionOutcome,
     FillStatus,
     MarkObservation,
     OrderSpecification,
@@ -837,6 +838,145 @@ class RoundTripLedgerGuardTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "flat no-op"):
             RoundTripMaterializer().materialize((open_transition, bad_flat))
+
+
+class PackageECoreRepairTests(unittest.TestCase):
+    """E-09 / E-11 / E-12 round-trip ledger repair invariants."""
+
+    def test_duplicate_execution_outcome_request_id_fails_closed(self):
+        # E-09: two outcomes with the same request_id are rejected even when
+        # they differ only in cost; never last-wins / first-wins collapse.
+        pos = "e09-pos"
+        opened_at = datetime(2025, 6, 16, 9, 36, tzinfo=CN)
+        open_transition = hand_built_open(pos, state_at=opened_at, trading_day=DAY)
+        first = ExecutionOutcome(
+            "open-1", FillStatus.FILLED, opened_at, "exec-assumption-v1",
+            Decimal("101.5"), Decimal("1"), "TRADABLE_OBSERVATION",
+        )
+        second = ExecutionOutcome(
+            "open-1", FillStatus.FILLED, opened_at, "exec-assumption-v1",
+            Decimal("101.5"), Decimal("2"), "TRADABLE_OBSERVATION",
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate execution outcome request_id"):
+            RoundTripMaterializer().materialize((open_transition,), (first, second))
+
+    def test_identical_duplicate_execution_outcome_request_id_also_fails_closed(self):
+        # E-09: even two byte-identical outcomes with the same request_id are
+        # rejected; a duplicate is never silently collapsed.
+        pos = "e09-dup-identical"
+        opened_at = datetime(2025, 6, 16, 9, 36, tzinfo=CN)
+        open_transition = hand_built_open(pos, state_at=opened_at, trading_day=DAY)
+        outcome = ExecutionOutcome(
+            "open-1", FillStatus.FILLED, opened_at, "exec-assumption-v1",
+            Decimal("101.5"), Decimal("1"), "TRADABLE_OBSERVATION",
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate execution outcome request_id"):
+            RoundTripMaterializer().materialize((open_transition,), (outcome, outcome))
+
+    def test_completed_round_trips_ordered_by_chronology_not_position_id(self):
+        # E-11: z-position closes 10:00, a-position closes 11:00; chronology
+        # requires z before a even though "a" is lexically earlier.
+        a_open = hand_built_open(
+            "a-position", state_at=datetime(2025, 6, 16, 9, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_open = hand_built_open(
+            "z-position", state_at=datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_close = hand_built_close(
+            "z-position", state_at=datetime(2025, 6, 16, 10, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        a_close = hand_built_close(
+            "a-position", state_at=datetime(2025, 6, 16, 11, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        ledger = RoundTripMaterializer().materialize((a_open, z_open, z_close, a_close))
+        self.assertEqual(
+            [trip.position_id for trip in ledger.completed_round_trips],
+            ["z-position", "a-position"],
+        )
+
+    def test_completed_round_trip_tie_order_is_deterministic(self):
+        # E-11 tie case: same terminal close time -> opened_at, then position_id.
+        z_open = hand_built_open(
+            "z-position", state_at=datetime(2025, 6, 16, 9, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        a_open = hand_built_open(
+            "a-position", state_at=datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_close = hand_built_close(
+            "z-position", state_at=datetime(2025, 6, 16, 10, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        a_close = hand_built_close(
+            "a-position", state_at=datetime(2025, 6, 16, 10, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        ledger = RoundTripMaterializer().materialize((z_open, a_open, z_close, a_close))
+        # Both close at 10:00; z opened at 09:00 < a opened at 09:30 -> z first.
+        self.assertEqual(
+            [trip.position_id for trip in ledger.completed_round_trips],
+            ["z-position", "a-position"],
+        )
+
+    def test_ledger_rejects_non_chronological_completed_order(self):
+        # E-11: RoundTripLedger.__post_init__ enforces the same canonical order.
+        a_open = hand_built_open(
+            "a-position", state_at=datetime(2025, 6, 16, 9, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_open = hand_built_open(
+            "z-position", state_at=datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        z_close = hand_built_close(
+            "z-position", state_at=datetime(2025, 6, 16, 10, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        a_close = hand_built_close(
+            "a-position", state_at=datetime(2025, 6, 16, 11, 0, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"),
+        )
+        ledger = RoundTripMaterializer().materialize((a_open, z_open, z_close, a_close))
+        trips = ledger.completed_round_trips
+        with self.assertRaisesRegex(ValueError, "terminal close time"):
+            RoundTripLedger(completed_round_trips=(trips[1], trips[0]))
+
+    def test_open_position_evidence_binds_ledger_identity(self):
+        # E-12: same open position id, different transition evidence -> the
+        # ledger identity differs because it binds evidence, not only the id.
+        pos = "e12-pos"
+        stream_a = hand_built_open(
+            pos, state_at=datetime(2025, 6, 16, 9, 30, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("1"), price=Decimal("100"),
+        )
+        stream_b = hand_built_open(
+            pos, state_at=datetime(2025, 6, 16, 9, 45, tzinfo=CN),
+            trading_day=DAY, quantity=Decimal("2"), price=Decimal("105"),
+        )
+        ledger_a = RoundTripMaterializer().materialize((stream_a,))
+        ledger_b = RoundTripMaterializer().materialize((stream_b,))
+        self.assertEqual(ledger_a.open_position_ids, ("e12-pos",))
+        self.assertEqual(ledger_b.open_position_ids, ("e12-pos",))
+        self.assertNotEqual(ledger_a.identity_id, ledger_b.identity_id)
+        self.assertEqual(len(ledger_a.open_position_evidence_identities), 1)
+        self.assertNotEqual(
+            ledger_a.open_position_evidence_identities[0][1],
+            ledger_b.open_position_evidence_identities[0][1],
+        )
+
+    def test_open_ids_must_exactly_match_evidence_identity_ids(self):
+        # E-12: open_position_ids and open_position_evidence_identities ids
+        # must be exactly consistent and ordered by position_id.
+        with self.assertRaisesRegex(ValueError, "must exactly match"):
+            RoundTripLedger(
+                open_position_ids=("p1",),
+                open_position_evidence_identities=(("p2", "evidence-1"),),
+            )
 
 
 if __name__ == "__main__":
