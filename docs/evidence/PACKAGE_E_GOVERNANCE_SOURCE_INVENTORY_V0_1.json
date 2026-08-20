@@ -1,0 +1,87 @@
+{
+  "schema_version": "package-e-governance-source-inventory-v0_1",
+  "created_at": "2026-08-20",
+  "purpose": "Provenance inventory for PACKAGE_E_GOVERNANCE_AUTHORITY_RESEARCH_V0_1. References only; no full page/PDF content committed.",
+  "source_policy": "FREE_PUBLIC_UNAUTHENTICATED_FIRST",
+  "paid_source_used": "NO",
+  "login_source_used": "NO",
+  "sources": [
+    {
+      "fact_type": "ORDER_OFFSET_SEMANTICS",
+      "fact_target": "E-04",
+      "authority": "TqSdk official documentation (adopted scoped data/execution abstraction; vendor, not exchange)",
+      "title": "TqSdk 使用与示例 - 账户与交易 (insert_order offset)",
+      "url": "https://doc.shinnytech.com/tqsdk/latest/usage/trade.html",
+      "retrieved_at": "2026-08-20",
+      "sha256": "NOT_RECORDED",
+      "effective_period": "documentation current version",
+      "content_notes": "offset for SHFE/INE explicit: CLOSETODAY=平今, CLOSE=平昨; other exchanges use CLOSE per exchange rules. No automatic cross-bucket split."
+    },
+    {
+      "fact_type": "ORDER_OFFSET_SEMANTICS",
+      "fact_target": "E-04",
+      "authority": "TqSdk official documentation (vendor, not exchange)",
+      "title": "tqsdk.TqApi.insert_order reference (offset parameter)",
+      "url": "https://doc.shinnytech.com/tqsdk/latest/reference/tqsdk.api.html",
+      "retrieved_at": "2026-08-20",
+      "sha256": "NOT_RECORDED",
+      "effective_period": "documentation current version",
+      "content_notes": "offset = OPEN/CLOSE/CLOSETODAY; SHFE/INE distinguish 平今/平昨; Order/Trade offset field OPEN/CLOSE/CLOSETODAY."
+    },
+    {
+      "fact_type": "ACCOUNT_EQUITY_AVAILABLE_FUNDS",
+      "fact_target": "E-08",
+      "authority": "TqSdk official documentation (vendor mirror of CTP account model)",
+      "title": "tqsdk.objs.Account reference (balance/available formulas)",
+      "url": "https://doc.shinnytech.com/tqsdk/latest/reference/tqsdk.objs.html",
+      "retrieved_at": "2026-08-20",
+      "sha256": "NOT_RECORDED",
+      "effective_period": "documentation current version",
+      "content_notes": "balance(动态权益)=静态权益+平仓盈亏+持仓盈亏-手续费+权利金+期权市值; available(可用资金)=账户权益-冻结保证金-保证金-冻结权利金-冻结手续费-期权市值. Equity-aware: unrealized PnL participates."
+    },
+    {
+      "fact_type": "MAIN_CONTRACT_VENDOR_RULE",
+      "fact_target": "E-07",
+      "authority": "TqSdk official documentation (vendor main-continuous KQ.m@ rule; vendor, not exchange)",
+      "title": "TqSdk 使用与示例 - 合约, 行情和历史数据 (主连 KQ.m@ 选定标准)",
+      "url": "https://doc.shinnytech.com/tqsdk/latest/usage/mddatas.html",
+      "retrieved_at": "2026-08-20",
+      "sha256": "NOT_RECORDED",
+      "effective_period": "documentation current version",
+      "content_notes": "天勤主力选定标准=持仓量和成交量均为最大, 下一个交易日开盘后切换. Vendor definition only."
+    },
+    {
+      "fact_type": "CONTRACT_SPEC_TICK_MULTIPLIER_MARGIN",
+      "fact_target": "E-05 / E-06",
+      "authority": "SHFE official product specification (free public official)",
+      "title": "SHFE contract specification pages for cu/al/ni/au/ag/rb",
+      "url": "https://www.shfe.com.cn/products/futures/metal/nonferrousmetal/{cu_f,al_f,ni_f}/ and https://www.shfe.com.cn/products/futures/metal/ferrousandpreciousmetal/{au_f,ag_f,rb_f}/",
+      "retrieved_at": "2026-08-16 (recorded in CANONICAL_CONTRACT_SPECS.json)",
+      "sha256": "NOT_RECORDED (repo records contract-spec identity per product in CANONICAL_CONTRACT_SPECS.json)",
+      "effective_period": "per product in CANONICAL_CONTRACT_SPECS.json (e.g., cu 2023-01-17..2025-12-31)",
+      "content_notes": "multipliers: cu=5, al=5, ni=1, au=1000, ag=15, rb=10; binding notices [2023]2号 etc. Live site bot-challenged 2026-08-20."
+    },
+    {
+      "fact_type": "DAILY_QUOTATION_REFERENCE",
+      "fact_target": "E-06 / E-07 observability",
+      "authority": "SHFE official annual historical statistical archive (free public official)",
+      "title": "SHFE official annual raw archives 2023/2024/2025 (daily concrete-contract quotations)",
+      "url": "https://www.shfe.com.cn/eng/reports/StatisticalData/Annualdata/HistoricalData/downloadhistory/202501/P020250411613533276038.zip (2023) ; .../P020250411613533972715.zip (2024) ; .../202505/P020260116534160394483.zip (2025)",
+      "retrieved_at": "2026-08-15 (recorded in SHFE_OFFICIAL_RAW_RECHECK_MANIFEST.json)",
+      "sha256": "605e119b8f6e7cd73b02fa18aa75ce1b388d5628aa024d7f5b7961d028a9ec2c / 68505aefe460ffa3167bd200477a5ebb05a8aaac5e477bb013e97ffbcf7bc99e / af1991361ee7383adf27481a160aad2e5c7ee3708e4db52338161d54e596f7e8",
+      "effective_period": "2023-01..2025-12",
+      "content_notes": "daily OHLC/volume/OI per concrete contract; NOT fee/margin schedules."
+    },
+    {
+      "fact_type": "MARGIN_FEE_NOTICES",
+      "fact_target": "E-06",
+      "authority": "SHFE official notices/regulation (free public official; reference only at this pass)",
+      "title": "SHFE official notices and regulation pages for transaction margin and transaction fees",
+      "url": "https://www.shfe.com.cn/regulation/ (and notice archive)",
+      "retrieved_at": "2026-08-20 (retrieval blocked by bot-verification challenge; values NOT fetched)",
+      "sha256": "NOT_RECORDED",
+      "effective_period": "NOT_ESTABLISHED (HISTORICAL_SCHEDULE_GAP)",
+      "content_notes": "no fee/margin notice value bound this pass; do not backfill current rates."
+    }
+  ]
+}
