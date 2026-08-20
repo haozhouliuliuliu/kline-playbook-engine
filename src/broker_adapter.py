@@ -1,0 +1,283 @@
+"""Project-owned BrokerAdapter interface (Shadow Runtime Foundation).
+
+Skeleton v1.0 section 5 requires external execution frameworks to sit behind a
+thin project-owned Broker Adapter, so core business logic never binds directly
+to a third-party private data structure. This module is that project-owned
+interface plus the deterministic snapshot vocabulary used for reconciliation.
+
+The interface is deliberately generic and broker-agnostic: no real TqSdk, CTP,
+SimNow, credentials, or network. ``PaperBrokerAdapter`` (``src.paper_broker``)
+is the deterministic paper implementation. A future real broker adapter remains
+``EXTERNAL_BROKER_GATED``.
+"""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from datetime import datetime
+from decimal import Decimal
+from enum import Enum
+from hashlib import sha256
+import json
+from typing import Any, Iterable
+
+from src.contract_semantics import OrderAction, PositionDirection
+from src.runtime_events import BrokerConnectionState, BrokerEvent
+
+BROKER_ADAPTER_SCHEMA_VERSION = "shadow-runtime-broker-adapter-v0.1"
+
+
+def _canonical_hash(value: Any) -> str:
+    encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    return sha256(encoded.encode("utf-8")).hexdigest()
+
+
+class OrderType(str, Enum):
+    """Deterministic generic order type vocabulary (broker-agnostic)."""
+
+    MARKET = "MARKET"
+    LIMIT = "LIMIT"
+
+
+@dataclass(frozen=True)
+class BrokerOrderInstruction:
+    """Deterministic instruction submitted to a broker adapter."""
+
+    client_request_id: str
+    concrete_contract_id: str
+    direction: PositionDirection
+    action: OrderAction
+    order_type: OrderType
+    quantity: Decimal
+    limit_price: Decimal | None = None
+
+    def __post_init__(self) -> None:
+        if not self.client_request_id or not self.concrete_contract_id:
+            raise ValueError("order instruction requires client and contract identities")
+        if not isinstance(self.direction, PositionDirection) or not isinstance(self.action, OrderAction):
+            raise ValueError("order instruction requires explicit direction and action")
+        if not isinstance(self.order_type, OrderType):
+            raise ValueError("order instruction requires an explicit order type")
+        if type(self.quantity) is not Decimal or not self.quantity.is_finite() or self.quantity <= 0:
+            raise ValueError("order instruction quantity must be a positive finite Decimal")
+        if self.limit_price is not None:
+            if type(self.limit_price) is not Decimal or not self.limit_price.is_finite() or self.limit_price <= 0:
+                raise ValueError("order instruction limit price must be a positive finite Decimal")
+            if self.order_type is not OrderType.LIMIT:
+                raise ValueError("limit price is only valid for a LIMIT order")
+        elif self.order_type is OrderType.LIMIT:
+            raise ValueError("a LIMIT order requires a limit price")
+
+    @property
+    def identity_id(self) -> str:
+        return _canonical_hash(
+            {
+                "client_request_id": self.client_request_id,
+                "concrete_contract_id": self.concrete_contract_id,
+                "direction": self.direction.value,
+                "action": self.action.value,
+                "order_type": self.order_type.value,
+                "quantity": str(self.quantity),
+                "limit_price": None if self.limit_price is None else str(self.limit_price),
+            }
+        )
+
+
+@dataclass(frozen=True)
+class BrokerAccountSnapshot:
+    """Broker-side account truth used for reconciliation."""
+
+    account_id: str
+    snapshot_at: datetime
+    cash_balance: Decimal
+    reserved_margin: Decimal
+    charged_costs: Decimal
+    realized_pnl: Decimal
+    unrealized_pnl: Decimal
+    currency: str
+
+    def __post_init__(self) -> None:
+        if not self.account_id or not self.currency:
+            raise ValueError("broker account snapshot requires account and currency identities")
+        if self.snapshot_at.tzinfo is None:
+            raise ValueError("broker account snapshot timestamp must be timezone-aware")
+        values = (
+            self.cash_balance,
+            self.reserved_margin,
+            self.charged_costs,
+            self.realized_pnl,
+            self.unrealized_pnl,
+        )
+        if any(type(value) is not Decimal or not value.is_finite() for value in values):
+            raise ValueError("broker account snapshot values must be finite Decimals")
+        if self.cash_balance < 0 or self.reserved_margin < 0 or self.charged_costs < 0:
+            raise ValueError("broker account snapshot cannot have negative cash, margin or costs")
+
+    @property
+    def equity(self) -> Decimal:
+        return self.cash_balance + self.unrealized_pnl
+
+    @property
+    def identity_id(self) -> str:
+        return _canonical_hash(
+            {
+                "account_id": self.account_id,
+                "snapshot_at": self.snapshot_at.isoformat(),
+                "cash_balance": str(self.cash_balance),
+                "reserved_margin": str(self.reserved_margin),
+                "charged_costs": str(self.charged_costs),
+                "realized_pnl": str(self.realized_pnl),
+                "unrealized_pnl": str(self.unrealized_pnl),
+                "currency": self.currency,
+            }
+        )
+
+
+@dataclass(frozen=True)
+class BrokerPositionSnapshot:
+    """Broker-side position truth used for reconciliation."""
+
+    concrete_contract_id: str
+    direction: PositionDirection
+    quantity: Decimal
+    average_price: Decimal
+    snapshot_at: datetime
+
+    def __post_init__(self) -> None:
+        if not self.concrete_contract_id or not isinstance(self.direction, PositionDirection):
+            raise ValueError("broker position snapshot requires contract and direction identity")
+        if self.snapshot_at.tzinfo is None:
+            raise ValueError("broker position snapshot timestamp must be timezone-aware")
+        if type(self.quantity) is not Decimal or not self.quantity.is_finite() or self.quantity <= 0:
+            raise ValueError("broker position quantity must be a positive finite Decimal")
+        if type(self.average_price) is not Decimal or not self.average_price.is_finite() or self.average_price <= 0:
+            raise ValueError("broker position average price must be a positive finite Decimal")
+
+    @property
+    def identity_id(self) -> str:
+        return _canonical_hash(
+            {
+                "concrete_contract_id": self.concrete_contract_id,
+                "direction": self.direction.value,
+                "quantity": str(self.quantity),
+                "average_price": str(self.average_price),
+                "snapshot_at": self.snapshot_at.isoformat(),
+            }
+        )
+
+
+@dataclass(frozen=True)
+class BrokerOrderSnapshot:
+    """Broker-side order status truth used for reconciliation."""
+
+    order_id: str
+    client_request_id: str
+    concrete_contract_id: str
+    direction: PositionDirection
+    action: OrderAction
+    status: str
+    requested_quantity: Decimal
+    filled_quantity: Decimal
+    snapshot_at: datetime
+
+    def __post_init__(self) -> None:
+        required = (self.order_id, self.client_request_id, self.concrete_contract_id, self.status)
+        if not all(required):
+            raise ValueError("broker order snapshot requires complete identities")
+        if not isinstance(self.direction, PositionDirection) or not isinstance(self.action, OrderAction):
+            raise ValueError("broker order snapshot requires explicit direction and action")
+        if self.snapshot_at.tzinfo is None:
+            raise ValueError("broker order snapshot timestamp must be timezone-aware")
+        if type(self.requested_quantity) is not Decimal or not self.requested_quantity.is_finite() or self.requested_quantity <= 0:
+            raise ValueError("broker order requested quantity must be a positive finite Decimal")
+        if type(self.filled_quantity) is not Decimal or not self.filled_quantity.is_finite() or self.filled_quantity < 0:
+            raise ValueError("broker order filled quantity must be a non-negative finite Decimal")
+
+    @property
+    def identity_id(self) -> str:
+        return _canonical_hash(
+            {
+                "order_id": self.order_id,
+                "client_request_id": self.client_request_id,
+                "concrete_contract_id": self.concrete_contract_id,
+                "direction": self.direction.value,
+                "action": self.action.value,
+                "status": self.status,
+                "requested_quantity": str(self.requested_quantity),
+                "filled_quantity": str(self.filled_quantity),
+                "snapshot_at": self.snapshot_at.isoformat(),
+            }
+        )
+
+
+class BrokerAdapter(ABC):
+    """Thin project-owned broker interface (deterministic, no network).
+
+    A real broker implementation (TqSdk/CTP/SimNow/credentials) is out of scope
+    for this foundation package and remains EXTERNAL_BROKER_GATED. The paper
+    adapter must implement this exact surface so core logic never binds to a
+    third-party private structure.
+    """
+
+    @property
+    @abstractmethod
+    def broker_id(self) -> str:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def connection_state(self) -> BrokerConnectionState:
+        raise NotImplementedError
+
+    @abstractmethod
+    def connect(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def disconnect(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def submit_order(self, instruction: BrokerOrderInstruction) -> str:
+        """Submit one order; returns the broker-assigned ``order_id``."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def cancel_order(self, order_id: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def replace_order(self, order_id: str, new_quantity: Decimal) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def drain_events(self) -> tuple[BrokerEvent, ...]:
+        """Return and clear the pending deterministic broker event outbox."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def fetch_account_snapshot(self) -> BrokerAccountSnapshot:
+        raise NotImplementedError
+
+    @abstractmethod
+    def fetch_position_snapshot(self) -> tuple[BrokerPositionSnapshot, ...]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def fetch_order_snapshot(self) -> tuple[BrokerOrderSnapshot, ...]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def capture_snapshot(self) -> Any:
+        """Deterministic broker-side snapshot fixture for restart recovery."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def restore_snapshot(self, snapshot: Any) -> None:
+        raise NotImplementedError
+
+
+def iterate_snapshots(positions: Iterable[BrokerPositionSnapshot]) -> tuple[BrokerPositionSnapshot, ...]:
+    """Deterministic ordering helper for broker position snapshots."""
+    return tuple(sorted(positions, key=lambda item: (item.concrete_contract_id, item.direction.value)))
