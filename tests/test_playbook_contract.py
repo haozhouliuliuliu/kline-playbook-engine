@@ -880,6 +880,37 @@ class PlaybookContractPackageCProtocolInvariantTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "PRIMARY"):
             _ = instance.primary_selection_identity
 
+    # -- C-C02: duplicate source claim ids fail closed (no fuzzy equivalence). --
+
+    def _duplicate_claim_contract(self):
+        return contract(
+            source_claims=(
+                source_claim("C1", anchor="book:A"),
+                source_claim("C1", anchor="book:B"),
+            ),
+            interpretations=(
+                interpretation("b1", ("C1",), primary=True),
+            ),
+        )
+
+    def test_cc02a_duplicate_claim_id_blocks_machine_readiness(self):
+        self.assert_not_ready(
+            self._duplicate_claim_contract(), "DUPLICATE_SOURCE_CLAIM_ID"
+        )
+
+    def test_cc02b_primary_selection_identity_raises_on_duplicate_claim_ids(self):
+        instance = self._duplicate_claim_contract()
+        with self.assertRaisesRegex(ValueError, "duplicate source claim ids"):
+            _ = instance.primary_selection_identity
+
+    def test_cc02c_single_primary_branch_cannot_cover_duplicate_claim_ids(self):
+        # Even one branch referencing ("C1",) with primary_selected=True cannot
+        # make a duplicate-claim contract machine-ready.
+        instance = self._duplicate_claim_contract()
+        result = validate_contract(instance)
+        self.assertEqual(result.readiness, MachineReadiness.NOT_MACHINE_READY)
+        self.assertIn("DUPLICATE_SOURCE_CLAIM_ID", result.blockers)
+
 
 if __name__ == "__main__":
     unittest.main()

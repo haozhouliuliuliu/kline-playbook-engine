@@ -192,3 +192,114 @@ CURRENT_STATE_CHANGED=NO
 FROZEN_PROTOCOL_CHANGED=NO
 NO_CANDIDATE_OUTCOME_DATA_USED=YES
 ```
+
+## Pre-integration correction
+
+Review authority: `docs/reviews/PARALLEL_PACKAGE_C_D_F_PREINTEGRATION_REVIEW_V0_1.md`
+(verdict `PACKAGE_C_INTEGRATION=BLOCKED_PENDING_BOUNDED_CORRECTION`). This is the
+single bounded pre-integration correction; the original P-01..P-05 direction is
+preserved. Branch merged `origin/main` (`40f27b24...`) with `git merge
+origin/main --no-edit` (merge commit `620029b1...`); the new main content was
+review + CURRENT_STATE and merged without conflicts. No rebase / force-push /
+main modification.
+
+### C-C01 — outcome registration requires a MACHINE_READY PlaybookContract
+
+- **Root defect:** `ResearchFirewall.register_outcome_test()` did not require
+  `validate_contract(contract).ready`. A caller could hand-build a
+  `StrategyIdentity` carrying `playbook_contract_identity=contract.contract_identity`
+  (bypassing `bridge_to_strategy_identity`) and register a contract that Package
+  C itself marks `NOT_MACHINE_READY`.
+- **Minimum fix:** `register_outcome_test()` calls the single existing authority
+  `validate_contract(contract)` first and raises fail-closed
+  `PLAYBOOK_CONTRACT_NOT_MACHINE_READY: <blockers>` (e.g.
+  `PLAYBOOK_CONTRACT_NOT_MACHINE_READY: PROJECT_TRANSFER_UNKNOWN`) before any
+  registration / lineage mapping / wave first-look mutation. No second readiness
+  implementation was added.
+- **Regressions:** CC01-A (required PARTIALLY_OBSERVABLE → `REQUIRED_INPUT_NOT_FULLY_OBSERVABLE`),
+  CC01-B (`project_transfer_status=UNKNOWN` → `PROJECT_TRANSFER_UNKNOWN`),
+  CC01-C (`timeframe_scope=("15m","60m")` → `MULTIPLE_TIMEFRAMES_UNRESOLVED`),
+  CC01-D (incomplete claim PRIMARY → `CLAIM_PRIMARY_MISSING`). Each also proves
+  no registry registration, no `family_claim_lineage` mutation, and no wave
+  first-look / lock after the failure.
+- **Result:** `OUTCOME_REGISTRATION_REQUIRES_MACHINE_READY_PLAYBOOK_CONTRACT=YES`.
+
+### C-C02 — duplicate source claim ids fail closed
+
+- **Root defect:** `PlaybookContract` permitted two `SourceClaimRef` records with
+  the same `claim_id` but different source anchors. Claim-level PRIMARY resolved
+  by `claim_id` and `primary_selection_identity` collapsed the ids with a set, so
+  two real source records could be covered by one branch / one PRIMARY.
+- **Minimum fix:** draft construction stays permissive; `validate_contract()`
+  adds the explicit blocker `DUPLICATE_SOURCE_CLAIM_ID` (NOT_MACHINE_READY), and
+  `primary_selection_identity` raises `ValueError("duplicate source claim ids ...")`
+  instead of hashing a collapsed set. No fuzzy source-claim equivalence invented.
+- **Regressions:** CC02-A (duplicate claim id → `DUPLICATE_SOURCE_CLAIM_ID`),
+  CC02-B (`primary_selection_identity` raises), CC02-C (one branch referencing
+  `("C1",)` with `primary_selected=True` still cannot make it machine-ready).
+- **Result:** `SOURCE_CLAIM_IDS_UNIQUE_FOR_PRIMARY_RESOLUTION=YES`.
+
+### C-C03 — StrategyIdentity must equal the Playbook bridge output
+
+- **Root defect:** `strategy.playbook_contract_identity == contract.contract_identity`
+  is a caller-assertable field; it does not prove the StrategyIdentity is the
+  deterministic bridge output.
+- **Minimum fix:** one small shared validator
+  `validate_strategy_against_playbook_contract(contract, strategy)` in
+  `src/playbook_contract.py` is the single semantic authority. It first requires
+  `validate_contract(contract).ready`, then compares the exact deterministic
+  bridge facts A..L (research lineage, family, `playbook_contract_identity`,
+  applicable instruments == canonical contract instrument scope, single
+  timeframe == `timeframe_scope[0]`, machine code/environment hashes, required
+  feature versions, typed parameter identities via `parameter_identity`,
+  data exposure reference, source == `source_scope or family_id`, and the
+  deterministic version `f"pc-{contract_version}-{contract_identity}"`).
+  `bridge_to_strategy_identity()` constructs the identity and then calls the same
+  validator; `ResearchFirewall.register_outcome_test()` calls the same validator
+  (replacing the previous caller-assertable `playbook_contract_identity`-only
+  check). No StrategyIdentity dataclass freeze, no token, no registry, no
+  signature system, no new lifecycle/parent rules.
+- **Regressions:** a valid bridge strategy registers normally; CC03-A..J each
+  tamper exactly one field (applicable_instruments, timeframe, code_hash,
+  environment_hash, required_feature_versions, typed parameter,
+  data_exposure_history_reference, source, strategy_version,
+  playbook_contract_identity) and prove `register_outcome_test` fails closed.
+  The wave binding is derived from the valid strategy, so it can never be
+  recomputed to match a tampered strategy.
+- **Result:** `OUTCOME_REGISTRATION_REQUIRES_STRATEGY_EQUIVALENT_TO_PLAYBOOK_BRIDGE=YES`.
+
+### Test fixture consequence
+
+The shared synthetic fixture (`tests/synthetic_fixture.py`) now produces
+strategies that are exactly bridge-equivalent: `make_strategy()` uses the bridge
+version string and builds a consistent contract from bridge-relevant overrides,
+and `build_synthetic_firewall()` reverse-rebuilds the exact bound contract from
+the strategy's facts. B-C03 lineage-reuse uses a single claim (a duplicate
+claim_id contract is now invalid for PRIMARY resolution), and B-C04 declares the
+two features on the contract machine. All Package B invariants remain green.
+
+### Correction status
+
+```text
+STATUS=PACKAGE_C_PREINTEGRATION_CORRECTION_COMPLETE
+BRANCH=repair/package-c-playbook-protocol-v01
+PRE_CORRECTION_TIP=1ca8cef5eb0f019d1f39ad687a2ce5b1c097d890
+MAIN_MERGE_COMMIT=620029b1b32d63315e5204e44d019edd3d77793a
+CC01_MACHINE_READY_REQUIRED_AT_REGISTRATION=YES
+CC02_DUPLICATE_CLAIM_IDS_FAIL_CLOSED=YES
+CC03_STRATEGY_EQUALS_PLAYBOOK_BRIDGE_SEMANTICS=YES
+INVALID_CONTRACT_NO_REGISTRY_MUTATION=YES
+INVALID_CONTRACT_NO_LINEAGE_MUTATION=YES
+INVALID_CONTRACT_NO_FIRST_LOOK=YES
+PRIMARY_SELECTION_DUPLICATE_ID_REJECTED=YES
+MANUAL_STRATEGY_SCOPE_TAMPER_REJECTED=YES
+MANUAL_STRATEGY_MACHINE_TAMPER_REJECTED=YES
+VALID_BRIDGE_STRATEGY_REGISTRATION_PASSES=YES
+PACKAGE_B_INVARIANTS_GREEN=YES
+FOCUSED_TESTS=158 OK
+FULL_TESTS=390 OK
+DIFF_CHECK=CLEAN
+CURRENT_STATE_CHANGED=NO
+FROZEN_PROTOCOL_CHANGED=NO
+NO_CANDIDATE_OUTCOME_DATA_USED=YES
+```
