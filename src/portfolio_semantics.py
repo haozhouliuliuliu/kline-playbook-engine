@@ -129,7 +129,7 @@ class PortfolioEvaluationBindings:
     mapping_schedule_identity_id: str
     session_metadata_version: str
     execution_assumption_id: str
-    capital_assumption_id: str
+    capital_binding_ids: tuple[str, ...]
     price_limit_fact_ids: tuple[str, ...]
     offset_cost_assumption_id: str
 
@@ -140,7 +140,7 @@ class PortfolioEvaluationBindings:
         mapping_schedule_identity_id: str,
         session_metadata_version: str,
         execution_assumption_id: str,
-        capital_assumption_id: str,
+        capital_binding_ids: Iterable[str],
         price_limit_fact_ids: Iterable[str],
         offset_cost_assumption_id: str,
     ) -> None:
@@ -149,12 +149,16 @@ class PortfolioEvaluationBindings:
             mapping_schedule_identity_id,
             session_metadata_version,
             execution_assumption_id,
-            capital_assumption_id,
             offset_cost_assumption_id,
         )
+        capital_bindings = tuple(sorted(capital_binding_ids))
         facts = tuple(sorted(price_limit_fact_ids))
         if not isinstance(dataset_class, DatasetClass) or not all(required) or any(not fact for fact in facts):
             raise ValueError("portfolio evaluation requires complete existing assumption bindings")
+        if not capital_bindings or any(not item for item in capital_bindings):
+            raise ValueError("portfolio evaluation requires non-empty capital bindings")
+        if len(set(capital_bindings)) != len(capital_bindings):
+            raise ValueError("portfolio capital binding identities must be unique")
         if len(set(facts)) != len(facts):
             raise ValueError("portfolio price-limit fact identities must be unique")
         object.__setattr__(self, "dataset_class", dataset_class)
@@ -162,7 +166,7 @@ class PortfolioEvaluationBindings:
         object.__setattr__(self, "mapping_schedule_identity_id", mapping_schedule_identity_id)
         object.__setattr__(self, "session_metadata_version", session_metadata_version)
         object.__setattr__(self, "execution_assumption_id", execution_assumption_id)
-        object.__setattr__(self, "capital_assumption_id", capital_assumption_id)
+        object.__setattr__(self, "capital_binding_ids", capital_bindings)
         object.__setattr__(self, "price_limit_fact_ids", facts)
         object.__setattr__(self, "offset_cost_assumption_id", offset_cost_assumption_id)
 
@@ -175,7 +179,7 @@ class PortfolioEvaluationBindings:
                 "mapping_schedule_identity_id": self.mapping_schedule_identity_id,
                 "session_metadata_version": self.session_metadata_version,
                 "execution_assumption_id": self.execution_assumption_id,
-                "capital_assumption_id": self.capital_assumption_id,
+                "capital_binding_ids": self.capital_binding_ids,
                 "price_limit_fact_ids": self.price_limit_fact_ids,
                 "offset_cost_assumption_id": self.offset_cost_assumption_id,
             }
@@ -295,6 +299,41 @@ class PortfolioCandidate:
 
 
 @dataclass(frozen=True)
+class PortfolioCapitalBinding:
+    """Per-member, per-resolved-concrete-contract capital assumptions binding.
+
+    E-05: capital/margin assumptions are bound to the resolved concrete
+    contract of a specific portfolio member. There is no global multiplier, no
+    unconstrained multiplier-map fallback, and no default/first-assumption
+    backdoor.
+    """
+
+    strategy_identity_id: str
+    concrete_contract_id: str
+    capital_assumptions: CapitalMarginAssumptions
+
+    def __post_init__(self) -> None:
+        if not self.strategy_identity_id or not self.concrete_contract_id:
+            raise ValueError("portfolio capital binding requires strategy and concrete contract attribution")
+        if not isinstance(self.capital_assumptions, CapitalMarginAssumptions):
+            raise ValueError("portfolio capital binding requires explicit capital margin assumptions")
+
+    @property
+    def key(self) -> tuple[str, str]:
+        return (self.strategy_identity_id, self.concrete_contract_id)
+
+    @property
+    def identity_id(self) -> str:
+        return _portfolio_hash(
+            {
+                "strategy_identity_id": self.strategy_identity_id,
+                "concrete_contract_id": self.concrete_contract_id,
+                "capital_assumptions_identity_id": self.capital_assumptions.identity_id,
+            }
+        )
+
+
+@dataclass(frozen=True)
 class PortfolioRequest:
     mode: ValidationMode
     dataset_class: DatasetClass
@@ -308,7 +347,7 @@ class PortfolioRequest:
     session_metadata: SessionMetadata
     price_limit_facts: tuple[PriceLimitFact, ...]
     execution_assumptions: ExecutionAssumptions
-    capital_assumptions: CapitalMarginAssumptions
+    capital_bindings: tuple[PortfolioCapitalBinding, ...]
     offset_cost_assumptions: OffsetCostAssumptions
     execution_cutoff_at: datetime
 
@@ -319,6 +358,17 @@ class PortfolioRequest:
             raise ValueError("portfolio execution cutoff must be timezone-aware")
         if not self.candidates:
             raise ValueError("portfolio evaluation requires at least one attributed candidate")
+        if not self.capital_bindings:
+            raise ValueError("portfolio evaluation requires at least one capital binding")
+        if self.capital_bindings != tuple(sorted(self.capital_bindings, key=lambda item: item.key)):
+            raise ValueError("portfolio capital bindings must be canonical sorted")
+        binding_keys = tuple(item.key for item in self.capital_bindings)
+        if len(set(binding_keys)) != len(binding_keys):
+            raise ValueError("portfolio capital bindings must be unique by strategy and concrete contract")
+        member_strategy_ids = {member.strategy.identity_id for member in self.members}
+        bound_strategy_ids = {item.strategy_identity_id for item in self.capital_bindings}
+        if not member_strategy_ids.issubset(bound_strategy_ids):
+            raise ValueError("every portfolio member requires at least one capital binding (no global fallback)")
 
     @property
     def bindings(self) -> PortfolioEvaluationBindings:
@@ -328,7 +378,7 @@ class PortfolioRequest:
             self.contract_mapping_schedule.identity_id,
             self.session_metadata.version,
             self.execution_assumptions.identity_id,
-            self.capital_assumptions.identity_id,
+            (item.identity_id for item in self.capital_bindings),
             (fact.identity_id for fact in self.price_limit_facts),
             self.offset_cost_assumptions.identity_id,
         )
@@ -710,24 +760,37 @@ class PortfolioCoordinator:
         if len(set(request_ids)) != len(request_ids):
             raise ValueError("duplicate portfolio request ownership")
         resolver = ContractResolver(request.contract_master, request.contract_mapping_schedule)
+        bindings_by_key = {item.key: item for item in request.capital_bindings}
         resolved: list[_ResolvedCandidate] = []
         for candidate in request.candidates:
+            # 1. find member
             member = members_by_strategy.get(candidate.strategy_identity_id)
             if member is None or member.experiment.experiment_id != candidate.experiment_id:
                 raise ValueError("portfolio candidate has ambiguous or inconsistent strategy attribution")
             if candidate.execution_assumption_id != request.execution_assumptions.identity_id:
                 raise ValueError("portfolio candidate execution assumption identity mismatch")
-            if candidate.capital_assumption_id != request.capital_assumptions.identity_id:
-                raise ValueError("portfolio candidate capital assumption identity mismatch")
             if candidate.requested_symbol not in member.strategy.applicable_instruments:
                 raise ValueError("portfolio candidate symbol is not bound to its originating strategy")
+            # 2. resolve concrete contract first
             resolution = resolver.resolve(
                 candidate.request_id,
                 candidate.requested_symbol,
                 candidate.decision_at,
             )
+            # 3. find the unique binding for this member + resolved contract
+            binding = bindings_by_key.get(
+                (candidate.strategy_identity_id, resolution.concrete_instrument_id)
+            )
+            if binding is None:
+                raise ValueError("portfolio candidate has no capital binding for its resolved concrete contract")
+            # 4. candidate capital assumption identity must equal the binding's
             contract = request.contract_master.get(resolution.concrete_instrument_id)
-            if contract is None or contract.contract_multiplier != request.capital_assumptions.contract_multiplier:
+            if contract is None:
+                raise ValueError("portfolio resolved concrete contract is missing from the contract master")
+            if candidate.capital_assumption_id != binding.capital_assumptions.identity_id:
+                raise ValueError("portfolio candidate capital assumption identity mismatch")
+            # 5. resolved contract multiplier must equal the binding's assumptions
+            if contract.contract_multiplier != binding.capital_assumptions.contract_multiplier:
                 raise ValueError("portfolio contract multiplier is inconsistent with capital assumptions")
             trading_day = request.session_metadata.trading_day_at(
                 contract.exchange,

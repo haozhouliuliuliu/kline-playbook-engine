@@ -24,6 +24,7 @@ from src.validation_runner import (
     ChronologicalValidationRunner,
     ExecutionAssumptions,
     ExecutionObservation,
+    ExecutionOutcome,
     FillStatus,
     MarkObservation,
     OrderSpecification,
@@ -196,6 +197,7 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
         dataset=DatasetClass.DEVELOPMENT,
         mark_observations=(),
         forced_liquidation_observations=(),
+        capital_snapshot=None,
     ):
         ledger = EvidenceLedger()
         firewall, hypothesis_test_id = build_synthetic_firewall(
@@ -214,7 +216,7 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
             execution_cutoff_at=inputs[-1].decision_at + timedelta(minutes=30),
             execution_assumptions=self.execution_assumptions,
             order_specifications=specifications,
-            capital_snapshot=CapitalSnapshot(Decimal("100")),
+            capital_snapshot=capital_snapshot if capital_snapshot is not None else CapitalSnapshot(Decimal("100")),
             capital_margin_assumptions=self.capital_assumptions,
             contract_master=master or self.master,
             contract_mapping_schedule=schedule or self.schedule,
@@ -512,6 +514,106 @@ class ContractExecutionSemanticsTests(unittest.TestCase):
                     ),
                 ),
             )
+
+    def test_generic_close_across_buckets_fails_closed_and_explicit_bucket_orders_flat(self):
+        # E-04: build today_quantity=1 and previous_quantity=1, then a generic
+        # CLOSE total=2 cannot be satisfied wholly by either bucket and must
+        # fail closed with the explicit error. The upper layer then emits
+        # explicit CLOSE_TODAY + CLOSE_PREVIOUS child orders (two independent
+        # transitions with their own offset fees) to flatten. The engine never
+        # auto-generates the split or a synthetic child order.
+        opening_inputs = (
+            make_input("open-day1", "A", DAY_1, at(DAY_1, 9, 5)),
+            make_input("open-day2", "A", DAY_2, at(DAY_1, 21, 5)),
+        )
+        opening_observations = (
+            self.observation("open-day1", at(DAY_1, 9, 6), Decimal("100"), "A"),
+            self.observation("open-day2", at(DAY_1, 21, 6), Decimal("100"), "A"),
+        )
+        opening_specifications = (
+            OrderSpecification("open-day1", Decimal("1")),
+            OrderSpecification("open-day2", Decimal("1")),
+        )
+        opening, _ = self.run_case(opening_inputs, opening_observations, opening_specifications)
+        position = opening.final_capital_snapshot
+        self.assertEqual(position.today_quantity, Decimal("1"))
+        self.assertEqual(position.previous_quantity, Decimal("1"))
+
+        generic_outcome = ExecutionOutcome(
+            "generic-close",
+            FillStatus.FILLED,
+            at(DAY_1, 22, 6),
+            self.execution_assumptions.identity_id,
+            Decimal("101"),
+            Decimal("0.25"),
+            "FILLED",
+        )
+        generic_spec = OrderSpecification("generic-close", Decimal("2"), OrderAction.CLOSE, CloseOffset.CLOSE)
+        generic_input = make_input("generic-close", "A", DAY_2, at(DAY_1, 22, 5))
+        with self.assertRaisesRegex(ValueError, "GENERIC_CLOSE_REQUIRES_EXPLICIT_BUCKET_CHILD_ORDERS"):
+            ChronologicalValidationRunner._apply_capital_constraints(
+                (generic_outcome,),
+                (generic_spec,),
+                (generic_input,),
+                position,
+                self.capital_assumptions,
+                self.execution_assumptions,
+                offset_cost_assumptions=self.offset_costs,
+            )
+
+        # Two explicit bucket child orders, each a separate transition.
+        explicit_specs = (
+            OrderSpecification("close-today", Decimal("1"), OrderAction.CLOSE, CloseOffset.CLOSE_TODAY),
+            OrderSpecification("close-previous", Decimal("1"), OrderAction.CLOSE, CloseOffset.CLOSE_PREVIOUS),
+        )
+        explicit_inputs = (
+            make_input("close-today", "A", DAY_2, at(DAY_1, 22, 5)),
+            make_input("close-previous", "A", DAY_2, at(DAY_1, 22, 10)),
+        )
+        explicit_outcomes = (
+            ExecutionOutcome(
+                "close-today",
+                FillStatus.FILLED,
+                at(DAY_1, 22, 6),
+                self.execution_assumptions.identity_id,
+                Decimal("101"),
+                Decimal("0.25"),
+                "FILLED",
+            ),
+            ExecutionOutcome(
+                "close-previous",
+                FillStatus.FILLED,
+                at(DAY_1, 22, 11),
+                self.execution_assumptions.identity_id,
+                Decimal("101"),
+                Decimal("0.25"),
+                "FILLED",
+            ),
+        )
+        _, transitions = ChronologicalValidationRunner._apply_capital_constraints(
+            explicit_outcomes,
+            explicit_specs,
+            explicit_inputs,
+            position,
+            self.capital_assumptions,
+            self.execution_assumptions,
+            offset_cost_assumptions=self.offset_costs,
+        )
+        self.assertEqual(len(transitions), 2)
+        self.assertEqual(transitions[0].resolved_close_offset, CloseOffset.CLOSE_TODAY)
+        self.assertEqual(transitions[1].resolved_close_offset, CloseOffset.CLOSE_PREVIOUS)
+        final = transitions[1].after
+        self.assertEqual(final.position_quantity, Decimal("0"))
+        self.assertEqual(final.today_quantity, Decimal("0"))
+        self.assertEqual(final.previous_quantity, Decimal("0"))
+        # Both explicit closes use the same fill price/base cost, so the
+        # offset-fee difference (close_previous 2 vs close_today 1) is exactly 1.
+        self.assertEqual(transitions[1].required_cost - transitions[0].required_cost, Decimal("1"))
+        # charged_costs accumulates both explicit closes' costs.
+        self.assertEqual(
+            final.charged_costs,
+            position.charged_costs + transitions[0].required_cost + transitions[1].required_cost,
+        )
 
     def test_offset_sensitive_cost_identity_and_result_are_deterministic(self):
         same = OffsetCostAssumptions(

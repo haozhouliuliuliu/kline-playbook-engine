@@ -79,6 +79,7 @@ class CapitalMarginAssumptions:
     maintenance_margin_rate: Decimal = Decimal("0.05")
     breach_rule: str = "EQUITY_BELOW_MAINTENANCE_REQUIREMENT"
     liquidation_rule_version: str = "FULL_POSITION_NEXT_TRADABLE_OBSERVATION_V1"
+    margin_admission_resource: str = "AVAILABLE_CAPITAL_ONLY"
 
     def __post_init__(self) -> None:
         if not self.model_version or not self.currency:
@@ -93,6 +94,11 @@ class CapitalMarginAssumptions:
             raise ValueError("unsupported synthetic maintenance breach rule")
         if self.liquidation_rule_version != "FULL_POSITION_NEXT_TRADABLE_OBSERVATION_V1":
             raise ValueError("unsupported synthetic liquidation rule")
+        # E-08: margin admission is frozen to available-capital-only. Unrealized
+        # PnL must not increase open/add admission capacity. No alternative
+        # runtime admission-resource option is supported.
+        if self.margin_admission_resource != "AVAILABLE_CAPITAL_ONLY":
+            raise ValueError("unsupported margin admission resource")
 
     @property
     def identity_id(self) -> str:
@@ -105,6 +111,7 @@ class CapitalMarginAssumptions:
                 "maintenance_margin_rate": str(self.maintenance_margin_rate),
                 "breach_rule": self.breach_rule,
                 "liquidation_rule_version": self.liquidation_rule_version,
+                "margin_admission_resource": self.margin_admission_resource,
             }
         )
 
@@ -933,7 +940,12 @@ class ChronologicalValidationRunner:
                     elif current.previous_quantity >= specification.quantity:
                         resolved_offset = CloseOffset.CLOSE_PREVIOUS
                     else:
-                        raise ValueError("generic close cannot deterministically resolve across position buckets")
+                        # E-04: a generic CLOSE that cannot be satisfied wholly
+                        # by one position bucket must fail closed. The upper
+                        # layer must emit explicit CLOSE_TODAY + CLOSE_PREVIOUS
+                        # child orders; the engine never invents an automatic
+                        # split or synthetic child order.
+                        raise ValueError("GENERIC_CLOSE_REQUIRES_EXPLICIT_BUCKET_CHILD_ORDERS")
                 if resolved_offset is CloseOffset.CLOSE_TODAY:
                     if current.today_quantity < specification.quantity:
                         raise ValueError("CLOSE_TODAY quantity exceeds today's position bucket")
@@ -1023,6 +1035,10 @@ class ChronologicalValidationRunner:
 
             required_margin = outcome.fill_price * specification.quantity * capital_assumptions.contract_multiplier * capital_assumptions.initial_margin_rate
             required_cost = outcome.total_cost
+            # E-08: open/add admission is decided by available_capital
+            # (cash_balance - reserved_margin) alone. Unrealized PnL neither
+            # increases nor decreases admission capacity; available_resources /
+            # equity are not the admission authority.
             if current.available_capital < required_margin + required_cost:
                 constrained.append(
                     replace(
