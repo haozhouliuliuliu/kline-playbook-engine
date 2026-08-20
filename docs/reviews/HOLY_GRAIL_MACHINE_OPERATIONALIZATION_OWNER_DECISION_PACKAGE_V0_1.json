@@ -1,0 +1,148 @@
+{
+  "artifact": "HOLY_GRAIL_MACHINE_OPERATIONALIZATION_OWNER_DECISION_PACKAGE_V0_1",
+  "version": "0.1",
+  "date": "2026-08-21",
+  "role": "PRE_OUTCOME_OWNER_DECISION_PACKAGE",
+  "status": "PROPOSAL_ONLY_NOT_ADOPTED",
+  "repository": "haozhouliuliuliu/kline-playbook-engine",
+  "branch": "preoutcome/holy-grail-machine-decision-v01",
+  "baseline": "ec50649a9e1c27380a14f6d997f3e641bb9a6ea8",
+  "decision_basis": {
+    "CANDIDATE_OUTCOME_USED": "NO",
+    "VALIDATION_ACCESS": "NOT_AUTHORIZED",
+    "HISTORICAL_FINAL_HOLDOUT_ACCESS": "LOCKED",
+    "SHADOW_FORWARD": "NOT_AUTHORIZED",
+    "REAL_MONEY": "NOT_AUTHORIZED",
+    "BROKER_ACCESS": "NOT_AUTHORIZED",
+    "MODIFIES_FROZEN_PROTOCOL": "NO",
+    "MODIFIES_MAIN": "NO",
+    "CREATES_V0_4": "NO",
+    "SETS_MACHINE_READY": "NO"
+  },
+  "authority_read": [
+    "AGENTS.md",
+    "OWNER_COLLABORATION_CONTRACT.md",
+    "ARCHITECTURE_BASELINE.md",
+    "CURRENT_STATE.md",
+    "00_READ_FIRST.md",
+    "RESEARCH_DIRECTION.md",
+    "KNOWN_LIMITATIONS_AND_TECH_DEBT.md",
+    "docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md",
+    "docs/reviews/FGH_SEMANTIC_GATE_OWNER_APPROVAL_2026-08-20.md",
+    "docs/evidence/RASCHKE_HOLY_GRAIL_PLAYBOOK_CONTRACT_DRAFT_V0_3.json",
+    "docs/evidence/RASCHKE_HOLY_GRAIL_PLAYBOOK_CONTRACT_DRAFT_V0_3.md",
+    "docs/evidence/RASCHKE_HOLY_GRAIL_INTERPRETATION_STATUS_V0_3.md",
+    "docs/evidence/HUMAN_PLAYBOOK_SOURCE_BUNDLE_RASCHKE_HOLY_GRAIL_V0_1.json",
+    "docs/evidence/HUMAN_PLAYBOOK_SOURCE_ONLY_SESSION_RASCHKE_HOLY_GRAIL_V0_1.json"
+  ],
+  "blockers": [
+    {
+      "blocker_id": "HOLY_GRAIL_BASE_TO_MACHINE_INTERVAL",
+      "current_status": "OPEN",
+      "source_fact": "M05: 'price first pulls back to the 20-bar EMA... then 30-minute, 60-minute, 120-minute time frame.' M01 rules are period-based (14-period ADX, 20-period EMA), bar-timeframe-agnostic. Source never assigns a minute value to BASE; 30/60/120 are the explicitly named higher-timeframe alternatives.",
+      "owner_approved_interpretation": "FGH-GATE-06 (2026-08-20): PRIMARY_TIMEFRAME_BRANCH=BASE; SOURCE_ALTERNATIVES=30MIN,60MIN,120MIN; BASE_TO_MACHINE_INTERVAL=EXPLICIT_BEFORE_MACHINE_READY. V0.3 keeps it OPEN.",
+      "engine_constraint": "Canonical substrate is 1-minute granularity (zero-aggregation native). 30/60/120 derivable by causal aggregation (OBSERVABLE_NOW). Approved 1m chronology semantics (GATE-04/05).",
+      "non_outcome_options": [
+        "1_MINUTE (minimum arbitrariness; native substrate; consistent with approved 1m chronology)",
+        "5_MINUTE / 15_MINUTE (no source basis; arbitrary aggregation)",
+        "KEEP_OPEN"
+      ],
+      "causality_consequence": "Any interval must be causally aggregated from completed bars. 1m is the native causal boundary with zero aggregation error; 5m/15m add arbitrary aggregation alignment.",
+      "source_faithfulness_consequence": "Any mapping is PROJECT_INFERRED, never a source claim. 1m is closest to 'primary/base chart' concept with minimum added assumptions; 5m/15m have no source basis.",
+      "engineering_consequence": "BASE=1m requires no new aggregation; EMA/ADX/swing/trigger consume native 1m bars. 5m/15m add deterministic aggregation machinery plus identity binding.",
+      "recommended_choice": "BASE_TO_MACHINE_INTERVAL=1_MINUTE",
+      "recommended_label": "PROJECT_INFERRED",
+      "alternatives": ["5_MINUTE", "15_MINUTE", "KEEP_OPEN"],
+      "what_remains_unknown": "Source never states Raschke's actual base-chart minute value; cannot uniquely pin 1/3/5/10/15 from source.",
+      "owner_decision_required": "YES",
+      "decision_type": "CONFIRM_RECOMMENDATION_OR_PICK_FROM_SUB30_MINUTES"
+    },
+    {
+      "blocker_id": "HOLY_GRAIL_ADX_RISING_WINDOW",
+      "current_status": "OPEN_VERSIONED_NON_OUTCOME_CHOICE",
+      "source_fact": "M01 step1: 'The 14-period ADX must initially be greater than 30 and rising.' Step2: pullback 'usually accompanied by a turndown in ADX.' Source never defines the 'rising' slope window.",
+      "owner_approved_interpretation": "FGH-GATE-02 (2026-08-20): ADX_CONTEXT=INITIAL_PRE_PULLBACK; TOUCH_BAR_RISING_REQUIRED=NO; OLD_TOUCH_BAR_ONE_STEP_RULE=NOT_AUTHORITY; ADX_RISING_WINDOW=EXPLICIT_VERSIONED_INFERRED.",
+      "engine_constraint": "Wilder ADX init, Decimal, 6dp ROUND_HALF_UP approved (GATE-03). Parameterizable ADX computation; window length is the binding value.",
+      "non_outcome_options": [
+        "1_STEP: ADX[t] > ADX[t-1] at the initial context bar (zero extra parameter; literal 'rising')",
+        "3_STEP_MONOTONIC: ADX[t] > ADX[t-1] > ADX[t-2] > ADX[t-3] (more robust; one fixed parameter)",
+        "3_STEP_NET: ADX[t] > ADX[t-3] (alternative robustness reading)"
+      ],
+      "causality_consequence": "Rising test evaluated only at the initial context bar (last completed bar before the touch bar) using completed ADX series; no lookahead. Touch bar not required to rise.",
+      "source_faithfulness_consequence": "Any window is PROJECT_INFERRED; source only fixes the 'initially >30 and rising' concept. 1-step is the minimal literal reading.",
+      "engineering_consequence": "1-step is simplest (no window parameter). 3-step needs a versioned window parameter in the feature identity hash.",
+      "recommended_choice": "ADX_RISING_WINDOW=1_STEP",
+      "recommended_label": "PROJECT_INFERRED",
+      "alternatives": ["3_STEP_MONOTONIC", "3_STEP_NET", "KEEP_OPEN"],
+      "what_remains_unknown": "Source does not distinguish 1-step vs multi-step rising. Context-bar exact definition is an A-class engineering timing detail to version-bind.",
+      "owner_decision_required": "YES",
+      "decision_type": "CHOOSE_ONE_OF_TWO (1_STEP recommended / 3_STEP_MONOTONIC)"
+    },
+    {
+      "blocker_id": "HOLY_GRAIL_SWING_CONFIRMATION_COUNTS",
+      "current_status": "OPEN_VERSIONED_NON_OUTCOME_CHOICE",
+      "source_fact": "M01 step4: 'enter a protective sell stop at the newly formed swing low.' Concept pinned; no pivot algorithm or confirmation counts stated.",
+      "owner_approved_interpretation": "Owner approval (2026-08-20): SWING_DEFINITION=FRACTAL_PIVOT_EXPLICIT_CONFIRMATION; RIGHT_SIDE_CONFIRMATION_REQUIRED=YES; SAME_BAR_AVAILABILITY=NO; SHORT_SIDE=MIRROR_SWING_HIGH; SWING_CONFIRMATION_COUNTS=EXPLICIT_VERSIONED_NON_OUTCOME_CHOICE.",
+      "engine_constraint": "No pivot implementation yet; parameterizable generic pivot machinery. GATE-05 completed-bar conservative chronology constrains stop activation.",
+      "non_outcome_options": [
+        "L1_R1: 3-bar fractal (low[t] < low[t-1] and low[t] < low[t+1]); pivot confirmed at t+1; minimum arbitrariness; most responsive to 'newly formed'",
+        "L2_R2: 5-bar standard fractal (low[t] below 2 bars each side); confirmed at t+2; more robust, slower"
+      ],
+      "causality_consequence": "Pivot at bar t observable only after right-side R confirmation bars complete (bar t+R); same-bar availability forbidden. Stop placement latency between fill and first confirmed pivot must be recorded honestly.",
+      "source_faithfulness_consequence": "Both counts are PROJECT_INFERRED, never source facts; 'common TA habit' must not be dressed as source fact.",
+      "engineering_consequence": "Parameterized fractal pivot machinery (A-class); (L,R) is the versioned binding value in feature identity. Stop activation ties to GATE-05 completed-bar semantics.",
+      "recommended_choice": "SWING_CONFIRMATION_COUNTS=L1_R1",
+      "recommended_label": "PROJECT_INFERRED",
+      "alternatives": ["L2_R2", "KEEP_OPEN"],
+      "what_remains_unknown": "Source does not specify pivot identification bar counts; (1,1) vs (2,2) indistinguishable at source level.",
+      "owner_decision_required": "YES",
+      "decision_type": "CHOOSE_ONE_OF_TWO (L1R1 recommended / L2R2)"
+    },
+    {
+      "blocker_id": "HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION",
+      "current_status": "NOT_ADOPTED",
+      "source_fact": "M01 step4: 'Trail stops as profits grow.' M04: qualitative give-back/first-reaction management (not a deterministic trailing algorithm). M05: qualitative top context. No ATR/percentage/EMA/breakeven/swing/Chandelier/fixed-R anywhere in the accepted bundle.",
+      "bounded_source_check": "SOURCE_DOES_NOT_PIN_TRAILING_ALGORITHM=YES. Paid candidates (Trading Sardines, Street Smarts) NOT purchased/NOT authorized/NOT evidence.",
+      "owner_approved_interpretation": "Owner approval (2026-08-20): APPROVE_TRAILING_STOP=OPTION_A_NO_MACHINE_TRAILING_UNTIL_SOURCE_PINNED; OUTCOME_TUNING_FOR_TRAILING=FORBIDDEN.",
+      "engine_constraint": "Generic stop/OCO machinery integrated (FGH_GENERIC_STOP_OCO_CORE); no trailing loop adopted. Swing-low fractal definition (blocker 3) is a reusable reference basis.",
+      "non_outcome_options": [
+        "CATEGORY_1_NO_MACHINE_TRAILING: keep NOT_ADOPTED (fail-closed; zero invented mechanics; current binding state)",
+        "CATEGORY_2_SWING_BASED_TRAILING: trail protective stop up to the most recent confirmed swing low (reuses approved swing-low fractal; deterministic, causal, no new distance parameter; PROJECT INFERRED)",
+        "CATEGORY_3_FIXED_DISTANCE_TRAILING: fixed-distance (ticks/points or ATR multiple) from best high; invented algorithm with hidden distance parameter; ATR not in source"
+      ],
+      "causality_consequence": "Any trailing must use only confirmed references (e.g., confirmed pivots / completed-bar extremes); no current-bar incomplete data. Category 2 uses only t+R available confirmed pivots.",
+      "source_faithfulness_consequence": "No deterministic algorithm is a source claim. Category 2 is closest to source semantics by reusing the source's own swing-low concept; Category 3 is fully exogenous.",
+      "engineering_consequence": "Generic trailing machinery is A-class; the binding definition (none/swing/fixed-distance) is decided here. Category 2 reuses blocker-3 pivot output with highest reuse.",
+      "recommended_choice": "KEEP_TRAILING_STOP_NOT_ADOPTED (default) / SWING_BASED_TRAILING (if closing the blocker)",
+      "recommended_label": "PROJECT_INFERRED (for Category 2; Category 1 is fail-closed default)",
+      "alternatives": ["CATEGORY_3_FIXED_DISTANCE_TRAILING", "KEEP_NOT_ADOPTED"],
+      "what_remains_unknown": "Whether any unrecorded official/paid source could pin trailing mechanics (not accessible evidence). 'Most recent confirmed swing low' vs initial stop relationship is an inference detail.",
+      "owner_decision_required": "YES",
+      "decision_type": "CHOOSE_ONE_OF_THREE (Category 1 default / Category 2 recommended if closing / Category 3)"
+    }
+  ],
+  "ab_classification": {
+    "note": "A-class = ordinary engineering (project brain can auto-decide; generic machinery). B-class = new research semantics that only Owner can bind.",
+    "BASE_TO_MACHINE_INTERVAL": {"A": ["intraday aggregation machinery", "completed-bar causal alignment", "30/60/120 alternative aggregation"], "B": ["BASE concrete machine interval"]},
+    "ADX_RISING_WINDOW": {"A": ["Wilder ADX computation", "Decimal/6dp ROUND_HALF_UP", "context-bar timing detail (last completed bar before touch)"], "B": ["rising window (1-step or 3-step)"]},
+    "SWING_CONFIRMATION_COUNTS": {"A": ["fractal pivot detection machinery", "stop activation timing per completed-bar semantics"], "B": ["left/right confirmation counts (L1R1 or L2R2)"]},
+    "TRAILING_STOP": {"A": ["generic trailing/stop/OCO machinery"], "B": ["trailing-stop machine definition (Category 1/2/3)"]}
+  },
+  "final_owner_decision_block": {
+    "PROPOSAL_ONLY_NOT_ADOPTED": "YES",
+    "CANDIDATE_OUTCOME_USED": "NO",
+    "DECIDE_HOLY_GRAIL_BASE_TO_MACHINE_INTERVAL": "1_MINUTE",
+    "DECIDE_HOLY_GRAIL_BASE_TO_MACHINE_INTERVAL_ALTERNATIVES": ["5_MINUTE", "15_MINUTE", "KEEP_OPEN"],
+    "DECIDE_HOLY_GRAIL_ADX_RISING_WINDOW": "1_STEP",
+    "DECIDE_HOLY_GRAIL_ADX_RISING_WINDOW_ALTERNATIVES": ["3_STEP_MONOTONIC"],
+    "DECIDE_HOLY_GRAIL_SWING_CONFIRMATION_COUNTS": "L1_R1",
+    "DECIDE_HOLY_GRAIL_SWING_CONFIRMATION_COUNTS_ALTERNATIVES": ["L2_R2"],
+    "DECIDE_HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION": "KEEP_NOT_ADOPTED",
+    "DECIDE_HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION_ALTERNATIVES": ["SWING_BASED_TRAILING", "FIXED_DISTANCE_TRAILING"]
+  },
+  "verification": {
+    "PRODUCTION_CODE_CHANGED": "NO",
+    "TESTS_CHANGED": "NO",
+    "GIT_DIFF_CHECK": "PENDING"
+  }
+}
