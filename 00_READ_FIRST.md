@@ -35,17 +35,31 @@ SECOND_PASS_REPAIR_CLOSURE_AUDIT=COMPLETE
 ORIGINAL_FINDINGS_DISPOSITIONED=62_OF_62
 UNRESOLVED_CRITICAL_SILENT_BYPASS=0
 UNRESOLVED_HIGH_STRUCTURAL_REPAIR_DEFECT=0
+HOLY_GRAIL_PLAYBOOK_CURRENT_VERSION=V0_3
+HOLY_GRAIL_MACHINE_READY=NO
+RASCHKE_NR7_PLAYBOOK_CURRENT_VERSION=V0_1
+RASCHKE_NR7_MACHINE_READY=NO
+CANONICAL_REPAIRED_D01_D02_REVALIDATION=COMPLETE_FAIL
+CANONICAL_TARGETED_REPAIR_STATUS=BLOCKED_AUTH
+PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
+CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 NEXT_NORMAL_PHASE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
 PERFORMANCE_RESEARCH_STARTED=NO
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
-SHADOW_FORWARD=NOT_AUTHORIZED
+PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
 BROKER_ACCESS=NOT_AUTHORIZED
 ```
 
-Repair completion does **not** mean candidate-performance readiness. The project has returned from repair mode to normal pre-outcome research/foundation work while important prerequisites remain fail-closed.
+Repair completion does **not** mean candidate-performance readiness. Holy Grail V0.3 and NR7 V0.1 are integrated as fail-closed pre-outcome drafts; canonical revalidation was executed but did not pass; targeted repair is blocked on TQSDK authentication. Candidate use of the current canonical corpus is not authorized.
+
+Key integrated evidence (2026-08-21):
+- `docs/evidence/RASCHKE_HOLY_GRAIL_INTERPRETATION_STATUS_V0_3.md` + `RASCHKE_HOLY_GRAIL_PLAYBOOK_CONTRACT_DRAFT_V0_3.json` / `.md`
+- `docs/evidence/RASCHKE_NR7_INTERPRETATION_STATUS_V0_1.md` + `RASCHKE_NR7_PLAYBOOK_CONTRACT_DRAFT_V0_1.json` / `.md`
+- `docs/evidence/CANONICAL_CORPUS_REVALIDATION_D01_D02_V0_1.md` (+ `.json`)
+- `docs/evidence/CANONICAL_D01_D02_TARGETED_REPAIR_QUALIFICATION_V0_1.md` (+ `.json`)
 
 ## Catastrophic anti-regression rule
 
@@ -78,18 +92,20 @@ Any material return to data-first strategy/pattern mining is an Owner-gated rese
 Do not silently promote any of these into solved facts:
 
 ```text
-PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
+PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES (REVALIDATION=COMPLETE_FAIL; TARGETED_REPAIR=BLOCKED_AUTH)
+CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 E06_CONTINUOUS_HISTORICAL_EXCHANGE_FEE_MARGIN_SCHEDULE=INSUFFICIENT_EVIDENCE
 E07_SOURCE_GOVERNED_TQSDK_HISTORICAL_MAIN_MAPPING=INCOMPLETE_FAIL_CLOSED
 HOLY_GRAIL_MACHINE_READY=NO
 HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION=NOT_ADOPTED
+RASCHKE_NR7_MACHINE_READY=NO
 REAL_COMMON_STATISTICAL_PROFILE=NOT_ADOPTED
 PORTFOLIO_CANDIDATE_OUTCOME_AUTHORITY=NOT_IMPLEMENTED
 SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
 LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
 ```
 
-Canonical historical price values were not revoked, but the accepted corpus has not yet been re-certified under the repaired D-01/D-02 completeness rules.
+Canonical historical price values were not revoked, but explicit revalidation under the repaired D-01/D-02 rules failed (32980 revalidated, 116 FAIL, 13008 missing expected bars). Targeted repair is blocked on TQSDK existing authentication; the accepted corpus remains NOT authorized for candidate use.
 
 ## Fresh-conversation takeover rule
 
