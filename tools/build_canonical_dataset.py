@@ -306,6 +306,7 @@ def build_requests(
 def build_contract_configs(
     calendar: TradingCalendar,
     universe: dict[str, list[str]],
+    bounds: dict[str, dict[str, tuple[date, date]]],
     specs: dict[str, ContractSpec],
     schedules: dict[str, ProductSessionSchedule],
 ) -> dict[str, ContractConfig]:
@@ -314,7 +315,21 @@ def build_contract_configs(
         spec = specs[product]
         schedule = schedules[product]
         for contract in sorted(universe[product]):
-            days = calendar.trading_days(spec.effective_start, spec.effective_end)
+            try:
+                first_trading_day, last_trading_day = bounds[product][contract]
+            except KeyError as error:
+                raise ValueError(f"missing governed listing bounds for {contract}") from error
+            if first_trading_day < spec.effective_start or last_trading_day > spec.effective_end:
+                raise ValueError(
+                    f"governed listing bounds for {contract} fall outside contract-spec effective period"
+                )
+            # A concrete contract's session authority is bounded by the
+            # governed concrete-contract universe, not by the product-wide
+            # specification period.  This deliberately preserves the first
+            # listed trading day's existing night-window semantics: a date
+            # boundary alone does not establish whether the prior 21:00 was
+            # tradable, so suppressing it would be an unsupported inference.
+            days = calendar.trading_days(first_trading_day, last_trading_day)
             sessions = build_session_metadata(calendar, schedule, contract, days)
             # Derive the metadata-fact evidence classification from the
             # governed source instead of hardcoding VERIFIED_OFFICIAL, so an
@@ -343,9 +358,10 @@ def build_contract_configs(
                 concrete_instrument=contract,
                 minimum_price_tick=spec.tick,
                 session_metadata_version=sessions.version,
-                effective_start=spec.effective_start,
-                effective_end=spec.effective_end,
+                effective_start=first_trading_day,
+                effective_end=last_trading_day,
                 evidence_reference=(
+                    "CANONICAL_CONTRACT_UNIVERSE.json governed listing bounds; "
                     "CANONICAL_CONTRACT_SPECS.json effective_period "
                     + spec.binding_notice
                 ),
@@ -401,7 +417,7 @@ def main() -> None:
         print(json.dumps({"dry_run": True, "per_product": per_product}, indent=2, sort_keys=True))
         return
 
-    configs = build_contract_configs(calendar, universe, specs, schedules)
+    configs = build_contract_configs(calendar, universe, bounds, specs, schedules)
 
     manifest_path = Path(args.manifest)
     if args.phase == "re-evaluate":

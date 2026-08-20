@@ -30,6 +30,7 @@ from tools.build_canonical_dataset import (
     load_schedules,
     load_specs,
     load_universe,
+    load_universe_bounds,
 )
 
 
@@ -361,7 +362,9 @@ def revalidate_corpus(data_root: Path) -> dict[str, object]:
     document = json.loads(manifest_path.read_text(encoding="utf-8"))
     partitions = manifest_inventory_partitions(document)
     calendar = load_calendar()
-    configs = build_contract_configs(calendar, load_universe(), load_specs(), load_schedules())
+    configs = build_contract_configs(
+        calendar, load_universe(), load_universe_bounds(), load_specs(), load_schedules()
+    )
     windows_by_contract_and_day: dict[tuple[str, str], tuple[SessionWindow, ...]] = {}
     for contract, config in configs.items():
         grouped: dict[str, list[SessionWindow]] = {}

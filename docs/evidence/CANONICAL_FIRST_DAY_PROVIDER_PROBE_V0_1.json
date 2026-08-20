@@ -1,0 +1,367 @@
+{
+  "historical_accepted_corpus_modified": false,
+  "outcome_access_used": false,
+  "probe_records": [
+    {
+      "contract": "SHFE.ag2501",
+      "partition_identity": "5346d2a53c3a4c2eca14d1dbef787f860878a3ebd5c5e476c418fee932f7ea35",
+      "probe_shape": "PREFIX_ONLY",
+      "product": "ag",
+      "requests": [
+        {
+          "classification": "ORIGINAL_REQUEST_REPEATABLE_TRUNCATION",
+          "kind": "A",
+          "missing_expected_bars": 61,
+          "observed_bars": 494,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 1482,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 494,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 1976,
+            "overlapping_timestamps": 494,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/A/TQSDK.SHFE.ag2501.60s.2024-01-16.dda232aeb558.json",
+          "requested_end": "2024-01-16T15:00:00+08:00",
+          "requested_start": "2024-01-15T21:00:00+08:00",
+          "returned_end": "2024-01-16T15:00:00+08:00",
+          "returned_start": "2024-01-15T22:01:00+08:00"
+        },
+        {
+          "classification": "DAY_ONLY_COMPLETE",
+          "kind": "B",
+          "missing_expected_bars": 0,
+          "observed_bars": 225,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 675,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 225,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 900,
+            "overlapping_timestamps": 225,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/B/TQSDK.SHFE.ag2501.60s.2024-01-16.fe61bb17d5c3.json",
+          "requested_end": "2024-01-16T15:00:00+08:00",
+          "requested_start": "2024-01-16T09:00:00+08:00",
+          "returned_end": "2024-01-16T15:00:00+08:00",
+          "returned_start": "2024-01-16T09:00:00+08:00"
+        }
+      ],
+      "trading_day": "2024-01-16"
+    },
+    {
+      "contract": "SHFE.al2504",
+      "partition_identity": "a24a3d084f99ae641b988c7ea3b8db78236acde8175ad7e030106be1a347e54c",
+      "probe_shape": "PREFIX_ONLY",
+      "product": "al",
+      "requests": [
+        {
+          "classification": "ORIGINAL_REQUEST_REPEATABLE_TRUNCATION",
+          "kind": "A",
+          "missing_expected_bars": 82,
+          "observed_bars": 383,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 1149,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 383,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 1532,
+            "overlapping_timestamps": 383,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/A/TQSDK.SHFE.al2504.60s.2024-04-16.fea5048e2e18.json",
+          "requested_end": "2024-04-16T15:00:00+08:00",
+          "requested_start": "2024-04-15T21:00:00+08:00",
+          "returned_end": "2024-04-16T15:00:00+08:00",
+          "returned_start": "2024-04-15T22:22:00+08:00"
+        },
+        {
+          "classification": "DAY_ONLY_COMPLETE",
+          "kind": "B",
+          "missing_expected_bars": 0,
+          "observed_bars": 225,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 675,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 225,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 900,
+            "overlapping_timestamps": 225,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/B/TQSDK.SHFE.al2504.60s.2024-04-16.d501eb42b9de.json",
+          "requested_end": "2024-04-16T15:00:00+08:00",
+          "requested_start": "2024-04-16T09:00:00+08:00",
+          "returned_end": "2024-04-16T15:00:00+08:00",
+          "returned_start": "2024-04-16T09:00:00+08:00"
+        }
+      ],
+      "trading_day": "2024-04-16"
+    },
+    {
+      "contract": "SHFE.au2405",
+      "partition_identity": "eac856687174de8c8f9e8ae1ce673fbec4bd72a7bc057071e266cc8a20c9057b",
+      "probe_shape": "PREFIX_ONLY",
+      "product": "au",
+      "requests": [
+        {
+          "classification": "ORIGINAL_REQUEST_REPEATABLE_TRUNCATION",
+          "kind": "A",
+          "missing_expected_bars": 9,
+          "observed_bars": 546,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 1638,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 546,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 2184,
+            "overlapping_timestamps": 546,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/A/TQSDK.SHFE.au2405.60s.2024-02-20.2b748af8d930.json",
+          "requested_end": "2024-02-20T15:00:00+08:00",
+          "requested_start": "2024-02-19T21:00:00+08:00",
+          "returned_end": "2024-02-20T15:00:00+08:00",
+          "returned_start": "2024-02-19T21:09:00+08:00"
+        },
+        {
+          "classification": "DAY_ONLY_COMPLETE",
+          "kind": "B",
+          "missing_expected_bars": 0,
+          "observed_bars": 225,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 675,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 225,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 900,
+            "overlapping_timestamps": 225,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/B/TQSDK.SHFE.au2405.60s.2024-02-20.6aa23e6d7131.json",
+          "requested_end": "2024-02-20T15:00:00+08:00",
+          "requested_start": "2024-02-20T09:00:00+08:00",
+          "returned_end": "2024-02-20T15:00:00+08:00",
+          "returned_start": "2024-02-20T09:00:00+08:00"
+        }
+      ],
+      "trading_day": "2024-02-20"
+    },
+    {
+      "contract": "SHFE.al2501",
+      "partition_identity": "6423806cf0418d4071e903ba5fc1e6f444f62df8e2785fd21d79caca8e414c73",
+      "probe_shape": "MULTIPLE_REGIONS",
+      "product": "al",
+      "requests": [
+        {
+          "classification": "ORIGINAL_REQUEST_REPEATABLE_TRUNCATION",
+          "kind": "A",
+          "missing_expected_bars": 330,
+          "observed_bars": 135,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 405,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 135,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 540,
+            "overlapping_timestamps": 135,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/A/TQSDK.SHFE.al2501.60s.2024-01-16.dda232aeb558.json",
+          "requested_end": "2024-01-16T15:00:00+08:00",
+          "requested_start": "2024-01-15T21:00:00+08:00",
+          "returned_end": "2024-01-16T15:00:00+08:00",
+          "returned_start": "2024-01-16T10:45:00+08:00"
+        },
+        {
+          "classification": "DAY_ONLY_STILL_TRUNCATED",
+          "kind": "B",
+          "missing_expected_bars": 90,
+          "observed_bars": 135,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 405,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 135,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 540,
+            "overlapping_timestamps": 135,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/B/TQSDK.SHFE.al2501.60s.2024-01-16.fe61bb17d5c3.json",
+          "requested_end": "2024-01-16T15:00:00+08:00",
+          "requested_start": "2024-01-16T09:00:00+08:00",
+          "returned_end": "2024-01-16T15:00:00+08:00",
+          "returned_start": "2024-01-16T10:45:00+08:00"
+        }
+      ],
+      "trading_day": "2024-01-16"
+    },
+    {
+      "contract": "SHFE.cu2501",
+      "partition_identity": "edfe01f1f489beea0d2d020abf43a02504ed7d8f2c853fadd9497ee75cee40ed",
+      "probe_shape": "MULTIPLE_REGIONS",
+      "product": "cu",
+      "requests": [
+        {
+          "classification": "ORIGINAL_REQUEST_REPEATABLE_TRUNCATION",
+          "kind": "A",
+          "missing_expected_bars": 282,
+          "observed_bars": 183,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 549,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 183,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 732,
+            "overlapping_timestamps": 183,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/A/TQSDK.SHFE.cu2501.60s.2024-01-16.dda232aeb558.json",
+          "requested_end": "2024-01-16T15:00:00+08:00",
+          "requested_start": "2024-01-15T21:00:00+08:00",
+          "returned_end": "2024-01-16T15:00:00+08:00",
+          "returned_start": "2024-01-16T09:42:00+08:00"
+        },
+        {
+          "classification": "DAY_ONLY_STILL_TRUNCATED",
+          "kind": "B",
+          "missing_expected_bars": 42,
+          "observed_bars": 183,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 549,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 183,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 732,
+            "overlapping_timestamps": 183,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/B/TQSDK.SHFE.cu2501.60s.2024-01-16.fe61bb17d5c3.json",
+          "requested_end": "2024-01-16T15:00:00+08:00",
+          "requested_start": "2024-01-16T09:00:00+08:00",
+          "returned_end": "2024-01-16T15:00:00+08:00",
+          "returned_start": "2024-01-16T09:42:00+08:00"
+        }
+      ],
+      "trading_day": "2024-01-16"
+    },
+    {
+      "contract": "SHFE.ni2501",
+      "partition_identity": "b98cb8b88fa317a2e08ae930349eb8ddae1498b01eb19a8d5ab8db8837a1895c",
+      "probe_shape": "MULTIPLE_REGIONS",
+      "product": "ni",
+      "requests": [
+        {
+          "classification": "ORIGINAL_REQUEST_REPEATABLE_TRUNCATION",
+          "kind": "A",
+          "missing_expected_bars": 395,
+          "observed_bars": 70,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 210,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 70,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 280,
+            "overlapping_timestamps": 70,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/A/TQSDK.SHFE.ni2501.60s.2024-01-16.dda232aeb558.json",
+          "requested_end": "2024-01-16T15:00:00+08:00",
+          "requested_start": "2024-01-15T21:00:00+08:00",
+          "returned_end": "2024-01-16T15:00:00+08:00",
+          "returned_start": "2024-01-16T13:50:00+08:00"
+        },
+        {
+          "classification": "DAY_ONLY_STILL_TRUNCATED",
+          "kind": "B",
+          "missing_expected_bars": 155,
+          "observed_bars": 70,
+          "overlap_comparison": {
+            "nullable_value_mismatch_count": 0,
+            "nullable_values_compared": 210,
+            "nullable_volume_mismatch_count": 0,
+            "nullable_volume_values_compared": 70,
+            "overlapping_ohlc_mismatch_count": 0,
+            "overlapping_ohlc_values_compared": 280,
+            "overlapping_timestamps": 70,
+            "total_value_mismatch_count": 0
+          },
+          "raw_path": "C:/Users/H/Documents/kline-playbook-engine__canonical-revalidation-v01/data/revalidation_repair_v01/provider_probe/B/TQSDK.SHFE.ni2501.60s.2024-01-16.fe61bb17d5c3.json",
+          "requested_end": "2024-01-16T15:00:00+08:00",
+          "requested_start": "2024-01-16T09:00:00+08:00",
+          "returned_end": "2024-01-16T15:00:00+08:00",
+          "returned_start": "2024-01-16T13:50:00+08:00"
+        }
+      ],
+      "trading_day": "2024-01-16"
+    }
+  ],
+  "result": "FIRST_DAY_PROVIDER_DATA_UNAVAILABLE",
+  "schema_version": "canonical-first-day-provider-probe-v0.1",
+  "selected_target_count": 6,
+  "selected_targets": [
+    {
+      "contract": "SHFE.ag2501",
+      "partition_identity": "5346d2a53c3a4c2eca14d1dbef787f860878a3ebd5c5e476c418fee932f7ea35",
+      "product": "ag",
+      "shape": "PREFIX_ONLY",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "contract": "SHFE.al2504",
+      "partition_identity": "a24a3d084f99ae641b988c7ea3b8db78236acde8175ad7e030106be1a347e54c",
+      "product": "al",
+      "shape": "PREFIX_ONLY",
+      "trading_day": "2024-04-16"
+    },
+    {
+      "contract": "SHFE.au2405",
+      "partition_identity": "eac856687174de8c8f9e8ae1ce673fbec4bd72a7bc057071e266cc8a20c9057b",
+      "product": "au",
+      "shape": "PREFIX_ONLY",
+      "trading_day": "2024-02-20"
+    },
+    {
+      "contract": "SHFE.al2501",
+      "partition_identity": "6423806cf0418d4071e903ba5fc1e6f444f62df8e2785fd21d79caca8e414c73",
+      "product": "al",
+      "shape": "MULTIPLE_REGIONS",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "contract": "SHFE.cu2501",
+      "partition_identity": "edfe01f1f489beea0d2d020abf43a02504ed7d8f2c853fadd9497ee75cee40ed",
+      "product": "cu",
+      "shape": "MULTIPLE_REGIONS",
+      "trading_day": "2024-01-16"
+    },
+    {
+      "contract": "SHFE.ni2501",
+      "partition_identity": "b98cb8b88fa317a2e08ae930349eb8ddae1498b01eb19a8d5ab8db8837a1895c",
+      "product": "ni",
+      "shape": "MULTIPLE_REGIONS",
+      "trading_day": "2024-01-16"
+    }
+  ],
+  "target_selection_rule": "for each shape, select the first representative per product ordered by product, contract, trading day; take the first three products",
+  "totals": {
+    "DAY_ONLY_COMPLETE": 3,
+    "DAY_ONLY_STILL_TRUNCATED": 3,
+    "ORIGINAL_REQUEST_REPEATABLE_TRUNCATION": 6,
+    "OVERLAPPING_OHLC_MISMATCH_COUNT": 0,
+    "OVERLAPPING_OHLC_VALUES_COMPARED": 11496
+  }
+}

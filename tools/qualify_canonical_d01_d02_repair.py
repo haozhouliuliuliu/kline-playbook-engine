@@ -216,8 +216,8 @@ def diagnose_failure(failure: dict[str, Any], config, bounds: tuple[date, date])
 
 
 def diagnose_inventory(inventory: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    configs = build_contract_configs(load_calendar(), load_universe(), load_specs(), load_schedules())
     bounds_by_product = load_universe_bounds()
+    configs = build_contract_configs(load_calendar(), load_universe(), bounds_by_product, load_specs(), load_schedules())
     diagnostics = []
     for failure in inventory:
         contract = str(failure["contract"])
@@ -343,7 +343,7 @@ def targeted_reacquire(
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """One normal production request per recorded target, into a disjoint root."""
     repair_root = validate_repair_storage(repair_root, historical_root)
-    configs = build_contract_configs(load_calendar(), load_universe(), load_specs(), load_schedules())
+    configs = build_contract_configs(load_calendar(), load_universe(), load_universe_bounds(), load_specs(), load_schedules())
     adapter = TqSdkSourceAdapter(credentials_from_terminal)
     totals: Counter[str] = Counter()
     try:
