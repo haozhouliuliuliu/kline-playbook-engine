@@ -1,26 +1,38 @@
 # CURRENT_STATE
 
-## Project phase
+## Current phase
 
 ```text
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE_BASELINE=Skeleton_v1.0
 ARCHITECTURE_STATUS=ACCEPTED
 ADOPTED_CONTRACT_VERSION=3.1
+ADOPTED_CONTRACT_SHA256=3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650bf690101e
 SECOND_PASS_REPAIR_MODE=EXITED
-CURRENT_WORK_PACKAGE=SECOND_PASS_REPAIR_CLOSURE
+CURRENT_WORK_PACKAGE=FRESH_CONVERSATION_HANDOFF_PREPARATION
 CURRENT_WORK_PACKAGE_STATUS=COMPLETE
-CURRENT_BLOCKER=NONE_AT_REPAIR_LEVEL
-CLOSURE_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md
-FINAL_CLOSURE_RECORD=docs/reviews/SECOND_PASS_REPAIR_FINAL_CLOSURE_RECORD_2026-08-20.md
-SECOND_PASS_AUDIT_AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_ADVERSARIAL_AUDIT_2026-08-20.md
-OWNER_ACTION=NONE_FOR_REPAIR_CLOSURE
+CURRENT_BLOCKER=NONE_FOR_HANDOFF
+HANDOFF_STATUS=READY_FOR_READ_ONLY_TAKEOVER
+HANDOFF_ARTIFACT=PROJECT_HANDOFF_CURRENT.md
 NEXT_NORMAL_PHASE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
+NORMAL_WORK_EXECUTION_BEFORE_TAKEOVER_ACCEPTANCE=PROHIBITED
 ```
 
-The full second-pass repair program is closed. The original 62 findings have all received an explicit closure disposition; two project-brain retrospectives were completed; no reviewed CRITICAL silent bypass or HIGH structural implementation defect remains in the repair scope.
+The full second-pass repair program is closed. The project is now prepared for a fresh project-brain conversation. Repair completion does **not** mean candidate-performance readiness.
 
-Repair completion does **not** mean candidate-performance readiness. Missing data/source/research prerequisites remain explicit and fail closed.
+Formal repair-closure authorities:
+
+- `docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md`
+- `docs/reviews/SECOND_PASS_REPAIR_FINAL_CLOSURE_RECORD_2026-08-20.md`
+- `docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_1_2026-08-20.md`
+- `docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_2_2026-08-20.md`
+
+```text
+ORIGINAL_SECOND_PASS_FINDINGS=62
+ORIGINAL_FINDINGS_DISPOSITIONED=62_OF_62
+UNRESOLVED_CRITICAL_SILENT_BYPASS=0
+UNRESOLVED_HIGH_STRUCTURAL_REPAIR_DEFECT=0
+```
 
 ## Binding research / access boundary
 
@@ -46,37 +58,22 @@ BROKER_ACCESS=NOT_AUTHORIZED
 
 No project-recorded real candidate outcome exposure has been established.
 
-## Accepted second-pass repair foundation
+## Accepted repaired foundation
 
-```text
-PACKAGE_A=INTEGRATED_ACCEPTED_WITH_EXPLICIT_RESIDUAL_BOUNDARY
-PACKAGE_B=INTEGRATED_ACCEPTED
-PACKAGE_C=INTEGRATED_ACCEPTED
-PACKAGE_D=INTEGRATED_ACCEPTED
-PACKAGE_F=INTEGRATED_ACCEPTED
-E01_E02_E03_E09_E11_E12=INTEGRATED_ACCEPTED
-E13=INTEGRATED_ACCEPTED_BOOTSTRAP_SCOPE_ONLY
-E10=INTEGRATED_ACCEPTED
-E04=INTEGRATED_OWNER_APPROVED
-E05=INTEGRATED_OWNER_APPROVED
-E08=INTEGRATED_OWNER_APPROVED
-E06=CLOSED_GOVERNED_PREREQUISITE
-E07=CLOSED_GOVERNED_PREREQUISITE_FAIL_CLOSED
-FGH_DETERMINISTIC_REBUILD=INTEGRATED_ACCEPTED
-FGH_CLOSURE_GUARDRAIL=INTEGRATED_ACCEPTED
-```
+Current accepted foundation includes:
 
-Accepted invariants now include:
-
-- authoritative candidate execution choke point through `ResearchFirewall`;
+- authoritative confirmatory candidate execution choke point through `ResearchFirewall`;
 - actual-date cohort derivation and actual input data-version binding;
-- artifact-bound outcome registration, durable governance state and lineage continuity;
+- artifact-bound outcome-test registration, durable governance state and lineage continuity;
+- exact Research Wave denominator semantics;
 - claim-level PRIMARY and deterministic Playbook->Strategy equivalence;
-- canonical completeness/provenance production rules with content-derived SessionMetadata identity and PASS-only storage admission;
-- material-bound prospective SOURCE_ONLY evidence with honest historical `NOT_RECORDED` limits;
+- repaired canonical completeness/provenance production rules with content-derived SessionMetadata identity and PASS-only storage admission;
+- prospective material-bound SOURCE_ONLY evidence with honest historical `NOT_RECORDED` limits;
 - corrected execution/capital/forced-liquidation/round-trip semantics;
-- explicit close-bucket child orders, per-member resolved-contract capital assumptions and `AVAILABLE_CAPITAL_ONLY` margin admission;
-- point-in-time feature aggregation, full dependency-prefix identity, actual feature implementation byte binding, stop evaluated-sequence identity and OCO cancellation lifecycle;
+- explicit close-bucket child orders where one generic close spans today/previous buckets;
+- per-member/per-resolved-contract capital assumptions;
+- `AVAILABLE_CAPITAL_ONLY` opening/addition admission;
+- point-in-time feature aggregation, full dependency-prefix identity, actual feature implementation-byte binding, stop evaluated-sequence identity, OCO cancellation and same-bar ambiguity preservation;
 - normal-caller aggregation-completeness laundering closed before EMA/ADX.
 
 Residual threat-model boundaries remain explicit:
@@ -86,37 +83,6 @@ SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
 LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
 VALIDATION_ROW_TO_CANONICAL_ARTIFACT_BYTE_PROVENANCE=NOT_FULL_END_TO_END_ATTESTATION
 ```
-
-## Owner-approved Package E semantics
-
-Authority:
-`docs/reviews/PACKAGE_E_OWNER_DECISION_APPROVAL_2026-08-20.md`
-
-```text
-E04_RULE=OPTION_C_EXPLICIT_BUCKET_CHILD_ORDERS
-E05_RULE=PER_MEMBER_RESOLVED_CONTRACT_ASSUMPTIONS
-E07_RULE=SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_APPLIED_TO_CANONICAL_CONCRETE_BARS
-E08_RULE=AVAILABLE_CAPITAL_ONLY
-```
-
-Current prerequisite status:
-
-```text
-E06_FINAL_JUDGMENT=PARTIALLY_BUILDABLE_WITH_GAPS
-E06_EXCHANGE_LEVEL_SCHEDULE=INSUFFICIENT_EVIDENCE
-E06_CURRENT_RATE_BACKFILL=FORBIDDEN
-E06_FURTHER_REPEAT_ACQUISITION_DEFAULT=NO
-E06_REMAINING_GAPS=LONG_LIVED_GOVERNED_PREREQUISITE
-E06_REOPEN_TRIGGER=NEW_OFFICIAL_SOURCE_OR_ACCESS_CHANGE_OR_OWNER_POLICY_CHANGE
-
-E07_TQSDK_HISTORY_ACCESS=LOGIN_REQUIRED
-E07_MAPPING_COMPLETENESS=INCOMPLETE
-E07_RUNTIME_MAPPING_STATUS=FAIL_CLOSED_PREREQUISITE
-E07_PROJECT_AUTHORED_SUBSTITUTE=FORBIDDEN
-E07_PSEUDO_MAIN_PRICE_BARS=FORBIDDEN
-```
-
-E-06/E-07 are governed prerequisites, not open-ended repair loops. A future candidate-enablement package must satisfy them or remain fail closed.
 
 ## Canonical data status
 
@@ -131,89 +97,15 @@ CANONICAL_CORPUS_IDENTITY=1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b1
 CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
 CANONICAL_PRICE_VALUES_REVOKED=NO
 CANONICAL_CORPUS_REBUILT_DURING_SECOND_PASS=NO
-CANONICAL_ACCEPTANCE_REWRITTEN_DURING_SECOND_PASS=NO
 CANONICAL_CORPUS_REVALIDATED_UNDER_REPAIRED_D01_D02=NO
 PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=YES
 ```
 
-The historical accepted values/identity were not proven wrong. However, the accepted corpus was not rebuilt or re-certified under the repaired completeness rules; old PASS status must not be silently promoted into a new repaired-completeness proof.
+The historical accepted values/identity were not proven wrong. Old PASS status must not be silently promoted into a repaired-completeness proof; explicit revalidation is required before candidate-quality use.
 
-## F/G/H / Holy Grail state
+## Current governed prerequisites
 
-Authorities:
-
-- `docs/reviews/FGH_CODEX_REBUILD_PREPARATION_V0_1.md`
-- `docs/reviews/FGH_CODEX_REBUILD_FINDING_MATRIX_V0_1.json`
-- `docs/evidence/FGH_DETERMINISTIC_REBUILD_ENGINEERING_V0_1.md`
-- `docs/reviews/FGH_SEMANTIC_GATE_OWNER_APPROVAL_2026-08-20.md`
-- `docs/evidence/FGH_CLOSURE_GUARDRAILS_V0_1.md`
-
-```text
-OLD_FGH_DIRECT_MERGE=FORBIDDEN
-FGH_GENERIC_FEATURE_CORE=INTEGRATED_ACCEPTED
-FGH_GENERIC_STOP_OCO_CORE=INTEGRATED_ACCEPTED
-FGH_COMBINED_SYNTHETIC_CAUSAL_CHAIN=INTEGRATED_ACCEPTED
-FGH_NORMAL_CALLER_COMPLETENESS_LAUNDERING=CLOSED
-HOLY_GRAIL_OWNER_DECISIONS=RECORDED_BINDING
-HOLY_GRAIL_MACHINE_READY=NO
-PRIMARY_FREEZE_READY=NO
-CANDIDATE_OUTCOME_DATA_USED=NO
-```
-
-Owner-approved F/G/H semantics include prior-available close-based EMA touch, pre-pullback ADX context, explicit numeric engineering convention, same-bar ambiguity fail-closed, completed-bar conservative stop chronology, BASE as the first source-primary timeframe branch, confirmed-pivot swing semantics, no invented trailing algorithm, and new-high exit as an optional variant.
-
-Normal research operationalization still must explicitly version/bind:
-
-```text
-HOLY_GRAIL_BASE_TO_MACHINE_INTERVAL=OPEN
-HOLY_GRAIL_ADX_RISING_WINDOW=OPEN_VERSIONED_NON_OUTCOME_CHOICE
-HOLY_GRAIL_SWING_CONFIRMATION_COUNTS=OPEN_VERSIONED_NON_OUTCOME_CHOICE
-HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION=NOT_ADOPTED
-```
-
-These are future normal research prerequisites, not unresolved second-pass repair defects.
-
-## Mandatory post-repair retrospectives
-
-```text
-RETROSPECTIVE_1=COMPLETE
-RETROSPECTIVE_1_AUTHORITY=docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_1_2026-08-20.md
-RETROSPECTIVE_1_NEW_CRITICAL=0
-RETROSPECTIVE_1_NEW_HIGH=1
-RETROSPECTIVE_1_HIGH=AGGREGATION_RESULT_COMPLETENESS_LAUNDERING
-RETROSPECTIVE_1_HIGH_STATUS=CORRECTED_AND_MERGED
-
-RETROSPECTIVE_2=COMPLETE
-RETROSPECTIVE_2_AUTHORITY=docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_2_2026-08-20.md
-RETROSPECTIVE_2_NEW_CRITICAL=0
-RETROSPECTIVE_2_NEW_HIGH_REPAIR_FINDINGS=0
-```
-
-Retrospective 1's bounded correction was merged through PR #14 at merge commit `7961244961f532fd2ff5bcb839bcf52082b58ef4`.
-
-## Final 62-finding closure audit
-
-Authority:
-`docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md`
-
-```text
-SECOND_PASS_REPAIR_CLOSURE_AUDIT=COMPLETE
-ORIGINAL_FINDINGS=62
-ORIGINAL_FINDINGS_DISPOSITIONED=62_OF_62
-UNRESOLVED_CRITICAL_SILENT_BYPASS=0
-UNRESOLVED_HIGH_STRUCTURAL_REPAIR_DEFECT=0
-SECOND_PASS_REPAIR_MODE=EXITED
-REPAIR_COMPLETE_DOES_NOT_EQUAL_CANDIDATE_READY=YES
-```
-
-Closure dispositions deliberately distinguish implementation repairs from governed prerequisites, historical evidence limits, and explicit scope/threat-model limits.
-
-## Persisted post-repair prerequisites
-
-Authority/index:
-`KNOWN_LIMITATIONS_AND_TECH_DEBT.md`
-
-Important active/deferred items:
+Authority/index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
 
 ```text
 LIMIT-001=HISTORICAL_PRICE_LIMIT_METADATA
@@ -227,7 +119,74 @@ LIMIT-008=SOURCE_ONLY_AND_LOCAL_STATE_THREAT_MODEL_LIMIT
 DECISION-001=LIVE_AI_MARKET_READING_FUTURE_OWNER_GATE
 ```
 
-## Test / evidence-quality qualification
+E-06:
+
+```text
+E06_FINAL_JUDGMENT=PARTIALLY_BUILDABLE_WITH_GAPS
+E06_EXCHANGE_LEVEL_SCHEDULE=INSUFFICIENT_EVIDENCE
+E06_CURRENT_RATE_BACKFILL=FORBIDDEN
+E06_FURTHER_REPEAT_ACQUISITION_DEFAULT=NO
+E06_REOPEN_TRIGGER=NEW_OFFICIAL_SOURCE_OR_ACCESS_CHANGE_OR_OWNER_POLICY_CHANGE
+```
+
+E-07:
+
+```text
+E07_RULE=SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_APPLIED_TO_CANONICAL_CONCRETE_BARS
+E07_TQSDK_HISTORY_ACCESS=LOGIN_REQUIRED
+E07_MAPPING_COMPLETENESS=INCOMPLETE
+E07_RUNTIME_MAPPING_STATUS=FAIL_CLOSED_PREREQUISITE
+E07_PROJECT_AUTHORED_SUBSTITUTE=FORBIDDEN
+E07_PSEUDO_MAIN_PRICE_BARS=FORBIDDEN
+```
+
+The generic `ContractMappingSchedule` is structural/synthetic machinery, not candidate mapping authority.
+
+## F/G/H / Holy Grail state
+
+```text
+FGH_GENERIC_FEATURE_CORE=INTEGRATED_ACCEPTED
+FGH_GENERIC_STOP_OCO_CORE=INTEGRATED_ACCEPTED
+FGH_COMBINED_SYNTHETIC_CAUSAL_CHAIN=INTEGRATED_ACCEPTED
+FGH_NORMAL_CALLER_COMPLETENESS_LAUNDERING=CLOSED
+HOLY_GRAIL_OWNER_DECISIONS=RECORDED_BINDING
+HOLY_GRAIL_MACHINE_READY=NO
+PRIMARY_FREEZE_READY=NO
+```
+
+Remaining normal operationalization prerequisites:
+
+```text
+HOLY_GRAIL_BASE_TO_MACHINE_INTERVAL=OPEN
+HOLY_GRAIL_ADX_RISING_WINDOW=OPEN_VERSIONED_NON_OUTCOME_CHOICE
+HOLY_GRAIL_SWING_CONFIRMATION_COUNTS=OPEN_VERSIONED_NON_OUTCOME_CHOICE
+HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION=NOT_ADOPTED
+```
+
+These are normal pre-outcome research prerequisites, not unresolved second-pass repair defects. They must not be chosen by candidate-outcome tuning.
+
+## Statistical profile status
+
+```text
+REAL_COMMON_STATISTICAL_PROFILE=NOT_ADOPTED
+POSITIVE_PASS_PATH=NOT_AVAILABLE
+CANDIDATE_OUTCOME_ACCESS=NOT_AUTHORIZED
+```
+
+Historical statistical-profile documents remain evidence/history. They do not define the current next action.
+
+## Tool / execution status
+
+```text
+TOOL_DECISION=USE_EXISTING
+NEW_TOOL_REQUIRED=NO
+MAIN=SOLE_FINAL_INTEGRATION_AUTHORITY
+TEMPORARY_GITHUB_ACTIONS_APPROACH=ABANDONED_NOT_ADOPTED
+```
+
+A tool appearing in `TOOL_REGISTRY.md` does not mean this project has adopted or enabled it.
+
+Recorded verification qualification:
 
 ```text
 R2_FOUNDATION_FULL_TESTS=478_OK_BEFORE_FINAL_FGH_CLOSURE_CORRECTION
@@ -236,22 +195,7 @@ R2_FOUNDATION_DIFF_CHECK=OK
 FINAL_CLOSURE_CORRECTION_PROJECT_BRAIN_CODE_REVIEW=COMPLETE
 FINAL_CLOSURE_CORRECTION_REGRESSION_ARTIFACTS=COMMITTED
 INDEPENDENT_PROJECT_BRAIN_FINAL_FULL_SUITE_RERUN=NOT_AVAILABLE_IN_CONNECTOR_ENVIRONMENT
-TEMPORARY_GITHUB_ACTIONS_APPROACH=ABANDONED_NOT_ADOPTED
 ```
-
-The final Codex correction was explicitly tasked to run focused/full tests, compileall and diff-check and committed its adversarial regression tests. The project-brain independently reviewed the code/test delta but cannot truthfully claim an independent final Python execution from the connector environment.
-
-## Tool decision
-
-```text
-TOOL_DECISION=USE_EXISTING
-NEW_TOOL_REQUIRED=NO
-TEMPORARY_GITHUB_ACTIONS_APPROACH=ABANDONED_NOT_ADOPTED
-CODEX_ROLE=BOUNDED_DIFFICULT_IMPLEMENTATION_AND_TEST_EXECUTION
-MAIN=SOLE_FINAL_INTEGRATION_AUTHORITY
-```
-
-No temporary GitHub Actions runner was adopted as project infrastructure.
 
 ## Progress estimate
 
@@ -261,18 +205,33 @@ ACCEPTED_MAIN_OVERALL_ENGINEERING_PROGRESS=ABOUT_74_PERCENT
 RESEARCH_AND_VALIDATION_FOUNDATION_ACCEPTED_PROGRESS=ABOUT_92_PERCENT
 ```
 
-The gap to 100% is now predominantly normal product/research/runtime work and explicit prerequisites, not the second-pass repair program. Major future areas include normal Holy Grail operationalization, candidate-enablement prerequisites, and eventually Trading Loop / OMS / RiskGate / broker/reconciliation/live-control work under their own authorities.
+These are planning estimates, not evidence facts.
 
-## Current next action / stopping point
+## Fresh-conversation handoff status
 
 ```text
-CURRENT_NEXT_ACTION=STOP_AT_REPAIR_CLOSURE_NODE_FOR_CONTEXT_HANDOFF
-NEXT_NORMAL_WORK_AFTER_RETAKE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
-OWNER_ACTION=NONE_FOR_REPAIR_CLOSURE
+ACTIVE_HANDOFF_ENTRY=PROJECT_HANDOFF_CURRENT.md
+SUPERSEDED_ROOT_HANDOFF_CHAIN_2026_08_19=REMOVED_FROM_ACTIVE_TREE
+HANDOFF_IS_DERIVED_SNAPSHOT=YES
+FRESH_CONVERSATION_FIRST_MODE=READ_ONLY_TAKEOVER_VERIFICATION
+TAKEOVER_MUST_REPORT_CONTRADICTIONS_OR_MISSING_FACTS=YES
+TAKEOVER_MUST_WAIT_FOR_OWNER_ACCEPTANCE=YES
+```
+
+The fresh conversation must re-read the real repository and formal authority. It must not reconstruct project state from chat memory or from the handoff alone.
+
+## Current next action
+
+```text
+CURRENT_NEXT_ACTION=FRESH_CONVERSATION_READ_ONLY_TAKEOVER_VERIFICATION
+OWNER_ACTION=START_FRESH_CONVERSATION_AND_SEND_TAKEOVER_PROMPT
+NEXT_NORMAL_WORK_AFTER_TAKEOVER_ACCEPTANCE=PRE_OUTCOME_HUMAN_PLAYBOOK_OPERATIONALIZATION
+REPOSITORY_WRITES_BEFORE_TAKEOVER_ACCEPTANCE=PROHIBITED
+WORKER_PROMPTS_BEFORE_TAKEOVER_ACCEPTANCE=PROHIBITED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 SHADOW_FORWARD=NOT_AUTHORIZED
 ```
 
-This is the requested stopping point. A new conversation must re-read repository authority rather than infer state from chat memory.
+This is the handoff stopping point. The new project brain must first prove that it has reconstructed the authority/state correctly; only after Owner acceptance may it choose and execute the next normal bounded package.
