@@ -1,12 +1,13 @@
 """可恢复地获取 Bilibili UP 主公开视频语料。
 
-本工具只保存视频、字幕、元数据和完整性证据；不读取或解释交易内容。Chrome
-登录态只会由 yt-dlp 在运行时读取，绝不导出、打印或持久化 Cookie。
+本工具只保存视频、字幕、元数据和完整性证据；不读取或解释交易内容。登录使用
+Bilibili 网页二维码流程，绝不读取 Chrome 数据，也不输出或提交 Cookie。
 """
 
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import hashlib
 import json
@@ -16,15 +17,17 @@ import shutil
 import subprocess
 import sys
 import time
+from http.cookiejar import CookieJar, MozillaCookieJar
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import urlencode, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 
 
 UP_UID = "3546770449631285"
 UP_URL = f"https://space.bilibili.com/{UP_UID}/video"
+PILOT_BVID = "BV1yxebzoERD"
 LOG_SECRET_PATTERN = re.compile(r"(?i)(sessdata|cookie|token|authorization)\s*[=:]\s*[^\s;,&]+")
 WINDOWS_RESERVED_NAMES = {
     "CON", "PRN", "AUX", "NUL", *(f"COM{number}" for number in range(1, 10)),
@@ -38,8 +41,8 @@ WBI_MIXIN_KEY_ENC_TAB = [
 ]
 HTTP_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                  "(KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
-    "Referer": UP_URL,
+                  "(KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0",
+    "Referer": "https://www.bilibili.com/",
 }
 
 
@@ -50,6 +53,11 @@ def utc_now() -> str:
 def default_output_dir() -> Path:
     user_profile = Path(os.environ.get("USERPROFILE", Path.home()))
     return user_profile / "Videos" / "kline-playbook-engine" / "bilibili" / UP_UID
+
+
+def default_auth_dir() -> Path:
+    local_app_data = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+    return local_app_data / "kline-playbook-engine" / "bilibili-auth"
 
 
 def sanitize_windows_filename(value: str, fallback: str = "untitled") -> str:
@@ -65,6 +73,80 @@ def sanitize_windows_filename(value: str, fallback: str = "untitled") -> str:
 
 def redact_sensitive_text(value: str) -> str:
     return LOG_SECRET_PATTERN.sub(lambda match: f"{match.group(1)}=[REDACTED]", value)
+
+
+def is_bilibili_cookie_domain(domain: str) -> bool:
+    return domain.lstrip(".").lower().endswith("bilibili.com")
+
+
+def is_bilibili_hostname(hostname: str | None) -> bool:
+    return bool(hostname) and (hostname.lower() == "bilibili.com" or hostname.lower().endswith(".bilibili.com"))
+
+
+def qr_status_name(code: int | None) -> str:
+    return {
+        86101: "WAITING_FOR_SCAN",
+        86090: "WAITING_FOR_CONFIRMATION",
+        86038: "EXPIRED",
+        0: "SUCCESS",
+    }.get(code, "UNEXPECTED")
+
+
+def qr_poll_status_code(payload: dict[str, Any]) -> int:
+    if payload.get("code") != 0:
+        raise RuntimeError(f"二维码轮询接口返回外层 code={payload.get('code')}")
+    code = (payload.get("data") or {}).get("code")
+    if not isinstance(code, int):
+        raise RuntimeError("二维码轮询接口未返回 data.code")
+    return code
+
+
+def media_backoff_seconds(attempt: int) -> int:
+    """媒体请求第一次至少等待十分钟，之后指数退避，最高一小时。"""
+    return min(600 * (2 ** max(0, attempt - 1)), 3600)
+
+
+def auth_status_path(auth_dir: Path) -> Path:
+    return auth_dir / "session_status.json"
+
+
+def write_auth_status(auth_dir: Path, state: str, **extra: Any) -> None:
+    auth_dir.mkdir(parents=True, exist_ok=True)
+    record = {"state": state, "updated_at": utc_now(), **extra}
+    auth_status_path(auth_dir).write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def assert_preserved_source_manifest(output_dir: Path, expected_count: int = 99) -> None:
+    manifest = output_dir / "manifests" / "source_manifest.jsonl"
+    if not manifest.is_file():
+        raise RuntimeError("既有 source_manifest.jsonl 缺失，拒绝继续")
+    with manifest.open(encoding="utf-8") as handle:
+        rows = sum(1 for line in handle if line.strip())
+    if rows != expected_count:
+        raise RuntimeError(f"既有 source_manifest 数量为 {rows}，预期为 {expected_count}，拒绝继续")
+
+
+def remove_temporary_cookie_file(cookie_path: Path) -> None:
+    try:
+        cookie_path.unlink()
+    except FileNotFoundError:
+        pass
+
+
+def save_bilibili_cookies(cookie_jar: CookieJar, cookie_path: Path) -> int:
+    """仅保存 Bilibili 域 Cookie，供下一步 yt-dlp 临时读取；不记录其值。"""
+    filtered = MozillaCookieJar(str(cookie_path))
+    source_jar = getattr(cookie_jar, "jar", cookie_jar)
+    for cookie in source_jar:
+        if is_bilibili_cookie_domain(cookie.domain):
+            retained = copy.copy(cookie)
+            retained.discard = False
+            filtered.set_cookie(retained)
+    if not list(filtered):
+        raise RuntimeError("二维码登录未产生可用的 Bilibili 域会话 Cookie")
+    cookie_path.parent.mkdir(parents=True, exist_ok=True)
+    filtered.save(ignore_discard=True, ignore_expires=True)
+    return len(list(filtered))
 
 
 def bvid_from_entry(entry: dict[str, Any]) -> str | None:
@@ -187,6 +269,204 @@ def fetch_json(url: str) -> dict[str, Any]:
     request = Request(url, headers=HTTP_HEADERS)
     with urlopen(request, timeout=30) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+def opener_json(opener: Any, url: str) -> dict[str, Any]:
+    request = Request(url, headers=HTTP_HEADERS)
+    with opener.open(request, timeout=30) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def show_qr_code(login_url: str, png_path: Path) -> None:
+    """将 Bilibili 返回的登录 URL 制成二维码并在本机显示。"""
+    parsed = urlparse(login_url)
+    if parsed.scheme != "https" or not is_bilibili_hostname(parsed.hostname):
+        raise RuntimeError("二维码登录地址不是预期的 Bilibili HTTPS 地址")
+    try:
+        import qrcode
+    except ImportError as error:
+        raise RuntimeError("缺少二维码生成依赖，请在独立工具环境安装 qrcode[pil]") from error
+    png_path.parent.mkdir(parents=True, exist_ok=True)
+    qrcode.make(login_url).save(png_path)
+    os.startfile(str(png_path))  # type: ignore[attr-defined]  # Windows only
+
+
+def follow_bilibili_login_redirect(opener: Any, redirect_url: str) -> None:
+    """消费二维码成功响应中的 Bilibili 登录跳转，以便 CookieJar 接收会话。"""
+    parsed = urlparse(redirect_url)
+    if not parsed.scheme and not parsed.netloc:
+        return
+    if parsed.scheme != "https" or not is_bilibili_hostname(parsed.hostname):
+        raise RuntimeError(
+            "二维码登录回调地址不是预期的 Bilibili HTTPS 地址"
+            f"（scheme={parsed.scheme or 'NONE'}; hostname={parsed.hostname or 'NONE'}）"
+        )
+    request = Request(redirect_url, headers=HTTP_HEADERS)
+    with opener.open(request, timeout=30):
+        pass
+
+
+def session_json(session: Any, url: str) -> dict[str, Any]:
+    response = session.get(url, timeout=30)
+    response.raise_for_status()
+    return response.json()
+
+
+def create_bilibili_web_session() -> Any:
+    """复用 Bili23 v2.11.0 的最小网页会话初始化，不包含其 GUI 或下载器。"""
+    try:
+        import httpx
+    except ImportError as error:
+        raise RuntimeError("缺少独立工具环境依赖 httpx") from error
+    session = httpx.Client(follow_redirects=True, timeout=30, headers=HTTP_HEADERS)
+    fingerprint = session_json(session, "https://api.bilibili.com/x/frontend/finger/spi")
+    data = fingerprint.get("data") or {}
+    buvid3, buvid4 = data.get("b_3"), data.get("b_4")
+    if not isinstance(buvid3, str) or not isinstance(buvid4, str):
+        session.close()
+        raise RuntimeError("Bilibili 指纹初始化未返回 buvid3/buvid4")
+    for name, value in {
+        "buvid3": buvid3,
+        "buvid4": buvid4,
+        "CURRENT_FNVAL": "4048",
+        "CURRENT_QUALITY": "0",
+    }.items():
+        session.cookies.set(name, value, domain=".bilibili.com", path="/")
+    return session
+
+
+def load_bilibili_auth_session(cookie_path: Path) -> Any:
+    """从临时 Netscape 文件恢复当前 Bilibili 会话；不读取或输出 Cookie 值。"""
+    if not cookie_path.is_file():
+        raise RuntimeError("临时 Bilibili 会话文件不存在")
+    try:
+        import httpx
+    except ImportError as error:
+        raise RuntimeError("缺少独立工具环境依赖 httpx") from error
+    stored = MozillaCookieJar(str(cookie_path))
+    stored.load(ignore_discard=True, ignore_expires=True)
+    session = httpx.Client(follow_redirects=True, timeout=30, headers=HTTP_HEADERS)
+    count = 0
+    for cookie in stored:
+        if is_bilibili_cookie_domain(cookie.domain):
+            session.cookies.set(cookie.name, cookie.value, domain=cookie.domain, path=cookie.path)
+            count += 1
+    if not count:
+        session.close()
+        raise RuntimeError("临时会话文件不含 Bilibili 域 Cookie")
+    return session
+
+
+def wbi_json(session: Any, endpoint: str, parameters: dict[str, Any]) -> dict[str, Any]:
+    nav = session_json(session, "https://api.bilibili.com/x/web-interface/nav")
+    wbi_img = nav.get("data", {}).get("wbi_img", {})
+    mixin_key = wbi_mixin_key(wbi_img.get("img_url", ""), wbi_img.get("sub_url", ""))
+    payload = session_json(session, f"https://api.bilibili.com{endpoint}?{signed_wbi_query(parameters, mixin_key)}")
+    if payload.get("code") != 0:
+        raise RuntimeError(f"Bilibili WBI 媒体接口返回 code={payload.get('code')}")
+    return payload
+
+
+def highest_dash_video(dash: dict[str, Any]) -> dict[str, Any] | None:
+    videos = [entry for entry in dash.get("video", []) if isinstance(entry, dict)]
+    if not videos:
+        return None
+    return max(videos, key=lambda entry: (entry.get("id") or 0, entry.get("bandwidth") or 0))
+
+
+def verify_pilot_wbi_quality(cookie_path: Path, bvid: str = PILOT_BVID) -> dict[str, Any]:
+    """以已验证会话读取 support_formats 与 DASH 清单；不下载媒体。"""
+    session = load_bilibili_auth_session(cookie_path)
+    try:
+        view = wbi_json(session, "/x/web-interface/wbi/view", {"bvid": bvid})
+        pages = view.get("data", {}).get("pages") or []
+        if not pages or not isinstance(pages[0], dict) or not pages[0].get("cid"):
+            raise RuntimeError("pilot 视频未返回可用 CID")
+        playurl = wbi_json(session, "/x/player/wbi/playurl", {
+            "bvid": bvid, "cid": pages[0]["cid"], "qn": 127, "fnver": 0, "fnval": 4048, "fourk": 1,
+        })
+        data = playurl.get("data") or {}
+        support_formats = [item for item in data.get("support_formats", []) if isinstance(item, dict)]
+        dash = data.get("dash") or {}
+        actual_video = highest_dash_video(dash)
+        audio_streams = [entry for entry in dash.get("audio", []) if isinstance(entry, dict)]
+        supported = max(support_formats, key=lambda entry: entry.get("quality") or 0, default=None)
+        supported_id = supported.get("quality") if supported else None
+        actual_id = actual_video.get("id") if actual_video else None
+        passed = bool(actual_video and audio_streams and supported_id is not None and actual_id is not None and actual_id >= supported_id)
+        return {
+            "bvid": bvid,
+            "cid": pages[0]["cid"],
+            "highest_supported_resolution": (supported or {}).get("new_description") or (supported or {}).get("display_desc") or "UNKNOWN",
+            "highest_downloadable_resolution": resolution_label(actual_video),
+            "highest_supported_quality_id": supported_id,
+            "highest_downloadable_quality_id": actual_id,
+            "fps": (actual_video or {}).get("frame_rate") or (actual_video or {}).get("frame_rate"),
+            "video_codec": (actual_video or {}).get("codecs"),
+            "audio_codec": audio_streams[0].get("codecs") if audio_streams else None,
+            "quality_verification": "PASS" if passed else "FAIL",
+        }
+    finally:
+        session.close()
+
+
+def follow_bilibili_session_redirect(session: Any, redirect_url: str) -> None:
+    parsed = urlparse(redirect_url)
+    if not parsed.scheme and not parsed.netloc:
+        return
+    if parsed.scheme != "https" or not is_bilibili_hostname(parsed.hostname):
+        raise RuntimeError("二维码登录回调地址不是预期的 Bilibili HTTPS 地址")
+    response = session.get(redirect_url, timeout=30)
+    response.raise_for_status()
+
+
+def run_qr_login(auth_dir: Path, output_dir: Path) -> int:
+    """运行 Bilibili 网页二维码登录；只在本机临时保留 Bilibili 域 Cookie。"""
+    assert_preserved_source_manifest(output_dir)
+    session = create_bilibili_web_session()
+    cookie_path = auth_dir / "bilibili-session.cookies.txt"
+    remove_temporary_cookie_file(cookie_path)
+    write_auth_status(auth_dir, "QR_GENERATING")
+    while True:
+        generated = session_json(session, "https://passport.bilibili.com/x/passport-login/web/qrcode/generate?" + urlencode({
+            "source": "main-fe-header",
+            "go_url": "https://www.bilibili.com/",
+            "web_location": "333.1007",
+        }))
+        if generated.get("code") != 0:
+            raise RuntimeError(f"二维码生成接口返回 code={generated.get('code')}")
+        data = generated.get("data") or {}
+        login_url, qrcode_key = data.get("url"), data.get("qrcode_key")
+        if not isinstance(login_url, str) or not isinstance(qrcode_key, str) or not qrcode_key:
+            raise RuntimeError("二维码生成接口未返回完整登录参数")
+        show_qr_code(login_url, auth_dir / "bilibili-login-qr.png")
+        write_auth_status(auth_dir, "QR_READY")
+        while True:
+            time.sleep(3)
+            poll_url = "https://passport.bilibili.com/x/passport-login/web/qrcode/poll?" + urlencode({"qrcode_key": qrcode_key})
+            polled = session_json(session, poll_url)
+            code = qr_poll_status_code(polled)
+            state = qr_status_name(code)
+            if state == "WAITING_FOR_SCAN":
+                write_auth_status(auth_dir, state)
+                continue
+            if state == "WAITING_FOR_CONFIRMATION":
+                write_auth_status(auth_dir, state)
+                continue
+            if state == "EXPIRED":
+                write_auth_status(auth_dir, "QR_EXPIRED_REGENERATING")
+                break
+            if state != "SUCCESS":
+                raise RuntimeError(f"二维码轮询接口返回未预期 code={code}")
+            nav = session_json(session, "https://api.bilibili.com/x/web-interface/nav")
+            is_logged_in = bool(nav.get("data", {}).get("isLogin"))
+            if not is_logged_in:
+                write_auth_status(auth_dir, "LOGIN_VERIFICATION_FAILED")
+                return 2
+            save_bilibili_cookies(session.cookies.jar, cookie_path)
+            write_auth_status(auth_dir, "ACCOUNT_LOGIN_VERIFIED", qr_login="PASS", account_login_verified="YES")
+            print("QR_LOGIN=PASS\nACCOUNT_LOGIN_VERIFIED=YES")
+            return 0
 
 
 def wbi_mixin_key(image_url: str, sub_url: str) -> str:
@@ -419,14 +699,21 @@ def run_workflow(args: argparse.Namespace) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--yt-dlp", required=True, help="独立工具环境中的 yt-dlp 可执行文件")
+    parser.add_argument("--yt-dlp", help="独立工具环境中的 yt-dlp 可执行文件")
     parser.add_argument("--output-dir", default=str(default_output_dir()))
+    parser.add_argument("--auth-dir", default=str(default_auth_dir()))
+    parser.add_argument("--qr-login", action="store_true", help="显示二维码并安全完成本机网页登录")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     try:
-        raise SystemExit(run_workflow(parse_args()))
+        cli_args = parse_args()
+        if cli_args.qr_login:
+            raise SystemExit(run_qr_login(Path(cli_args.auth_dir).expanduser().resolve(), Path(cli_args.output_dir).expanduser().resolve()))
+        if not cli_args.yt_dlp:
+            raise RuntimeError("非二维码模式必须提供 --yt-dlp")
+        raise SystemExit(run_workflow(cli_args))
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
         print(f"STATUS=FAILED_FAIL_CLOSED\nREASON={redact_sensitive_text(str(error))}", file=sys.stderr)
         raise SystemExit(1)
