@@ -131,6 +131,7 @@ class BilibiliCorpusAcquisitionTests(unittest.TestCase):
         command = build_download_command('yt-dlp', Path('auth.cookies'), Path('D:/corpus'), entry)
         self.assertIn('bestvideo*+bestaudio/best', command)
         self.assertIn('--merge-output-format', command)
+        self.assertIn('--socket-timeout', command)
         self.assertNotIn('--recode-video', command)
         self.assertEqual(download_output_template(entry), '000002__20260101__BV1test__test.%(ext)s')
 
