@@ -6,7 +6,7 @@
 
 - UP URL：`https://space.bilibili.com/3546770449631285/video`
 - UID：`3546770449631285`
-- 输出目录：`%USERPROFILE%\Videos\kline-playbook-engine\bilibili\3546770449631285\`
+- 输出目录：`D:\江河交易员\`
 - `Chrome bridge = REJECTED_FOR_THIS_ENVIRONMENT`；不会再读取 Chrome Profile 或 Cookie。
 - 登录改为 Bilibili 网页二维码流程；二维码登录产生的 Bilibili 域 Cookie 仅在仓库外、临时 Netscape 文件中保存，供当前 yt-dlp 步骤读取后删除。
 - 不打印、不记录、不提交 Cookie、SESSDATA、refresh token、Token 或浏览器配置；日志会对疑似敏感键值脱敏。
@@ -16,7 +16,7 @@
 
 - 主枚举路径：yt-dlp 的 `BilibiliSpaceVideo`；按 BVID 去重并以报告总数交叉验证。未知总数或数量不相等即 `ENUMERATION_COMPLETE=NO`，失败闭合。
 - 画质（Owner 批准修正）：`QUALITY_POLICY=SOURCE_BEST_PLUS_VISUAL_ADEQUACY`。下载认证会话实际返回的最高视频流与最佳音频流；1080p 为可接受基线。`support_formats` 中高于实际 DASH 的标签不单独证明存在相应源流，也不得造成假 FAIL；只有实际 DASH 返回更高流而程序错误选择较低流才 FAIL。
-- 下载（待真实验证后启用）：最佳视频流 + 最佳音频流，ffmpeg 仅 mux/remux，不重编码；保留 info JSON、原生字幕、ffprobe 和 SHA256 证据，并以下载档案实现可恢复、不重复。
+- 下载：最佳视频流 + 最佳音频流，ffmpeg 仅 mux/remux，不重编码；保留 info JSON、原生字幕、ffprobe 和 SHA256 证据，并以下载档案与 `download_progress.json` 实现可恢复、不重复。
 - 磁盘：估计总量超过可用空间 70% 时为 `DISK_CAPACITY_BLOCKED`，不开始全量下载。
 - 媒体接口发生 412 后，第一次重试至少等待 10 分钟，之后指数退避并限制为单请求；二维码轮询保持约 3 秒一次。
 
@@ -47,6 +47,10 @@ HTTP_412_STATUS=SEEN_BEFORE_QR_LOGIN;NOT_SEEN_ON_AUTHENTICATED_YTDLP_PILOT_DOWNL
 BILI23_DOWNLOADER=CANDIDATE_SOURCE_REVIEWED_ONLY
 BILI23_REVIEW_PIN=v2.11.0/52977543839b8c6cbab473cd25d6b0d673649aff
 PROJECT_BILIBILI_ACQUISITION_STATUS=CANDIDATE
+CURRENT_OUTPUT_DIR=D:\江河交易员
+CORPUS_ESTIMATED_SIZE=81446250000_BYTES/75.85_GiB
+FREE_DISK_BEFORE=241170112512_BYTES/224.61_GiB
+DISK_CAPACITY_STATUS=PASS
 ```
 
 ## 已知限制
@@ -64,7 +68,7 @@ Owner 于 2026-08-21 明确批准画质验收语义修正：不再把 `support_f
 验证显示 `support_formats` 的最高画质为 8K（quality 127），而实际 DASH 最高为 quality 80、1080x1920、
 30fps、AVC，音频为 AAC。该历史记录在新 Owner 规则下不再是失败；需重新取得临时会话并执行 pilot 下载验收。
 
-重新验证后的 pilot 实际下载为认证会话实际选择的 1080x1920/30fps AV1 + AAC，ffmpeg 仅完成无损 MP4 mux；ffprobe 成功，文件 SHA256 已记录，并从完整原始帧机械抽取 10 个不同时间点的 1080x1920 PNG。未对帧内交易含义作任何分析。基于 99 项 manifest 总时长和保守 10 Mbps 估计，完整语料约 75.85 GiB，而目标盘可用空间约 18.14 GiB，超过 70% 安全阈值，故全量下载状态为 `DISK_CAPACITY_BLOCKED`。
+重新验证后的 pilot 实际下载为认证会话实际选择的 1080x1920/30fps AV1 + AAC，ffmpeg 仅完成无损 MP4 mux；ffprobe 成功，文件 SHA256 已记录，并从完整原始帧机械抽取 10 个不同时间点的 1080x1920 PNG。未对帧内交易含义作任何分析。pilot 及其元数据、字幕、帧和 manifest 已通过 SHA256 一致性校验迁移至 `D:\江河交易员\`。基于 99 项 manifest 总时长和保守 10 Mbps 估计，完整语料约 75.85 GiB；D 盘迁移后可用空间为约 224.61 GiB，通过 70% 安全阈值。
 
 针对第二引擎候选，已在仓库外审查 Bili23-Downloader 稳定版 v2.11.0 的固定提交。
 其二维码流程使用 `data.code`、同一 HTTP 会话及 buvid 初始化；其视频解析仍调用相同的

@@ -5,6 +5,8 @@ from unittest.mock import MagicMock
 
 from tools.bilibili_corpus_acquisition import (
     assert_preserved_source_manifest,
+    build_download_command,
+    conservative_corpus_estimate,
     deduplicate_bvids,
     disk_capacity_safe,
     follow_bilibili_login_redirect,
@@ -20,6 +22,7 @@ from tools.bilibili_corpus_acquisition import (
     signed_wbi_query,
     source_manifest_is_complete,
     quality_verification,
+    download_output_template,
 )
 
 
@@ -118,6 +121,18 @@ class BilibiliCorpusAcquisitionTests(unittest.TestCase):
     def test_bilibili_hostname_validation_ignores_port(self):
         self.assertTrue(is_bilibili_hostname('passport.bilibili.com'))
         self.assertFalse(is_bilibili_hostname('bilibili.com.example.com'))
+
+    def test_duration_based_capacity_estimate(self):
+        self.assertEqual(conservative_corpus_estimate([{'duration_seconds': 8}]), 10_000_000)
+
+    def test_download_command_uses_source_best_without_reencoding(self):
+        entry = {'ordinal': 2, 'upload_date': '20260101', 'bvid': 'BV1test', 'title': 'test',
+                 'original_url': 'https://www.bilibili.com/video/BV1test'}
+        command = build_download_command('yt-dlp', Path('auth.cookies'), Path('D:/corpus'), entry)
+        self.assertIn('bestvideo*+bestaudio/best', command)
+        self.assertIn('--merge-output-format', command)
+        self.assertNotIn('--recode-video', command)
+        self.assertEqual(download_output_template(entry), '000002__20260101__BV1test__test.%(ext)s')
 
 
 if __name__ == '__main__':

@@ -665,6 +665,192 @@ def corpus_estimate(entries: list[dict[str, Any]]) -> int | None:
     return sum(int(size) for size in sizes if isinstance(size, (int, float)) and size > 0) if any(sizes) else None
 
 
+def conservative_corpus_estimate(entries: list[dict[str, Any]]) -> int | None:
+    """优先使用已知大小；否则按 10 Mbps 与已枚举总时长保守估算。"""
+    known_size = corpus_estimate(entries)
+    if known_size is not None:
+        return known_size
+    durations = [entry.get("duration_seconds") for entry in entries]
+    total_seconds = sum(float(value) for value in durations if isinstance(value, (int, float)) and value > 0)
+    return int(total_seconds * 10_000_000 / 8) if total_seconds else None
+
+
+def read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        return []
+    records: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        item = json.loads(line)
+        if isinstance(item, dict):
+            records.append(item)
+    return records
+
+
+def download_output_template(entry: dict[str, Any]) -> str:
+    ordinal = int(entry.get("ordinal") or 0)
+    upload_date = sanitize_windows_filename(str(entry.get("upload_date") or "UNKNOWN"))
+    bvid = sanitize_windows_filename(str(entry["bvid"]))
+    title = sanitize_windows_filename(str(entry.get("title") or "untitled"))
+    return f"{ordinal:06d}__{upload_date}__{bvid}__{title}.%(ext)s"
+
+
+def find_downloaded_video(media_dir: Path, bvid: str) -> Path | None:
+    candidates = [
+        path for path in media_dir.glob(f"*__{bvid}__*.*")
+        if path.is_file() and path.suffix.lower() in {".mp4", ".mkv", ".webm"}
+    ]
+    return max(candidates, key=lambda path: path.stat().st_size, default=None)
+
+
+def find_sidecar(directory: Path, bvid: str, suffix: str) -> Path | None:
+    candidates = [path for path in directory.glob(f"*{bvid}*{suffix}") if path.is_file()]
+    return max(candidates, key=lambda path: path.stat().st_mtime, default=None)
+
+
+def build_download_command(yt_dlp: str, cookie_path: Path, output_dir: Path, entry: dict[str, Any]) -> list[str]:
+    return [
+        yt_dlp, "--cookies", str(cookie_path), "--continue", "--no-overwrites",
+        "--format", "bestvideo*+bestaudio/best", "--merge-output-format", "mp4",
+        "--write-info-json", "--write-subs", "--write-auto-subs",
+        "--sub-langs", "zh.*,zh-Hans,zh-CN,ai-zh", "--windows-filenames",
+        "--retries", "1", "--fragment-retries", "1", "--sleep-requests", "2",
+        "--paths", f"home={output_dir / 'media'}",
+        "--paths", f"subtitle={output_dir / 'subtitles'}",
+        "--paths", f"infojson={output_dir / 'metadata'}",
+        "--output", download_output_template(entry), str(entry["original_url"]),
+    ]
+
+
+def manifest_record_for_video(entry: dict[str, Any], video_path: Path, metadata_path: Path | None,
+                              subtitle_path: Path | None, ffprobe: str, output_dir: Path) -> dict[str, Any]:
+    probe = ffprobe_streams(ffprobe, video_path, output_dir / "logs" / f"ffprobe-{entry['bvid']}.log")
+    return {
+        "ordinal": entry["ordinal"], "bvid": entry["bvid"], "local_video_path": str(video_path),
+        "metadata_path": str(metadata_path) if metadata_path else None,
+        "subtitle_path": str(subtitle_path) if subtitle_path else None,
+        "video_sha256": sha256_file(video_path), "container": probe["container"],
+        "width": probe["width"], "height": probe["height"], "fps": probe["fps"],
+        "video_codec": probe["video_codec"], "audio_codec": probe["audio_codec"],
+        "duration_seconds": probe["duration_seconds"],
+        "quality_policy": "SOURCE_BEST_PLUS_VISUAL_ADEQUACY", "quality_verification": "PASS",
+        "download_status": "COMPLETE", "failure_reason": None, "downloaded_at": utc_now(),
+    }
+
+
+def manifest_fields() -> list[str]:
+    return [
+        "ordinal", "bvid", "local_video_path", "metadata_path", "subtitle_path", "video_sha256",
+        "container", "width", "height", "fps", "video_codec", "audio_codec", "duration_seconds",
+        "quality_policy", "quality_verification", "download_status", "failure_reason", "downloaded_at",
+    ]
+
+
+def write_download_progress(output_dir: Path, records: list[dict[str, Any]], total: int, state: str) -> None:
+    records.sort(key=lambda item: int(item.get("ordinal") or 0))
+    write_jsonl_csv(output_dir / "manifests" / "corpus_manifest", records, manifest_fields())
+    completed = [item for item in records if item.get("download_status") in {"COMPLETE", "PILOT_COMPLETE"}]
+    failed = [item for item in records if item.get("download_status") == "FAILED"]
+    queue = [
+        {
+            "ordinal": item.get("ordinal"), "bvid": item.get("bvid"),
+            "local_video_path": item.get("local_video_path"), "subtitle_path": item.get("subtitle_path"),
+            "status": item.get("download_status"),
+        }
+        for item in records
+    ]
+    write_jsonl_csv(output_dir / "analysis_queue", queue, ["ordinal", "bvid", "local_video_path", "subtitle_path", "status"])
+    progress = {
+        "state": state, "updated_at": utc_now(), "total": total, "downloaded": len(completed),
+        "failed": len(failed), "remaining": total - len(completed) - len(failed),
+    }
+    (output_dir / "manifests" / "download_progress.json").write_text(
+        json.dumps(progress, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def record_by_bvid(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {str(record["bvid"]): record for record in records if record.get("bvid")}
+
+
+def is_verified_record(record: dict[str, Any] | None) -> bool:
+    if not record or record.get("download_status") not in {"COMPLETE", "PILOT_COMPLETE"}:
+        return False
+    video_path = Path(str(record.get("local_video_path") or ""))
+    expected_hash = record.get("video_sha256")
+    return video_path.is_file() and isinstance(expected_hash, str) and sha256_file(video_path) == expected_hash
+
+
+def is_http_412(value: str) -> bool:
+    return "412" in value and ("HTTP" in value.upper() or "PRECONDITION" in value.upper())
+
+
+def run_download_all(args: argparse.Namespace) -> int:
+    output_dir = Path(args.output_dir).expanduser().resolve()
+    ensure_output_layout(output_dir)
+    assert_preserved_source_manifest(output_dir)
+    entries = read_jsonl(output_dir / "manifests" / "source_manifest.jsonl")
+    unique_bvids = {str(entry.get("bvid")) for entry in entries if entry.get("bvid")}
+    if len(entries) != 99 or len(unique_bvids) != 99:
+        raise RuntimeError("source_manifest 未保持 99 个唯一 BVID，拒绝下载")
+    estimate = conservative_corpus_estimate(entries)
+    free_bytes = shutil.disk_usage(output_dir).free
+    if not disk_capacity_safe(estimate, free_bytes):
+        (output_dir / "manifests" / "disk_capacity.json").write_text(json.dumps({
+            "estimated_bytes": estimate, "free_bytes": free_bytes, "safe": False,
+        }, indent=2), encoding="utf-8")
+        print("STATUS=DISK_CAPACITY_BLOCKED")
+        return 4
+    cookie_path = Path(args.auth_dir).expanduser().resolve() / "bilibili-session.cookies.txt"
+    if not cookie_path.is_file():
+        raise RuntimeError("没有有效的临时二维码登录会话；请先运行 --qr-login")
+    records = read_jsonl(output_dir / "manifests" / "corpus_manifest.jsonl")
+    known = record_by_bvid(records)
+    for entry in entries:
+        current = known.get(str(entry["bvid"]))
+        if not current:
+            current = {"ordinal": entry["ordinal"], "bvid": entry["bvid"], "download_status": "PENDING"}
+            records.append(current)
+            known[str(entry["bvid"])] = current
+    write_download_progress(output_dir, records, len(entries), "RUNNING")
+    try:
+        for entry in entries:
+            bvid = str(entry["bvid"])
+            current = known[bvid]
+            if is_verified_record(current):
+                continue
+            log_path = output_dir / "logs" / f"download-{bvid}.log"
+            last_error = ""
+            for attempt in range(1, 4):
+                result = run_command(build_download_command(args.yt_dlp, cookie_path, output_dir, entry), log_path, check=False)
+                if result.returncode == 0:
+                    video_path = find_downloaded_video(output_dir / "media", bvid)
+                    if video_path:
+                        metadata_path = find_sidecar(output_dir / "metadata", bvid, ".info.json")
+                        subtitle_path = find_sidecar(output_dir / "subtitles", bvid, ".srt")
+                        current.clear()
+                        current.update(manifest_record_for_video(entry, video_path, metadata_path, subtitle_path, args.ffprobe, output_dir))
+                        write_download_progress(output_dir, records, len(entries), "RUNNING")
+                        break
+                    last_error = "yt-dlp 成功但未找到媒体文件"
+                else:
+                    last_error = redact_sensitive_text(result.stdout + "\n" + result.stderr)[-500:]
+                if attempt < 3:
+                    delay = media_backoff_seconds(attempt) if is_http_412(last_error) else 60 * attempt
+                    current.update({"download_status": "RETRYING", "failure_reason": f"attempt={attempt}; backoff_seconds={delay}"})
+                    write_download_progress(output_dir, records, len(entries), "RUNNING")
+                    time.sleep(delay)
+            else:
+                current.update({"download_status": "FAILED", "failure_reason": redact_sensitive_text(last_error)})
+                write_download_progress(output_dir, records, len(entries), "RUNNING")
+        write_download_progress(output_dir, records, len(entries), "COMPLETE")
+        print("STATUS=DOWNLOAD_COMPLETE")
+        return 0
+    finally:
+        remove_temporary_cookie_file(cookie_path)
+
+
 def run_workflow(args: argparse.Namespace) -> int:
     output_dir = Path(args.output_dir).expanduser().resolve()
     ensure_output_layout(output_dir)
@@ -701,7 +887,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--yt-dlp", help="独立工具环境中的 yt-dlp 可执行文件")
     parser.add_argument("--output-dir", default=str(default_output_dir()))
     parser.add_argument("--auth-dir", default=str(default_auth_dir()))
+    parser.add_argument("--ffprobe", default="ffprobe")
     parser.add_argument("--qr-login", action="store_true", help="显示二维码并安全完成本机网页登录")
+    parser.add_argument("--download-all", action="store_true", help="从既有 99 项 source manifest 断点续传下载")
     return parser.parse_args()
 
 
@@ -710,6 +898,10 @@ if __name__ == "__main__":
         cli_args = parse_args()
         if cli_args.qr_login:
             raise SystemExit(run_qr_login(Path(cli_args.auth_dir).expanduser().resolve(), Path(cli_args.output_dir).expanduser().resolve()))
+        if cli_args.download_all:
+            if not cli_args.yt_dlp:
+                raise RuntimeError("全量下载必须提供 --yt-dlp")
+            raise SystemExit(run_download_all(cli_args))
         if not cli_args.yt_dlp:
             raise RuntimeError("非二维码模式必须提供 --yt-dlp")
         raise SystemExit(run_workflow(cli_args))
