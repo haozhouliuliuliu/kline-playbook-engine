@@ -3,7 +3,7 @@
   "candidate_eligibility_view_identity": "fb30bfaf0433df02b4ee7d1e781b25473c7271495924859c1d781b87e036c822",
   "candidate_outcome_data_used": "NO",
   "feature_versions": [
-    "3c3dfff55831482b6ee44e746d9976b8b5a3a7a7b986c21b9f799868761b0309",
+    "333ca10c58adabe6c5348cd95d3ef5d19b2450fdf0ff51b0339993129f69b6b4",
     "holy-grail-machine-v0.4"
   ],
   "lineage": "L-RAS-HOLYGRAIL",
@@ -14,7 +14,7 @@
   "outcome_tested_higher_timeframe_alternatives": [],
   "parameter_hash": "aa41f53232f44255e9a012b93e1890d889bf4a0a986dc5e4f754dbb1c46d1659",
   "parameter_search_ranges": "FIXED_BY_V0_4_MACHINE_PARAMETERS",
-  "primary_contract_identity": "76825d1c813b31e207e97aef64944ffeb57fcd0a06c42b0af2b2332e7333179e",
+  "primary_contract_identity": "be8872baf56983385636a4480889ba2e006578912c565bf824694aafb861c67b",
   "primary_playbook": "RASCHKE_HOLY_GRAIL_V0_4",
   "primary_selection_identity": "7720264cefc3525ae6c5ef709d58a3f0199961bd16eba495330ca17c7ad31f72",
   "primary_timeframe": "BASE_1_MINUTE",
@@ -31,6 +31,6 @@
   "scope_rule": "ALL_CANONICAL_PRODUCTS_UNIFORM_SCOPE",
   "source_governed_mapping_required": "E07_SOURCE_GOVERNED_TQSDK_MAPPING_V0_1",
   "status": "PRIMARY_FROZEN_PRE_OUTCOME",
-  "strategy_identity": "fba1aec9027904b8f4044a9c57599a6c58f380208688a9184bba4b444b88a11d",
-  "strategy_version": "pc-0.4.0-76825d1c813b31e207e97aef64944ffeb57fcd0a06c42b0af2b2332e7333179e"
+  "strategy_identity": "d2093ca202c465b5bedc77ad6cf46b6a5776077be29bbfe67ce093669b7738e8",
+  "strategy_version": "pc-0.4.0-be8872baf56983385636a4480889ba2e006578912c565bf824694aafb861c67b"
 }
