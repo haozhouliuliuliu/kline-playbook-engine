@@ -10,13 +10,17 @@ ADOPTED_CONTRACT_VERSION=3.1
 ADOPTED_CONTRACT_SHA256=3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650bf690101e
 SECOND_PASS_REPAIR_MODE=EXITED
 HANDOFF_STATUS=TAKEOVER_ACCEPTED_INTEGRATION_EXECUTED
-CURRENT_WORK_PACKAGE=CHINA_FIRST_PLAYBOOK_PROMOTION_AND_SEMANTIC_COMPLETION_WAVE_V0_1
-CURRENT_WORK_PACKAGE_STATUS=COMPLETE_NEGATIVE_SELECTED_SOURCE_NONE_NO_MACHINE_IMPLEMENTATION_AUTHORIZED
+CURRENT_WORK_PACKAGE=GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_AND_SEMANTIC_COMPLETION_V0_1
+CURRENT_WORK_PACKAGE_STATUS=COMPLETE_NEGATIVE_ONE_FAMILY_SOURCE_SEMANTIC_INSUFFICIENT_NO_MACHINE_IMPLEMENTATION_AUTHORIZED
 CURRENT_BLOCKER=PROSPECTIVE_STATISTICAL_ACCEPTANCE_REQUIRES_NEW_GOVERNED_PROCESS_ASSUMPTION_OR_PROTOCOL_DECISION
 GLOBAL_CRITICAL_BLOCKER=PROSPECTIVE_STATISTICAL_ACCEPTANCE_REQUIRES_NEW_GOVERNED_PROCESS_ASSUMPTION_OR_PROTOCOL_DECISION
 NORMAL_PRODUCTIVE_WORK=HUMAN_PLAYBOOK_LIBRARY_SOURCE_RESOLUTION_AND_NON_OUTCOME_OPERATIONALIZATION_CONTINUES
 CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1=COMPLETE_NEGATIVE
 CHINA_FIRST_SELECTED_SOURCE=NONE
+GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1=COMPLETE_NEGATIVE
+GRIMES_SELECTED_FAMILY=GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL
+GRIMES_SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT
+GRIMES_MACHINE_READY=NO
 PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=SATISFIED_BY_QUALIFIED_ELIGIBILITY_VIEW_V1
 CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 NEXT_NORMAL_PHASE=WAIT_FOR_NEW_GOVERNED_PROCESS_ASSUMPTION_OR_FUTURE_DATE_SPECIFIC_AUTHORITY
@@ -28,6 +32,14 @@ China-first V0.1 completed its bounded A→B→C source promotion screen with
 `SELECTED_SOURCE=NONE`. This is recorded in
 `docs/reviews/CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1.md`; no selected-source dossier,
 claim corpus, Playbook Contract, machine adapter, Primary Freeze or StrategyIdentity exists.
+
+Grimes V0.1 completed a separate bounded author-original free-public screen. It selected
+`GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL` for SOURCE_ONLY semantic completion, then
+closed it fail-closed as `INSUFFICIENT`: reference-level construction, reversal timing,
+post-entry invalidation, and remainder/time exit are not source-pinned. Its source bundle and
+claim corpus are durable pre-outcome evidence only; no Playbook Contract, machine adapter,
+Primary Freeze, StrategyIdentity or outcome registration exists. Authority:
+`docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1.md`.
 
 Formal repair-closure authorities:
 
@@ -153,6 +165,7 @@ LIMIT-006=HISTORICAL_POSITIVE_PASS_PROFILE_BLOCKER (DISPOSITIONED_BY_ROUTE_A_D)
 LIMIT-007=PORTFOLIO_CANDIDATE_OUTCOME_AUTHORITY_NOT_IMPLEMENTED
 LIMIT-008=SOURCE_ONLY_AND_LOCAL_STATE_THREAT_MODEL_LIMIT
 LIMIT-009=RASCHKE_NR7_SOURCE_SEMANTIC_LIMIT (DEFERRED_SOURCE_SEMANTIC_LIMIT; NOT_A_GLOBAL_ENGINEERING_BLOCKER)
+LIMIT-011=GRIMES_FAILURE_TEST_SOURCE_SEMANTIC_LIMIT (DEFERRED_SOURCE_SEMANTIC_LIMIT; NOT_A_GLOBAL_ENGINEERING_BLOCKER)
 DECISION-001=LIVE_AI_MARKET_READING_FUTURE_OWNER_GATE
 ```
 
@@ -228,6 +241,29 @@ RASCHKE_NR7_V0_2_NO_MACHINE_ARTIFACT_CREATED=YES
 
 NR7 V0.1 is a source-faithful, fail-closed Playbook Contract draft; it is not machine-ready and not PRIMARY-freeze-ready. The bounded V0.2 official-source pass completed with `SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT`: it found no NR7-specific initial-stop, post-entry-invalidation or deterministic-exit rule, and did not transfer a general stop article or another setup's semantics. The minimal blocker set is five fields: NR7 window alignment, 45m/60m PRIMARY, initial stop, post-entry invalidation, and deterministic exit/time exit. No NR7 machine, synthetic adapter, Primary Freeze or StrategyIdentity was created. Authority: `docs/reviews/RASCHKE_NR7_SOURCE_SEMANTIC_RESOLUTION_V0_2.md` / `.json`.
 
+## Grimes Failure Test source-resolution state
+
+```text
+GRIMES_FAILURE_TEST_PLAYBOOK_CURRENT_VERSION=NONE
+GRIMES_FAILURE_TEST_MACHINE_READY=NO
+GRIMES_FAILURE_TEST_PRIMARY_FREEZE_READY=NO
+FAMILY=GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL
+GRIMES_SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT
+GRIMES_SOURCE_RESOLUTION_V0_1_BLOCKING_FIELD_COUNT=4
+GRIMES_SOURCE_RESOLUTION_V0_1_BLOCKING_FIELDS=REFERENCE_LEVEL_SEMANTICS,REVERSAL_TIMING_WINDOW,POST_ENTRY_INVALIDATION,REMAINDER_EXIT_AND_TIME_EXIT
+GRIMES_V0_1_NO_MACHINE_ARTIFACT_CREATED=YES
+```
+
+The bounded author-original free-public bundle pins the Failure Test's broad price-structure
+concept, bidirectional close entry, initial stop placement and some 1R partial-profit guidance.
+It does not pin how a reference support/resistance/pivot is formed, the timing boundary for a
+failed probe, a remaining-position invalidation rule, or a deterministic remainder/time exit.
+The public author material itself says management lacks one universal answer. These are
+strategy semantics, not ordinary order-detail conventions, so no source-faithful machine
+Playbook may be created. Any Chinese-futures transfer would be `PROJECT_INFERRED`; it was not
+attempted because the source loop is already incomplete. Authority:
+`docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1.md` / `.json`.
+
 ## Statistical profile status
 
 ```text
@@ -276,7 +312,8 @@ RESEARCH_VALIDATION_FOUNDATION_PROGRESS=ABOUT_95_PERCENT
 PLAYBOOK_LIBRARY_PROGRESS=ABOUT_47_PERCENT
 ```
 
-These are planning estimates, not evidence facts. The library estimate moved only for a completed bounded source-reselection decision; it is not evidence of a new machine-ready family.
+These are planning estimates, not evidence facts. Grimes V0.1 does not raise the library estimate:
+it records a complete bounded negative semantic decision, not a new machine-ready family.
 
 ## Main integration record — 2026-08-21
 

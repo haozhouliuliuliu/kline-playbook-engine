@@ -247,6 +247,46 @@ blocker; outcome or performance information is never a reopen trigger.
 
 ---
 
+## LIMIT-011 — Grimes Failure Test source semantics are insufficient for a machine strategy
+
+```text
+STATUS=DEFERRED_SOURCE_SEMANTIC_LIMIT
+PRIORITY=HIGH_BEFORE_GRIMES_MACHINE_OR_PRIMARY_FREEZE
+CURRENT_BLOCKER=NO_FOR_GLOBAL_ENGINEERING
+ACTIVATE_BEFORE=Grimes_Failure_Test_machine_implementation_or_PRIMARY_freeze
+AUTHORITY=docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1.md
+SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT
+MACHINE_READY=NO
+PRIMARY_FREEZE_READY=NO
+```
+
+The bounded author-original free-public pass selected the price-based
+`GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL` family only for semantic completion. Source
+material explicitly supplies the broad failed-probe concept, bidirectional close entry and an
+initial protective-stop concept, but does not supply a deterministic construction of the
+reference support/resistance/pivot, a timing boundary for "immediate" reversal, a post-entry
+invalidation rule, or a deterministic remainder/time exit. The author's public management
+material expressly says there is no single answer; do not rewrite that discretion as source
+authority.
+
+The exact minimal blocker set is:
+
+```text
+REFERENCE_LEVEL_SEMANTICS
+REVERSAL_TIMING_WINDOW
+POST_ENTRY_INVALIDATION
+REMAINDER_EXIT_AND_TIME_EXIT
+```
+
+No Grimes Playbook Contract, machine adapter, E07 wiring, Primary Freeze, StrategyIdentity or
+outcome registration exists. `cu/al/ni/au/ag/rb` transfer is not source explicit and was not
+attempted because the source loop is already incomplete. Do not reopen a limitless search or
+use paid/authenticated MarketLife material. A new package is allowed only if new attributable
+free-public author/nearest-original material directly pins a listed blocker; outcomes or
+performance are never a reopen trigger.
+
+---
+
 ## LIMIT-006 — Prospective Shadow statistical profile is not yet locked
 
 ```text

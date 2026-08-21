@@ -1,0 +1,107 @@
+{
+  "artifact": "GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1",
+  "date": "2026-08-21",
+  "package": "GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_AND_SEMANTIC_COMPLETION_V0_1",
+  "source": "SRC-GRIMES",
+  "selected_family": "GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL",
+  "final_result": "ONE_FAMILY_SOURCE_SEMANTIC_INSUFFICIENT",
+  "source_semantic_resolution": "INSUFFICIENT",
+  "playbook_semantically_draftable": "NO",
+  "machine_ready": "NO",
+  "primary_freeze_ready": "NO",
+  "strategy_identity_created": "NO",
+  "outcome_test_registered": "NO",
+  "no_candidate_outcome_used": "YES",
+  "access": {
+    "free_public_unauthenticated_only": "YES",
+    "paid_or_authenticated_access": "NOT_USED",
+    "paywall_bypass": "NOT_ATTEMPTED",
+    "candidate_outcome_backtest": "NOT_AUTHORIZED",
+    "validation_access": "LOCKED_BY_PROJECT_POLICY",
+    "historical_final_holdout_access": "LOCKED_BY_PROJECT_POLICY",
+    "prospective_shadow_forward": "NOT_AUTHORIZED"
+  },
+  "source_bundle": {
+    "bundle_id": "SB-GRIMES-FAILURE-TEST-SEMANTIC-V1",
+    "bundle_identity": "373bf5a5526f60020028c303903379d83be606aeb293a03fc748452f500b9bcf",
+    "evidence": "docs/evidence/HUMAN_PLAYBOOK_SOURCE_BUNDLE_GRIMES_FAILURE_TEST_SEMANTIC_V0_1.json",
+    "source_only_session": "docs/evidence/HUMAN_PLAYBOOK_SOURCE_ONLY_SESSION_GRIMES_FAILURE_TEST_SEMANTIC_V0_1.json",
+    "source_only_verified": "YES",
+    "protected_market_outcome_access": "TECHNICALLY_DENIED"
+  },
+  "bounded_inventory": {
+    "stopping_condition": "AUTHOR_ORIGINAL_BLOG + OFFICIAL_MARKETLIFE_PUBLIC_ACCESS_SURFACE + SELECTED_FAMILY_LOOP_SCREENED",
+    "stopping_condition_met": "YES",
+    "materials_reviewed": 8,
+    "excluded": [
+      "MarketLife course content: registration required, therefore outside FREE_PUBLIC_UNAUTHENTICATED_ONLY.",
+      "MarketLife pullbacks masterclass: paid sales surface, not purchased or used.",
+      "Books, subscriptions, accounts, and public-but-authenticated material: not used."
+    ]
+  },
+  "family_screen": [
+    {
+      "family": "GRIMES_PULLBACK",
+      "disposition": "NOT_SELECTED",
+      "reason": "Author-original public material expressly leaves several entry and management choices discretionary; the public MarketLife pullback masterclass is paid."
+    },
+    {
+      "family": "GRIMES_BREAKOUT",
+      "disposition": "NOT_SELECTED",
+      "reason": "Public material presents multiple entry styles and rejects a simplistic return-to-level exit, but does not fix one complete deterministic loop."
+    },
+    {
+      "family": "GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL",
+      "disposition": "SELECTED_FOR_SEMANTIC_COMPLETION",
+      "reason": "Best source-only combination of price-structure setup, bidirectional close entry, initial stop concept, explicit failure visibility, and no extra data dependency."
+    },
+    {
+      "family": "GRIMES_ANTI_SNAP_PULLBACK",
+      "disposition": "NOT_SELECTED",
+      "reason": "Official overview says there are multiple definitions involving indicators and multi-timeframe momentum; this is not a unique current-data loop."
+    }
+  ],
+  "field_matrix": [
+    {"field": "FAMILY_DEFINITION", "classification": "PINNED_SOURCE_EXPLICIT", "observability": "OBSERVABLE_NOW"},
+    {"field": "REFERENCE_LEVEL_SEMANTICS", "classification": "UNKNOWN_SOURCE_SEMANTIC", "observability": "PARTIALLY_OBSERVABLE"},
+    {"field": "REVERSAL_TIMING_WINDOW", "classification": "UNKNOWN_SOURCE_SEMANTIC", "observability": "PARTIALLY_OBSERVABLE"},
+    {"field": "ENTRY_LONG_SHORT", "classification": "PINNED_SOURCE_EXPLICIT", "observability": "OBSERVABLE_NOW"},
+    {"field": "INITIAL_STOP", "classification": "PINNED_SOURCE_EXPLICIT", "observability": "OBSERVABLE_NOW"},
+    {"field": "STOP_ORDER_OFFSET", "classification": "MACHINE_DETAIL_OPEN", "observability": "OBSERVABLE_NOW"},
+    {"field": "RISK_CONTEXT", "classification": "PINNED_SOURCE_EXPLICIT", "observability": "PARTIALLY_OBSERVABLE"},
+    {"field": "FIRST_PROFIT_ACTION", "classification": "PINNED_SOURCE_EXPLICIT", "observability": "OBSERVABLE_NOW"},
+    {"field": "POST_ENTRY_INVALIDATION", "classification": "UNKNOWN_SOURCE_SEMANTIC", "observability": "UNKNOWN"},
+    {"field": "REMAINDER_EXIT", "classification": "UNKNOWN_SOURCE_SEMANTIC", "observability": "UNKNOWN"},
+    {"field": "TIME_EXIT", "classification": "UNKNOWN_SOURCE_SEMANTIC", "observability": "NOT_APPLICABLE"},
+    {"field": "FAILURE_AND_NO_TRADE", "classification": "PINNED_SOURCE_INFERRED", "observability": "PARTIALLY_OBSERVABLE"},
+    {"field": "TIMEFRAME_AND_INSTRUMENT_SCOPE", "classification": "UNKNOWN_SOURCE_SEMANTIC", "observability": "PARTIALLY_OBSERVABLE"},
+    {"field": "CHINESE_FUTURES_TRANSFER", "classification": "PINNED_SOURCE_INFERRED", "observability": "UNKNOWN"}
+  ],
+  "blocking_fields": [
+    "REFERENCE_LEVEL_SEMANTICS",
+    "REVERSAL_TIMING_WINDOW",
+    "POST_ENTRY_INVALIDATION",
+    "REMAINDER_EXIT_AND_TIME_EXIT"
+  ],
+  "transfer": {
+    "grimes_source_instrument_scope": "BROAD_ALL_TIMEFRAMES_LANGUAGE_WITH_EQUITY_FX_AND_COMMODITY_EXAMPLES; NO_EXPLICIT_CHINESE_FUTURES_1_MINUTE_SCOPE",
+    "project_chinese_futures_transfer": "NOT_ATTEMPTED_SOURCE_LOOP_ALREADY_INSUFFICIENT",
+    "proxy_or_microstructure_assumption": "FORBIDDEN"
+  },
+  "artifacts_not_created": [
+    "PLAYBOOK_CONTRACT",
+    "MACHINE_IMPLEMENTATION",
+    "SYNTHETIC_RUNTIME_ADAPTER",
+    "E07_WIRING",
+    "PRIMARY_FREEZE",
+    "STRATEGY_IDENTITY",
+    "RESEARCH_WAVE",
+    "CANDIDATE_OUTCOME_REGISTRATION"
+  ],
+  "future_multiplicity": {
+    "outcome_tested_claim_count_added": 0,
+    "future_pre_wave_draft_family_count_added": 0,
+    "note": "No machine-ready family exists, so no family is added to a future outcome-bearing Research Wave denominator. The source-selection/claim-extraction record remains lineage evidence."
+  },
+  "reopen_condition": "ONLY_NEW_FREE_PUBLIC_UNAUTHENTICATED_AUTHOR_OR_NEAREST_ORIGINAL_MATERIAL_THAT_DIRECTLY_PINS_ONE_RECORDED_BLOCKER; OUTCOMES_OR_PERFORMANCE_NEVER_REOPEN"
+}
