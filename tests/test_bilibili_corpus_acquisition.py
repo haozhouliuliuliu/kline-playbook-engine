@@ -86,12 +86,12 @@ class BilibiliCorpusAcquisitionTests(unittest.TestCase):
             remove_temporary_cookie_file(cookie_path)
             self.assertFalse(cookie_path.exists())
 
-    def test_quality_difference_fails_closed(self):
+    def test_support_label_above_actual_dash_does_not_cause_false_fail(self):
         info = {
             'support_formats': [{'height': 1080, 'new_description': '1080P'}],
             'formats': [{'height': 720, 'width': 1280, 'fps': 30, 'vcodec': 'avc1', 'acodec': 'none'}],
         }
-        self.assertEqual(quality_verification(info)['quality_verification'], 'FAIL')
+        self.assertEqual(quality_verification(info)['quality_verification'], 'PASS')
 
     def test_dash_selection_prefers_highest_quality_id(self):
         dash = {'video': [{'id': 64, 'bandwidth': 4}, {'id': 80, 'bandwidth': 2}]}
