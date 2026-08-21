@@ -132,9 +132,9 @@ class BilibiliCorpusAcquisitionTests(unittest.TestCase):
         self.assertIn('bestvideo*+bestaudio/best', command)
         self.assertIn('--merge-output-format', command)
         self.assertIn('--socket-timeout', command)
-        self.assertIn('home:D:/corpus/media', command)
-        self.assertIn('subtitle:D:/corpus/subtitles', command)
-        self.assertIn('infojson:D:/corpus/metadata', command)
+        self.assertIn('home:D:\\corpus\\media', command)
+        self.assertIn('subtitle:D:\\corpus\\subtitles', command)
+        self.assertIn('infojson:D:\\corpus\\metadata', command)
         self.assertNotIn('--recode-video', command)
         self.assertEqual(download_output_template(entry), '000002__20260101__BV1test__test.%(ext)s')
 
