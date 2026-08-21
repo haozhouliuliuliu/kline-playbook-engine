@@ -83,6 +83,8 @@ STATUS=DEFERRED
 PRIORITY=HIGH_WHEN_ACTIVATED
 CURRENT_BLOCKER=NO
 ACTIVATE_BEFORE=confirmatory validation claims historical price-limit non-fill realism
+REDUCTION=PREP_DONE_BASE_BOUND_PER_DAY_GAP
+AUTHORITY=docs/research/HISTORICAL_PRICE_LIMIT_METADATA_AUTHORITY_PREP_V0_1.md
 ```
 
 The canonical dataset acceptance did not require full historical price-limit rule/fact
@@ -94,17 +96,18 @@ Before a confirmatory backtest claims realistic Chinese-futures price-limit exec
 and ensure execution semantics fail closed when the required fact is missing.
 
 Do not infer historical limits from a current webpage or use a constant rule without evidence.
+The six-product base-rule authority is now machine-readable, but the per-day operative layer remains a historical gap and special-day rules remain unknown; this limitation is not resolved.
 
 ---
 
 ## LIMIT-002 — Accepted canonical corpus requires explicit revalidation under repaired completeness rules
 
 ```text
-STATUS=DEFERRED
+STATUS=RESOLVED
+RESOLVED_BY=docs/evidence/CANONICAL_QUALIFIED_ELIGIBILITY_VIEW_V1_ADOPTION.md
 PRIORITY=CRITICAL_BEFORE_CANDIDATE_USE
-CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
-ACTIVATE_BEFORE=any accepted canonical corpus is used as candidate-performance evidence
-AUTHORITY=docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md
+CURRENT_BLOCKER=NO
+ACTIVATE_BEFORE=none; candidate outcome gate remains separately locked
 ```
 
 Second-pass Package D repaired the production completeness/provenance path: full requested
@@ -116,9 +119,7 @@ This does not revoke the recorded OHLC values or the existing cross-source compa
 means the old acceptance cannot be promoted into a new claim that repaired completeness has
 already been re-proven.
 
-Before candidate-performance use, run an explicit governed corpus revalidation/rebuild package
-against the repaired pipeline. Do not auto-migrate old session identities or silently retain
-legacy PASS status.
+Historical revalidation remains an unchanged fact: 32864 PASS / 116 FAIL. The resolution does not rewrite it; Qualified Eligibility View V1 uniformly excludes every governed first trading-day partition, producing 32768 D01/D02-certified eligible partitions with a separate identity. Candidate outcome access remains locked by other gates.
 
 ---
 
@@ -159,6 +160,9 @@ PRIORITY=CRITICAL_BEFORE_CANDIDATE_CONTRACT_MAPPING
 CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
 ACTIVATE_BEFORE=research-symbol candidate execution maps to canonical concrete contracts
 AUTHORITY=docs/evidence/E07_TQSDK_HISTORICAL_MAIN_MAPPING_AVAILABILITY_V0_1.md
+PREPARATION=docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_PREP_V0_1.md
+API_INDEPENDENT_MACHINERY=DONE
+BLOCKED_API_CONTRACT_NOT_PINNED=YES
 ```
 
 Owner froze E-07 to the source-governed historical TqSdk `KQ.m@` mapping applied only to the
@@ -179,46 +183,42 @@ do not use pseudo-main price bars, and do not select a mapping by outcomes.
 
 ---
 
-## LIMIT-005 — Holy Grail still has explicit machine-operationalization prerequisites
+## LIMIT-005 — Holy Grail Primary identity and pre-outcome gate remain incomplete
 
 ```text
-STATUS=DEFERRED_RESEARCH_OPERATIONALIZATION
-PRIORITY=HIGH_BEFORE_HOLY_GRAIL_MACHINE_READY
-CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
-ACTIVATE_BEFORE=Holy Grail Playbook is promoted to MACHINE_READY / PRIMARY_FREEZE_READY
-AUTHORITY=docs/reviews/FGH_SEMANTIC_GATE_OWNER_APPROVAL_2026-08-20.md
+STATUS=DEFERRED_PRE_OUTCOME_IDENTITY
+PRIORITY=HIGH_BEFORE_CANDIDATE_OUTCOME_ACCESS
+CURRENT_BLOCKER=NO
+ACTIVATE_BEFORE=first candidate outcome-bearing test
+AUTHORITY=docs/evidence/RASCHKE_HOLY_GRAIL_PLAYBOOK_CONTRACT_DRAFT_V0_4.md
 ```
 
-The Owner-approved F/G/H semantic decisions close the repair-stage ambiguity, but the current
-historical Holy Grail V0.2 draft remains intentionally `NOT_MACHINE_READY`. A later normal
-research package must create a new version and explicitly bind at least:
-
-- `BASE` source timeframe -> one concrete machine interval;
-- deterministic/versioned ADX rising window as a project `INFERRED` convention;
-- explicit/versioned left/right swing confirmation counts;
-- a trailing-stop machine definition, which is currently **not adopted** until source evidence
-  is pinned or a new Owner decision is made.
-
-The later “exit on push to new highs” wording remains an optional versioned variant, not the
-PRIMARY exit and cannot rescue the PRIMARY after outcomes.
-
-No one may use outcome data to choose any of the still-explicit machine parameters.
+Holy Grail V0.4 is now `MACHINE_READY` and `PRIMARY_FREEZE_READY`. Its 1-minute base,
+one-step ADX rising window, L1/R1 swing confirmation and swing-based trailing stop are
+versioned project-inferred conventions, not source claims. The remaining work is the formal
+PRIMARY/StrategyIdentity freeze and the project-wide pre-outcome gate; no candidate outcome
+may be used to select or revise these identities. The later “exit on push to new highs” wording
+remains an optional versioned variant, not the PRIMARY exit and cannot rescue the PRIMARY after
+outcomes.
 
 ---
 
-## LIMIT-006 — No real Common Statistical Profile is adopted for positive PASS
+## LIMIT-006 — Prospective Shadow statistical profile is not yet locked
 
 ```text
 STATUS=DEFERRED_RESEARCH_POLICY
-PRIORITY=CRITICAL_BEFORE_REAL_CANDIDATE_OUTCOME_ACCESS
-CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
-ACTIVATE_BEFORE=any non-TEST_ONLY candidate outcome access is proposed
-AUTHORITY=docs/research/HUMAN_PLAYBOOK_HISTORICAL_V1_EVIDENCE_POLICY_V1_0.md
+PRIORITY=CRITICAL_BEFORE_PROSPECTIVE_CANDIDATE_OUTCOME_ACCESS
+CURRENT_BLOCKER=NO
+ACTIVATE_BEFORE=prospective Shadow forward candidate evidence
+AUTHORITY=docs/research/HUMAN_PLAYBOOK_STATISTICAL_ACCEPTANCE_ROUTE_POLICY_V1_0.md
+HISTORICAL_POSITIVE_PASS_PROFILE_BLOCKER=DISPOSITIONED_BY_ROUTE_A_D
+PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_YET_LOCKED
 ```
 
-The current historical-v1 evidence policy has no adopted lockable positive-PASS Common
-Statistical Profile. Production firewall code therefore permits locking only explicitly
-`TEST_ONLY` profiles for synthetic engine fixtures.
+Route A+D is binding: historical general-domain positive PASS is not required or claimed,
+and future genuinely unseen prospective Shadow/Forward is the positive path. That route does
+not itself create a lockable prospective statistical profile; production code therefore still
+permits locking only explicitly `TEST_ONLY` profiles for synthetic engine fixtures.
 
 Do not create a real-looking profile by filling descriptive strings, and do not treat test
 profile success as permission to inspect candidate outcomes.
