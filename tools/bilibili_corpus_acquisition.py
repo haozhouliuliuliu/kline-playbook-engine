@@ -716,9 +716,9 @@ def build_download_command(yt_dlp: str, cookie_path: Path, output_dir: Path, ent
         "--write-info-json", "--write-subs", "--write-auto-subs",
         "--sub-langs", "zh.*,zh-Hans,zh-CN,ai-zh", "--windows-filenames",
         "--retries", "1", "--fragment-retries", "1", "--sleep-requests", "2", "--socket-timeout", "30",
-        "--paths", f"home={output_dir / 'media'}",
-        "--paths", f"subtitle={output_dir / 'subtitles'}",
-        "--paths", f"infojson={output_dir / 'metadata'}",
+        "--paths", f"home:{output_dir / 'media'}",
+        "--paths", f"subtitle:{output_dir / 'subtitles'}",
+        "--paths", f"infojson:{output_dir / 'metadata'}",
         "--output", download_output_template(entry), str(entry["original_url"]),
     ]
 
