@@ -13,6 +13,6 @@
     ],
     "technically_ready": false
   },
-  "gate_module_sha256": "45e0807c1ddfdec8483fff94445f35f6c24808d4c76b79502c4a5c76313b86fc",
+  "gate_module_sha256": "3e073ed3e38cdefc3765d04a82738d493f2c41761e2298a1b2f1036a4dd82b04",
   "prospective_shadow_forward": "NOT_AUTHORIZED"
 }

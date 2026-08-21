@@ -195,6 +195,34 @@ PRIMARY exit and cannot rescue the PRIMARY after outcomes.
 
 ---
 
+## LIMIT-009 — Raschke NR7 source semantics remain insufficient for a machine strategy
+
+```text
+STATUS=DEFERRED_SOURCE_SEMANTIC_LIMIT
+PRIORITY=HIGH_BEFORE_NR7_MACHINE_OR_PRIMARY_FREEZE
+CURRENT_BLOCKER=NO_FOR_GLOBAL_ENGINEERING
+ACTIVATE_BEFORE=NR7_machine_implementation_or_PRIMARY_freeze
+AUTHORITY=docs/reviews/RASCHKE_NR7_SOURCE_SEMANTIC_RESOLUTION_V0_2.md
+SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT
+MACHINE_READY=NO
+PRIMARY_FREEZE_READY=NO
+```
+
+The bounded V0.2 official-source pass completed without candidate outcome access and did
+not find NR7-specific semantics for the initial protective stop, post-entry invalidation, or
+a deterministic exit/time-exit loop. It also preserves the unresolved NR7 window alignment
+and the source-permitted 45m/60m early-range alternatives rather than choosing a PRIMARY.
+General stop advice and rules from different Raschke setups are not transferable authority.
+
+This is a playbook-library source limit, not a defect in the shared synthetic execution,
+OCO, E07 mapping, eligibility, RiskGate, OMS, PaperBroker, TradingState, Safety or Ledger
+engineering. Do not build an NR7 strategy adapter, synthetic runtime path, PRIMARY Freeze,
+StrategyIdentity or outcome manifest until a new attributable NR7-specific source authority
+changes the documented blocker set. Do not reopen a limitless internet search; the bounded
+source search is complete and its stopping condition is recorded in the authority above.
+
+---
+
 ## LIMIT-006 — Prospective Shadow statistical profile is not yet locked
 
 ```text
