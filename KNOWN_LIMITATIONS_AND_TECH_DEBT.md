@@ -223,6 +223,30 @@ source search is complete and its stopping condition is recorded in the authorit
 
 ---
 
+## LIMIT-010 — China-first discovery leads exhausted without an admissible current-data Playbook family
+
+```text
+STATUS=DEFERRED_SOURCE_RESELECTION_LIMIT
+PRIORITY=MEDIUM_BEFORE_REOPENING_A_B_OR_C
+CURRENT_BLOCKER=NO_FOR_GLOBAL_ENGINEERING
+AUTHORITY=docs/reviews/CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1.md
+SELECTED_SOURCE=NONE
+```
+
+The bounded sequential screen of the three pre-recorded China-first leads is complete.
+付爱民 has a usable source-level interview envelope but the reported core method is
+unquantified and depends on fundamentals/news; 王少多、张亚楠 retain only derivative
+interview surfaces and depend on spot/fundamental/research inputs not owned by the current
+data surface. None supplies a single complete, source-faithful deterministic trading loop.
+
+This is a valid negative source-selection result, not a shared-engineering defect. Do not
+reopen A/B/C, promote a derivative into an original, create a proxy, or expand to other
+Chinese traders in this wave. A future bounded reselection package requires newly available
+public attributable original/nearest-original material that directly changes one recorded
+blocker; outcome or performance information is never a reopen trigger.
+
+---
+
 ## LIMIT-006 — Prospective Shadow statistical profile is not yet locked
 
 ```text

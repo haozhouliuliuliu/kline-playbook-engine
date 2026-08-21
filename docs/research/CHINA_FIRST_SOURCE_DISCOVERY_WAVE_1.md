@@ -151,3 +151,18 @@ Not authorized:
 - backtesting any described idea;
 - paying for private courses/data;
 - ranking Chinese traders by fame or returns.
+
+## 8. V0.1 promotion disposition
+
+Authority: `docs/reviews/CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1.md`.
+
+```text
+CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1=COMPLETE_NEGATIVE
+SELECTED_SOURCE=NONE
+```
+
+The bounded sequential A→B→C screen is complete. 付爱民's source envelope is usable at
+source level but its core method is unquantified and relies on fundamental/news inputs;
+王少多 and 张亚楠 remain derivative interview surfaces with core spot/fundamental/research
+inputs absent from the current data surface. No lead has been promoted to a dossier, claim
+corpus or machine family. Do not reopen or extend this discovery set in the same wave.

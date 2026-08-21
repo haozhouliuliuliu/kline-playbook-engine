@@ -1,0 +1,75 @@
+{
+  "artifact": "CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1",
+  "date": "2026-08-21",
+  "scope": "Sequential source-only promotion screen for the pre-recorded China-first discovery leads.",
+  "selected_source": "NONE",
+  "selection_reason": "No lead supplied both an admissible public original/nearest-original source envelope and one current-data-compatible, bounded deterministic Playbook Contract family without source-semantic invention.",
+  "no_candidate_outcome_used": "YES",
+  "candidate_outcome_backtest": "NOT_AUTHORIZED",
+  "validation_access": "LOCKED_BY_PROJECT_POLICY",
+  "historical_final_holdout_access": "LOCKED",
+  "prospective_shadow_forward": "NOT_AUTHORIZED",
+  "real_money": "NOT_AUTHORIZED",
+  "broker_access": "NOT_AUTHORIZED",
+  "paid_or_authenticated_access": "NOT_USED",
+  "tool_decision": "USE_EXISTING",
+  "sequential_stopping": {
+    "order": ["A_FU_AIMIN", "B_WANG_SHAODUO", "C_ZHANG_YANAN"],
+    "A_stopped_B_or_C_promotion": "NO",
+    "B_stopped_C_promotion": "NO",
+    "final_stopping_condition_met": "YES",
+    "reason": "All three pre-authorized leads were screened once; no lead met the dual promotion condition; this wave cannot expand beyond C."
+  },
+  "current_data_surface": ["1-minute OHLCV", "governed sessions", "E07 concrete-contract mapping", "Qualified Eligibility View V1"],
+  "lead_audit": [
+    {
+      "lead": "A_FU_AIMIN",
+      "source_id": "SRC-CN-LEAD-FUAIMIN",
+      "identity": "付爱民; competition identity is DISCOVERY_SIGNAL only.",
+      "source_dossier_admissible": "YES_SOURCE_LEVEL_ONLY",
+      "current_data_compatible_playbook_family_candidate": "NO",
+      "source_admission_classification": "DEFER",
+      "provenance": "Three free public 期货中国 interviews hosted by 七禾网; the pages identify 期货中国 as source. Treated as NEAREST_ORIGINAL, not independent validity evidence.",
+      "failure_visibility": "PRESENT: repeated setbacks, leverage failure, stop/risk discussion.",
+      "observability": "NOT_OBSERVABLE_WITH_CURRENT_DATA_FOR_CORE_DECISION_SURFACE",
+      "minimal_blockers": ["Personal indicator explicitly not fully quantified.", "Medium/long-term decisions combine K-line forms with fundamentals and industry news.", "No bounded setup/confirmation/entry/initial-stop/invalidation/exit loop; no OHLCV surrogate is source-authorized."],
+      "rejected_families": ["UNQUANTIFIED_PERSONAL_SYSTEM", "FUNDAMENTAL_AND_KLINE_MEDIUM_TERM_SWING", "RISK_PROCESS_ONLY"],
+      "materials": [
+        {"material_id": "MAT-FUAIMIN-2010-INTERVIEW", "url": "https://www.7hcn.com/article/54612-1.html", "published": "2010-11-15", "publisher": "期货中国 / 七禾网", "classification": "NEAREST_ORIGINAL", "sha256_utf8_response": "e3e7e6f0ea6959570ff7ff3e51487faa59d48b781157e8fd17a1e5f4b3ce3f90"},
+        {"material_id": "MAT-FUAIMIN-2012-INTERVIEW", "url": "https://www.7hcn.com/article/115390-1.html", "published": "2012-09-09", "publisher": "期货中国 / 七禾网", "classification": "NEAREST_ORIGINAL", "sha256_utf8_response": "4b18c993c981d63d01ae5fd0094d4cff167aa02aece53f9974811f311cfb2c62"},
+        {"material_id": "MAT-FUAIMIN-2013-INTERVIEW", "url": "https://www.7hcn.com/article/148597-1.html", "published": "2013-12-15", "publisher": "期货中国 / 七禾网", "classification": "NEAREST_ORIGINAL", "sha256_utf8_response": "9236efffef5d6a7d28c4cb712e66127cbbf8d6fb4406675805701aafa94d6e42"}
+      ]
+    },
+    {
+      "lead": "B_WANG_SHAODUO",
+      "source_id": "SRC-CN-LEAD-WANGSHAODUO",
+      "identity": "王少多; competition identity is DISCOVERY_SIGNAL only.",
+      "source_dossier_admissible": "NO",
+      "current_data_compatible_playbook_family_candidate": "NO",
+      "source_admission_classification": "REJECT_SOURCE_FOR_CURRENT_PROMOTION",
+      "provenance": "Free public 七禾网 page attributes the post-competition interview to 期货日报网, but no original individual 期货日报 identity was pinned in the bounded public search; DERIVATIVE only.",
+      "failure_visibility": "PRESENT but not a complete trade-loop counterexample record.",
+      "observability": "NOT_OBSERVABLE_WITH_CURRENT_DATA_FOR_CORE_DECISION_SURFACE",
+      "minimal_blockers": ["Original/nearest-original individual interview not pinned.", "Core inputs are spot-market conditions, familiar-product knowledge and changing information/logic.", "Entry, timeframe, initial stop, invalidation, exit and no-trade boundaries are not fixed."],
+      "rejected_families": ["SPOT_VALUE_AND_FAMILIAR_PRODUCT_DISCRETION", "OPENING_LOGIC_CHANGE_EXIT_PROCESS"],
+      "materials": [{"material_id": "MAT-WANGSHAODUO-DERIVATIVE", "url": "https://www.7hcn.com/article/453531-1.html", "published": "2024-01-02", "publisher": "七禾网; page attributes interview to 期货日报网", "classification": "DERIVATIVE", "sha256_utf8_response": "c04b6b2c6e7ed4a59d73f2c3058a5f75fb9c75401427f01485a70ac51373e7e5"}]
+    },
+    {
+      "lead": "C_ZHANG_YANAN",
+      "source_id": "SRC-CN-LEAD-ZHANGYANAN",
+      "identity": "张亚楠; competition identity is DISCOVERY_SIGNAL only.",
+      "source_dossier_admissible": "NO",
+      "current_data_compatible_playbook_family_candidate": "NO",
+      "source_admission_classification": "REJECT_SOURCE_FOR_CURRENT_PROMOTION",
+      "provenance": "Free public 七禾网 collection says it compiles/edits 期货日报 interviews. Original individual interview identity was not pinned; DERIVATIVE only.",
+      "failure_visibility": "PRESENT but not a complete trade-loop counterexample record.",
+      "observability": "NOT_OBSERVABLE_WITH_CURRENT_DATA_FOR_CORE_DECISION_SURFACE",
+      "minimal_blockers": ["Original/nearest-original individual interview not pinned.", "Core decision surface is research trips and fundamental supply-demand judgement, unavailable in the present data surface.", "Inverted-pyramid position management and profit/stop labels do not pin entry, additions, stop, invalidation, exit or timeframe semantics."],
+      "rejected_families": ["FUNDAMENTAL_RESEARCH_TIMING", "INVERTED_PYRAMID_POSITION_MANAGEMENT"],
+      "materials": [{"material_id": "MAT-ZHANGYANAN-DERIVATIVE", "url": "https://www.7hcn.com/article/435463-1.html", "published": "2022-12-23", "publisher": "七禾网; compiled from 期货日报 interviews", "classification": "DERIVATIVE", "sha256_utf8_response": "b2d657f4ff8736f920dc7f9314524f8b32f8695688e94e536b55066a4d5da65f"}]
+    }
+  ],
+  "artifacts_not_created": ["SOURCE_DOSSIER_FOR_SELECTED_SOURCE", "FORMAL_SELECTED_SOURCE_BUNDLE", "CLAIM_LEVEL_CORPUS", "PLAYBOOK_CONTRACT", "MACHINE_IMPLEMENTATION", "SYNTHETIC_STRATEGY_ADAPTER", "PRIMARY_FREEZE", "STRATEGY_IDENTITY", "LOCKED_RESEARCH_WAVE"],
+  "reselection_status": "COMPLETE_NEGATIVE; do not reopen A/B/C without new attributable public original/nearest-original material that changes a recorded blocker; do not expand to other traders in this wave.",
+  "progress_estimate_only": "YES"
+}
