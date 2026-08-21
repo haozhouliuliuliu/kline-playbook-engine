@@ -162,13 +162,14 @@ ACTIVATE_BEFORE=research-symbol candidate execution maps to canonical concrete c
 RESOLVED_BY=docs/evidence/E07_TQSDK_MAPPING_SCHEMA_AND_CAPTURE_V0_1.md
 SCHEDULE=docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_V0_1.json
 WINDOW=2024-01-01..2025-12-31
-RUNTIME_WIRING=NOT_DONE_FAIL_CLOSED
+RUNTIME_WIRING=WIRED_FAIL_CLOSED_VERIFIED
 ```
 
 Owner-authorized authenticated capture pins TqSdk 3.10.1's daily `KQ.m@` mapping response.
 The resulting 105-change, six-product schedule binds only canonical concrete contracts for
 the 2024-2025 window. It is mapping evidence only, not price or outcome evidence. Runtime
-wiring remains a separate fail-closed pre-Shadow engineering gate.
+wiring is implemented and verified as a fail-closed runtime/candidate-input seam; it remains
+separate from outcome authorization.
 
 The generic `ContractMappingSchedule` type is structural/synthetic machinery and is **not** a
 candidate mapping authority. Do not substitute a project-authored OI/volume/calendar formula,
@@ -203,14 +204,14 @@ CURRENT_BLOCKER=NO
 ACTIVATE_BEFORE=prospective Shadow forward candidate evidence
 AUTHORITY=docs/research/HUMAN_PLAYBOOK_STATISTICAL_ACCEPTANCE_ROUTE_POLICY_V1_0.md
 HISTORICAL_POSITIVE_PASS_PROFILE_BLOCKER=DISPOSITIONED_BY_ROUTE_A_D
-PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_LOCKED_METHOD_INSUFFICIENT
+PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_LOCKABLE_UNDER_CURRENT_ASSUMPTION_AUTHORITY
 ```
 
 Route A+D is binding: historical general-domain positive PASS is not required or claimed,
 and future genuinely unseen prospective Shadow/Forward is the positive path. Formal research
-now identifies the minimum missing method fields (event-weighted estimand, dependence/cluster
-model, sequential threshold, and strong FWER). Production code still permits locking only
-explicitly `TEST_ONLY` profiles for synthetic engine fixtures.
+now identifies the exact mathematical missing authority: a pre-governed process class linking
+conditional mean/tail/dependence assumptions to the frozen unconditional event-weighted null.
+Production code still permits locking only explicitly `TEST_ONLY` profiles for synthetic engine fixtures.
 
 Do not create a real-looking profile by filling descriptive strings, and do not treat test
 profile success as permission to inspect candidate outcomes.

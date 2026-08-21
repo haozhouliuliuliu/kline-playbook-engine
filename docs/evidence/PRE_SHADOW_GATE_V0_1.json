@@ -1,0 +1,18 @@
+{
+  "artifact": "PRE_SHADOW_GATE_V0_1",
+  "candidate_outcome_data_used": "NO",
+  "decision": {
+    "authorized_to_start": false,
+    "identity": "cbcc6801820e6d0009ff4d051cd3ec025aa5f9a22b986ad9902d1aa34b310340",
+    "missing_controls": [
+      "statistical_profile_locked",
+      "research_wave_locked",
+      "fee_margin_authority_configured",
+      "price_limit_authority_configured",
+      "slippage_authority_configured"
+    ],
+    "technically_ready": false
+  },
+  "gate_module_sha256": "d375a480d491d11ac34bd015ef5688f6a0c7c36ac72c59e4706753ae1162f915",
+  "prospective_shadow_forward": "NOT_AUTHORIZED"
+}

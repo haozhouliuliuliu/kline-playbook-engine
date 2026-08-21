@@ -292,6 +292,26 @@ class ShadowRuntime:
 
         # 2. Strategy.intent (TEST_ONLY fake strategy).
         intents = self._strategy.intents(context)
+        # A real strategy adapter may additionally expose machine directives that
+        # are not reducible to the current generic MARKET intent vocabulary
+        # (for example a protective-stop pending/replace fact).  Record them
+        # losslessly in the ledger; never silently translate them into a fill.
+        directives_at = getattr(self._strategy, "directives_at", None)
+        if callable(directives_at):
+            for directive in directives_at(context.available_at):
+                self._ledger.append(
+                    RuntimeLedgerRecordKind.INTENT,
+                    directive.identity_id,
+                    ledger_pairs(
+                        directive_event_type=directive.event_type,
+                        directive_available_at=directive.available_at.isoformat(),
+                        directive_reference_price=(
+                            "" if directive.reference_price is None else str(directive.reference_price)
+                        ),
+                        directive_oco_group_id=directive.oco_group_id or "",
+                    ),
+                    now,
+                )
 
         # 3. Deterministic conflict resolution.
         conflict = self._conflict_resolver.resolve(intents)
