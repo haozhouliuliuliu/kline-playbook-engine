@@ -1,0 +1,1080 @@
+{
+  "artifact": "E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_V0_1",
+  "candidate_outcome_data_used": "NO",
+  "canonical_membership_violations": [],
+  "price_data_used": "NO",
+  "record_count": 105,
+  "records": [
+    {
+      "available_at": "2023-11-08T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2402",
+      "effective_at": "2023-11-08T09:00:00+08:00",
+      "effective_trading_date": "2023-11-08",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "0a199b385613f5d7ff69a2c2279b0d229b0da488dde7a6aa5a4dc68389839355",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2024-01-19T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2406",
+      "effective_at": "2024-01-19T09:00:00+08:00",
+      "effective_trading_date": "2024-01-19",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "ec84112f8a7a30e75a680f6bc212dd723a9582749946e68e98b36ab504fbbaee",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2024-05-16T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2408",
+      "effective_at": "2024-05-16T09:00:00+08:00",
+      "effective_trading_date": "2024-05-16",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "2c4daa7bdc2d0c473918f68b993a1d1a05a122d6873a7bd1b4794fbb823addd5",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2024-07-30T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2412",
+      "effective_at": "2024-07-30T09:00:00+08:00",
+      "effective_trading_date": "2024-07-30",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "3ce1fc8ee9e778a44f885ea1b9e40889636f621f5c54f4f7f4a960e9ad079de2",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2024-11-15T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2502",
+      "effective_at": "2024-11-15T09:00:00+08:00",
+      "effective_trading_date": "2024-11-15",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "1b21a86061114147f5a2189140c01b6ad9777814c9cafa64e702fe603abe53be",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2025-01-14T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2504",
+      "effective_at": "2025-01-14T09:00:00+08:00",
+      "effective_trading_date": "2025-01-14",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "396a33ecbf16d2b174e5b59c43624b72d45e14d014ac1902c7dd5ace92602b12",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2025-03-20T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2505",
+      "effective_at": "2025-03-20T09:00:00+08:00",
+      "effective_trading_date": "2025-03-20",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "6df67d6439ab4d2f0db2849ebca6149f2b606b7f50d7b145f3fb27c4739fc021",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2025-03-21T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2506",
+      "effective_at": "2025-03-21T09:00:00+08:00",
+      "effective_trading_date": "2025-03-21",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "74bbfb7f798cad784ce6b6eadfb5c011d9d07880ff57e998892f6fadd6331b04",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2025-05-15T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2508",
+      "effective_at": "2025-05-15T09:00:00+08:00",
+      "effective_trading_date": "2025-05-15",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "7181606ad849faa11c224aa305d81d46f7a2315a3f1ee1fb6c2a0c6ca5620c94",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2025-07-09T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2510",
+      "effective_at": "2025-07-09T09:00:00+08:00",
+      "effective_trading_date": "2025-07-09",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "b40a83b7b458c027a52eb8f1646b214c65b3550495ae4a95d07c387c0ae99062",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2025-09-19T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2512",
+      "effective_at": "2025-09-19T09:00:00+08:00",
+      "effective_trading_date": "2025-09-19",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "783b1f659cfeb558f05e2e3a3aed7c9230f565537194a87e1a17ac2ea1cd4b68",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2025-11-18T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2602",
+      "effective_at": "2025-11-18T09:00:00+08:00",
+      "effective_trading_date": "2025-11-18",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "f8fa8f5c253f404f458e92059f6899cf1719da86adc1435768899cd7147e69f9",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2025-12-31T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ag2604",
+      "effective_at": "2025-12-31T09:00:00+08:00",
+      "effective_trading_date": "2025-12-31",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "5577e0f166c7a56b89699d918ec31ca023c41e7b15da4de14f43576a3422468e",
+      "research_symbol": "MAIN:SHFE:ag",
+      "source_symbol": "KQ.m@SHFE.ag"
+    },
+    {
+      "available_at": "2023-12-21T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2402",
+      "effective_at": "2023-12-21T09:00:00+08:00",
+      "effective_trading_date": "2023-12-21",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "61e8e97d1118ac836033227c3b259eb7807742a76df94244af410fa9b7dae0e7",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-01-12T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2403",
+      "effective_at": "2024-01-12T09:00:00+08:00",
+      "effective_trading_date": "2024-01-12",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "432792b45fdb6bf09eac867160c953753dc9dd0c930ff0bb884d35d7175e0031",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-02-21T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2404",
+      "effective_at": "2024-02-21T09:00:00+08:00",
+      "effective_trading_date": "2024-02-21",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "6c4f72b63777d8e4879a70564b8c654537681396680aff320b7cb0ed8467104f",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-03-20T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2405",
+      "effective_at": "2024-03-20T09:00:00+08:00",
+      "effective_trading_date": "2024-03-20",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "fe0f6ce52d4106e88542dd2ab44a7cf1301ac62c2126dd855854a2dc65d66cea",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-04-10T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2406",
+      "effective_at": "2024-04-10T09:00:00+08:00",
+      "effective_trading_date": "2024-04-10",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "7048c6ab0a46a9c5527327625d6581c977457b2a3d962a93250a302bed3be667",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-05-20T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2407",
+      "effective_at": "2024-05-20T09:00:00+08:00",
+      "effective_trading_date": "2024-05-20",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "8191d2ba223174fd5c8972b4406a434fc0568f334a6f4a41ff761ff6a6c623fd",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-06-17T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2408",
+      "effective_at": "2024-06-17T09:00:00+08:00",
+      "effective_trading_date": "2024-06-17",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "740e223774dd659f911313d616755dc3f1e7db9af34202ba31421969b52ffc31",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-07-16T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2409",
+      "effective_at": "2024-07-16T09:00:00+08:00",
+      "effective_trading_date": "2024-07-16",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "a39666d5d0fe080450c5faa957c133d06a15ca617709ff6cc394e0f43682d731",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-08-20T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2410",
+      "effective_at": "2024-08-20T09:00:00+08:00",
+      "effective_trading_date": "2024-08-20",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "f21a95ef0c36449f9a20a769e27ff0c24c577692748e15486341cf9aff6846d9",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-09-20T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2411",
+      "effective_at": "2024-09-20T09:00:00+08:00",
+      "effective_trading_date": "2024-09-20",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "1e0e4d0b22dade6450a320c6d109ed2aac5bab2b8394c27cd62ef017e93e80a6",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-10-21T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2412",
+      "effective_at": "2024-10-21T09:00:00+08:00",
+      "effective_trading_date": "2024-10-21",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "5e71775cdbad8d9c2f80e604d50c25d2ec6a680cc80c0d6e6422ba2e6dd30c57",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-11-19T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2501",
+      "effective_at": "2024-11-19T09:00:00+08:00",
+      "effective_trading_date": "2024-11-19",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "5e91fd2fc761bc5cb0004b41084ab44c9090f590e026954d144276332e93665c",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2024-12-13T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2502",
+      "effective_at": "2024-12-13T09:00:00+08:00",
+      "effective_trading_date": "2024-12-13",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "1aa581cc3b21d4bf7c1ac3b9f85e12f8dae83e50f5a3f85cc18ce4565c10e41c",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-01-14T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2503",
+      "effective_at": "2025-01-14T09:00:00+08:00",
+      "effective_trading_date": "2025-01-14",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "33cd57aba9461f7a9a05610410855b4f6ccfbe5113756b90000f2ca804fe9eec",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-02-18T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2504",
+      "effective_at": "2025-02-18T09:00:00+08:00",
+      "effective_trading_date": "2025-02-18",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "fc6e6d5673285b00e70f162afaafeccae60ccb703556925d02922144adf0529d",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-03-14T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2505",
+      "effective_at": "2025-03-14T09:00:00+08:00",
+      "effective_trading_date": "2025-03-14",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "05562a5372e7ec2f046daa5b527172fc9eb1b840ad6880c028555865131f0de5",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-04-15T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2506",
+      "effective_at": "2025-04-15T09:00:00+08:00",
+      "effective_trading_date": "2025-04-15",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "572020daa7d12986fb323d16e387fac117b9e067952beb9ea28418f04020db7d",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-05-16T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2507",
+      "effective_at": "2025-05-16T09:00:00+08:00",
+      "effective_trading_date": "2025-05-16",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "113c643bb23427f1e1edb7b01291ba5aa3f705ae338458f121a743cb855e27fa",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-06-24T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2508",
+      "effective_at": "2025-06-24T09:00:00+08:00",
+      "effective_trading_date": "2025-06-24",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "6ab62254468c17738d8872dea9d1de9d6dd78b04785f68c2c0dbc5de54e6f4a5",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-07-18T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2509",
+      "effective_at": "2025-07-18T09:00:00+08:00",
+      "effective_trading_date": "2025-07-18",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "a21430d5cf71bbb340e51dbee5adbdce350af59e36bc77f35a4df306a8b1977c",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-08-20T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2510",
+      "effective_at": "2025-08-20T09:00:00+08:00",
+      "effective_trading_date": "2025-08-20",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "dac0a80acd3bd3095ea4ccfc4bb362e1e17a35a1543b2e6881e37a7e57af9983",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-09-19T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2511",
+      "effective_at": "2025-09-19T09:00:00+08:00",
+      "effective_trading_date": "2025-09-19",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "9f27d45433ce37a05c23b9e3b0465033d17684809277b1f633f5f443f1fc86f7",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-10-20T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2512",
+      "effective_at": "2025-10-20T09:00:00+08:00",
+      "effective_trading_date": "2025-10-20",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "70e6412124b98daa25271f4a6944375e7442ec2f3f3876372d0e089747420ea2",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-11-10T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2601",
+      "effective_at": "2025-11-10T09:00:00+08:00",
+      "effective_trading_date": "2025-11-10",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "76975eb81bc9b0897f906b25f0b297f9c01570e5d322bd36ee93dd6a7498df12",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2025-12-12T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.al2602",
+      "effective_at": "2025-12-12T09:00:00+08:00",
+      "effective_trading_date": "2025-12-12",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "c4b81aafae909de7dc23b1745c81fc57678557044311a5779c27ad2f31786f15",
+      "research_symbol": "MAIN:SHFE:al",
+      "source_symbol": "KQ.m@SHFE.al"
+    },
+    {
+      "available_at": "2023-11-03T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2402",
+      "effective_at": "2023-11-03T09:00:00+08:00",
+      "effective_trading_date": "2023-11-03",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "7324595c312a6b43bf68f30b9e8d2290612467a7c8a84b3106625e3c01b16334",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2024-01-04T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2404",
+      "effective_at": "2024-01-04T09:00:00+08:00",
+      "effective_trading_date": "2024-01-04",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "32bd31a0349d82bd0fb05f53b099d792254ffcd48b3d8e3d28ccb84b34dad573",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2024-03-06T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2406",
+      "effective_at": "2024-03-06T09:00:00+08:00",
+      "effective_trading_date": "2024-03-06",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "3355d7daf390ab784ac08c8634323c66ff7f6bb051577d6ebfc14ab4d1b43369",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2024-05-06T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2408",
+      "effective_at": "2024-05-06T09:00:00+08:00",
+      "effective_trading_date": "2024-05-06",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "c57671048870012ab660b16f3832e2751bd8db2eb178c721593abbdc77dbdd21",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2024-07-11T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2410",
+      "effective_at": "2024-07-11T09:00:00+08:00",
+      "effective_trading_date": "2024-07-11",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "13652a90a612e7c99897a85371a07ba6572ae42d6f2cfd75db8b39cf729b55b2",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2024-09-23T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2412",
+      "effective_at": "2024-09-23T09:00:00+08:00",
+      "effective_trading_date": "2024-09-23",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "cb468d529e25f780efec9bb57b9c5b3d4b5779e586080d8d03887d3152bc0cf3",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2024-11-25T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2502",
+      "effective_at": "2024-11-25T09:00:00+08:00",
+      "effective_trading_date": "2024-11-25",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "e4427f72e16da64f959d6eb1d0343cd112efde60fc49a50f46db896c3963e4f7",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2025-01-15T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2504",
+      "effective_at": "2025-01-15T09:00:00+08:00",
+      "effective_trading_date": "2025-01-15",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "98601145bf4a6134d0b913c9bac4113f0a230d2f542b2798680b5f980954250a",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2025-03-24T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2506",
+      "effective_at": "2025-03-24T09:00:00+08:00",
+      "effective_trading_date": "2025-03-24",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "c0b820f7c4f0a75fc3e8ed7215e7f3163b30e4a2cb62046904071eae16d2e735",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2025-05-08T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2508",
+      "effective_at": "2025-05-08T09:00:00+08:00",
+      "effective_trading_date": "2025-05-08",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "a1b274dabf10e49b403673c1d9fe5c2779527998b045ca7ccd66413da180ee43",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2025-07-01T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2510",
+      "effective_at": "2025-07-01T09:00:00+08:00",
+      "effective_trading_date": "2025-07-01",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "4b69dd4ce0aa14ada65db7657f4d54db88c73e37acb17b339f91a3b56ab35326",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2025-09-22T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2512",
+      "effective_at": "2025-09-22T09:00:00+08:00",
+      "effective_trading_date": "2025-09-22",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "c1f8852176df025413401b0d3e4f60f1cdff7516b0167940de3a0b3b0731e2be",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2025-11-24T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.au2602",
+      "effective_at": "2025-11-24T09:00:00+08:00",
+      "effective_trading_date": "2025-11-24",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "872f858182fb4215f5a62431184bbcbe506121aaa454269383c4a6127a42129d",
+      "research_symbol": "MAIN:SHFE:au",
+      "source_symbol": "KQ.m@SHFE.au"
+    },
+    {
+      "available_at": "2023-12-22T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2402",
+      "effective_at": "2023-12-22T09:00:00+08:00",
+      "effective_trading_date": "2023-12-22",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "62a0ae70d3cd0a3b130e81ba22efb7147e3755ece4c46b54148b448809b8eebb",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-01-17T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2403",
+      "effective_at": "2024-01-17T09:00:00+08:00",
+      "effective_trading_date": "2024-01-17",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "d6c4d10d0598abaec2bad5a9b4cb72fdd01cee38d46fbf6bb95802be1f0f0c54",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-02-23T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2404",
+      "effective_at": "2024-02-23T09:00:00+08:00",
+      "effective_trading_date": "2024-02-23",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "df14a11adc9609f655f366441728c31c5899ac5f0c9ecd66f058377e026f467f",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-03-13T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2405",
+      "effective_at": "2024-03-13T09:00:00+08:00",
+      "effective_trading_date": "2024-03-13",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "8543ecd41d29c3af85b9dd681487ef0076b46a25270233e526f18741207fe5a0",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-04-09T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2406",
+      "effective_at": "2024-04-09T09:00:00+08:00",
+      "effective_trading_date": "2024-04-09",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "a180e5d3a966df7a18d1e1d0a085dff182bea6d64cace31a0dad7640963d344b",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-05-17T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2407",
+      "effective_at": "2024-05-17T09:00:00+08:00",
+      "effective_trading_date": "2024-05-17",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "39e91c4a523e180537faf1d484bcec7a8612251bd22509a689bde0c1a235dedb",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-06-21T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2408",
+      "effective_at": "2024-06-21T09:00:00+08:00",
+      "effective_trading_date": "2024-06-21",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "f8564761f626f81405d5929c4ed89901782e496ff85244744cb8a228dc3438e2",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-07-23T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2409",
+      "effective_at": "2024-07-23T09:00:00+08:00",
+      "effective_trading_date": "2024-07-23",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "6ca68d7ece257fed45f87a1ddd38ca9f66ee1daaa76dfdb3184386cb34352480",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-08-23T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2410",
+      "effective_at": "2024-08-23T09:00:00+08:00",
+      "effective_trading_date": "2024-08-23",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "2cacbc4e7545889478e6b13e74dfd2dbba0dc95fe2c2cb36e840279e7b14cf2d",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-09-26T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2411",
+      "effective_at": "2024-09-26T09:00:00+08:00",
+      "effective_trading_date": "2024-09-26",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "a92443b0db234c92139f437ca4fb0164308ce53d70dbf63b2bb316bc5e9df781",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-10-23T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2412",
+      "effective_at": "2024-10-23T09:00:00+08:00",
+      "effective_trading_date": "2024-10-23",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "b8f92c3c15633dba3acc47fc58ffaf23be04ccde9ab31139a6c6b722a100fd6e",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-11-25T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2501",
+      "effective_at": "2024-11-25T09:00:00+08:00",
+      "effective_trading_date": "2024-11-25",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "6d3f120447dae49603afcb3d0c757e25904f68ba896c9646a487cb4c5008e73e",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2024-12-25T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2502",
+      "effective_at": "2024-12-25T09:00:00+08:00",
+      "effective_trading_date": "2024-12-25",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "f592cbffc3b7a81f9aeb45c2acf33cca3e30061b4fd3e203c2fb71adb5f5b592",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-01-16T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2503",
+      "effective_at": "2025-01-16T09:00:00+08:00",
+      "effective_trading_date": "2025-01-16",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "6107d42312561226f22fb7287fa373692d857dae0729dc2f0830b04a0fc6e96a",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-02-26T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2504",
+      "effective_at": "2025-02-26T09:00:00+08:00",
+      "effective_trading_date": "2025-02-26",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "5f75ac730446d553a1528780fac750f5e1589f35d7ea7a7df99b434e4bb8c4ec",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-03-17T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2505",
+      "effective_at": "2025-03-17T09:00:00+08:00",
+      "effective_trading_date": "2025-03-17",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "7e8ae1ed6d8c88b8a6883b0d83592e3ad34fe718947b2d7f2f295856c0095ee4",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-04-17T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2506",
+      "effective_at": "2025-04-17T09:00:00+08:00",
+      "effective_trading_date": "2025-04-17",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "925d8530765f4ddd409cedd1dc49d023e5fc33ff2c320fdff790e13b5fb4f053",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-05-29T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2507",
+      "effective_at": "2025-05-29T09:00:00+08:00",
+      "effective_trading_date": "2025-05-29",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "22eb3f8f2612d4cf70865ef73cc9161494629a1e37839935a2e04d601e2ee12b",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-06-27T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2508",
+      "effective_at": "2025-06-27T09:00:00+08:00",
+      "effective_trading_date": "2025-06-27",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "8e283ec78dda5d58e8a0a7c4176a191b6cec93bb99113f1c17d70239e0807412",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-07-23T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2509",
+      "effective_at": "2025-07-23T09:00:00+08:00",
+      "effective_trading_date": "2025-07-23",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "faf73a3ed7302f8b8525954c680f1233d490af181da96be5be8908e7bea2e0f1",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-08-27T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2510",
+      "effective_at": "2025-08-27T09:00:00+08:00",
+      "effective_trading_date": "2025-08-27",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "a269d868fff42dec4ff3ddbce7bda465867522553e6985eabc4d972d9f45cc35",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-09-23T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2511",
+      "effective_at": "2025-09-23T09:00:00+08:00",
+      "effective_trading_date": "2025-09-23",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "06fce722310033d0ddfcb778abdc59b6f106a4d8a8c564cfeb073fb8bd9df604",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-10-20T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2512",
+      "effective_at": "2025-10-20T09:00:00+08:00",
+      "effective_trading_date": "2025-10-20",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "5f47fed21cc7cb74d5079186af082f29ff0a359bce90bee41c5eb349be57b304",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-11-21T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2601",
+      "effective_at": "2025-11-21T09:00:00+08:00",
+      "effective_trading_date": "2025-11-21",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "ae48c8ae29b392a63d00404620df2a4bc179dc8d8a3e449e5171e6ce0f05526e",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2025-12-17T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.cu2602",
+      "effective_at": "2025-12-17T09:00:00+08:00",
+      "effective_trading_date": "2025-12-17",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "276d4b26f9e7e4eced661d40b500e978add74206b2a2a8687210fe02e22d073d",
+      "research_symbol": "MAIN:SHFE:cu",
+      "source_symbol": "KQ.m@SHFE.cu"
+    },
+    {
+      "available_at": "2023-12-27T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2402",
+      "effective_at": "2023-12-27T09:00:00+08:00",
+      "effective_trading_date": "2023-12-27",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "33f79671df31f7d87a9ae4387eb330fac1b46a3176b086519c938a1026d89097",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-01-25T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2403",
+      "effective_at": "2024-01-25T09:00:00+08:00",
+      "effective_trading_date": "2024-01-25",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "74f44fbeb333d3a7a2787d3d1793e03694c895d9814c9070299dc033cbf83500",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-02-28T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2405",
+      "effective_at": "2024-02-28T09:00:00+08:00",
+      "effective_trading_date": "2024-02-28",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "1f6fb22f10d42b542419d4e1a8e06a12e50ec3f2f86d76ce0e70b854742060d3",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-04-22T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2406",
+      "effective_at": "2024-04-22T09:00:00+08:00",
+      "effective_trading_date": "2024-04-22",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "20c9c741c59d30e66396398617eccb4413c8c02137f7d6af35fbcc258385106c",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-05-30T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2407",
+      "effective_at": "2024-05-30T09:00:00+08:00",
+      "effective_trading_date": "2024-05-30",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "84403a996343818685975dd78223815e742dacb9b6c411141d6a6223a81b894b",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-07-01T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2409",
+      "effective_at": "2024-07-01T09:00:00+08:00",
+      "effective_trading_date": "2024-07-01",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "4e0ccf3fe504941d1c36c1420bf15471e5b22119041efbe61bc4489d38e190c3",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-08-27T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2410",
+      "effective_at": "2024-08-27T09:00:00+08:00",
+      "effective_trading_date": "2024-08-27",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "99c3094c5653e85eb3ae0a8492ed8bdba21a0a7a346bf3b0355388952f271300",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-09-30T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2411",
+      "effective_at": "2024-09-30T09:00:00+08:00",
+      "effective_trading_date": "2024-09-30",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "9f0ebd20c3bf3f763b60f946f6a12345fa3d33378b7eb465e1b6a3c57d86ed97",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-10-29T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2412",
+      "effective_at": "2024-10-29T09:00:00+08:00",
+      "effective_trading_date": "2024-10-29",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "439ff77a4b122aef23f1b60a0ac567ca251cc554c908991f1dfa7e10894f6831",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-11-27T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2501",
+      "effective_at": "2024-11-27T09:00:00+08:00",
+      "effective_trading_date": "2024-11-27",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "9214d6e95510ba19854dfd8be37a9ee49afa59f571dca9ee35f93db7e3711b95",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2024-12-25T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2502",
+      "effective_at": "2024-12-25T09:00:00+08:00",
+      "effective_trading_date": "2024-12-25",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "bf220ed1dc6b10f8337457a619cd508f1304ae434e09dd7200f25110213e2d0b",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-01-24T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2503",
+      "effective_at": "2025-01-24T09:00:00+08:00",
+      "effective_trading_date": "2025-01-24",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "ed3c0cd2e69e7995ab8b3b4d0b69902e90db3dd758cbe064eb8b676ab565bb72",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-02-26T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2505",
+      "effective_at": "2025-02-26T09:00:00+08:00",
+      "effective_trading_date": "2025-02-26",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "5b41d6f7749b29141d6d3941fb1ab8e4a4f48add91636eaed8379d933577c901",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-04-25T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2506",
+      "effective_at": "2025-04-25T09:00:00+08:00",
+      "effective_trading_date": "2025-04-25",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "677a68cc7ae8657443da746517b4267bb48dcd741731cba876aa355f82609645",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-05-29T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2507",
+      "effective_at": "2025-05-29T09:00:00+08:00",
+      "effective_trading_date": "2025-05-29",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "f249eca70f7e592d54c5b5ea1ca03ce6e90d8592f4928419b053287af29a689c",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-06-27T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2508",
+      "effective_at": "2025-06-27T09:00:00+08:00",
+      "effective_trading_date": "2025-06-27",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "35012002d1e6faf3fb2e1b39d143d6acd83fb0024efa026c665fb429e6526c1d",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-07-24T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2509",
+      "effective_at": "2025-07-24T09:00:00+08:00",
+      "effective_trading_date": "2025-07-24",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "44ebefd3c2ecc81f51df5a2420705346668c1599ebfc28650ad0339657c39268",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-08-22T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2510",
+      "effective_at": "2025-08-22T09:00:00+08:00",
+      "effective_trading_date": "2025-08-22",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "b73946cfbb9692e5d97f8f6e9234095f96a79eb66d9f66e3b1aafa82810a52f2",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-09-25T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2511",
+      "effective_at": "2025-09-25T09:00:00+08:00",
+      "effective_trading_date": "2025-09-25",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "7decf21b29f8cf4f809d02499e59211791f3447cced91b4828ccdb841f18c3c7",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-10-23T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2512",
+      "effective_at": "2025-10-23T09:00:00+08:00",
+      "effective_trading_date": "2025-10-23",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "721b865b962d09ae0926b7dd5cb16fa19f10efa185deea0d3ed7f0eb46f07a40",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-11-21T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2601",
+      "effective_at": "2025-11-21T09:00:00+08:00",
+      "effective_trading_date": "2025-11-21",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "48fd9911daae8cb87941a99a7967b4a9b968cdb3b9260c491dd4c6482c06e869",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2025-12-24T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.ni2602",
+      "effective_at": "2025-12-24T09:00:00+08:00",
+      "effective_trading_date": "2025-12-24",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "da2e665b0acedaf9a6a402e4575a27a4000090f2f829f72713c4b39bd2a5937c",
+      "research_symbol": "MAIN:SHFE:ni",
+      "source_symbol": "KQ.m@SHFE.ni"
+    },
+    {
+      "available_at": "2023-12-08T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.rb2405",
+      "effective_at": "2023-12-08T09:00:00+08:00",
+      "effective_trading_date": "2023-12-08",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "b338fcc50c4e4f90143e916637ffde57f18be11ed81b3afc36d0311e4cec4540",
+      "research_symbol": "MAIN:SHFE:rb",
+      "source_symbol": "KQ.m@SHFE.rb"
+    },
+    {
+      "available_at": "2024-04-03T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.rb2410",
+      "effective_at": "2024-04-03T09:00:00+08:00",
+      "effective_trading_date": "2024-04-03",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "de33d5b1e32e2f594ee3802b5e3e91c020c7db715c1c1baf6d7f3c504116e32a",
+      "research_symbol": "MAIN:SHFE:rb",
+      "source_symbol": "KQ.m@SHFE.rb"
+    },
+    {
+      "available_at": "2024-09-03T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.rb2501",
+      "effective_at": "2024-09-03T09:00:00+08:00",
+      "effective_trading_date": "2024-09-03",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "696ff515d01c87512350501eab3807cdd3a0cd2370981fa086059e154a3279ad",
+      "research_symbol": "MAIN:SHFE:rb",
+      "source_symbol": "KQ.m@SHFE.rb"
+    },
+    {
+      "available_at": "2024-12-09T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.rb2505",
+      "effective_at": "2024-12-09T09:00:00+08:00",
+      "effective_trading_date": "2024-12-09",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "ef1fc47ab336fe99b4f8418f6129ad93e3d23eec12bafab0b514531ad3196b5c",
+      "research_symbol": "MAIN:SHFE:rb",
+      "source_symbol": "KQ.m@SHFE.rb"
+    },
+    {
+      "available_at": "2025-04-09T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.rb2510",
+      "effective_at": "2025-04-09T09:00:00+08:00",
+      "effective_trading_date": "2025-04-09",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "7373e1c48fd54d5f883a428c377e70509357f46eb4c9654a795a854fad9daca6",
+      "research_symbol": "MAIN:SHFE:rb",
+      "source_symbol": "KQ.m@SHFE.rb"
+    },
+    {
+      "available_at": "2025-09-02T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.rb2601",
+      "effective_at": "2025-09-02T09:00:00+08:00",
+      "effective_trading_date": "2025-09-02",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "e9b9399bd751755094c65073d7bf6791f32f6b33c62d7be8340970a257dc7017",
+      "research_symbol": "MAIN:SHFE:rb",
+      "source_symbol": "KQ.m@SHFE.rb"
+    },
+    {
+      "available_at": "2025-12-04T09:00:00+08:00",
+      "concrete_instrument_id": "SHFE.rb2605",
+      "effective_at": "2025-12-04T09:00:00+08:00",
+      "effective_trading_date": "2025-12-04",
+      "provenance_identity": "4ccb6f3cdd6e8445e72f5267114693ecb4354a066b16340d81a01d4d1c00d24d",
+      "record_identity": "1273dbfded7017e7e6e552c833e095d31f93088a758412154488d1a931fd2c4d",
+      "research_symbol": "MAIN:SHFE:rb",
+      "source_symbol": "KQ.m@SHFE.rb"
+    }
+  ],
+  "schedule_identity": "331ba31e2a03695160aff28f7c7c58888dcc9bc091515e176c8d5c6b66edcb5c",
+  "semantics": {
+    "derivation": "SOURCE_GOVERNED",
+    "pit_availability": "AVAILABLE_AT_EFFECTIVE_OPEN_NO_LOOKAHEAD",
+    "project_authored_substitute": "FORBIDDEN",
+    "pseudo_main_price_bars": "FORBIDDEN",
+    "switch": "NEXT_CAPTURED_TRADING_DAY_OPEN_ASIA_SHANGHAI"
+  },
+  "source": {
+    "authenticated_probe": "YES",
+    "interface": "TqApi.query_his_cont_quotes",
+    "provider": "TqSdk",
+    "raw_capture_path": "docs/evidence/E07_TQSDK_QUERY_HIS_CONT_QUOTES_RAW_V0_1.json",
+    "raw_capture_sha256": "7354be8a2b52a808a7a6bf84b14ff76e031577039221ab80c9b1d728153a90b4",
+    "schema": "TQSDK_3_10_1_PANDAS_DATE_PLUS_SYMBOL_COLUMNS",
+    "version": "3.10.1"
+  },
+  "window": {
+    "end": "2025-12-31",
+    "start": "2024-01-01"
+  }
+}

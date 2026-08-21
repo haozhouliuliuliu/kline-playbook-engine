@@ -21,6 +21,8 @@ from src.source_governed_mapping import (
     SourceGovernedMappingError,
     SourceGovernedMappingRecord,
     SourceGovernedMappingSchedule,
+    TqSdkMappingDecodeError,
+    decode_tqsdk_query_his_cont_quotes_payload,
     TerminalAuthCapture,
     TerminalOnlyAuthCapture,
     TqSdkMappingDecodeBoundary,
@@ -305,15 +307,42 @@ class SourceGovernedMappingScheduleTests(unittest.TestCase):
         self.schedule.assert_concrete_bar_selection_only(FULL_UNIVERSE)  # must not raise
 
 
-class TerminalAuthCaptureTests(unittest.TestCase):
-    def test_module_records_blocked_tqsdk_api_contract(self):
-        self.assertTrue(BLOCKED_API_CONTRACT_NOT_PINNED)
+class TqSdkSchemaDecodeTests(unittest.TestCase):
+    SYMBOLS = ("KQ.m@SHFE.cu", "KQ.m@SHFE.al")
 
-    def test_decode_boundary_is_protocol_only_and_not_implemented(self):
-        # The decode boundary must not be instantiable; it is a typing-only
-        # Protocol documenting a future Owner-authorized adapter.
-        with self.assertRaises(TypeError):
-            TqSdkMappingDecodeBoundary()
+    def _payload(self):
+        return {
+            "provider": "TqSdk",
+            "version": "3.10.1",
+            "interface": "TqApi.query_his_cont_quotes",
+            "symbols": list(self.SYMBOLS),
+            "records": [
+                {"date": "2024-01-02T00:00:00.000", self.SYMBOLS[0]: "SHFE.cu2401", self.SYMBOLS[1]: "SHFE.al2401"},
+                {"date": "2024-01-03T00:00:00.000", self.SYMBOLS[0]: "SHFE.cu2402", self.SYMBOLS[1]: "SHFE.al2402"},
+            ],
+        }
+
+    def test_pinned_schema_decodes_date_and_symbol_columns(self):
+        decoded = decode_tqsdk_query_his_cont_quotes_payload(
+            self._payload(), required_symbols=self.SYMBOLS
+        )
+        self.assertEqual(date(2024, 1, 2), decoded[0][0])
+        self.assertEqual("SHFE.cu2402", decoded[1][1][self.SYMBOLS[0]])
+
+    def test_missing_symbol_or_non_monotonic_date_fails_closed(self):
+        payload = self._payload()
+        del payload["records"][0][self.SYMBOLS[1]]
+        with self.assertRaises(TqSdkMappingDecodeError):
+            decode_tqsdk_query_his_cont_quotes_payload(payload, required_symbols=self.SYMBOLS)
+        payload = self._payload()
+        payload["records"][1]["date"] = payload["records"][0]["date"]
+        with self.assertRaises(TqSdkMappingDecodeError):
+            decode_tqsdk_query_his_cont_quotes_payload(payload, required_symbols=self.SYMBOLS)
+
+
+class TerminalAuthCaptureTests(unittest.TestCase):
+    def test_module_records_pinned_tqsdk_api_contract(self):
+        self.assertFalse(BLOCKED_API_CONTRACT_NOT_PINNED)
 
     def test_fake_provider_satisfies_terminal_only_auth_boundary(self):
         def provider() -> tuple[str, str]:

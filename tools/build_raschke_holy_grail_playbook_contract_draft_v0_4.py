@@ -39,8 +39,10 @@ from src.playbook_contract import (
     PlaybookContract,
     SourceClaimRef,
     TransferStatus,
+    parameter_identity,
     validate_contract,
 )
+from src.strategy_evidence import TypedParameter
 from src.holy_grail_machine import (
     HOLY_GRAIL_MACHINE_FEATURE_VERSION,
     MACHINE_IMPLEMENTATION_BINDING,
@@ -501,9 +503,31 @@ def _observation_surfaces() -> tuple[ObservationSurface, ...]:
     )
 
 
+def strategy_parameters() -> tuple[TypedParameter, ...]:
+    """Expose V0.4's fixed machine conventions at StrategyIdentity granularity."""
+    values = HolyGrailMachineParameters()
+    return (
+        TypedParameter("adx_initialization", "str", values.adx_initialization),
+        TypedParameter("adx_period", "int", values.adx_period),
+        TypedParameter("adx_rising_window", "str", values.adx_rising_window),
+        TypedParameter("adx_threshold", "str", str(values.adx_threshold)),
+        TypedParameter("base_timeframe", "str", values.base_timeframe),
+        TypedParameter("ema_period", "int", values.ema_period),
+        TypedParameter("ema_price_field", "str", values.ema_price_field),
+        TypedParameter("ema_seed", "str", values.ema_seed),
+        TypedParameter("entry_offset_ticks", "int", values.entry_offset_ticks),
+        TypedParameter("monotonic_tighten_only", "bool", values.monotonic_tighten_only),
+        TypedParameter("numeric_arithmetic", "str", values.numeric_arithmetic),
+        TypedParameter("numeric_quantization", "str", values.numeric_quantization),
+        TypedParameter("swing_left_count", "int", values.swing_left_count),
+        TypedParameter("swing_right_count", "int", values.swing_right_count),
+        TypedParameter("trailing_classification", "str", values.trailing_classification),
+        TypedParameter("trailing_stop", "str", values.trailing_stop),
+    )
+
+
 def _machine_operationalization() -> MachineOperationalization:
     """Real MACHINE layer identity binding for ``src/holy_grail_machine.py``."""
-    parameters = HolyGrailMachineParameters()
     required_feature_versions = tuple(
         sorted(
             {
@@ -526,7 +550,7 @@ def _machine_operationalization() -> MachineOperationalization:
         code_hash=MACHINE_IMPLEMENTATION_BINDING.sha256,
         environment_hash=environment_hash,
         required_feature_versions=required_feature_versions,
-        parameter_identities=(parameters.identity_id,),
+        parameter_identities=tuple(sorted(parameter_identity(item) for item in strategy_parameters())),
     )
 
 

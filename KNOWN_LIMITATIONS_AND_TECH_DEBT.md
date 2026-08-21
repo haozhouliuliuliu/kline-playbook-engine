@@ -152,30 +152,23 @@ second-pass repair loop.
 
 ---
 
-## LIMIT-004 — Source-governed TqSdk historical main-contract mapping is unavailable under current source policy
+## LIMIT-004 — Source-governed TqSdk historical main-contract mapping
 
 ```text
-STATUS=DEFERRED_OWNER_GATED_SOURCE_PREREQUISITE
+STATUS=RESOLVED
 PRIORITY=CRITICAL_BEFORE_CANDIDATE_CONTRACT_MAPPING
 CURRENT_BLOCKER=NO_FOR_REPAIR_CLOSURE
 ACTIVATE_BEFORE=research-symbol candidate execution maps to canonical concrete contracts
-AUTHORITY=docs/evidence/E07_TQSDK_HISTORICAL_MAIN_MAPPING_AVAILABILITY_V0_1.md
-PREPARATION=docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_PREP_V0_1.md
-API_INDEPENDENT_MACHINERY=DONE
-BLOCKED_API_CONTRACT_NOT_PINNED=YES
+RESOLVED_BY=docs/evidence/E07_TQSDK_MAPPING_SCHEMA_AND_CAPTURE_V0_1.md
+SCHEDULE=docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_V0_1.json
+WINDOW=2024-01-01..2025-12-31
+RUNTIME_WIRING=NOT_DONE_FAIL_CLOSED
 ```
 
-Owner froze E-07 to the source-governed historical TqSdk `KQ.m@` mapping applied only to the
-project's canonical concrete-contract bars. The documented historical mapping interface
-requires an authenticated TqSdk account, while project source policy currently forbids login.
-
-Current status:
-
-```text
-TQSDK_HISTORY_ACCESS=LOGIN_REQUIRED
-E07_MAPPING_COMPLETENESS=INCOMPLETE
-E07_RUNTIME_MAPPING_STATUS=FAIL_CLOSED_PREREQUISITE
-```
+Owner-authorized authenticated capture pins TqSdk 3.10.1's daily `KQ.m@` mapping response.
+The resulting 105-change, six-product schedule binds only canonical concrete contracts for
+the 2024-2025 window. It is mapping evidence only, not price or outcome evidence. Runtime
+wiring remains a separate fail-closed pre-Shadow engineering gate.
 
 The generic `ContractMappingSchedule` type is structural/synthetic machinery and is **not** a
 candidate mapping authority. Do not substitute a project-authored OI/volume/calendar formula,
@@ -183,23 +176,21 @@ do not use pseudo-main price bars, and do not select a mapping by outcomes.
 
 ---
 
-## LIMIT-005 — Holy Grail Primary identity and pre-outcome gate remain incomplete
+## LIMIT-005 — Holy Grail Primary identity and pre-outcome gate
 
 ```text
-STATUS=DEFERRED_PRE_OUTCOME_IDENTITY
+STATUS=RESOLVED
 PRIORITY=HIGH_BEFORE_CANDIDATE_OUTCOME_ACCESS
 CURRENT_BLOCKER=NO
 ACTIVATE_BEFORE=first candidate outcome-bearing test
-AUTHORITY=docs/evidence/RASCHKE_HOLY_GRAIL_PLAYBOOK_CONTRACT_DRAFT_V0_4.md
+RESOLVED_BY=docs/evidence/HOLY_GRAIL_PRIMARY_FREEZE_V0_1.md
 ```
 
-Holy Grail V0.4 is now `MACHINE_READY` and `PRIMARY_FREEZE_READY`. Its 1-minute base,
-one-step ADX rising window, L1/R1 swing confirmation and swing-based trailing stop are
-versioned project-inferred conventions, not source claims. The remaining work is the formal
-PRIMARY/StrategyIdentity freeze and the project-wide pre-outcome gate; no candidate outcome
-may be used to select or revise these identities. The later “exit on push to new highs” wording
-remains an optional versioned variant, not the PRIMARY exit and cannot rescue the PRIMARY after
-outcomes.
+Holy Grail V0.4 has one frozen PRIMARY and StrategyIdentity, constructed without candidate
+outcomes. Its 1-minute base, one-step ADX rising window, L1/R1 swing confirmation and
+swing-based trailing stop remain versioned project-inferred conventions, not source claims.
+The later “exit on push to new highs” wording remains an optional versioned variant, not the
+PRIMARY exit and cannot rescue the PRIMARY after outcomes.
 
 ---
 
@@ -212,13 +203,14 @@ CURRENT_BLOCKER=NO
 ACTIVATE_BEFORE=prospective Shadow forward candidate evidence
 AUTHORITY=docs/research/HUMAN_PLAYBOOK_STATISTICAL_ACCEPTANCE_ROUTE_POLICY_V1_0.md
 HISTORICAL_POSITIVE_PASS_PROFILE_BLOCKER=DISPOSITIONED_BY_ROUTE_A_D
-PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_YET_LOCKED
+PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_LOCKED_METHOD_INSUFFICIENT
 ```
 
 Route A+D is binding: historical general-domain positive PASS is not required or claimed,
-and future genuinely unseen prospective Shadow/Forward is the positive path. That route does
-not itself create a lockable prospective statistical profile; production code therefore still
-permits locking only explicitly `TEST_ONLY` profiles for synthetic engine fixtures.
+and future genuinely unseen prospective Shadow/Forward is the positive path. Formal research
+now identifies the minimum missing method fields (event-weighted estimand, dependence/cluster
+model, sequential threshold, and strong FWER). Production code still permits locking only
+explicitly `TEST_ONLY` profiles for synthetic engine fixtures.
 
 Do not create a real-looking profile by filling descriptive strings, and do not treat test
 profile success as permission to inspect candidate outcomes.

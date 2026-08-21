@@ -6,35 +6,31 @@ Binding (Owner rule E-07, frozen):
 
 Scope of this module
 --------------------
-This module implements ONLY the ordinary engineering preparation that does NOT
-require a real authenticated TqSdk session, and ONLY machinery that is
-independent of the exact TqSdk API response contract.  It is the source-bound
-artifact layer for the future source-governed historical main-contract mapping;
-it is deliberately NOT wired into runtime execution (that remains a future,
-Owner-gated package) and it does NOT replace the structural/synthetic
+This module implements the source-bound artifact layer for source-governed
+historical main-contract mapping.  The TqSdk response contract is pinned by an
+authenticated schema capture for version 3.10.1.  It is deliberately NOT wired
+into runtime execution (that remains a future, Owner-gated package) and it does
+NOT replace the structural/synthetic
 ``ContractMappingSchedule`` in ``src.contract_semantics.py``.
 
 Recorded E07 facts (see
-``docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_PREP_V0_1.md``):
+``docs/evidence/E07_TQSDK_MAPPING_SCHEMA_AND_CAPTURE_V0_1.md``):
 
     TQSDK_HISTORY_ACCESS=LOGIN_REQUIRED
-    E07_MAPPING_COMPLETENESS=INCOMPLETE
-    E07_RUNTIME_MAPPING_STATUS=FAIL_CLOSED_PREREQUISITE
-    BLOCKED_API_CONTRACT_NOT_PINNED=YES
+    E07_MAPPING_COMPLETENESS=COMPLETE_FOR_2024_2025_WINDOW
+    E07_RUNTIME_MAPPING_STATUS=SOURCE_SCHEDULE_READY_NOT_RUNTIME_WIRED
+    BLOCKED_API_CONTRACT_NOT_PINNED=NO
 
 What is pinned and what is not
 ------------------------------
-The existing evidence pins the vendor interface NAME and its documented
-behaviour: ``TqApi.query_his_cont_quotes(symbol, n)`` returns, per effective
-date, the underlying concrete contract for each 主连 (main) symbol; it requires
-an authenticated ``TqApi`` session bound to ``TqAuth(account, password)``; the
-vendor main symbols use the ``KQ.m@`` form; the source-defined switch applies at
-the next trading day's open.  The evidence does NOT pin the exact wire/response
-schema (field names, effective-date representation, record structure) of that
-interface.  Per project policy this module therefore does NOT guess or implement
-any TqSdk response decoding.  The decode boundary is declared
-(``TqSdkMappingDecodeBoundary``) but deliberately NOT implemented, and the module
-records ``BLOCKED_API_CONTRACT_NOT_PINNED``.
+The evidence pins the vendor interface and its response schema:
+``TqApi.query_his_cont_quotes(symbol, n)`` returns a pandas DataFrame with a
+``date`` column and one concrete-contract string column per requested ``KQ.m@``
+symbol.  The decoder below accepts a JSON-safe capture of that schema and fails
+closed on an incomplete, unordered, or inconsistent response.  Mapping changes
+become effective only at the next captured trading day's 09:00 Asia/Shanghai;
+the schedule does not infer rolls from price, volume, open interest, calendar,
+or PnL.
 
 Owner rule enforcement
 ----------------------
@@ -54,24 +50,18 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from hashlib import sha256
 import json
-from typing import Protocol
+from typing import Any, Mapping, Protocol
 
 
 # ---------------------------------------------------------------------------
 # Blocked TqSdk API contract marker
 # ---------------------------------------------------------------------------
 
-BLOCKED_API_CONTRACT_NOT_PINNED = True
-"""Exact ``query_his_cont_quotes`` response schema is not pinned by evidence.
+BLOCKED_API_CONTRACT_NOT_PINNED = False
+"""The local TqSdk 3.10.1 source and authenticated schema capture pin the response."""
 
-While True, no TqSdk decode adapter may be implemented (per policy, do not
-guess).  Only the API-independent machinery below is provided.
-"""
-
-TQSDK_DECODE_NOT_IMPLEMENTED = (
-    "TqSdk query_his_cont_quotes response schema is not pinned; "
-    "the decode adapter is deliberately not implemented (BLOCKED_API_CONTRACT_NOT_PINNED)"
-)
+TQSDK_QUERY_HIS_CONT_QUOTES_SCHEMA_VERSION = "TQSDK_3_10_1_PANDAS_DATE_PLUS_SYMBOL_COLUMNS"
+"""Pinned response shape: a date column plus one concrete-contract string column per symbol."""
 
 PSEUDO_MAIN_MARKERS = ("@", ".main", "主连")
 """Markers that identify a vendor main/pseudo-main symbol (e.g. ``KQ.m@``)."""
@@ -105,6 +95,61 @@ class MappingSubstitutionForbidden(SourceGovernedMappingError):
 
 class PseudoMainBarForbidden(SourceGovernedMappingError):
     """Fail closed: a synthesized/pseudo-main price bar may never be selected."""
+
+
+class TqSdkMappingDecodeError(SourceGovernedMappingError):
+    """Fail closed: captured TqSdk mapping payload disagrees with the pinned schema."""
+
+
+def decode_tqsdk_query_his_cont_quotes_payload(
+    payload: Mapping[str, Any], *, required_symbols: tuple[str, ...]
+) -> tuple[tuple[date, dict[str, str]], ...]:
+    """Decode the pinned TqSdk 3.10.1 JSON capture without importing TqSdk/pandas.
+
+    ``TqApi.query_his_cont_quotes`` returns a pandas DataFrame whose ``date`` column is
+    ``datetime64[ns]`` and whose requested ``KQ.m@`` symbols are string columns. The
+    authenticated capture is serialized as ``records``. This decoder rejects missing,
+    duplicated, non-monotonic, blank, or schema-mismatched rows rather than inferring a
+    contract from OI, volume, calendar rules, or another substitute.
+    """
+    if not isinstance(payload, Mapping):
+        raise TqSdkMappingDecodeError("TqSdk mapping payload must be an object")
+    if payload.get("provider") != "TqSdk" or payload.get("version") != "3.10.1":
+        raise TqSdkMappingDecodeError("captured payload must identify TqSdk 3.10.1")
+    if payload.get("interface") != "TqApi.query_his_cont_quotes":
+        raise TqSdkMappingDecodeError("captured payload interface is not query_his_cont_quotes")
+    declared_symbols = payload.get("symbols")
+    if not isinstance(declared_symbols, list) or tuple(declared_symbols) != required_symbols:
+        raise TqSdkMappingDecodeError("captured payload symbols do not exactly match the request")
+    records = payload.get("records")
+    if not isinstance(records, list) or not records:
+        raise TqSdkMappingDecodeError("captured payload requires non-empty records")
+
+    decoded: list[tuple[date, dict[str, str]]] = []
+    previous_day: date | None = None
+    for index, record in enumerate(records):
+        if not isinstance(record, Mapping):
+            raise TqSdkMappingDecodeError(f"record {index} is not an object")
+        raw_day = record.get("date")
+        if not isinstance(raw_day, str):
+            raise TqSdkMappingDecodeError(f"record {index} date is missing or not text")
+        try:
+            row_day = datetime.fromisoformat(raw_day.replace("Z", "+00:00")).date()
+        except ValueError as error:
+            raise TqSdkMappingDecodeError(f"record {index} date is not ISO-8601") from error
+        if previous_day is not None and row_day <= previous_day:
+            raise TqSdkMappingDecodeError("captured mapping dates must be strictly increasing")
+        row: dict[str, str] = {}
+        for symbol in required_symbols:
+            value = record.get(symbol)
+            if not isinstance(value, str) or not value.strip():
+                raise TqSdkMappingDecodeError(
+                    f"record {index} has no concrete contract for {symbol!r}"
+                )
+            row[symbol] = value.strip()
+        decoded.append((row_day, row))
+        previous_day = row_day
+    return tuple(decoded)
 
 
 def assert_source_governed_derivation(derivation: str) -> None:

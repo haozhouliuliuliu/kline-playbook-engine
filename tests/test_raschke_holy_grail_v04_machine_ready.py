@@ -22,7 +22,7 @@ import unittest
 from collections import Counter
 from pathlib import Path
 
-from src.playbook_contract import MachineReadiness, validate_contract
+from src.playbook_contract import MachineReadiness, parameter_identity, validate_contract
 from tools.build_raschke_holy_grail_playbook_contract_draft_v0_3 import (
     build_payload as build_v0_3_payload,
 )
@@ -30,6 +30,7 @@ from tools.build_raschke_holy_grail_playbook_contract_draft_v0_4 import (
     OWNER_APPROVED_DECISIONS,
     build_contract,
     build_payload,
+    strategy_parameters,
 )
 
 
@@ -208,7 +209,11 @@ class RaschkeHolyGrailV04MachineReadyTests(unittest.TestCase):
         self.assertEqual(64, len(machine["environment_hash"]))
         self.assertEqual(64, len(machine["machine_identity"]))
         self.assertTrue(machine["required_feature_versions"])
-        self.assertEqual(1, len(machine["parameter_identities"]))
+        self.assertEqual(16, len(machine["parameter_identities"]))
+        self.assertEqual(
+            tuple(sorted(parameter_identity(parameter) for parameter in strategy_parameters())),
+            tuple(machine["parameter_identities"]),
+        )
 
     def test_machine_code_hash_matches_actual_implementation_bytes(self):
         import hashlib

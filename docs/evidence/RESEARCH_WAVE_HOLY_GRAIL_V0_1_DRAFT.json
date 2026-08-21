@@ -1,0 +1,21 @@
+{
+  "artifact": "RESEARCH_WAVE_HOLY_GRAIL_V0_1_DRAFT",
+  "status": "DRAFT_NOT_LOCKED",
+  "reason_not_locked": "PROSPECTIVE_SHADOW_STATISTICAL_PROFILE_NOT_LOCKED_METHOD_INSUFFICIENT",
+  "candidate_outcome_data_used": "NO",
+  "candidate_eligibility_view_identity": "fb30bfaf0433df02b4ee7d1e781b25473c7271495924859c1d781b87e036c822",
+  "primary_freeze_artifact": "HOLY_GRAIL_PRIMARY_FREEZE_V0_1",
+  "primary_playbook": "RASCHKE_HOLY_GRAIL_V0_4",
+  "product_scope": ["cu", "al", "ni", "au", "ag", "rb"],
+  "timeframe": "BASE_1_MINUTE",
+  "outcome_tested_alternatives": [],
+  "parameter_search_ranges": "FIXED_BY_V0_4_MACHINE_PARAMETERS",
+  "source_governed_mapping_identity": "331ba31e2a03695160aff28f7c7c58888dcc9bc091515e176c8d5c6b66edcb5c",
+  "hypotheses": [
+    {
+      "hypothesis_id": "HG_V04_PRIMARY_SINGLE",
+      "statement": "The pre-frozen Holy Grail V0.4 primary strategy is the sole prospective Shadow candidate; no outcome conclusion is registered in this draft."
+    }
+  ],
+  "outcome_evaluation_authorized": "NO"
+}
