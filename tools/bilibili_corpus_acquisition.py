@@ -710,8 +710,19 @@ def find_sidecar(directory: Path, bvid: str, suffix: str) -> Path | None:
 
 
 def build_download_command(yt_dlp: str, cookie_path: Path, output_dir: Path, entry: dict[str, Any]) -> list[str]:
+    # yt-dlp writes cookies back to the --cookies file on exit. When that file lives in a
+    # path the yt-dlp subprocess cannot write (e.g. a read-only auth dir under the sandbox
+    # token), the download still succeeds but the final save_cookies raises PermissionError,
+    # causing the video to be marked FAILED. Copy the cookie into the output dir (which
+    # yt-dlp can already write to) and point yt-dlp at that copy so the write-back always
+    # succeeds. The original auth credential file is never touched.
+    tmp_cookie = output_dir / ".yt_dl_cookie.txt"
+    try:
+        shutil.copy2(cookie_path, tmp_cookie)
+    except Exception:
+        tmp_cookie = cookie_path
     return [
-        yt_dlp, "--cookies", str(cookie_path), "--continue", "--no-overwrites",
+        yt_dlp, "--cookies", str(tmp_cookie), "--continue", "--no-overwrites",
         "--format", "bestvideo*+bestaudio/best", "--merge-output-format", "mp4",
         "--write-info-json", "--write-subs", "--write-auto-subs",
         "--sub-langs", "zh.*,zh-Hans,zh-CN,ai-zh", "--windows-filenames",
