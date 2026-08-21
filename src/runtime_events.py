@@ -72,6 +72,8 @@ class BrokerEventType(str, Enum):
     """Deterministic broker event vocabulary (generic, broker-agnostic)."""
 
     ORDER_SUBMITTED = "ORDER_SUBMITTED"
+    ORDER_TRIGGERED = "ORDER_TRIGGERED"
+    ORDER_AMBIGUOUS = "ORDER_AMBIGUOUS"
     ORDER_FILLED = "ORDER_FILLED"
     ORDER_CANCELLED = "ORDER_CANCELLED"
     ORDER_REJECTED = "ORDER_REJECTED"

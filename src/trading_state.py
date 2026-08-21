@@ -64,6 +64,8 @@ class OrderStatus(str, Enum):
     """Deterministic order lifecycle status (client + broker-confirmed view)."""
 
     PENDING_SUBMIT = "PENDING_SUBMIT"
+    RESTING = "RESTING"
+    TRIGGERED = "TRIGGERED"
     LIVE = "LIVE"
     PARTIALLY_FILLED = "PARTIALLY_FILLED"
     FILLED = "FILLED"
@@ -72,6 +74,7 @@ class OrderStatus(str, Enum):
     REPLACED = "REPLACED"
     CANCEL_PENDING = "CANCEL_PENDING"
     REPLACE_PENDING = "REPLACE_PENDING"
+    AMBIGUOUS = "AMBIGUOUS_INTRABAR_SEQUENCE"
 
 
 class EventApplicationOutcome(str, Enum):
@@ -641,6 +644,8 @@ class TradingState:
         """Apply event content; returns ledger record identities appended."""
         handler = {
             BrokerEventType.ORDER_SUBMITTED: self._apply_order_submitted,
+            BrokerEventType.ORDER_TRIGGERED: self._apply_order_triggered,
+            BrokerEventType.ORDER_AMBIGUOUS: self._apply_order_ambiguous,
             BrokerEventType.ORDER_FILLED: self._apply_order_filled,
             BrokerEventType.ORDER_CANCELLED: self._apply_order_cancelled,
             BrokerEventType.ORDER_REJECTED: self._apply_order_rejected,
@@ -674,7 +679,7 @@ class TradingState:
             concrete_contract_id=contract,
             direction=direction,
             action=action,
-            status=OrderStatus.LIVE,
+            status=OrderStatus(_payload_value(event.payload, "lifecycle_status") or OrderStatus.LIVE.value),
             requested_quantity=quantity,
             filled_quantity=Decimal("0"),
             average_fill_price=None,
@@ -692,7 +697,7 @@ class TradingState:
                     direction=direction.value,
                     action=action.value,
                     requested_quantity=str(quantity),
-                    status=OrderStatus.LIVE.value,
+                    status=(_payload_value(event.payload, "lifecycle_status") or OrderStatus.LIVE.value),
                 ),
                 event.occurred_at,
             ).identity_id
@@ -782,6 +787,41 @@ class TradingState:
             updated_at=event.occurred_at,
         )
         return ledger_ids
+
+    def _apply_order_triggered(self, event: BrokerEvent) -> list[str]:
+        if event.order_id is None:
+            raise ValueError("ORDER_TRIGGERED requires order_id")
+        order = self._orders.get(event.order_id)
+        if order is None or order.status not in (OrderStatus.RESTING, OrderStatus.LIVE):
+            raise ValueError("ORDER_TRIGGERED requires a resting order")
+        self._orders[event.order_id] = RuntimeOrderState(
+            order_id=order.order_id, client_request_id=order.client_request_id,
+            concrete_contract_id=order.concrete_contract_id, direction=order.direction,
+            action=order.action, status=OrderStatus.TRIGGERED,
+            requested_quantity=order.requested_quantity, filled_quantity=order.filled_quantity,
+            average_fill_price=order.average_fill_price, last_event_id=event.event_id,
+            updated_at=event.occurred_at,
+        )
+        return [self._ledger.append(RuntimeLedgerRecordKind.ORDER, event.order_id,
+            ledger_pairs(order_id=event.order_id, status=OrderStatus.TRIGGERED.value), event.occurred_at).identity_id]
+
+    def _apply_order_ambiguous(self, event: BrokerEvent) -> list[str]:
+        if event.order_id is None:
+            raise ValueError("ORDER_AMBIGUOUS requires order_id")
+        order = self._orders.get(event.order_id)
+        if order is None:
+            raise ValueError("ORDER_AMBIGUOUS references an unknown order")
+        self._orders[event.order_id] = RuntimeOrderState(
+            order_id=order.order_id, client_request_id=order.client_request_id,
+            concrete_contract_id=order.concrete_contract_id, direction=order.direction,
+            action=order.action, status=OrderStatus.AMBIGUOUS,
+            requested_quantity=order.requested_quantity, filled_quantity=order.filled_quantity,
+            average_fill_price=order.average_fill_price, last_event_id=event.event_id,
+            updated_at=event.occurred_at,
+        )
+        return [self._ledger.append(RuntimeLedgerRecordKind.SAFETY, event.order_id,
+            ledger_pairs(order_id=event.order_id, status=OrderStatus.AMBIGUOUS.value,
+                         reason=_payload_value(event.payload, "reason") or "AMBIGUOUS_INTRABAR_SEQUENCE"), event.occurred_at).identity_id]
 
     def _apply_position_effect(
         self,

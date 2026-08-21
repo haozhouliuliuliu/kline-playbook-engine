@@ -36,10 +36,14 @@ class HolyGrailRuntimeDirective:
     previous_stop_price: Decimal | None
     oco_group_id: str | None
     machine_event_identity: str
+    strategy_identity_id: str
+    concrete_contract_id: str
+    direction: PositionDirection
+    quantity: Decimal
 
     @property
     def identity_id(self) -> str:
-        return _hash({"event_type": self.event_type, "available_at": self.available_at.isoformat(), "reference_price": None if self.reference_price is None else str(self.reference_price), "previous_stop_price": None if self.previous_stop_price is None else str(self.previous_stop_price), "oco_group_id": self.oco_group_id, "machine_event_identity": self.machine_event_identity})
+        return _hash({"event_type": self.event_type, "available_at": self.available_at.isoformat(), "reference_price": None if self.reference_price is None else str(self.reference_price), "previous_stop_price": None if self.previous_stop_price is None else str(self.previous_stop_price), "oco_group_id": self.oco_group_id, "machine_event_identity": self.machine_event_identity, "strategy_identity_id": self.strategy_identity_id, "concrete_contract_id": self.concrete_contract_id, "direction": self.direction.value, "quantity": str(self.quantity)})
 
 
 class HolyGrailShadowAdapter:
@@ -78,13 +82,10 @@ class HolyGrailShadowAdapter:
         if context.concrete_contract_id != self._contract or context.instrument != self._instrument:
             return ()
         events = [item for item in self._sequence.events if item.available_at == context.available_at]
-        intents: list[StrategyIntent] = []
-        for event in events:
-            if event.event_type == HolyGrailEventType.POSITION_OPENED:
-                intents.append(self._intent(event, context, IntentAction.OPEN, self._direction(), self._quantity, "HOLY_GRAIL_MACHINE_POSITION_OPENED"))
-            elif event.event_type == HolyGrailEventType.POSITION_CLOSED:
-                intents.append(self._intent(event, context, IntentAction.CLOSE, self._direction(), None, "HOLY_GRAIL_MACHINE_POSITION_CLOSED"))
-        return tuple(intents)
+        # ShadowRuntime consumes the same machine facts through its execution
+        # directive seam.  Returning market intents here would duplicate the
+        # entry/exit stop lifecycle and falsely downgrade it to MARKET.
+        return ()
 
     def _direction(self) -> PositionDirection:
         return PositionDirection.LONG if self._sequence.side == "LONG" else PositionDirection.SHORT
@@ -103,8 +104,7 @@ class HolyGrailShadowAdapter:
             reason=reason,
         )
 
-    @staticmethod
-    def _to_directive(event: HolyGrailEvent) -> HolyGrailRuntimeDirective:
+    def _to_directive(self, event: HolyGrailEvent) -> HolyGrailRuntimeDirective:
         oco_events = {HolyGrailEventType.PROTECTIVE_STOP_ACTIVE, HolyGrailEventType.STOP_REPLACED, HolyGrailEventType.STOP_TRIGGERED}
-        oco_group_id = _hash({"machine_event": event.identity_id, "role": "HOLY_GRAIL_PROTECTIVE_STOP"}) if event.event_type in oco_events else None
-        return HolyGrailRuntimeDirective(event.event_type, event.available_at, event.reference_price, event.previous_stop_price, oco_group_id, event.identity_id)
+        oco_group_id = _hash({"sequence": self._sequence.identity_id, "role": "HOLY_GRAIL_PROTECTIVE_EXIT"}) if event.event_type in oco_events else None
+        return HolyGrailRuntimeDirective(event.event_type, event.available_at, event.reference_price, event.previous_stop_price, oco_group_id, event.identity_id, self._strategy, self._contract, self._direction(), self._quantity)

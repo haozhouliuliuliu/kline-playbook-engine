@@ -38,6 +38,16 @@ class OrderType(str, Enum):
 
     MARKET = "MARKET"
     LIMIT = "LIMIT"
+    STOP_MARKET = "STOP_MARKET"
+
+
+class OrderRole(str, Enum):
+    """Business role is deliberately separate from the generic order type."""
+
+    GENERIC = "GENERIC"
+    ENTRY_STOP = "ENTRY_STOP"
+    PROTECTIVE_STOP = "PROTECTIVE_STOP"
+    EXIT_STOP = "EXIT_STOP"
 
 
 @dataclass(frozen=True)
@@ -51,6 +61,16 @@ class BrokerOrderInstruction:
     order_type: OrderType
     quantity: Decimal
     limit_price: Decimal | None = None
+    trigger_price: Decimal | None = None
+    order_role: OrderRole = OrderRole.GENERIC
+    strategy_identity_id: str | None = None
+    client_order_id: str | None = None
+    created_at: datetime | None = None
+    available_at: datetime | None = None
+    parent_order_id: str | None = None
+    oco_group_id: str | None = None
+    replace_generation: int = 0
+    source_directive_identity: str | None = None
 
     def __post_init__(self) -> None:
         if not self.client_request_id or not self.concrete_contract_id:
@@ -68,6 +88,33 @@ class BrokerOrderInstruction:
                 raise ValueError("limit price is only valid for a LIMIT order")
         elif self.order_type is OrderType.LIMIT:
             raise ValueError("a LIMIT order requires a limit price")
+        if self.trigger_price is not None:
+            if type(self.trigger_price) is not Decimal or not self.trigger_price.is_finite() or self.trigger_price <= 0:
+                raise ValueError("order trigger price must be a positive finite Decimal")
+            if self.order_type is not OrderType.STOP_MARKET:
+                raise ValueError("trigger price is only valid for a STOP_MARKET order")
+        elif self.order_type is OrderType.STOP_MARKET:
+            raise ValueError("a STOP_MARKET order requires a trigger price")
+        if not isinstance(self.order_role, OrderRole):
+            raise ValueError("order instruction requires an explicit order role")
+        if self.order_role is not OrderRole.GENERIC and self.order_type is not OrderType.STOP_MARKET:
+            raise ValueError("stop order roles require STOP_MARKET execution type")
+        if type(self.replace_generation) is not int or self.replace_generation < 0:
+            raise ValueError("replace generation must be a non-negative integer")
+        for name, value in (
+            ("strategy identity", self.strategy_identity_id),
+            ("client order", self.client_order_id),
+            ("parent order", self.parent_order_id),
+            ("OCO group", self.oco_group_id),
+            ("source directive", self.source_directive_identity),
+        ):
+            if value is not None and (not isinstance(value, str) or not value.strip()):
+                raise ValueError(f"{name} identity must be non-empty when supplied")
+        for value in (self.created_at, self.available_at):
+            if value is not None and value.tzinfo is None:
+                raise ValueError("order instruction timestamps must be timezone-aware")
+        if self.created_at is not None and self.available_at is not None and self.available_at < self.created_at:
+            raise ValueError("order availability cannot precede creation")
 
     @property
     def identity_id(self) -> str:
@@ -80,6 +127,16 @@ class BrokerOrderInstruction:
                 "order_type": self.order_type.value,
                 "quantity": str(self.quantity),
                 "limit_price": None if self.limit_price is None else str(self.limit_price),
+                "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "order_role": self.order_role.value,
+                "strategy_identity_id": self.strategy_identity_id,
+                "client_order_id": self.client_order_id or self.client_request_id,
+                "created_at": None if self.created_at is None else self.created_at.isoformat(),
+                "available_at": None if self.available_at is None else self.available_at.isoformat(),
+                "parent_order_id": self.parent_order_id,
+                "oco_group_id": self.oco_group_id,
+                "replace_generation": self.replace_generation,
+                "source_directive_identity": self.source_directive_identity,
             }
         )
 

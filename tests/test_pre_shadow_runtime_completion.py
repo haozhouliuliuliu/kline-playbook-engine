@@ -102,7 +102,7 @@ class HolyGrailAdapterTests(unittest.TestCase):
         adapter = HolyGrailShadowAdapter.from_machine(machine=machine, aggregation=aggregate(bars), strategy_identity_id="strategy", instrument="cu2502", quantity=Decimal("1"))
         self.assertTrue(any(item.event_type == HolyGrailEventType.ENTRY_ORDER_RESTING for item in adapter.directives))
         self.assertTrue(any(item.event_type == HolyGrailEventType.PROTECTIVE_STOP_ACTIVE for item in adapter.directives))
-        self.assertEqual("HOLY_GRAIL_MACHINE_POSITION_OPENED", adapter.intents(type("Context", (), {"concrete_contract_id": "cu2502", "instrument": "cu2502", "available_at": bars[35].completed_bar.available_at, "identity_id": "context"})())[0].reason)
+        self.assertEqual((), adapter.intents(type("Context", (), {"concrete_contract_id": "cu2502", "instrument": "cu2502", "available_at": bars[35].completed_bar.available_at, "identity_id": "context"})()))
         from src.shadow_runtime import ShadowRuntime
         from tests.runtime_synthetic_fixture import make_config, make_contract_spec
         runtime = ShadowRuntime(make_config(contract_specs=(make_contract_spec("cu2502"),)), adapter, created_at=bars[0].completed_bar.available_at)

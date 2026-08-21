@@ -21,7 +21,7 @@ from hashlib import sha256
 import json
 from typing import Any, Iterable
 
-from src.broker_adapter import OrderType
+from src.broker_adapter import OrderRole, OrderType
 from src.contract_semantics import OrderAction, PositionDirection
 from src.runtime_events import BrokerEvent, BrokerEventType
 from src.trading_state import OrderStatus
@@ -51,6 +51,14 @@ class OrderRequest:
     quantity: Decimal
     strategy_identity_id: str | None = None
     limit_price: Decimal | None = None
+    trigger_price: Decimal | None = None
+    order_role: OrderRole = OrderRole.GENERIC
+    client_order_id: str | None = None
+    available_at: datetime | None = None
+    parent_order_id: str | None = None
+    oco_group_id: str | None = None
+    replace_generation: int = 0
+    source_directive_identity: str | None = None
 
     def __post_init__(self) -> None:
         if not self.client_request_id or not self.concrete_contract_id:
@@ -68,6 +76,19 @@ class OrderRequest:
                 raise ValueError("limit price is only valid for a LIMIT order")
         elif self.order_type is OrderType.LIMIT:
             raise ValueError("a LIMIT order request requires a limit price")
+        if self.trigger_price is not None:
+            if type(self.trigger_price) is not Decimal or not self.trigger_price.is_finite() or self.trigger_price <= 0:
+                raise ValueError("trigger price must be a positive finite Decimal")
+            if self.order_type is not OrderType.STOP_MARKET:
+                raise ValueError("trigger price is only valid for STOP_MARKET")
+        elif self.order_type is OrderType.STOP_MARKET:
+            raise ValueError("STOP_MARKET requires trigger price")
+        if not isinstance(self.order_role, OrderRole):
+            raise ValueError("order request requires an order role")
+        if type(self.replace_generation) is not int or self.replace_generation < 0:
+            raise ValueError("replace generation must be non-negative")
+        if self.available_at is not None and self.available_at.tzinfo is None:
+            raise ValueError("order availability must be timezone-aware")
 
     @property
     def identity_id(self) -> str:
@@ -81,6 +102,14 @@ class OrderRequest:
                 "order_type": self.order_type.value,
                 "quantity": str(self.quantity),
                 "limit_price": None if self.limit_price is None else str(self.limit_price),
+                "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "order_role": self.order_role.value,
+                "client_order_id": self.client_order_id or self.client_request_id,
+                "available_at": None if self.available_at is None else self.available_at.isoformat(),
+                "parent_order_id": self.parent_order_id,
+                "oco_group_id": self.oco_group_id,
+                "replace_generation": self.replace_generation,
+                "source_directive_identity": self.source_directive_identity,
             }
         )
 
@@ -99,6 +128,14 @@ class Order:
     status: OrderStatus
     strategy_identity_id: str | None = None
     limit_price: Decimal | None = None
+    trigger_price: Decimal | None = None
+    order_role: OrderRole = OrderRole.GENERIC
+    client_order_id: str | None = None
+    available_at: datetime | None = None
+    parent_order_id: str | None = None
+    oco_group_id: str | None = None
+    replace_generation: int = 0
+    source_directive_identity: str | None = None
     filled_quantity: Decimal = Decimal("0")
     average_fill_price: Decimal | None = None
     created_at: datetime | None = None
@@ -144,6 +181,14 @@ class Order:
                 "order_type": self.order_type.value,
                 "quantity": str(self.quantity),
                 "limit_price": None if self.limit_price is None else str(self.limit_price),
+                "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "order_role": self.order_role.value,
+                "client_order_id": self.client_order_id or self.client_request_id,
+                "available_at": None if self.available_at is None else self.available_at.isoformat(),
+                "parent_order_id": self.parent_order_id,
+                "oco_group_id": self.oco_group_id,
+                "replace_generation": self.replace_generation,
+                "source_directive_identity": self.source_directive_identity,
                 "status": self.status.value,
                 "filled_quantity": str(self.filled_quantity),
                 "average_fill_price": (
@@ -188,8 +233,18 @@ class OrderManagementSystem:
             order
             for order in self.orders()
             if order.status
-            in (OrderStatus.PENDING_SUBMIT, OrderStatus.LIVE, OrderStatus.PARTIALLY_FILLED)
+            in (OrderStatus.PENDING_SUBMIT, OrderStatus.RESTING, OrderStatus.LIVE, OrderStatus.TRIGGERED, OrderStatus.PARTIALLY_FILLED)
         )
+
+    def restore_orders(self, orders: Iterable[Order]) -> None:
+        """Restore an already broker-reconciled OMS projection after restart."""
+        materialized = tuple(orders)
+        if any(not isinstance(item, Order) for item in materialized):
+            raise ValueError("OMS restore requires Order values")
+        if len({item.order_id for item in materialized}) != len(materialized) or len({item.client_request_id for item in materialized}) != len(materialized):
+            raise ValueError("OMS restore rejects duplicate order identities")
+        self._orders = {item.order_id: item for item in materialized}
+        self._by_request = {item.client_request_id: item.order_id for item in materialized}
 
     # -- lifecycle -------------------------------------------------------------
 
@@ -210,6 +265,14 @@ class OrderManagementSystem:
             status=OrderStatus.PENDING_SUBMIT,
             strategy_identity_id=request.strategy_identity_id,
             limit_price=request.limit_price,
+            trigger_price=request.trigger_price,
+            order_role=request.order_role,
+            client_order_id=request.client_order_id or request.client_request_id,
+            available_at=request.available_at or at,
+            parent_order_id=request.parent_order_id,
+            oco_group_id=request.oco_group_id,
+            replace_generation=request.replace_generation,
+            source_directive_identity=request.source_directive_identity,
             created_at=at,
             updated_at=at,
         )
@@ -220,7 +283,7 @@ class OrderManagementSystem:
     def cancel(self, order_id: str, requested_at: datetime) -> Order:
         order = self._require(order_id)
         at = _now(requested_at)
-        if order.status not in (OrderStatus.LIVE, OrderStatus.PARTIALLY_FILLED, OrderStatus.PENDING_SUBMIT):
+        if order.status not in (OrderStatus.LIVE, OrderStatus.RESTING, OrderStatus.PARTIALLY_FILLED, OrderStatus.PENDING_SUBMIT):
             raise ValueError(f"order {order_id} cannot be cancelled from {order.status.value}")
         updated = self._replace(order, status=OrderStatus.CANCEL_PENDING, updated_at=at)
         self._orders[order_id] = updated
@@ -233,7 +296,7 @@ class OrderManagementSystem:
             raise ValueError("replace quantity must be a positive finite Decimal")
         if new_quantity < order.filled_quantity:
             raise ValueError("replace cannot reduce below the already-filled quantity")
-        if order.status not in (OrderStatus.LIVE, OrderStatus.PARTIALLY_FILLED, OrderStatus.PENDING_SUBMIT):
+        if order.status not in (OrderStatus.LIVE, OrderStatus.RESTING, OrderStatus.PARTIALLY_FILLED, OrderStatus.PENDING_SUBMIT):
             raise ValueError(f"order {order_id} cannot be replaced from {order.status.value}")
         updated = self._replace(
             order,
@@ -266,7 +329,11 @@ class OrderManagementSystem:
         at = _now(event.occurred_at)
 
         if event.event_type is BrokerEventType.ORDER_SUBMITTED:
-            updated = self._replace(order, status=OrderStatus.LIVE, updated_at=at, last_event_id=event.event_id)
+            updated = self._replace(order, status=OrderStatus(dict(event.payload).get("lifecycle_status", OrderStatus.LIVE.value)), updated_at=at, last_event_id=event.event_id)
+        elif event.event_type is BrokerEventType.ORDER_TRIGGERED:
+            updated = self._replace(order, status=OrderStatus.TRIGGERED, updated_at=at, last_event_id=event.event_id)
+        elif event.event_type is BrokerEventType.ORDER_AMBIGUOUS:
+            updated = self._replace(order, status=OrderStatus.AMBIGUOUS, updated_at=at, last_event_id=event.event_id)
         elif event.event_type is BrokerEventType.ORDER_REJECTED:
             updated = self._replace(order, status=OrderStatus.REJECTED, updated_at=at, last_event_id=event.event_id)
         elif event.event_type is BrokerEventType.ORDER_CANCELLED:
@@ -282,7 +349,7 @@ class OrderManagementSystem:
         return updated
 
     def _apply_fill(self, order: Order, event: BrokerEvent) -> Order:
-        if order.status not in (OrderStatus.LIVE, OrderStatus.PARTIALLY_FILLED):
+        if order.status not in (OrderStatus.LIVE, OrderStatus.RESTING, OrderStatus.TRIGGERED, OrderStatus.PARTIALLY_FILLED):
             raise ValueError(f"order {order.order_id} cannot receive a fill from {order.status.value}")
         payload = dict(event.payload)
         if "quantity" not in payload or "price" not in payload:
@@ -328,6 +395,14 @@ class OrderManagementSystem:
             status=changes.get("status", order.status),
             strategy_identity_id=changes.get("strategy_identity_id", order.strategy_identity_id),
             limit_price=changes.get("limit_price", order.limit_price),
+            trigger_price=changes.get("trigger_price", order.trigger_price),
+            order_role=changes.get("order_role", order.order_role),
+            client_order_id=changes.get("client_order_id", order.client_order_id),
+            available_at=changes.get("available_at", order.available_at),
+            parent_order_id=changes.get("parent_order_id", order.parent_order_id),
+            oco_group_id=changes.get("oco_group_id", order.oco_group_id),
+            replace_generation=changes.get("replace_generation", order.replace_generation),
+            source_directive_identity=changes.get("source_directive_identity", order.source_directive_identity),
             filled_quantity=changes.get("filled_quantity", order.filled_quantity),
             average_fill_price=changes.get("average_fill_price", order.average_fill_price),
             created_at=changes.get("created_at", order.created_at),

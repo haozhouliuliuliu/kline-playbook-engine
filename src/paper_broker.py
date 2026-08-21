@@ -45,6 +45,7 @@ from src.broker_adapter import (
     BrokerOrderInstruction,
     BrokerOrderSnapshot,
     BrokerPositionSnapshot,
+    OrderRole,
     OrderType,
 )
 from src.contract_semantics import ContractSpecification, OrderAction, PositionDirection
@@ -89,6 +90,15 @@ class PaperBrokerOrder:
     average_fill_price: Decimal | None
     created_at: datetime
     updated_at: datetime
+    trigger_price: Decimal | None = None
+    order_role: OrderRole = OrderRole.GENERIC
+    strategy_identity_id: str | None = None
+    client_order_id: str | None = None
+    available_at: datetime | None = None
+    parent_order_id: str | None = None
+    oco_group_id: str | None = None
+    replace_generation: int = 0
+    source_directive_identity: str | None = None
 
     def __post_init__(self) -> None:
         required = (self.order_id, self.client_request_id, self.concrete_contract_id)
@@ -98,6 +108,12 @@ class PaperBrokerOrder:
             raise ValueError("paper broker order requires explicit direction and action")
         if not isinstance(self.order_type, OrderType) or not isinstance(self.status, OrderStatus):
             raise ValueError("paper broker order requires explicit order type and status")
+        if not isinstance(self.order_role, OrderRole):
+            raise ValueError("paper broker order requires explicit order role")
+        if self.available_at is not None and (self.available_at.tzinfo is None or self.available_at < self.created_at):
+            raise ValueError("paper broker order availability is invalid")
+        if type(self.replace_generation) is not int or self.replace_generation < 0:
+            raise ValueError("paper broker replace generation must be non-negative")
         if type(self.quantity) is not Decimal or not self.quantity.is_finite() or self.quantity <= 0:
             raise ValueError("paper broker order quantity must be a positive finite Decimal")
         if type(self.filled_quantity) is not Decimal or not self.filled_quantity.is_finite() or self.filled_quantity < 0:
@@ -125,6 +141,15 @@ class PaperBrokerOrder:
                 "order_type": self.order_type.value,
                 "quantity": str(self.quantity),
                 "limit_price": None if self.limit_price is None else str(self.limit_price),
+                "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "order_role": self.order_role.value,
+                "strategy_identity_id": self.strategy_identity_id,
+                "client_order_id": self.client_order_id or self.client_request_id,
+                "available_at": (self.available_at or self.created_at).isoformat(),
+                "parent_order_id": self.parent_order_id,
+                "oco_group_id": self.oco_group_id,
+                "replace_generation": self.replace_generation,
+                "source_directive_identity": self.source_directive_identity,
                 "status": self.status.value,
                 "filled_quantity": str(self.filled_quantity),
                 "average_fill_price": (
@@ -301,7 +326,16 @@ class PaperBrokerAdapter(BrokerAdapter):
             order_type=instruction.order_type,
             quantity=instruction.quantity,
             limit_price=instruction.limit_price,
-            status=OrderStatus.LIVE,
+            trigger_price=instruction.trigger_price,
+            order_role=instruction.order_role,
+            strategy_identity_id=instruction.strategy_identity_id,
+            client_order_id=instruction.client_order_id or instruction.client_request_id,
+            available_at=instruction.available_at or timestamp,
+            parent_order_id=instruction.parent_order_id,
+            oco_group_id=instruction.oco_group_id,
+            replace_generation=instruction.replace_generation,
+            source_directive_identity=instruction.source_directive_identity,
+            status=(OrderStatus.RESTING if instruction.order_type is OrderType.STOP_MARKET else OrderStatus.LIVE),
             filled_quantity=Decimal("0"),
             average_fill_price=None,
             created_at=timestamp,
@@ -320,9 +354,19 @@ class PaperBrokerAdapter(BrokerAdapter):
             limit_price=(
                 None if instruction.limit_price is None else str(instruction.limit_price)
             ),
+            trigger_price=(None if instruction.trigger_price is None else str(instruction.trigger_price)),
+            lifecycle_status=(OrderStatus.RESTING.value if instruction.order_type is OrderType.STOP_MARKET else OrderStatus.LIVE.value),
+            order_role=instruction.order_role.value,
+            strategy_identity_id=instruction.strategy_identity_id or "",
+            client_order_id=instruction.client_order_id or instruction.client_request_id,
+            available_at=(instruction.available_at or timestamp).isoformat(),
+            parent_order_id=instruction.parent_order_id or "",
+            oco_group_id=instruction.oco_group_id or "",
+            replace_generation=str(instruction.replace_generation),
+            source_directive_identity=instruction.source_directive_identity or "",
         )
 
-        if self._fill_policy is PaperFillPolicy.IMMEDIATE_MARKET_AT_REFERENCE:
+        if self._fill_policy is PaperFillPolicy.IMMEDIATE_MARKET_AT_REFERENCE and instruction.order_type is not OrderType.STOP_MARKET:
             if reference_price is None:
                 raise ValueError(
                     "IMMEDIATE_MARKET_AT_REFERENCE policy requires a reference_price"
@@ -333,7 +377,7 @@ class PaperBrokerAdapter(BrokerAdapter):
     def cancel_order(self, order_id: str, at: datetime | None = None) -> None:
         order = self._require_order(order_id)
         timestamp = self._clock(at)
-        if order.status not in (OrderStatus.LIVE, OrderStatus.PARTIALLY_FILLED):
+        if order.status not in (OrderStatus.LIVE, OrderStatus.RESTING, OrderStatus.PARTIALLY_FILLED):
             raise ValueError(f"paper broker order {order_id} cannot be cancelled from {order.status.value}")
         self._orders[order_id] = self._with_status(order, OrderStatus.CANCELLED, timestamp)
         self._emit(
@@ -360,6 +404,15 @@ class PaperBrokerAdapter(BrokerAdapter):
             order_type=order.order_type,
             quantity=new_quantity,
             limit_price=order.limit_price,
+            trigger_price=order.trigger_price,
+            order_role=order.order_role,
+            strategy_identity_id=order.strategy_identity_id,
+            client_order_id=order.client_order_id,
+            available_at=order.available_at,
+            parent_order_id=order.parent_order_id,
+            oco_group_id=order.oco_group_id,
+            replace_generation=order.replace_generation + 1,
+            source_directive_identity=order.source_directive_identity,
             status=OrderStatus.REPLACED,
             filled_quantity=order.filled_quantity,
             average_fill_price=order.average_fill_price,
@@ -386,29 +439,83 @@ class PaperBrokerAdapter(BrokerAdapter):
             raise ValueError("ingest requires a NormalizedHistoricalBar")
         timestamp = self._clock(at)
         before = self._next_sequence
+        candidates: list[tuple[PaperBrokerOrder, Decimal | None, bool]] = []
         for order in self._resting_orders():
             if order.concrete_contract_id != bar.concrete_instrument:
                 continue
-            fill_price: Decimal | None = None
-            if order.order_type is OrderType.MARKET:
-                fill_price = bar.open
-            else:
-                limit = order.limit_price
-                if limit is not None:
-                    if order.direction is PositionDirection.LONG and bar.low <= limit:
-                        fill_price = limit
-                    elif order.direction is PositionDirection.SHORT and bar.high >= limit:
-                        fill_price = limit
-            if fill_price is not None:
-                self._fill_order(order.order_id, fill_price, timestamp)
+            price, ambiguous = self._completed_bar_execution(order, bar)
+            if price is not None or ambiguous:
+                candidates.append((order, price, ambiguous))
+
+        # A completed bar does not disclose an ordering between two members of
+        # the same OCO group.  Preserve that uncertainty rather than selecting
+        # a profitable path.  Different groups remain deterministically ordered.
+        by_group: dict[str, list[tuple[PaperBrokerOrder, Decimal | None, bool]]] = {}
+        for item in candidates:
+            group = item[0].oco_group_id
+            if group:
+                by_group.setdefault(group, []).append(item)
+        ambiguous_ids: set[str] = set()
+        for members in by_group.values():
+            if len(members) > 1 or any(item[2] for item in members):
+                ambiguous_ids.update(item[0].order_id for item in members)
+        for order, price, ambiguous in candidates:
+            if ambiguous or order.order_id in ambiguous_ids:
+                self._mark_ambiguous(order.order_id, timestamp, "AMBIGUOUS_INTRABAR_SEQUENCE")
+                continue
+            if price is None:
+                continue
+            if order.order_type is OrderType.STOP_MARKET:
+                self._orders[order.order_id] = self._with_status(order, OrderStatus.TRIGGERED, timestamp)
+                self._emit(BrokerEventType.ORDER_TRIGGERED, order_id=order.order_id,
+                           client_request_id=order.client_request_id,
+                           trigger_price=str(order.trigger_price))
+            self._fill_order(order.order_id, price, timestamp)
         return tuple(event for event in self._outbox if self._sequence_of(event) >= before)
 
     def _resting_orders(self) -> tuple[PaperBrokerOrder, ...]:
         return tuple(
             order
             for order in sorted(self._orders.values(), key=lambda item: item.order_id)
-            if order.status in (OrderStatus.LIVE, OrderStatus.PARTIALLY_FILLED)
+            if order.status in (OrderStatus.LIVE, OrderStatus.RESTING, OrderStatus.PARTIALLY_FILLED)
         )
+
+    def _completed_bar_execution(self, order: PaperBrokerOrder, bar: NormalizedHistoricalBar) -> tuple[Decimal | None, bool]:
+        available = order.available_at or order.created_at
+        if bar.completed_bar.end <= available:
+            return None, False
+        if order.order_type is OrderType.STOP_MARKET:
+            trigger = order.trigger_price
+            if trigger is None:
+                raise ValueError("STOP_MARKET order lacks trigger price")
+            buy_stop = (order.action is OrderAction.OPEN and order.direction is PositionDirection.LONG) or (order.action is OrderAction.CLOSE and order.direction is PositionDirection.SHORT)
+            crossed = bar.high >= trigger if buy_stop else bar.low <= trigger
+            if bar.completed_bar.start < available < bar.completed_bar.end:
+                return None, crossed
+            if available == bar.completed_bar.start and ((bar.open >= trigger) if buy_stop else (bar.open <= trigger)):
+                return None, True
+            if available > bar.completed_bar.start:
+                return None, False
+            if not crossed:
+                return None, False
+            if buy_stop:
+                return (bar.open if bar.open >= trigger else trigger), False
+            return (bar.open if bar.open <= trigger else trigger), False
+        if order.order_type is OrderType.MARKET:
+            return bar.open, False
+        limit = order.limit_price
+        if limit is None:
+            return None, False
+        hit = bar.low <= limit if order.direction is PositionDirection.LONG else bar.high >= limit
+        return (limit if hit else None), False
+
+    def _mark_ambiguous(self, order_id: str, at: datetime, reason: str) -> None:
+        order = self._require_order(order_id)
+        if order.status in (OrderStatus.FILLED, OrderStatus.CANCELLED, OrderStatus.AMBIGUOUS):
+            return
+        self._orders[order_id] = self._with_status(order, OrderStatus.AMBIGUOUS, at)
+        self._emit(BrokerEventType.ORDER_AMBIGUOUS, order_id=order_id,
+                   client_request_id=order.client_request_id, reason=reason)
 
     # -- event outbox ----------------------------------------------------------
 
@@ -567,6 +674,15 @@ class PaperBrokerAdapter(BrokerAdapter):
             order_type=order.order_type,
             quantity=order.quantity,
             limit_price=order.limit_price,
+            trigger_price=order.trigger_price,
+            order_role=order.order_role,
+            strategy_identity_id=order.strategy_identity_id,
+            client_order_id=order.client_order_id,
+            available_at=order.available_at,
+            parent_order_id=order.parent_order_id,
+            oco_group_id=order.oco_group_id,
+            replace_generation=order.replace_generation,
+            source_directive_identity=order.source_directive_identity,
             status=status,
             filled_quantity=order.filled_quantity,
             average_fill_price=order.average_fill_price,
@@ -596,6 +712,15 @@ class PaperBrokerAdapter(BrokerAdapter):
             order_type=order.order_type,
             quantity=order.quantity,
             limit_price=order.limit_price,
+            trigger_price=order.trigger_price,
+            order_role=order.order_role,
+            strategy_identity_id=order.strategy_identity_id,
+            client_order_id=order.client_order_id,
+            available_at=order.available_at,
+            parent_order_id=order.parent_order_id,
+            oco_group_id=order.oco_group_id,
+            replace_generation=order.replace_generation,
+            source_directive_identity=order.source_directive_identity,
             status=new_status,
             filled_quantity=new_filled,
             average_fill_price=new_avg,
@@ -613,6 +738,25 @@ class PaperBrokerAdapter(BrokerAdapter):
             action=order.action.value,
             concrete_contract_id=order.concrete_contract_id,
         )
+        if new_status is OrderStatus.FILLED and order.oco_group_id:
+            self._cancel_oco_siblings(order, at)
+
+    def mark_order_ambiguous(self, order_id: str, reason: str, at: datetime | None = None) -> None:
+        """Fail closed when completed-bar evidence cannot order two lifecycle facts."""
+        if not reason:
+            raise ValueError("ambiguous order disposition requires a reason")
+        self._mark_ambiguous(order_id, self._clock(at), reason)
+
+    def _cancel_oco_siblings(self, filled: PaperBrokerOrder, at: datetime) -> None:
+        """Broker-side OCO fact: a full fill requests cancellation of active siblings."""
+        for sibling in self._resting_orders():
+            if sibling.order_id == filled.order_id or sibling.oco_group_id != filled.oco_group_id:
+                continue
+            self._orders[sibling.order_id] = self._with_status(sibling, OrderStatus.CANCELLED, at)
+            self._emit(BrokerEventType.ORDER_CANCELLED, order_id=sibling.order_id,
+                       client_request_id=sibling.client_request_id,
+                       cancelled_by_order_id=filled.order_id,
+                       oco_group_id=filled.oco_group_id)
 
     def _mirror_fill(
         self,

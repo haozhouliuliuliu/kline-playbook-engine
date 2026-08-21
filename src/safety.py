@@ -26,7 +26,7 @@ from typing import Any
 from src.market_context import MarketContext
 from src.reconciliation import ReconciliationReport
 from src.runtime_events import BrokerConnectionState, BrokerEventViolationKind
-from src.trading_state import TradingState
+from src.trading_state import OrderStatus, TradingState
 
 SAFETY_SCHEMA_VERSION = "shadow-runtime-safety-v0.1"
 
@@ -51,6 +51,8 @@ class SafetyViolationKind(str, Enum):
     CLOCK_SESSION_ANOMALY = "CLOCK_SESSION_ANOMALY"
     SEQUENCE_VIOLATION = "SEQUENCE_VIOLATION"
     KILL_SWITCH_TRIPPED = "KILL_SWITCH_TRIPPED"
+    PROTECTIVE_STOP_PENDING = "PROTECTIVE_STOP_PENDING"
+    PROTECTIVE_STOP_REPLACEMENT_IN_PROGRESS = "PROTECTIVE_STOP_REPLACEMENT_IN_PROGRESS"
 
 
 # Persistent violations cannot clear automatically and block trading.
@@ -225,6 +227,8 @@ class SafetyGate:
         context: MarketContext | None,
         connection_state: BrokerConnectionState,
         reconciliation: ReconciliationReport | None,
+        protective_stop_pending: bool = False,
+        protective_stop_replacement_in_progress: bool = False,
     ) -> SafetyAssessment:
         if not isinstance(state, TradingState):
             raise ValueError("SafetyGate.assess requires a TradingState")
@@ -232,8 +236,15 @@ class SafetyGate:
             raise ValueError("safety clock timestamp must be timezone-aware")
         if not isinstance(connection_state, BrokerConnectionState):
             raise ValueError("safety requires a BrokerConnectionState")
+        if type(protective_stop_pending) is not bool or type(protective_stop_replacement_in_progress) is not bool:
+            raise ValueError("protective stop safety inputs must be bool")
 
         violations: list[SafetyViolation] = []
+
+        if protective_stop_pending:
+            violations.append(SafetyViolation(SafetyViolationKind.PROTECTIVE_STOP_PENDING, "entry exposure has no confirmed protective stop yet", clock_now))
+        if protective_stop_replacement_in_progress:
+            violations.append(SafetyViolation(SafetyViolationKind.PROTECTIVE_STOP_REPLACEMENT_IN_PROGRESS, "protective stop cancellation/replacement is in progress", clock_now))
 
         # Kill switch is a permanent latch (recorded every assessment while tripped).
         if self._kill_switch.tripped:
@@ -311,6 +322,16 @@ class SafetyGate:
                     observed_at=clock_now,
                 )
             )
+
+        for order in state.orders:
+            if order.status is OrderStatus.AMBIGUOUS:
+                violations.append(
+                    SafetyViolation(
+                        kind=SafetyViolationKind.ORDER_INCONSISTENCY,
+                        detail=f"order {order.order_id} has unresolved AMBIGUOUS_INTRABAR_SEQUENCE",
+                        observed_at=clock_now,
+                    )
+                )
 
         # Reconciliation mismatches (fail closed).
         if reconciliation is not None:

@@ -205,6 +205,8 @@ ACTIVATE_BEFORE=prospective Shadow forward candidate evidence
 AUTHORITY=docs/research/HUMAN_PLAYBOOK_STATISTICAL_ACCEPTANCE_ROUTE_POLICY_V1_0.md
 HISTORICAL_POSITIVE_PASS_PROFILE_BLOCKER=DISPOSITIONED_BY_ROUTE_A_D
 PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_LOCKABLE_UNDER_CURRENT_ASSUMPTION_AUTHORITY
+PROSPECTIVE_PROCESS_ASSUMPTION_DESIGN=NO_GOVERNABLE_A_B_ASSUMPTION_FOUND
+STATISTICAL_BLOCKER_CLASS=RESEARCH_DESIGN_LIMIT_NOT_ENGINEERING_DEFECT
 ```
 
 Route A+D is binding: historical general-domain positive PASS is not required or claimed,
@@ -213,6 +215,10 @@ now identifies the exact mathematical missing authority: a pre-governed process 
 conditional mean/tail/dependence assumptions to the frozen unconditional event-weighted null.
 Production code still permits locking only explicitly `TEST_ONLY` profiles for synthetic engine fixtures.
 
+The bounded V0.3 project-control/prospective-design pass found no A/B assumption that
+both preserves the frozen population estimand and governs the required market process.
+This is a research-design limit, not an execution-engineering defect; do not reopen it
+without a new governed design, strong independent theory, or formal protocol decision.
 Do not create a real-looking profile by filling descriptive strings, and do not treat test
 profile success as permission to inspect candidate outcomes.
 

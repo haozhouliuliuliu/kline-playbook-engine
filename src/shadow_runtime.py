@@ -23,7 +23,7 @@ import json
 from typing import Any, Protocol
 from zoneinfo import ZoneInfo
 
-from src.broker_adapter import BrokerOrderInstruction, OrderType
+from src.broker_adapter import BrokerOrderInstruction, OrderRole, OrderType
 from src.contract_semantics import ContractSpecification, OrderAction
 from src.historical_data import NormalizedHistoricalBar
 from src.intent import (
@@ -200,6 +200,9 @@ class ShadowRuntime:
         self._cycle_sequence = 0
         self._last_reconciliation: ReconciliationReport | None = None
         self._last_safety: SafetyAssessment | None = None
+        self._directive_order_ids: dict[str, str] = {}
+        self._protective_pending: set[tuple[str, str, str]] = set()
+        self._protective_replacement_in_progress: set[tuple[str, str, str]] = set()
 
     # -- component access ------------------------------------------------------
 
@@ -292,6 +295,7 @@ class ShadowRuntime:
 
         # 2. Strategy.intent (TEST_ONLY fake strategy).
         intents = self._strategy.intents(context)
+        orders_created: list[Order] = []
         # A real strategy adapter may additionally expose machine directives that
         # are not reducible to the current generic MARKET intent vocabulary
         # (for example a protective-stop pending/replace fact).  Record them
@@ -312,6 +316,7 @@ class ShadowRuntime:
                     ),
                     now,
                 )
+                self._apply_execution_directive(directive, context, orders_created)
 
         # 3. Deterministic conflict resolution.
         conflict = self._conflict_resolver.resolve(intents)
@@ -332,8 +337,7 @@ class ShadowRuntime:
 
         # 4. RiskGate + Safety gate (Safety overrides strategies).
         risk_decisions: list[RiskDecision] = []
-        orders_created: list[Order] = []
-        blocking = self._safety_gate.is_blocking()
+        blocking = self._safety_gate.is_blocking() or bool(self._protective_pending) or bool(self._protective_replacement_in_progress)
         for resolution in conflict.resolutions:
             intent = resolution.intent
             if intent.action is IntentAction.HOLD:
@@ -353,7 +357,9 @@ class ShadowRuntime:
             self._submit_order(intent, decision.quantity_for_order, now, context, orders_created)
 
         # 5. Broker event flow (fills / resting evaluation).
-        if self._config.fill_policy is PaperFillPolicy.RESTING_ON_COMPLETED_BAR:
+        if self._config.fill_policy is PaperFillPolicy.RESTING_ON_COMPLETED_BAR or any(
+            order.order_type is OrderType.STOP_MARKET for order in self._oms.open_orders()
+        ):
             self._broker.ingest_completed_bar(bar, at=now)
         event_applications = self.drain_and_apply_events(now)
 
@@ -379,6 +385,8 @@ class ShadowRuntime:
             context=context,
             connection_state=self._broker.connection_state,
             reconciliation=reconciliation,
+            protective_stop_pending=bool(self._protective_pending),
+            protective_stop_replacement_in_progress=bool(self._protective_replacement_in_progress),
         )
         self._last_safety = safety
         for violation in safety.violations:
@@ -394,6 +402,11 @@ class ShadowRuntime:
                 now,
             )
 
+        # Only clear after broker events and the safety observation are both
+        # durably recorded; an unresolved ambiguity has already become a
+        # persistent Safety violation through TradingState.
+        self._protective_replacement_in_progress.clear()
+
         return RuntimeCycleResult(
             cycle_sequence=cycle_sequence,
             context_identity=context.identity_id,
@@ -406,6 +419,101 @@ class ShadowRuntime:
             safety=safety,
             ledger_tail_identity=self._ledger.tail_identity,
         )
+
+    def _apply_execution_directive(self, directive: Any, context: MarketContext, orders_created: list[Order]) -> None:
+        """Translate the real Holy Grail machine facts into generic OMS orders.
+
+        This seam deliberately understands only the adapter's stable directive
+        fields; generic OMS/PaperBroker remain strategy agnostic.
+        """
+        event = directive.event_type
+        key = (directive.strategy_identity_id, directive.concrete_contract_id, directive.direction.value)
+        if event == "ENTRY_ORDER_RESTING":
+            if directive.machine_event_identity in self._directive_order_ids:
+                return
+            self._submit_execution_order(
+                directive=directive, action=OrderAction.OPEN, role=OrderRole.ENTRY_STOP,
+                trigger_price=directive.reference_price, parent_order_id=None,
+                replace_generation=0, orders_created=orders_created,
+            )
+            return
+        if event == "PROTECTIVE_STOP_PENDING":
+            self._protective_pending.add(key)
+            return
+        if event == "PROTECTIVE_STOP_ACTIVE":
+            self._protective_pending.discard(key)
+            if directive.machine_event_identity in self._directive_order_ids:
+                return
+            parent = self._latest_entry_order_id(key)
+            self._submit_execution_order(
+                directive=directive, action=OrderAction.CLOSE, role=OrderRole.PROTECTIVE_STOP,
+                trigger_price=directive.reference_price, parent_order_id=parent,
+                replace_generation=0, orders_created=orders_created,
+            )
+            return
+        if event == "STOP_REPLACED":
+            active = self._active_protective_order(key)
+            if active is None or directive.reference_price is None:
+                return
+            self._protective_replacement_in_progress.add(key)
+            if self._stop_crossed_in_current_completed_bar(active, context):
+                self._broker.mark_order_ambiguous(
+                    active.order_id, "STOP_REPLACE_TRIGGER_AMBIGUOUS_INTRABAR_SEQUENCE",
+                    at=context.available_at,
+                )
+                return
+            self._oms.cancel(active.order_id, context.available_at)
+            self._broker.cancel_order(active.order_id, at=context.available_at)
+            self._submit_execution_order(
+                directive=directive, action=OrderAction.CLOSE, role=OrderRole.PROTECTIVE_STOP,
+                trigger_price=directive.reference_price, parent_order_id=active.parent_order_id,
+                replace_generation=active.replace_generation + 1, orders_created=orders_created,
+            )
+
+    @staticmethod
+    def _stop_crossed_in_current_completed_bar(order: Order, context: MarketContext) -> bool:
+        if order.trigger_price is None:
+            return False
+        buy_stop = (order.action is OrderAction.OPEN and order.direction.value == "LONG") or (order.action is OrderAction.CLOSE and order.direction.value == "SHORT")
+        return context.last_completed_bar.high >= order.trigger_price if buy_stop else context.last_completed_bar.low <= order.trigger_price
+
+    def _latest_entry_order_id(self, key: tuple[str, str, str]) -> str | None:
+        strategy, contract, _ = key
+        entries = [order for order in self._oms.orders() if order.strategy_identity_id == strategy and order.concrete_contract_id == contract and order.order_role is OrderRole.ENTRY_STOP]
+        return max(entries, key=lambda item: item.created_at or self._clock_now).order_id if entries else None
+
+    def _active_protective_order(self, key: tuple[str, str, str]) -> Order | None:
+        strategy, contract, _ = key
+        candidates = [order for order in self._oms.open_orders() if order.strategy_identity_id == strategy and order.concrete_contract_id == contract and order.order_role is OrderRole.PROTECTIVE_STOP]
+        return max(candidates, key=lambda item: item.replace_generation) if candidates else None
+
+    def _submit_execution_order(self, *, directive: Any, action: OrderAction, role: OrderRole, trigger_price: Decimal | None, parent_order_id: str | None, replace_generation: int, orders_created: list[Order]) -> Order:
+        if trigger_price is None:
+            raise ValueError("machine stop directive requires a trigger price")
+        request_id = _canonical_hash({"runtime": self._config.runtime_id, "directive": directive.machine_event_identity, "role": role.value, "replace_generation": replace_generation})
+        request = OrderRequest(
+            client_request_id=request_id, client_order_id=request_id,
+            concrete_contract_id=directive.concrete_contract_id, direction=directive.direction,
+            action=action, order_type=OrderType.STOP_MARKET, quantity=directive.quantity,
+            strategy_identity_id=directive.strategy_identity_id, trigger_price=trigger_price,
+            order_role=role, available_at=directive.available_at, parent_order_id=parent_order_id,
+            oco_group_id=directive.oco_group_id, replace_generation=replace_generation,
+            source_directive_identity=directive.machine_event_identity,
+        )
+        order = self._oms.create_order(request, directive.available_at)
+        instruction = BrokerOrderInstruction(
+            client_request_id=request.client_request_id, client_order_id=request.client_order_id,
+            concrete_contract_id=request.concrete_contract_id, direction=request.direction,
+            action=request.action, order_type=request.order_type, quantity=request.quantity,
+            trigger_price=request.trigger_price, order_role=request.order_role,
+            strategy_identity_id=request.strategy_identity_id, available_at=request.available_at,
+            parent_order_id=request.parent_order_id, oco_group_id=request.oco_group_id,
+            replace_generation=request.replace_generation, source_directive_identity=request.source_directive_identity,
+        )
+        self._broker.submit_order(instruction, at=directive.available_at)
+        self._directive_order_ids[directive.machine_event_identity] = order.order_id
+        orders_created.append(order)
+        return order
 
     def drain_and_apply_events(self, at: datetime | None = None) -> tuple[EventApplicationResult, ...]:
         """Drain pending broker events and apply them to TradingState + OMS."""
@@ -531,4 +639,24 @@ class ShadowRuntime:
             append_start_record=False,
         )
         runtime._state = restored_state
+        restored_orders: list[Order] = []
+        for item in broker_snapshot.orders:
+            restored_orders.append(Order(
+                order_id=item.order_id, client_request_id=item.client_request_id,
+                concrete_contract_id=item.concrete_contract_id, direction=item.direction,
+                action=item.action, order_type=item.order_type, quantity=item.quantity,
+                status=item.status, strategy_identity_id=item.strategy_identity_id,
+                limit_price=item.limit_price, trigger_price=item.trigger_price,
+                order_role=item.order_role, client_order_id=item.client_order_id,
+                available_at=item.available_at, parent_order_id=item.parent_order_id,
+                oco_group_id=item.oco_group_id, replace_generation=item.replace_generation,
+                source_directive_identity=item.source_directive_identity,
+                filled_quantity=item.filled_quantity, average_fill_price=item.average_fill_price,
+                created_at=item.created_at, updated_at=item.updated_at,
+            ))
+        runtime._oms.restore_orders(restored_orders)
+        runtime._directive_order_ids = {
+            item.source_directive_identity: item.order_id
+            for item in restored_orders if item.source_directive_identity
+        }
         return runtime

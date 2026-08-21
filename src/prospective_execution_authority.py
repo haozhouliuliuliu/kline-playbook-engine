@@ -37,10 +37,15 @@ class ProspectiveFeeMarginFact:
     source_identity: str
     fee_per_round_trip: Decimal
     initial_margin_rate: Decimal
+    version: str = "v1"
+    product_scope: str | None = None
+    provenance: str | None = None
+    source_bytes_sha256: str | None = None
 
     def __post_init__(self) -> None:
         _text(self.concrete_contract_id, "concrete contract")
         _text(self.source_identity, "fee/margin source identity")
+        _text(self.version, "fee/margin version")
         if self.effective_at.tzinfo is None or self.available_at.tzinfo is None:
             raise ValueError("fee/margin timestamps must be timezone-aware")
         if self.available_at > self.effective_at:
@@ -50,7 +55,7 @@ class ProspectiveFeeMarginFact:
 
     @property
     def identity_id(self) -> str:
-        return _hash({"contract": self.concrete_contract_id, "effective_at": self.effective_at.isoformat(), "available_at": self.available_at.isoformat(), "source": self.source_identity, "fee": str(self.fee_per_round_trip), "margin": str(self.initial_margin_rate)})
+        return _hash({"contract": self.concrete_contract_id, "effective_at": self.effective_at.isoformat(), "available_at": self.available_at.isoformat(), "source": self.source_identity, "fee": str(self.fee_per_round_trip), "margin": str(self.initial_margin_rate), "version": self.version, "scope": self.product_scope, "provenance": self.provenance, "source_bytes_sha256": self.source_bytes_sha256})
 
 
 @dataclass(frozen=True)
@@ -62,10 +67,15 @@ class ProspectivePriceLimitFact:
     source_identity: str
     lower_limit: Decimal
     upper_limit: Decimal
+    version: str = "v1"
+    product_scope: str | None = None
+    provenance: str | None = None
+    source_bytes_sha256: str | None = None
 
     def __post_init__(self) -> None:
         _text(self.concrete_contract_id, "concrete contract")
         _text(self.source_identity, "price-limit source identity")
+        _text(self.version, "price-limit version")
         if self.effective_at.tzinfo is None or self.available_at.tzinfo is None:
             raise ValueError("price-limit timestamps must be timezone-aware")
         if self.available_at > self.effective_at or self.effective_at.date() != self.trading_day:
@@ -75,7 +85,7 @@ class ProspectivePriceLimitFact:
 
     @property
     def identity_id(self) -> str:
-        return _hash({"contract": self.concrete_contract_id, "day": self.trading_day.isoformat(), "effective_at": self.effective_at.isoformat(), "available_at": self.available_at.isoformat(), "source": self.source_identity, "lower": str(self.lower_limit), "upper": str(self.upper_limit)})
+        return _hash({"contract": self.concrete_contract_id, "day": self.trading_day.isoformat(), "effective_at": self.effective_at.isoformat(), "available_at": self.available_at.isoformat(), "source": self.source_identity, "lower": str(self.lower_limit), "upper": str(self.upper_limit), "version": self.version, "scope": self.product_scope, "provenance": self.provenance, "source_bytes_sha256": self.source_bytes_sha256})
 
 
 @dataclass(frozen=True)
@@ -92,6 +102,98 @@ class ProspectiveSlippageAuthority:
             raise ValueError("configured slippage authority requires a model reference")
         if not self.configured and self.model_reference is not None:
             raise ValueError("unconfigured slippage authority cannot name a model")
+
+
+@dataclass(frozen=True)
+class ProspectiveSlippagePolicy:
+    """Versioned, prospective-only slippage authority for a scoped contract/product."""
+
+    policy_id: str
+    scope_id: str
+    version: str
+    effective_at: datetime
+    available_at: datetime
+    source_identity: str
+    provenance: str
+    source_bytes_sha256: str | None
+    status: str
+    model_reference: str | None = None
+
+    def __post_init__(self) -> None:
+        for value, name in ((self.policy_id, "policy id"), (self.scope_id, "scope"), (self.version, "version"), (self.source_identity, "source"), (self.provenance, "provenance"), (self.status, "status")):
+            _text(value, name)
+        if self.effective_at.tzinfo is None or self.available_at.tzinfo is None or self.available_at > self.effective_at:
+            raise ValueError("slippage policy chronology is invalid")
+        if self.source_bytes_sha256 is not None and (len(self.source_bytes_sha256) != 64 or any(ch not in "0123456789abcdef" for ch in self.source_bytes_sha256)):
+            raise ValueError("source bytes hash must be lowercase sha256 when provided")
+        if self.status == "CONFIGURED" and not self.model_reference:
+            raise ValueError("configured slippage policy requires model reference")
+        if self.status not in ("CONFIGURED", "UNRESOLVED_FAIL_CLOSED", "TEST_ONLY"):
+            raise ValueError("unsupported prospective slippage policy status")
+
+    @property
+    def identity_id(self) -> str:
+        return _hash({"policy": self.policy_id, "scope": self.scope_id, "version": self.version, "effective": self.effective_at.isoformat(), "available": self.available_at.isoformat(), "source": self.source_identity, "provenance": self.provenance, "bytes": self.source_bytes_sha256, "status": self.status, "model": self.model_reference})
+
+
+@dataclass(frozen=True)
+class ProspectiveAuthorityAuditRecord:
+    action: str
+    fact_identity: str
+    recorded_at: datetime
+
+    @property
+    def identity_id(self) -> str:
+        return _hash({"action": self.action, "fact": self.fact_identity, "recorded": self.recorded_at.isoformat()})
+
+
+class ProspectiveExecutionAuthorityStore:
+    """Append-only local ingestion seam; lookup is always point-in-time and fail closed."""
+
+    def __init__(self) -> None:
+        self._facts: list[ProspectiveFeeMarginFact | ProspectivePriceLimitFact | ProspectiveSlippagePolicy] = []
+        self._audit: list[ProspectiveAuthorityAuditRecord] = []
+
+    @property
+    def audit_log(self) -> tuple[ProspectiveAuthorityAuditRecord, ...]:
+        return tuple(self._audit)
+
+    @property
+    def identity_id(self) -> str:
+        return _hash({"facts": [item.identity_id for item in self._facts], "audit": [item.identity_id for item in self._audit]})
+
+    def append(self, fact: ProspectiveFeeMarginFact | ProspectivePriceLimitFact | ProspectiveSlippagePolicy, recorded_at: datetime) -> None:
+        if not isinstance(fact, (ProspectiveFeeMarginFact, ProspectivePriceLimitFact, ProspectiveSlippagePolicy)):
+            raise ProspectiveExecutionAuthorityError("PROSPECTIVE_AUTHORITY_UNKNOWN_FACT_TYPE")
+        if recorded_at.tzinfo is None:
+            raise ValueError("authority audit timestamp must be timezone-aware")
+        if fact.identity_id in {item.identity_id for item in self._facts}:
+            self._audit.append(ProspectiveAuthorityAuditRecord("DUPLICATE_NOOP", fact.identity_id, recorded_at))
+            return
+        key = self._conflict_key(fact)
+        if any(self._conflict_key(item) == key for item in self._facts):
+            raise ProspectiveExecutionAuthorityError("PROSPECTIVE_AUTHORITY_CONFLICT_NO_SILENT_OVERWRITE")
+        self._facts.append(fact)
+        self._audit.append(ProspectiveAuthorityAuditRecord("APPEND", fact.identity_id, recorded_at))
+
+    def authority_at(self, decision_at: datetime, *, concrete_contract_id: str, product_scope: str | None = None) -> "ProspectiveExecutionAuthority":
+        if decision_at.tzinfo is None:
+            raise ValueError("authority lookup requires timezone-aware decision time")
+        fees = tuple(item for item in self._facts if isinstance(item, ProspectiveFeeMarginFact) and item.concrete_contract_id == concrete_contract_id)
+        limits = tuple(item for item in self._facts if isinstance(item, ProspectivePriceLimitFact) and item.concrete_contract_id == concrete_contract_id)
+        policies = [item for item in self._facts if isinstance(item, ProspectiveSlippagePolicy) and item.available_at <= decision_at and item.effective_at <= decision_at and item.status == "CONFIGURED" and (item.scope_id == concrete_contract_id or product_scope is not None and item.scope_id == product_scope)]
+        if len(policies) > 1:
+            raise ProspectiveExecutionAuthorityError("PROSPECTIVE_SLIPPAGE_POLICY_MISSING_OR_AMBIGUOUS")
+        slippage = ProspectiveSlippageAuthority(policies[0].identity_id, True, policies[0].model_reference) if policies else ProspectiveSlippageAuthority("PROSPECTIVE_SLIPPAGE_POLICY_UNRESOLVED_FAIL_CLOSED", False)
+        return ProspectiveExecutionAuthority(fee_margin_facts=fees, price_limit_facts=limits, slippage_authority=slippage)
+
+    @staticmethod
+    def _conflict_key(fact: ProspectiveFeeMarginFact | ProspectivePriceLimitFact | ProspectiveSlippagePolicy) -> tuple[object, ...]:
+        if isinstance(fact, ProspectiveFeeMarginFact):
+            return ("FEE_MARGIN", fact.concrete_contract_id, fact.effective_at)
+        if isinstance(fact, ProspectivePriceLimitFact):
+            return ("PRICE_LIMIT", fact.concrete_contract_id, fact.trading_day, fact.effective_at)
+        return ("SLIPPAGE", fact.scope_id, fact.effective_at)
 
 
 class ProspectiveExecutionAuthority:
