@@ -15,25 +15,53 @@
 
 The dossier and reconciliation are committed directly under `docs/research/jianghe/`.
 
-The larger CSV/JSONL artifacts were intentionally committed in four exact byte-concatenable parts each so the rescue could be pushed in small commits rather than held until one large final write.
+The larger CSV/JSONL artifacts were intentionally committed in four ordered parts each so the rescue could be pushed in small commits rather than held until one large final write.
+
+### GitHub text newline normalization qualification
+
+The canonical local coverage CSV used CRLF line endings. GitHub's text-content write path normalized the committed coverage fragments to LF. The repository API therefore reports the following remote sizes:
+
+```text
+coverage part00 = 9121 bytes
+coverage part01 = 8769 bytes
+coverage part02 = 8435 bytes
+coverage part03 = 8717 bytes
+remote LF total = 35042 bytes
+```
+
+Each remote coverage fragment is exactly 25 bytes smaller than the corresponding local fragment, matching its 25 newline delimiters. Across four fragments the 100-byte difference matches the 100 recorded newlines in the canonical local CSV.
+
+Therefore:
+
+```text
+CANONICAL_LOCAL_COVERAGE_SHA256 = 1133f089caec2906668241c901a0034e8c5d0d0fa6efcefa9ba61f3994f65877
+REMOTE_GITHUB_RAW_BYTE_IDENTITY_TO_LOCAL = NOT_CLAIMED
+REMOTE_GITHUB_TEXT_ROW_CONTENT = PRESERVED_WITH_LF_NORMALIZATION
+```
+
+The local canonical SHA-256 remains a provenance identifier for the pre-rescue artifact. Do not claim that raw concatenation of the LF-normalized GitHub fragments reproduces that local byte hash. Semantic/mechanical reconstruction remains governed by the 99-row coverage checks below. If exact original-byte reconstruction is required later, newline restoration must be independently rechecked before claiming hash equality.
+
+The claim JSONL fragments did not exhibit this byte-size discrepancy; their remote GitHub sizes match the recorded fragment sizes.
 
 ## 2. Coverage record parts
 
-Reconstruct in order with raw byte concatenation:
+Reconstruct the repository text view in order:
 
 ```text
 part00 + part01 + part02 + part03
 -> JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.csv
 ```
 
-| Part | Bytes | Lines/newlines | SHA-256 | Commit |
+The resulting GitHub reconstruction is LF-normalized. The historical local fragment metadata is preserved below for provenance.
+
+| Part | Local bytes | Lines/newlines | Local SHA-256 | Commit |
 |---|---:|---:|---|---|
 | `JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.part00.csv` | 9146 | 25 | `7f73443bd9234c367cacd18a50e2e2bcaf9e810d60a0537a6ca0eb25060ca976` | `ae5866d9935b545cac8f6f3191e789ee14dcd49e` |
 | `...part01.csv` | 8794 | 25 | `072435183d0167eb34e56a4ba241b5090b9bbd8a8a81bfa5c597aad8d0cc4172` | `2b190b59a1ec6c1c7c93daeadd779cc5015102a3` |
 | `...part02.csv` | 8460 | 25 | `2315215e5fafe7bf4bd655fadaf0a1f4ec7a44ddabe1d67c6b71f9973825812b` | `a8cdd090be21d3c8fb416229a8f1155fef8c7f65` |
 | `...part03.csv` | 8742 | 25 | `d651c96d6ef3ab313097b9c9c8991ec8fa535f6aa7b49047c02e5fdacbe098ce` | `417bc4451c695d287c6db7d42d9ed37fdc0f73fe` |
 
-Integrity check after concatenation:
+Historical canonical local artifact:
 
 ```text
 bytes = 35142
@@ -41,7 +69,7 @@ newline_count = 100
 sha256 = 1133f089caec2906668241c901a0034e8c5d0d0fa6efcefa9ba61f3994f65877
 ```
 
-Semantic/mechanical audit of the reconstructed CSV:
+Semantic/mechanical audit of the coverage CSV content:
 
 ```text
 data_rows = 99
