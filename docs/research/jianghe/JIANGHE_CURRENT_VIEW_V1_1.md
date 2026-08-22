@@ -25,15 +25,16 @@ Read in this order:
 
 1. `JIANGHE_SECOND_PASS_VERIFICATION_REPORT_V1_1.md`
 2. `JIANGHE_TRADER_DOSSIER_V1_1.md`
-3. `JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.csv`
-4. `JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.md`
-5. `JIANGHE_SECOND_PASS_CLAIM_LEDGER_DELTA_V1_1.jsonl`
-6. `JIANGHE_SECOND_PASS_CASE_LIBRARY_DELTA_V1_1.md`
-7. `JIANGHE_SECOND_PASS_RECONCILIATION_V1_1.md`
-8. `JIANGHE_STRATEGY_FAMILIES_V1_1.md`
-9. `JIANGHE_UNKNOWN_REGISTER_V1_1.md`
-10. `JIANGHE_CONTRADICTION_REGISTER_V1_1.md`
-11. V1.0 targeted-review artifacts and V0.x ledgers as historical/base evidence.
+3. `second_pass_salvage/SECOND_PASS_SALVAGE_MANIFEST_V1_1.md` — durable reconstruction/integrity entry for the coverage CSV and 64-claim JSONL fragments
+4. `second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_FINDINGS_MANIFEST_V1_1.md` — durable reconstruction entry for the 001–099 source-findings fragments
+5. `JIANGHE_SECOND_PASS_CASE_LIBRARY_DELTA_V1_1.md`
+6. `JIANGHE_SECOND_PASS_RECONCILIATION_V1_1.md`
+7. `JIANGHE_STRATEGY_FAMILIES_V1_1.md`
+8. `JIANGHE_UNKNOWN_REGISTER_V1_1.md`
+9. `JIANGHE_CONTRADICTION_REGISTER_V1_1.md`
+10. V1.0 targeted-review artifacts and V0.x ledgers as historical/base evidence.
+
+The logical full artifacts `JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.csv`, `JIANGHE_SECOND_PASS_CLAIM_LEDGER_DELTA_V1_1.jsonl`, and `JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.md` are represented durably in Git by their ordered fragments plus the manifests above. Do not assume those logical full filenames are directly tracked files.
 
 V1.0's earlier `FINAL_SOURCE_DISTILLATION=COMPLETE` was revoked because evidence coverage was insufficient. V1.1 may restore completeness only because all 98 accessible media sources now have explicit start-to-end coverage records with zero unaccounted timeline gap, and the previously compressed sources have corrective claims/cases.
 
