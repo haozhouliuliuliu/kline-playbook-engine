@@ -1,20 +1,22 @@
 # 江河 001–099 二次复核抢救快照 V1.1
 
 > Status: DURABLE INTERMEDIATE SNAPSHOT
-> Purpose: preserve current second-pass findings immediately; this is not a final dossier and must not be used to claim corpus completion.
+> Purpose: preserve findings from an intermediate second-pass moment; this is not a final dossier and must not be used to infer current project readiness.
 
 ## 1. Why this snapshot exists
 
 Owner requested a full second-pass audit to eliminate the risk that earlier work only watched representative fragments, skipped sections, or compressed long videos too aggressively. The second pass confirmed that this risk was real, especially in the early corpus.
 
-Therefore the previous V1.0 claim `FINAL_SOURCE_DISTILLATION=COMPLETE` remains revoked.
+At the time this intermediate snapshot was written, the previous V1.0 claim `FINAL_SOURCE_DISTILLATION=COMPLETE` remained revoked. The following fields are deliberately historicalized so they cannot be mistaken for current readiness:
 
 ```text
-SECOND_PASS_SOURCE_COVERAGE_AUDIT=OPEN
-FINAL_SOURCE_DISTILLATION=REVOKED_PENDING_EXHAUSTIVE_SECOND_PASS
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
+HISTORICAL_AT_SNAPSHOT_SECOND_PASS_SOURCE_COVERAGE_AUDIT=OPEN
+HISTORICAL_AT_SNAPSHOT_FINAL_SOURCE_DISTILLATION=REVOKED_PENDING_EXHAUSTIVE_SECOND_PASS
+HISTORICAL_AT_SNAPSHOT_SOURCE_ONLY_VERIFIED=NO
+HISTORICAL_AT_SNAPSHOT_PRIMARY_ELIGIBLE=NO
 ```
+
+Current SOURCE_ONLY / PRIMARY / outcome / validation / trading readiness is not owned by this snapshot; use repository-root `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
 
 ## 2. Confirmed under-extraction problem
 
