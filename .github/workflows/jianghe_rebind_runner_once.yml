@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - .github/workflows/jianghe_rebind_runner_once.yml
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -121,5 +124,9 @@ This is execution evidence from the repository's existing builders and tests. It
           git add docs/evidence/JIANGHE_AI_TRADER_FOUNDATION_V0_1.json \
                   docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.json \
                   docs/evidence/JIANGHE_AUTHORITY_HYGIENE_IDENTITY_REBIND_EXECUTION_V0_1.md
-          git commit -m 'evidence: rebuild Jianghe active identity and SOURCE_ONLY binding [rebind-ci]'
-          git push origin HEAD:repair/jianghe-active-identity-rebind-v01
+          if git diff --cached --quiet; then
+            echo 'No generated changes to commit.'
+          else
+            git commit -m 'evidence: rebuild Jianghe active identity and SOURCE_ONLY binding [rebind-ci]'
+            git push origin HEAD:repair/jianghe-active-identity-rebind-v01
+          fi
