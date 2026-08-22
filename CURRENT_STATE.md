@@ -1,398 +1,152 @@
 # CURRENT_STATE
 
+> Mutable project-state authority. Keep this file current and compact.
+> Historical stages, rejected/deferred playbooks, old integration logs, and superseded progress estimates belong in Git history or their durable evidence/review artifacts, not here.
+
 ## Current phase
 
 ```text
 PROJECT_PHASE=RESEARCH_FOUNDATION
-ARCHITECTURE_BASELINE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
+CURRENT_ADOPTED_ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 ARCHITECTURE_STATUS=ACCEPTED
-ADOPTED_CONTRACT_VERSION=3.1
-ADOPTED_CONTRACT_SHA256=3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650bf690101e
-SECOND_PASS_REPAIR_MODE=EXITED
-HANDOFF_STATUS=TAKEOVER_ACCEPTED_INTEGRATION_EXECUTED
-CURRENT_WORK_PACKAGE=JIANGHE_AI_FIDELITY_AND_REPLAY_INTEGRATION_V0_1
-CURRENT_WORK_PACKAGE_STATUS=COMPLETE_INTEGRATED_NON_OUTCOME
-CURRENT_BLOCKER=PROSPECTIVE_STATISTICAL_ACCEPTANCE_REQUIRES_NEW_GOVERNED_PROCESS_ASSUMPTION_OR_PROTOCOL_DECISION
-GLOBAL_CRITICAL_BLOCKER=PROSPECTIVE_STATISTICAL_ACCEPTANCE_REQUIRES_NEW_GOVERNED_PROCESS_ASSUMPTION_OR_PROTOCOL_DECISION
-NORMAL_PRODUCTIVE_WORK=JIANGHE_SOURCE_ONLY_VERIFIED__FIDELITY_CORPUS_AND_REPLAY_INTEGRATED__REAL_MODEL_FIDELITY_REMAINS_NEXT
+RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
+RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
+CURRENT_WORK_PACKAGE=NONE_ACTIVE
+NEXT_NORMAL_PHASE=REAL_MODEL_FIDELITY_CANDIDATE_EVALUATION_PLUS_SOURCE_JUSTIFIED_PRIMARY_BRANCH_WORK_WITHOUT_CANDIDATE_OUTCOMES
+OWNER_ACTION=NONE_FOR_ORDINARY_PRE_OUTCOME_ENGINEERING
+TOOL_DECISION=USE_EXISTING
+```
+
+## Current product / strategy boundary
+
+The current product is a constrained **Jianghe AI Trader**:
+
+```text
+causal market observation
+-> Jianghe AI discretionary interpretation
+-> constrained TradeIntent
+-> deterministic RiskGate
+-> OMS / STOP-OCO / execution
+-> broker facts / reconciliation
+-> Safety
+-> Ledger
+```
+
+Current binding behavior:
+
+```text
+AI_TRADING_BRAIN=JIANGHE_KNOWLEDGE_CONSTRAINED
+AI_ALLOWED_FAMILIES=A,B,C,D,NONE
+UNKNOWN_OR_CONTRADICTION=NO_TRADE_OR_WAIT
+UNFAMILIAR_MARKET=NO_TRADE
+DETERMINISTIC_RISK_EXECUTION_SAFETY=AUTHORITATIVE
+AI_MAY_NOT_CHANGE_HARD_RISK_LIMITS=YES
+```
+
+Authority: `docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
+
+## Jianghe knowledge / research status
+
+```text
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
 JIANGHE_SOURCE_ONLY_VERIFIED=YES
 JIANGHE_PRIMARY_ELIGIBLE=NO
-JIANGHE_SOURCE_ONLY_NEXT_GATE=SATISFIED_BY_JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1
-JIANGHE_PRIMARY_NEXT_GATE=SOURCE_JUSTIFIED_PRIMARY_BRANCHES_PLUS_AI_TRADER_FIDELITY_EVIDENCE_WITHOUT_OUTCOMES
-JIANGHE_AI_REPLAY_SCOPE=SYNTHETIC_NON_OUTCOME_ONLY
-JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
+KNOWLEDGE_PACK_VERSION=JIANGHE_V1_1
+KNOWLEDGE_PACK_IDENTITY=3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5
+JIANGHE_PRIMARY_NEXT_GATE=SOURCE_JUSTIFIED_PRIMARY_BRANCHES_PLUS_REAL_MODEL_FIDELITY_EVIDENCE_WITHOUT_OUTCOMES
+```
+
+Current Jianghe source authority starts at:
+`docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md`.
+
+SOURCE_ONLY verification authority:
+`docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` + `.json`.
+
+## Jianghe AI engineering status
+
+```text
 JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
-CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1=COMPLETE_NEGATIVE
-CHINA_FIRST_SELECTED_SOURCE=NONE
-GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1=COMPLETE_NEGATIVE
-GRIMES_SELECTED_FAMILY=GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL
-GRIMES_SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT
-GRIMES_MACHINE_READY=NO
-PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=SATISFIED_BY_QUALIFIED_ELIGIBILITY_VIEW_V1
-CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
-NEXT_NORMAL_PHASE=REAL_MODEL_FIDELITY_CANDIDATE_EVALUATION_PLUS_SOURCE_JUSTIFIED_PRIMARY_BRANCH_WORK_WITHOUT_CANDIDATE_OUTCOMES
+JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
+JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
+JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
+JIANGHE_AI_SUB_MINUTE_LIVE_CAPABILITY=NOT_VALIDATED_NOT_EQUIVALENT_TO_1M_REPLAY
 ```
 
-The full second-pass repair program is closed. Holy Grail V0.3, NR7 V0.1 and the canonical D01/D02 revalidation evidence are now integrated to main as fail-closed pre-outcome artifacts. Integration does **not** mean candidate-performance readiness.
+Integrated components include causal multi-timeframe observations, rolling market state,
+standardized chart rendering, AI-hypothesis annotations, wake events, persistent working memory,
+forward-only replay, model-latency accounting, fidelity fixtures, and semantic scoring.
 
-China-first V0.1 completed its bounded A→B→C source promotion screen with
-`SELECTED_SOURCE=NONE`. This is recorded in
-`docs/reviews/CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1.md`; no selected-source dossier,
-claim corpus, Playbook Contract, machine adapter, Primary Freeze or StrategyIdentity exists.
+Authorities:
+- `docs/research/JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md`
+- `docs/research/jianghe/JIANGHE_AI_FIDELITY_BENCHMARK_V0_1.md`
+- `docs/evidence/JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1.md`
+- `docs/reviews/JIANGHE_AI_FIDELITY_AND_REPLAY_INTEGRATION_REVIEW_V0_1.md`
 
-Grimes V0.1 completed a separate bounded author-original free-public screen. It selected
-`GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL` for SOURCE_ONLY semantic completion, then
-closed it fail-closed as `INSUFFICIENT`: reference-level construction, reversal timing,
-post-entry invalidation, and remainder/time exit are not source-pinned. Its source bundle and
-claim corpus are durable pre-outcome evidence only; no Playbook Contract, machine adapter,
-Primary Freeze, StrategyIdentity or outcome registration exists. Authority:
-`docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1.md`.
-
-The Owner-approved Jianghe architecture migration is now the current productive package.
-`docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md` adopts a versioned AI
-decision layer that may propose only a constrained trade intent. The existing deterministic
-RiskGate, OMS, TradingState, STOP/OCO, Safety, reconciliation and Ledger remain authoritative.
-The implemented foundation is limited to causal observations, working-memory audit records,
-single-direction synthetic replay, identity binding and provider-neutral interfaces. It does
-not call a real model or inspect any candidate outcome.
-
-Jianghe V1.1 is the only current trading knowledge source. Its exhaustive source distillation
-and the new material-bound `SOURCE_ONLY` project API/session gate are complete. The verified
-session binds the V1.1 knowledge pack plus exact repository source/claim/case manifests and
-technically denies candidate runner, candidate PnL, Validation, Final and outcome-artifact
-surfaces. `PRIMARY_ELIGIBLE=NO` remains unchanged: SOURCE_ONLY does not create source-justified
-PRIMARY branches, resolve UNKNOWN/source conflicts, establish an AI provider identity/fidelity,
-or authorize any outcome route. Authority:
-`docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` and its `.json` artifact.
-
-The Jianghe AI fidelity fixture corpus V0.1 (20 synthetic non-outcome fixtures, A/B/C/D/NONE,
-9 hard negatives, deterministic semantic scoring; `docs/evidence/JIANGHE_AI_FIDELITY_FIXTURES_V0_1.json`
-+ `docs/evidence/JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1.md`) and the local observation/replay
-V0.2 (`RollingMarketState`, `JiangheObservationBuilder`, `WakeScheduler`,
-`JiangheMarketReplaySession`, `JiangheChartRenderer`; `src/jianghe_market_replay.py`,
-`src/jianghe_chart_renderer.py`) are integrated into `main` as a single non-outcome system on
-top of the V0.1 foundation. The fidelity corpus is bound to the current Jianghe V1.1
-knowledge-pack authority (`3f2ddbf9…`); `SOURCE_ONLY_VERIFIED=YES` is accurately expressed,
-`PRIMARY_ELIGIBLE=NO` is unchanged. Unified review:
-`docs/reviews/JIANGHE_AI_FIDELITY_AND_REPLAY_INTEGRATION_REVIEW_V0_1.md`.
-Real-model fidelity evaluation has not started; all outcome locks are unchanged.
-
-Formal repair-closure authorities:
-
-- `docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md`
-- `docs/reviews/SECOND_PASS_REPAIR_FINAL_CLOSURE_RECORD_2026-08-20.md`
-- `docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_1_2026-08-20.md`
-- `docs/reviews/SECOND_PASS_REPAIR_RETROSPECTIVE_2_2026-08-20.md`
+## Data authority relevant to the next phase
 
 ```text
-ORIGINAL_SECOND_PASS_FINDINGS=62
-ORIGINAL_FINDINGS_DISPOSITIONED=62_OF_62
-UNRESOLVED_CRITICAL_SILENT_BYPASS=0
-UNRESOLVED_HIGH_STRUCTURAL_REPAIR_DEFECT=0
-```
-
-## Binding research / access boundary
-
-```text
-RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
-RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
-SOURCE_CLAIM != PROJECT_AI_INTERPRETATION != MACHINE_OPERATIONALIZATION
-UNKNOWN_OVER_GUESSING=REQUIRED
-RESEARCH_PROTOCOL_VERSION=1.0
-RESEARCH_PROTOCOL_STATUS=FROZEN_BINDING
-CHRONOLOGICAL_SPLIT_STATUS=FROZEN_12_6_6
-DEVELOPMENT=2024-01-01..2024-12-31
-VALIDATION=2025-01-01..2025-06-30
-PROJECT_GOVERNED_HISTORICAL_FINAL_HOLDOUT=2025-07-01..2025-12-31
-PERFORMANCE_RESEARCH_STARTED=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
-HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
-PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
-REAL_MONEY=NOT_AUTHORIZED
-BROKER_ACCESS=NOT_AUTHORIZED
-```
-
-No project-recorded real candidate outcome exposure has been established.
-
-## Accepted repaired foundation
-
-Current accepted foundation includes:
-
-- authoritative confirmatory candidate execution choke point through `ResearchFirewall`;
-- actual-date cohort derivation and actual input data-version binding;
-- artifact-bound outcome-test registration, durable governance state and lineage continuity;
-- exact Research Wave denominator semantics;
-- claim-level PRIMARY and deterministic Playbook->Strategy equivalence;
-- repaired canonical completeness/provenance production rules with content-derived SessionMetadata identity and PASS-only storage admission;
-- prospective material-bound SOURCE_ONLY evidence with honest historical `NOT_RECORDED` limits;
-- corrected execution/capital/forced-liquidation/round-trip semantics;
-- explicit close-bucket child orders where one generic close spans today/previous buckets;
-- per-member/per-resolved-contract capital assumptions;
-- `AVAILABLE_CAPITAL_ONLY` opening/addition admission;
-- point-in-time feature aggregation, full dependency-prefix identity, actual feature implementation-byte binding, stop evaluated-sequence identity, OCO cancellation and same-bar ambiguity preservation;
-- normal-caller aggregation-completeness laundering closed before EMA/ADX.
-
-Residual threat-model boundaries remain explicit:
-
-```text
-SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
-LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
-VALIDATION_ROW_TO_CANONICAL_ARTIFACT_BYTE_PROVENANCE=NOT_FULL_END_TO_END_ATTESTATION
-```
-
-## Canonical data status
-
-```text
-CANONICAL_DATASET_ACCEPTED=YES_WITH_SECOND_PASS_QUALIFICATIONS
-CANONICAL_HISTORICAL_ACCEPTANCE=UNCHANGED
 CANONICAL_PRODUCTS=cu,al,ni,au,ag,rb
 CANONICAL_COVERAGE=2024-01-01..2025-12-31
 CANONICAL_GRANULARITY=1-minute
-CONCRETE_CONTRACTS=212
-NORMALIZED_ROWS=15280452
 CANONICAL_CORPUS_IDENTITY=1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8
-CROSS_SOURCE_RESULT=32841_MATCH/0_MISMATCH/0_NOT_COMPARABLE/139_NOT_AVAILABLE
-CANONICAL_PRICE_VALUES_REVOKED=NO
-CANONICAL_CORPUS_REBUILT_DURING_SECOND_PASS=NO
-CANONICAL_REPAIRED_D01_D02_REVALIDATION=COMPLETE_FAIL
-CANONICAL_PARTITIONS_REVALIDATED=32980
-CANONICAL_PARTITIONS_PASS=32864
-CANONICAL_PARTITIONS_FAIL=116
-CANONICAL_MISSING_EXPECTED_BARS=13008
-CANONICAL_TARGETED_REPAIR_STATUS=ROOT_CAUSE_RESOLUTION_IN_PROGRESS
-CANONICAL_116_FAILURE_ROOT_CAUSE_REVIEW=MIXED_ROOT_CAUSES
-CANONICAL_FAILED_PARTITIONS=116
-CANONICAL_FAILED_DISTINCT_CONTRACTS=116
-CANONICAL_FAILURE_FIRST_PARTITION_COUNT=116
-CANONICAL_FAILURE_FIRST_TRADING_DAY_COUNT=116
-CANONICAL_FAILURE_START_ONLY_COUNT=116
-CANONICAL_PROVIDER_REPEATABLE_TRUNCATION=HIGH_CONFIDENCE_NOT_YET_LIVE_REPRODUCED
-CANONICAL_FIRST_DAY_SESSION_AUTHORITY_DEFECT=REVIEW_IDENTIFIED_REQUIRES_ADJUDICATION
-CANONICAL_FIRST_DAY_ACQUISITION_PLANNER_DEFECT=REVIEW_IDENTIFIED_REQUIRES_ADJUDICATION
-CANONICAL_TARGETED_REACQUISITION_ATTEMPTED=NO
 CANONICAL_QUALIFIED_ELIGIBILITY_VIEW_V1=ADOPTED
 CANONICAL_ELIGIBILITY_VIEW_IDENTITY=fb30bfaf0433df02b4ee7d1e781b25473c7271495924859c1d781b87e036c822
 CANONICAL_ELIGIBLE_PARTITIONS=32768
 CANONICAL_ELIGIBLE_D01_D02=32768_PASS_0_FAIL
-HISTORICAL_CANONICAL_REVALIDATION=32864_PASS_116_FAIL_UNCHANGED
-LIMIT_002_CANDIDATE_QUALITY_CANONICAL_ELIGIBILITY=RESOLVED_BY_QUALIFIED_ELIGIBILITY_VIEW_V1
-PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=SATISFIED_BY_QUALIFIED_ELIGIBILITY_VIEW_V1
+E07_MAIN_MAPPING=COMPLETE_FOR_2024_2025_WINDOW_WIRED_FAIL_CLOSED_VERIFIED
 CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 ```
 
-The historical accepted values/identity were not proven wrong. Explicit revalidation under the repaired D01/D02 rules was executed but did **not** pass (32980 revalidated, 116 FAIL, 13008 missing expected bars); that history remains immutable. Qualified Eligibility View V1 instead defines a separately identity-bound, uniformly first-trading-day-excluded candidate-eligibility view with 32768 D01/D02-certified partitions. No accepted corpus was modified, and candidate outcome access remains **not** authorized until its separate gates are satisfied.
+The Qualified Eligibility View is data-readiness authority only. It does **not** unlock candidate outcomes.
 
-Revalidation evidence: `docs/evidence/CANONICAL_CORPUS_REVALIDATION_D01_D02_V0_1.md` / `.json`.
-Repair qualification evidence: `docs/evidence/CANONICAL_D01_D02_TARGETED_REPAIR_QUALIFICATION_V0_1.md` / `.json`.
-Root-cause review: `docs/reviews/CANONICAL_D01_D02_116_FAILURE_ROOT_CAUSE_REVIEW_V0_1.md` / `.json`.
-
-## Current governed prerequisites
-
-Authority/index: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
+## Current authorization locks
 
 ```text
-LIMIT-001=HISTORICAL_PRICE_LIMIT_METADATA (PREP_DONE_BASE_BOUND_PER_DAY_GAP)
-LIMIT-002=CANDIDATE_QUALITY_CANONICAL_ELIGIBILITY (RESOLVED_BY_QUALIFIED_ELIGIBILITY_VIEW_V1)
-LIMIT-003=E06_HISTORICAL_EXCHANGE_FEE_MARGIN_SCHEDULE
-LIMIT-004=E07_SOURCE_GOVERNED_TQSDK_MAPPING (RESOLVED_FOR_2024_2025_WINDOW)
-LIMIT-005=HOLY_GRAIL_PRIMARY_IDENTITY_AND_PRE_SHADOW_GATE (RESOLVED_PRE_OUTCOME)
-LIMIT-006=HISTORICAL_POSITIVE_PASS_PROFILE_BLOCKER (DISPOSITIONED_BY_ROUTE_A_D)
-LIMIT-007=PORTFOLIO_CANDIDATE_OUTCOME_AUTHORITY_NOT_IMPLEMENTED
-LIMIT-008=SOURCE_ONLY_AND_LOCAL_STATE_THREAT_MODEL_LIMIT
-LIMIT-009=RASCHKE_NR7_SOURCE_SEMANTIC_LIMIT (DEFERRED_SOURCE_SEMANTIC_LIMIT; NOT_A_GLOBAL_ENGINEERING_BLOCKER)
-LIMIT-011=GRIMES_FAILURE_TEST_SOURCE_SEMANTIC_LIMIT (DEFERRED_SOURCE_SEMANTIC_LIMIT; NOT_A_GLOBAL_ENGINEERING_BLOCKER)
-DECISION-001=LIVE_AI_MARKET_READING_FUTURE_OWNER_GATE
-```
-
-E-06:
-
-```text
-E06_FINAL_JUDGMENT=PARTIALLY_BUILDABLE_WITH_GAPS
-E06_EXCHANGE_LEVEL_SCHEDULE=INSUFFICIENT_EVIDENCE
-E06_CURRENT_RATE_BACKFILL=FORBIDDEN
-E06_FURTHER_REPEAT_ACQUISITION_DEFAULT=NO
-E06_REOPEN_TRIGGER=NEW_OFFICIAL_SOURCE_OR_ACCESS_CHANGE_OR_OWNER_POLICY_CHANGE
-```
-
-E-07:
-
-```text
-E07_RULE=SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_APPLIED_TO_CANONICAL_CONCRETE_BARS
-E07_TQSDK_HISTORY_ACCESS=LOGIN_REQUIRED
-E07_MAPPING_COMPLETENESS=COMPLETE_FOR_2024_2025_WINDOW
-E07_RUNTIME_MAPPING_STATUS=WIRED_FAIL_CLOSED_VERIFIED
-E07_SCHEMA_VERSION=TQSDK_3_10_1_PANDAS_DATE_PLUS_SYMBOL_COLUMNS
-E07_SCHEDULE_IDENTITY=331ba31e2a03695160aff28f7c7c58888dcc9bc091515e176c8d5c6b66edcb5c
-E07_BLOCKED_API_CONTRACT_NOT_PINNED=NO
-E07_PROJECT_AUTHORED_SUBSTITUTE=FORBIDDEN
-E07_PSEUDO_MAIN_PRICE_BARS=FORBIDDEN
-```
-
-The generic `ContractMappingSchedule` is structural/synthetic machinery, not candidate mapping authority.
-
-## F/G/H / Holy Grail state
-
-```text
-FGH_GENERIC_FEATURE_CORE=INTEGRATED_ACCEPTED
-FGH_GENERIC_STOP_OCO_CORE=INTEGRATED_ACCEPTED
-FGH_COMBINED_SYNTHETIC_CAUSAL_CHAIN=INTEGRATED_ACCEPTED
-FGH_NORMAL_CALLER_COMPLETENESS_LAUNDERING=CLOSED
-HOLY_GRAIL_OWNER_DECISIONS=RECORDED_BINDING
-HOLY_GRAIL_PLAYBOOK_CURRENT_VERSION=V0_4
-HOLY_GRAIL_MACHINE_READY=YES
-HOLY_GRAIL_PRIMARY_FREEZE_READY=YES
-HOLY_GRAIL_PRIMARY_STRATEGY_IDENTITY=d2093ca202c465b5bedc77ad6cf46b6a5776077be29bbfe67ce093669b7738e8
-HOLY_GRAIL_RUNTIME_ADAPTER=IMPLEMENTED_SYNTHETIC_EVENT_TO_INTENT_DIRECTIVE_VERIFIED
-HOLY_GRAIL_STOP_OCO_OMS_EXECUTION=IMPLEMENTED_SYNTHETIC_COMPLETED_BAR_VERIFIED
-```
-
-Remaining normal operationalization prerequisites:
-
-```text
-HOLY_GRAIL_BASE_TO_MACHINE_INTERVAL=1_MINUTE_PROJECT_INFERRED
-HOLY_GRAIL_ADX_RISING_WINDOW=1_STEP_PROJECT_INFERRED_VERSIONED_NON_OUTCOME
-HOLY_GRAIL_SWING_CONFIRMATION_COUNTS=L1_R1_PROJECT_INFERRED_VERSIONED_NON_OUTCOME
-HOLY_GRAIL_TRAILING_STOP_MACHINE_DEFINITION=SWING_BASED_TRAILING_PROJECT_INFERRED
-```
-
-These are normal pre-outcome research prerequisites, not unresolved second-pass repair defects. They must not be chosen by candidate-outcome tuning.
-
-## Raschke NR7 playbook draft state
-
-```text
-RASCHKE_NR7_PLAYBOOK_CURRENT_VERSION=V0_1
-RASCHKE_NR7_MACHINE_READY=NO
-RASCHKE_NR7_PRIMARY_FREEZE_READY=NO
-FAMILY=RASCHKE_NR7_RANGE_CONTRACTION_TREND_DAY_BREAKOUT
-PLAYBOOK_SEMANTICALLY_DRAFTABLE=NO
-PRIMARY_BLOCKER=SOURCE_POST_ENTRY_RISK_SEMANTICS_NOT_PINNED
-INITIAL_STOP=NOT_PINNED
-POST_ENTRY_INVALIDATION=NOT_PINNED
-RASCHKE_NR7_SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT
-RASCHKE_NR7_SOURCE_RESOLUTION_V0_2_BLOCKING_FIELD_COUNT=5
-RASCHKE_NR7_SOURCE_RESOLUTION_V0_2_BLOCKING_FIELDS=NR7_LOOKBACK_ALIGNMENT,EARLY_MORNING_RANGE_PRIMARY,INITIAL_STOP,POST_ENTRY_INVALIDATION,DETERMINISTIC_EXIT_AND_TIME_EXIT
-RASCHKE_NR7_V0_2_NO_MACHINE_ARTIFACT_CREATED=YES
-```
-
-NR7 V0.1 is a source-faithful, fail-closed Playbook Contract draft; it is not machine-ready and not PRIMARY-freeze-ready. The bounded V0.2 official-source pass completed with `SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT`: it found no NR7-specific initial-stop, post-entry-invalidation or deterministic-exit rule, and did not transfer a general stop article or another setup's semantics. The minimal blocker set is five fields: NR7 window alignment, 45m/60m PRIMARY, initial stop, post-entry invalidation, and deterministic exit/time exit. No NR7 machine, synthetic adapter, Primary Freeze or StrategyIdentity was created. Authority: `docs/reviews/RASCHKE_NR7_SOURCE_SEMANTIC_RESOLUTION_V0_2.md` / `.json`.
-
-## Grimes Failure Test source-resolution state
-
-```text
-GRIMES_FAILURE_TEST_PLAYBOOK_CURRENT_VERSION=NONE
-GRIMES_FAILURE_TEST_MACHINE_READY=NO
-GRIMES_FAILURE_TEST_PRIMARY_FREEZE_READY=NO
-FAMILY=GRIMES_FAILURE_TEST_FAILED_BREAKOUT_REVERSAL
-GRIMES_SOURCE_SEMANTIC_RESOLUTION=INSUFFICIENT
-GRIMES_SOURCE_RESOLUTION_V0_1_BLOCKING_FIELD_COUNT=4
-GRIMES_SOURCE_RESOLUTION_V0_1_BLOCKING_FIELDS=REFERENCE_LEVEL_SEMANTICS,REVERSAL_TIMING_WINDOW,POST_ENTRY_INVALIDATION,REMAINDER_EXIT_AND_TIME_EXIT
-GRIMES_V0_1_NO_MACHINE_ARTIFACT_CREATED=YES
-```
-
-The bounded author-original free-public bundle pins the Failure Test's broad price-structure
-concept, bidirectional close entry, initial stop placement and some 1R partial-profit guidance.
-It does not pin how a reference support/resistance/pivot is formed, the timing boundary for a
-failed probe, a remaining-position invalidation rule, or a deterministic remainder/time exit.
-The public author material itself says management lacks one universal answer. These are
-strategy semantics, not ordinary order-detail conventions, so no source-faithful machine
-Playbook may be created. Any Chinese-futures transfer would be `PROJECT_INFERRED`; it was not
-attempted because the source loop is already incomplete. Authority:
-`docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1.md` / `.json`.
-
-## Statistical profile status
-
-```text
-REAL_COMMON_STATISTICAL_PROFILE=NOT_ADOPTED
-STATISTICAL_ACCEPTANCE_ROUTE=ROUTE_A_NOW_PLUS_ROUTE_D_FORWARD
-HISTORICAL_GENERAL_DOMAIN_POSITIVE_PASS=NOT_REQUIRED_NOT_CLAIMED
-POSITIVE_ACCEPTANCE_PATH=FUTURE_GENUINELY_UNSEEN_PROSPECTIVE_SHADOW_FORWARD
-HISTORICAL_POSITIVE_PASS_PROFILE_BLOCKER=DISPOSITIONED_BY_ROUTE_A_D
-PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_LOCKABLE_UNDER_CURRENT_ASSUMPTION_AUTHORITY
-PROSPECTIVE_PROCESS_ASSUMPTION_DESIGN=NO_GOVERNABLE_A_B_ASSUMPTION_FOUND
-STATISTICAL_BLOCKER_CLASS=RESEARCH_DESIGN_LIMIT_NOT_ENGINEERING_DEFECT
-CANDIDATE_OUTCOME_ACCESS=NOT_AUTHORIZED
-```
-
-Historical statistical-profile documents remain evidence/history. They do not define the current next action.
-
-## Tool / execution status
-
-```text
-TOOL_DECISION=USE_EXISTING
-NEW_TOOL_REQUIRED=NO
-MAIN=SOLE_FINAL_INTEGRATION_AUTHORITY
-TEMPORARY_GITHUB_ACTIONS_APPROACH=ABANDONED_NOT_ADOPTED
-```
-
-A tool appearing in `TOOL_REGISTRY.md` does not mean this project has adopted or enabled it.
-
-Recorded verification qualification:
-
-```text
-R2_FOUNDATION_FULL_TESTS=478_OK_BEFORE_FINAL_FGH_CLOSURE_CORRECTION
-R2_FOUNDATION_COMPILEALL=OK
-R2_FOUNDATION_DIFF_CHECK=OK
-FINAL_CLOSURE_CORRECTION_PROJECT_BRAIN_CODE_REVIEW=COMPLETE
-FINAL_CLOSURE_CORRECTION_REGRESSION_ARTIFACTS=COMMITTED
-INDEPENDENT_PROJECT_BRAIN_FINAL_FULL_SUITE_RERUN=NOT_AVAILABLE_IN_CONNECTOR_ENVIRONMENT
-```
-
-## Progress estimate
-
-```text
-PLANNING_ESTIMATE_ONLY=YES
-OVERALL_ENGINEERING_PROGRESS=ABOUT_84_PERCENT
-PRE_SHADOW_INTERNAL_ENGINEERING_PROGRESS=ABOUT_96_PERCENT
-RESEARCH_VALIDATION_FOUNDATION_PROGRESS=ABOUT_95_PERCENT
-PLAYBOOK_LIBRARY_PROGRESS=ABOUT_47_PERCENT
-```
-
-These are planning estimates, not evidence facts. Grimes V0.1 does not raise the library estimate:
-it records a complete bounded negative semantic decision, not a new machine-ready family.
-
-## Main integration record — 2026-08-21
-
-```text
-MAIN_INTEGRATION_LANE=haozhouliuliuliu/kline-playbook-engine
-INTEGRATION_BASELINE=044e16839ad82a74c2a88322f5b4fb3a05233332
-INTEGRATED_HOLY_GRAIL_V0_3=07977875215ce2501da5bf4ef277f6c202dae3cf
-INTEGRATED_NR7_V0_1=b27beaedc3b834afd9df164aadcd6ad155185910
-INTEGRATED_CANONICAL_REVALIDATION=a9e306550c5dc47695e4c27c1812de4c3cad5641
-INTEGRATED_CANONICAL_TARGETED_QUALIFICATION=e98df52a427a23c85fac70125a1f20dbd5f2a353
-INTEGRATED_CANONICAL_116_ROOT_CAUSE_REVIEW=72e2e9a1a966d52b5d6dd18179fd9477d0157523
-INTEGRATED_ROOT_CAUSE_REVIEW_STATUS_FILL=2f49603fe5dafb4bd8293ba817db8291df6faba8
-NOT_INTEGRATED_CANONICAL_REPAIR_APPLICATION_PREP=1ef3f182d6665262696c33fc94489f08cd26dfd7 (retained on feature branch; 116 replacement semantics not final)
-REVIEW_STATUS=HOLY_GRAIL_PASS_NR7_PASS_CROSS_BRANCH_COMPATIBILITY_PASS_CRITICAL_0_HIGH_0
-ROOT_CAUSE_REVIEW_VERDICT=MIXED_ROOT_CAUSES (CRITICAL_FINDINGS=2, HIGH_FINDINGS=4)
-FULL_TESTS_AFTER_INTEGRATION=574_OK
-COMPILEALL=OK
-DIFF_CHECK=OK
-NO_CANDIDATE_OUTCOME_DATA_USED=YES
-FEATURE_BRANCHES_PRESERVED=YES
-```
-
-This integration does not alter the reviewed Holy Grail / NR7 semantics, the historical V0.2, the old canonical dataset acceptance, or any frozen protocol. The canonical 116 FAIL status is recorded as FAIL, not PASS. No reacquisition was executed and no candidate outcome was authorized or viewed. The root-cause review conclusions are integrated unchanged; the repaired-corpus application prep is deliberately not integrated.
-
-## Current next action
-
-```text
-CURRENT_NEXT_ACTION=RUN_JIANGHE_AI_FIDELITY_BENCHMARK_ONLY_AFTER_SYNTHETIC_FIXTURES_AND_MODEL_CANDIDATE_EVIDENCE; COMPLETE_SOURCE_JUSTIFIED_PRIMARY_BRANCH_WORK_ONLY_WITHOUT_OUTCOMES; CANDIDATE_OUTCOMES_REMAIN_LOCKED
-OWNER_ACTION=NONE_FOR_ORDINARY_PRE_OUTCOME_ENGINEERING
-NEXT_NORMAL_WORK_AFTER_CANONICAL_REVALIDATION_PASS=JIANGHE_AI_FIDELITY_AND_SOURCE_JUSTIFIED_PRIMARY_EVIDENCE_WITHOUT_CANDIDATE_OUTCOMES
-PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=SATISFIED_BY_QUALIFIED_ELIGIBILITY_VIEW_V1
-CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
 PERFORMANCE_RESEARCH_STARTED=NO
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
-REAL_MONEY=NOT_AUTHORIZED
 BROKER_ACCESS=NOT_AUTHORIZED
+REAL_MONEY=NOT_AUTHORIZED
 ```
 
-Historical canonical revalidation remains 32864 PASS / 116 FAIL and is not rewritten. Qualified Eligibility View V1 is the adopted candidate-eligibility authority, but it does not unlock candidate outcomes. Holy Grail V0.4 is machine-ready with no outcome registration; NR7 V0.1 remains fail-closed. The current work is pre-Shadow readiness convergence under the existing locks.
+No project-recorded real candidate outcome exposure has been established.
+
+## Active future gates / limitations
+
+Only currently relevant unresolved items are indexed in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
+The important ones are:
+
+```text
+JIANGHE_PRIMARY_ELIGIBLE=NO
+JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
+JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
+E06_CONTINUOUS_HISTORICAL_EXCHANGE_FEE_MARGIN_SCHEDULE=INSUFFICIENT_EVIDENCE
+HISTORICAL_PRICE_LIMIT_OPERATIVE_METADATA=INCOMPLETE_FOR_FULL_CONFIRMATORY_REALISM
+PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_LOCKABLE_UNDER_CURRENT_ASSUMPTION_AUTHORITY
+PORTFOLIO_CANDIDATE_OUTCOME_AUTHORITY=NOT_IMPLEMENTED
+SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
+LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
+```
+
+The prospective statistical-design limitation is a future candidate-evidence gate. It does not block the current non-outcome real-model fidelity / PRIMARY preparation phase.
+
+## Next normal work
+
+Two bounded lanes may proceed without candidate outcomes:
+
+1. **Real-model fidelity candidate evaluation** — compare candidate models on the integrated Jianghe non-outcome fidelity fixtures; select by Jianghe fidelity, stability, UNKNOWN honesty, and no-invention behavior, not by PnL.
+2. **Source-justified PRIMARY branch work** — define/freeze the source-justified interpretation branches required by the existing research governance without inspecting candidate performance.
+
+A model/provider remains `CANDIDATE` until project evidence verifies it. No model is currently `ADOPTED_JIANGHE_DECISION_MODEL`.
+
+## Authority hygiene
+
+- `PROJECT_BRAIN_RUNTIME_BRIEF.md` is the compact live refresh surface for the project brain.
+- `00_READ_FIRST.md` owns takeover/read order.
+- `PROJECT_HANDOFF_CURRENT.md` is a pointer-only derived handoff and never overrides this file.
+- Historical playbooks, old repair programs, negative source screens, prior integration logs and superseded estimates remain preserved in Git/evidence but are intentionally excluded from this current-state file.
