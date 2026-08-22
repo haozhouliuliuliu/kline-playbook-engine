@@ -14,10 +14,10 @@ VISUAL_ONLY_NO_RELIABLE_LANGUAGE=065
 RECOVERED_REMOTE_SRT_USED_WITHOUT_IDENTITY_QA=0
 SECOND_PASS_SOURCE_COVERAGE_AUDIT=COMPLETE
 FINAL_SOURCE_DISTILLATION=COMPLETE_V1_1_AFTER_CORRECTIVE_SECOND_PASS
-SOURCE_ONLY_VERIFIED=YES
-PRIMARY_ELIGIBLE=NO
-TOOL_DECISION=USE_EXISTING
+MUTABLE_READINESS_AUTHORITY=CURRENT_STATE.md + PROJECT_BRAIN_RUNTIME_BRIEF.md
 ```
+
+本目录是江河 V1.1 **来源蒸馏 / 语义证据包**，不承载会变化的项目 readiness 或 authorization。当前 SOURCE_ONLY、PRIMARY、candidate outcome、Validation、Final、Shadow、Broker、真钱、模型/provider 和工具状态统一读取仓库根目录 `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`。
 
 先读：
 
@@ -79,22 +79,15 @@ UNACCOUNTED_TIMELINE_GAP = 0
 
 ## Research boundary
 
-V1.1完成的是**来源蒸馏覆盖修复**，不是策略有效性验证。
+V1.1完成的是**来源蒸馏覆盖修复**，不是策略有效性验证，也不自行决定后续项目 readiness。
 
 ```text
 SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION
 UNKNOWN > GUESSING
-SOURCE_ONLY_VERIFIED=YES
-PRIMARY_ELIGIBLE=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
-REAL_MONEY=NOT_AUTHORIZED
+SOURCE_DISTILLATION_DOCUMENT != MUTABLE_PROJECT_READINESS_AUTHORITY
 ```
 
 收益、R、账户金额只属于source case content，不是validity evidence。
 
-江河 V1.1 的当前 SOURCE_ONLY 状态由
-`docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` / `.json` 记录：项目
-API/session 已对 V1.1 knowledge pack 与来源/claim/case manifest 完成 material-bound
-verification，并技术拒绝候选结果能力；这不提升 PRIMARY 或任何 outcome 权限，也不声称
-OS/process sandbox。
+SOURCE_ONLY 的 material-bound verification event 有独立证据：
+`docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` / `.json`。该 evidence 保留验证事件的事实与边界；**当前** SOURCE_ONLY / PRIMARY / outcome 权限仍以仓库根目录 `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md` 为准。
