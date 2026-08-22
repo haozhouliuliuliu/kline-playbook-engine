@@ -1,35 +1,17 @@
 # PROJECT_BRAIN_RUNTIME_BRIEF
 
-> Purpose: compact live pointer for the project brain. This file reduces reliance on chat memory and avoids re-reading the full repository authority on every reply.
-> Status: LIVE_POINTER / NOT_A_REPLACEMENT_FOR_FORMAL_AUTHORITY
+> Compact live pointer for the project brain. Not a replacement for formal authority.
 
 ## Mandatory runtime rule
 
-For every **substantive project reply** after takeover:
+After takeover acceptance, before every **substantive project reply**:
 
-1. fetch the current `main` HEAD;
-2. fetch this file from current `main` **before answering**;
-3. do not rely on chat memory, handoff text, or prior-turn assumptions for mutable project facts;
-4. if `main` contains material project-state changes newer than `LAST_MATERIAL_STATE_COMMIT`, or the question concerns current state / architecture / locks / next work / worker prompts / model or tool adoption, also refresh `CURRENT_STATE.md` and the specific authority named there before answering;
-5. narrow conceptual or explanatory replies may use this compact pointer plus already-fetched stable authority when no mutable fact is involved.
+1. fetch current `main` HEAD;
+2. fetch this file from current `main`;
+3. do not use chat memory as the authority for mutable project facts;
+4. if the question concerns state / architecture / locks / next work / worker prompts / model or tool adoption, or if material state moved beyond `LAST_MATERIAL_STATE_COMMIT`, refresh `CURRENT_STATE.md` and the authority it names.
 
-A fresh project-brain conversation still follows the full read-only takeover process in `00_READ_FIRST.md`. This file is the lightweight **post-takeover refresh surface**, not a shortcut around takeover verification.
-
-## Update ownership
-
-`main` integration lane owns this file.
-
-Update it whenever a `main` change materially changes any of:
-- current work package / next normal phase;
-- architecture direction;
-- authorization locks;
-- Jianghe source / PRIMARY / fidelity status;
-- adopted model/tool/provider;
-- candidate outcome / Validation / Final / Shadow / Broker / real-money authority.
-
-`LAST_MATERIAL_STATE_COMMIT` points to the latest substantive code/research/state commit this brief has incorporated. Later documentation-only commits that merely update this brief do not make the marker stale.
-
-Keep this file short. Detailed evidence stays in `CURRENT_STATE.md`, ADRs, protocols, tests, and evidence artifacts.
+Fresh conversations still follow the full read-only takeover in `00_READ_FIRST.md`.
 
 ## Current live pointer
 
@@ -37,6 +19,8 @@ Keep this file short. Detailed evidence stays in `CURRENT_STATE.md`, ADRs, proto
 LAST_MATERIAL_STATE_COMMIT=4e17509e0c12c86d0966e6920d3fb0ddb2f6e7c2
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
+RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
+STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
 JIANGHE_SOURCE_ONLY_VERIFIED=YES
@@ -44,9 +28,8 @@ JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
-JIANGHE_AI_REPLAY_SCOPE=SYNTHETIC_NON_OUTCOME_ONLY
-STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
-CURRENT_NORMAL_WORK=REAL_MODEL_FIDELITY_CANDIDATE_EVALUATION_PLUS_SOURCE_JUSTIFIED_PRIMARY_BRANCH_WORK_WITHOUT_CANDIDATE_OUTCOMES
+JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
+NEXT_NORMAL_PHASE=REAL_MODEL_FIDELITY_CANDIDATE_EVALUATION_PLUS_SOURCE_JUSTIFIED_PRIMARY_BRANCH_WORK_WITHOUT_CANDIDATE_OUTCOMES
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
@@ -55,9 +38,41 @@ BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
 ```
 
-Current integration inputs (2026-08-23):
-- fidelity fixture/scoring corpus (`research/jianghe-ai-fidelity-fixtures-v01` @ `2cf678d`) — **integrated to `main`**;
-- local WorkBuddy observation/replay implementation (four files, protection commit `2d885a5`) — **integrated to `main`**.
+## Product behavior that must survive handoff
 
-After those were safely integrated, this pointer was updated in the same integration task.
-Next normal phase: real-model fidelity candidate evaluation + source-justified PRIMARY branch work, all WITHOUT candidate outcomes.
+```text
+AI_ROLE=JIANGHE_STYLE_MARKET_READING_AND_TRADE_DECISION
+MECHANICAL_ROLE=HARD_RISK_ORDER_EXECUTION_RECONCILIATION_SAFETY
+UNKNOWN_OR_UNFAMILIAR=WAIT_OR_NO_TRADE
+INITIAL_MODEL_SELECTION_TARGET=JIANGHE_FIDELITY_NOT_PROFIT
+HISTORICAL_REPLAY_BASELINE=COMPLETED_1_MINUTE_BAR
+SUB_MINUTE_LIVE_IF_ADDED=SEPARATE_VERSION_NOT_1M_EQUIVALENT
+NORMAL_SCAN_OUTPUT=COMPACT
+FULL_RATIONALE=MEANINGFUL_STATE_TRANSITION_OR_TRADE_MANAGEMENT
+```
+
+## Local worker relay facts / Owner workflow
+
+Current local workflow:
+
+```text
+WORKBUDDY=LOCAL_ONLY_NO_GITHUB_IN_CURRENT_SETUP
+WORKBUDDY_DEFAULT_OPEN_TARGET=DEDICATED_KLINE_PLAYBOOK_ENGINE_REPO_OR_WORKTREE_ROOT
+WORKBUDDY_PUSH_MAIN=NO
+LOCAL_MODEL_SELECTION=TASK_SPECIFIC_NOT_PERMANENTLY_ADOPTED
+DS_FLASH=AVAILABLE_FOR_ORDINARY_MECHANICAL_ENGINEERING_REVIEW_AND_GIT_INTEGRATION
+CODEX=RESERVE_FOR_HIGH_VALUE_ARCHITECTURE_RESEARCH_OR_COMPLEX_INTEGRATION
+PARALLEL_WORKERS_MUST_USE_DIFFERENT_WORKTREES=YES
+MAIN_INTEGRATION_LANE=ONE_ONLY
+```
+
+When assigning WorkBuddy, tell the Owner **before the prompt**:
+- the exact local folder/worktree to open;
+- the recommended currently available model;
+- then provide one complete copy-paste task prompt.
+
+WorkBuddy output remains local until a GitHub-capable integration lane reviews/protects/commits it.
+
+## Update rule
+
+The `main` integration lane updates this brief whenever current phase, architecture, authorization locks, Jianghe readiness, next work, or adopted model/tool/provider changes. Keep details in `CURRENT_STATE.md`, ADRs, protocols and evidence; keep this file short.
