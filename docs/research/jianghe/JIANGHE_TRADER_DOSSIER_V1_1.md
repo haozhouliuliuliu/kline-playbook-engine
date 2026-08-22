@@ -9,11 +9,10 @@ PAID_GATE_EXCEPTION=022
 FULL_TIMELINE_SECOND_PASS_AVAILABLE_MEDIA=98
 VISUAL_ONLY_NO_RELIABLE_LANGUAGE=065
 SECOND_PASS_UNACCOUNTED_TIMELINE_GAP=0
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
+MUTABLE_READINESS_AUTHORITY=CURRENT_STATE.md + PROJECT_BRAIN_RUNTIME_BRIEF.md
 ```
 
-This dossier supersedes V1.0 as the cumulative semantic view. It incorporates the exhaustive second-pass coverage record and the 64-claim recovery delta. It is source distillation only, not performance validation.
+This dossier supersedes V1.0 as the cumulative semantic view. It incorporates the exhaustive second-pass coverage record and the 64-claim recovery delta. It is source distillation only, not performance validation, PRIMARY promotion, or mutable readiness authority.
 
 ## 1. Market classification system
 
@@ -255,12 +254,12 @@ Mechanism switching and overlap are explicit:
 
 ## Final evidence boundary
 
-This V1.1 resolves the **coverage/compression failure** found after V1.0. It does not promote the trader to validated/PRIMARY status.
+This V1.1 resolves the **coverage/compression failure** found after V1.0. It does not itself promote the trader or decide mutable project readiness.
 
 ```text
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
-REAL_MONEY=NOT_AUTHORIZED
+SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION
+UNKNOWN > GUESSING
+SOURCE_DISTILLATION_DOCUMENT != MUTABLE_PROJECT_READINESS_AUTHORITY
 ```
+
+Current SOURCE_ONLY / PRIMARY / candidate-outcome / Validation / Final / Shadow / Broker / real-money status must be read from repository-root `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
