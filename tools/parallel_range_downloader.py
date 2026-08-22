@@ -82,6 +82,15 @@ def _content_range(response: Any) -> tuple[int, int, int]:
     return tuple(int(value) for value in match.groups())
 
 
+def _enforce_response_read_timeout(response: Any, timeout: int) -> None:
+    """urllib 收到响应头后仍须对正文读操作执行有限超时。"""
+    try:
+        response.fp.raw._sock.settimeout(timeout)
+    except (AttributeError, OSError):
+        # 测试替身或非 socket 响应没有该层级；open() 的超时仍是最低保障。
+        return
+
+
 def probe_range_source(opener: Any, url: str, headers: dict[str, str], timeout: int = 45) -> int:
     """只接受严格的 206/0--0 应答，普通 200 必须失败关闭。"""
     request = Request(url, headers={**headers, "Range": "bytes=0-0"})
@@ -142,7 +151,7 @@ def assemble_completed_chunks(work_dir: Path, chunks: list[RangeChunk], destinat
 
 def download_with_ranges(
     opener: Any,
-    url: str,
+    url: str | list[str],
     destination: Path,
     work_dir: Path,
     *,
@@ -158,7 +167,10 @@ def download_with_ranges(
     if max_chunk_attempts < 1:
         raise RuntimeError("每个 Range 分块至少尝试一次")
     safe_headers = dict(headers or {})
-    expected_bytes = probe_range_source(opener, url, safe_headers, timeout)
+    urls = [url] if isinstance(url, str) else list(url)
+    if not urls or any(not isinstance(item, str) or not item.startswith("https://") for item in urls):
+        raise RuntimeError("Range 下载地址必须为非空 HTTPS 地址列表")
+    expected_bytes = probe_range_source(opener, urls[0], safe_headers, timeout)
     chunks = build_range_chunks(expected_bytes, chunk_bytes)
     work_dir.mkdir(parents=True, exist_ok=True)
     state_path = work_dir / "download_state.json"
@@ -185,11 +197,12 @@ def download_with_ranges(
         for attempt in range(1, max_chunk_attempts + 1):
             if temporary_path.exists():
                 temporary_path.unlink()
-            request = Request(url, headers={**safe_headers, "Range": f"bytes={chunk.start}-{chunk.end}"})
+            request = Request(urls[(attempt - 1) % len(urls)], headers={**safe_headers, "Range": f"bytes={chunk.start}-{chunk.end}"})
             try:
                 # 每个请求只读取同一登录态；响应体必须允许真正并发读取。
                 response_context = opener.open(request, timeout=timeout)
                 with response_context as response:
+                    _enforce_response_read_timeout(response, timeout)
                     if _response_status(response) != 206:
                         raise RuntimeError(f"Range 分块返回 HTTP {_response_status(response)}")
                     start, end, total = _content_range(response)

@@ -261,12 +261,14 @@ def repair_media_direct_from_dash(opener: Any, source: dict[str, Any], root: Pat
     video_path, audio_path, candidate = repair_dir / "source-video.m4s", repair_dir / "source-audio.m4s", repair_dir / "candidate.mp4"
     if candidate.exists():
         raise RuntimeError("直接修复目录已有 candidate.mp4，拒绝覆盖")
+    video_urls = [stream_url(video)] + [str(item) for item in video.get("backup_url", video.get("backupUrl", [])) if str(item).startswith("https://")]
+    audio_urls = [stream_url(audio)] + [str(item) for item in audio.get("backup_url", audio.get("backupUrl", [])) if str(item).startswith("https://")]
     video_report = download_with_ranges(
-        opener, stream_url(video), video_path, repair_dir / "video_chunks", headers=HTTP_HEADERS,
+        opener, video_urls, video_path, repair_dir / "video_chunks", headers=HTTP_HEADERS,
         concurrency=range_concurrency,
     )
     audio_report = download_with_ranges(
-        opener, stream_url(audio), audio_path, repair_dir / "audio_chunks", headers=HTTP_HEADERS,
+        opener, audio_urls, audio_path, repair_dir / "audio_chunks", headers=HTTP_HEADERS,
         concurrency=range_concurrency,
     )
     mux = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(video_path), "-i", str(audio_path), "-c", "copy", "-movflags", "+faststart", str(candidate)], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
