@@ -1,5 +1,6 @@
 name: Jianghe identity rebind one-shot
 
+# This branch-local workflow also serves as the single PR synchronize trigger for the temporary main runner.
 on:
   push:
     branches:
