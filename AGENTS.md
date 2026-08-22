@@ -6,30 +6,41 @@ Canonical repository identity:
 REPOSITORY_FULL_NAME=haozhouliuliuliu/kline-playbook-engine
 ```
 
-Repository-identity operating rule:
-- For GitHub connector/API operations, copy the exact canonical `REPOSITORY_FULL_NAME` above or obtain the repository identity from already-fetched repository metadata. Do not reconstruct or retype the owner/repository slug from memory.
-- If an expected repository operation returns `404 Not Found`, first compare the requested slug character-for-character against the canonical identity above. Correct that identity before any retry; do not probe guessed spelling variants.
-- A repository-name typo is an operational defect. Do not narrate repeated typo/retry cycles to the Owner when the canonical identity can decide the issue deterministically.
+## Bootstrap
 
-Read first, in this order:
-1. `OWNER_COLLABORATION_CONTRACT.md`
-2. `ARCHITECTURE_BASELINE.md`
-3. `CURRENT_STATE.md`
-4. `00_READ_FIRST.md` — owns the current detailed navigation/read order; follow it before substantive project work.
-5. `CROSS_PROJECT_OPERATING_CONTRACT.md`
-6. `TOOL_REGISTRY.md`
+1. Read `OWNER_COLLABORATION_CONTRACT.md`.
+2. Read `00_READ_FIRST.md` and follow its current authority order.
+3. Use the exact canonical repository identity above for GitHub operations; do not reconstruct it from memory.
 
-Project-specific mandatory rules:
+If a GitHub operation unexpectedly returns `404`, first compare the requested repository slug character-for-character with the canonical identity before retrying.
+
+## Mandatory project rules
+
 - This is a clean-room project. Other projects and project-external chat are not project fact sources.
-- Preserve Skeleton v1.0 unless a concrete fatal flaw is established through project authority.
-- Follow `CURRENT_STATE.md` authorization boundaries.
-- External tools/frameworks remain candidates until this project explicitly verifies and adopts them.
-- No real broker order submission or real-money trading without explicit Owner authorization.
-- Protect existing Git/worktree/user files; no destructive cleanup.
-- For parallel work, use isolated worktrees/branches. Exactly one integration lane owns `main` and shared authority/state files.
-- Before creating or reusing a parallel worktree, inspect `git worktree list`, the target branch, and current remote state. Do not blindly recreate an existing branch/worktree or delete a retained review worktree just to make a command succeed.
-- Parallel workers must not push `main` or independently edit `CURRENT_STATE.md`, `00_READ_FIRST.md`, frozen protocols, Owner evidence, or other integration-owned authority unless explicitly assigned that ownership.
-- Do not parallelize work whose meaning depends on an unresolved frozen research-semantic decision or Owner gate.
+- Follow the current consolidated architecture in `ARCHITECTURE_BASELINE.md` + the Jianghe AI ADR. Do not revert to historical “LLM offline only” wording from old Git history.
+- Follow `CURRENT_STATE.md` authorization locks.
+- Jianghe is the sole current V1 trading knowledge source while `STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1`.
+- UNKNOWN / contradiction / unsupported or unfamiliar market state must allow WAIT / NO_TRADE; do not invent source semantics to force a trade.
+- External tools/frameworks/models remain CANDIDATE until project evidence verifies/adopts them.
+- No candidate outcome, Validation, Final, real Shadow, broker order or real-money action without current authority.
+- Protect Git/worktree/user files; no destructive cleanup merely to make a command succeed.
 
-Canonical bootstrap verification path:
-`python -m unittest discover -s tests -v`
+## Parallel / worktree rules
+
+- Use isolated branches/worktrees for parallel workers.
+- **Never point two active workers at the same worktree.**
+- Exactly one integration lane may advance `main` and shared authority/state files.
+- Before creating/reusing a worktree, inspect `git worktree list`, target branch and current remote state.
+- Parallel workers must not edit `CURRENT_STATE.md`, `00_READ_FIRST.md`, `PROJECT_BRAIN_RUNTIME_BRIEF.md`, frozen protocols, Owner evidence or other integration-owned authority unless explicitly assigned.
+- If WorkBuddy/local worker cannot access GitHub, its work remains local; a GitHub-capable lane must protect/commit/integrate it.
+- Do not parallelize tasks whose meaning depends on an unresolved frozen research-semantic decision or Owner gate.
+
+## Verification
+
+Canonical full-suite command:
+
+```text
+python -m unittest discover -s tests -v
+```
+
+Also use relevant focused tests, `python -m compileall -q src tools tests`, and `git diff --check` for integration work when applicable.
