@@ -1,7 +1,7 @@
 # Jianghe Second-Pass Integrity Check V1.1
 
 > Status: PASS WITH NEWLINE-NORMALIZATION QUALIFICATION
-> Scope: mechanical integrity of the rescued exhaustive second-pass artifacts. This check does not independently validate trading performance.
+> Scope: mechanical integrity of the rescued exhaustive second-pass artifacts. This check does not independently validate trading performance or own mutable project readiness.
 
 ## Coverage record
 
@@ -70,17 +70,17 @@ sha256 = 5330d703a16ccebf86ae9e984658d95a0423ad96736ed4ed0f0441a910d312a1
 
 The four committed claim parts retain the recorded byte sizes and locally verified exact concatenation identity.
 
-## Dossier/reconciliation hashes
+## Dossier/reconciliation historical rescue hashes
 
 ```text
 JIANGHE_TRADER_DOSSIER_V1_1.md
-sha256 = cb43d643a096d674b48d07101f2e211aa6e939c1c3a5e72282041c54836fdad0
+historical_rescue_sha256 = cb43d643a096d674b48d07101f2e211aa6e939c1c3a5e72282041c54836fdad0
 
 JIANGHE_SECOND_PASS_RECONCILIATION_V1_1.md
-sha256 = 052c59b2e33ce86fcd63aa4fa3d1dd768fcf8c39175e305962d1ef09696152a6
+historical_rescue_sha256 = 052c59b2e33ce86fcd63aa4fa3d1dd768fcf8c39175e305962d1ef09696152a6
 ```
 
-These hashes identify the original local rescue artifacts. GitHub content presence and semantic equivalence are independently evidenced by the committed files; exact-byte identity should only be asserted where directly rechecked.
+These hashes identify the original local rescue artifacts. Later authority-hygiene edits may change the repository Markdown bytes without changing the rescued source semantics, coverage, claims, cases, or the historical provenance represented by these hashes. Exact-byte identity should only be asserted for the historical rescue versions where directly evidenced.
 
 ## Provenance/fail-closed checks
 
@@ -106,14 +106,13 @@ UNACCOUNTED_TIMELINE_GAP = 0
 CLAIM_DELTA_PARSE = PASS
 CLAIM_ID_UNIQUENESS = PASS
 REMOTE_COVERAGE_RAW_BYTE_IDENTITY_TO_LOCAL = NOT_CLAIMED
+MUTABLE_READINESS_AUTHORITY = CURRENT_STATE.md + PROJECT_BRAIN_RUNTIME_BRIEF.md
 ```
 
-Research boundary remains:
+Research boundary:
 
 ```text
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
-REAL_MONEY=NOT_AUTHORIZED
+SOURCE_DISTILLATION_INTEGRITY_CHECK != MUTABLE_PROJECT_READINESS_AUTHORITY
 ```
+
+Current SOURCE_ONLY / PRIMARY / candidate-outcome / Validation / Final / Shadow / Broker / real-money status must be read from repository-root `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
