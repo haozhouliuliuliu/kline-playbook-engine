@@ -50,6 +50,14 @@ def test_windows_path():
         assert os.path.exists(os.path.join(td, "frame_t3.000.png"))
 
 
+def test_creates_missing_output_directory():
+    with tempfile.TemporaryDirectory() as td:
+        out_dir = os.path.join(td, "new", "nested", "frames")
+        r = _run(["--bvid", KNOWN_BVID, "--start", "4.0", "--out", out_dir, "--single"])
+        assert r.returncode == 0, r.stderr
+        assert os.path.exists(os.path.join(out_dir, "frame_t4.000.png"))
+
+
 def test_invalid_bvid():
     with tempfile.TemporaryDirectory() as td:
         r = _run(["--bvid", "BV_INVALID_XYZ", "--start", "0", "--out", td, "--single"])
@@ -63,5 +71,6 @@ if __name__ == "__main__":
     test_exact_timestamp()
     test_range_extraction()
     test_windows_path()
+    test_creates_missing_output_directory()
     test_invalid_bvid()
     print("ALL TESTS PASSED")

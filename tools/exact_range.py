@@ -81,7 +81,15 @@ def make_clip(video_path, start, end, out_path, ffmpeg=FFMPEG, lossless=True):
 
 def _run(cmd):
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        # ffmpeg may emit non-ASCII text from Chinese file paths.  Preserve the
+        # process result even when the active Windows code page cannot decode it.
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=300,
+        )
     except Exception as e:
         raise RuntimeError("FFMPEG_INVOKE_FAILED: %s" % e)
     if r.returncode != 0:
@@ -108,6 +116,7 @@ def main(argv=None):
         print("ERROR: %s" % e, file=sys.stderr)
         return 2
 
+    os.makedirs(args.out, exist_ok=True)
     result = {"bvid": args.bvid, "video_path": video, "frames": [], "clip": None}
     if args.single:
         out_png = os.path.join(args.out, "frame_t%.3f.png" % args.start)
