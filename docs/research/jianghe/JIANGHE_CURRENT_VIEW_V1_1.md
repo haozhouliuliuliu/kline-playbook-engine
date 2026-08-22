@@ -14,7 +14,7 @@ SECOND_PASS_UNDEREXTRACTION_SOURCES=22
 SECOND_PASS_RECOVERED_CLAIMS=64
 SECOND_PASS_RECOVERED_CASES=9
 FINAL_SOURCE_DISTILLATION=COMPLETE_AFTER_EXHAUSTIVE_SECOND_PASS
-SOURCE_ONLY_VERIFIED=NO
+SOURCE_ONLY_VERIFIED=YES
 PRIMARY_ELIGIBLE=NO
 TOOL_DECISION=USE_EXISTING
 ```
@@ -32,7 +32,8 @@ Read in this order:
 7. `JIANGHE_STRATEGY_FAMILIES_V1_1.md`
 8. `JIANGHE_UNKNOWN_REGISTER_V1_1.md`
 9. `JIANGHE_CONTRADICTION_REGISTER_V1_1.md`
-10. V1.0 targeted-review artifacts and V0.x ledgers as historical/base evidence.
+10. `docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` — current material-bound SOURCE_ONLY session result.
+11. V1.0 targeted-review artifacts and V0.x ledgers as historical/base evidence.
 
 The logical full artifacts `JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.csv`, `JIANGHE_SECOND_PASS_CLAIM_LEDGER_DELTA_V1_1.jsonl`, and `JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.md` are represented durably in Git by their ordered fragments plus the manifests above. Do not assume those logical full filenames are directly tracked files.
 
@@ -62,9 +63,14 @@ Core mechanisms remain exactly A–D. No Family E is justified. Scalping remains
 ```text
 SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION
 UNKNOWN > GUESSING
-SOURCE_ONLY_VERIFIED=NO
+SOURCE_ONLY_VERIFIED=YES
 PRIMARY_ELIGIBLE=NO
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 REAL_MONEY=NOT_AUTHORIZED
 ```
+
+`SOURCE_ONLY_VERIFIED=YES` only means the project API/session mechanism has verified the
+material-bound V1.1 source-only session. It does not resolve PRIMARY, UNKNOWN or source
+conflicts, and it does not authorize candidate outcomes. OS/process sandbox isolation remains
+`NOT_PROVEN_NOT_CLAIMED`.

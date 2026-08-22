@@ -379,9 +379,14 @@ This does not authorize a real model provider, candidate outcome, Validation, Fi
 Shadow, Broker or real money. The implemented replay scope remains synthetic/non-outcome only;
 sub-minute live capability and every real provider require their own versioned evidence.
 
-Jianghe V1.1 still has `SOURCE_ONLY_VERIFIED=NO` and `PRIMARY_ELIGIBLE=NO`; source coverage
-cannot be promoted without a material-bound verified SOURCE_ONLY session and later governed
-claim/PRIMARY work.
+Jianghe V1.1 now has `SOURCE_ONLY_VERIFIED=YES` in the limited, canonical project API/session
+meaning: the V1.1 knowledge pack plus exact repository source/claim/case manifests are bound,
+and candidate runner, candidate PnL, Validation, Final and outcome-artifact surfaces are
+technically denied and audited. This does not claim OS/process sandbox isolation or eliminate
+latent model knowledge. `PRIMARY_ELIGIBLE=NO` remains: source-justified PRIMARY branches,
+UNKNOWN/source-conflict fail-closed treatment, and AI-trader provider/fidelity evidence are
+still separate pre-outcome work. Authority:
+`docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md`.
 
 ---
 

@@ -35,7 +35,7 @@
       "logical_document_id": "CONTRADICTION_REGISTER"
     },
     {
-      "content_sha256": "1796a527aa6c8bc0e03c14604d114a51158fb625f04923e958188dcd561e6b28",
+      "content_sha256": "54635bb1db47075f32a5e36aefc5bd0bac75a33956139562deab4318bf842120",
       "logical_document_id": "CURRENT_VIEW"
     },
     {
@@ -84,7 +84,7 @@
     }
   ],
   "identity_semantics": "CONTENT_AND_LOGICAL_DOCUMENT_ID_ONLY__NO_GIT_PATH_CWD_OR_MTIME",
-  "knowledge_pack_identity": "7170f0d5e7d6cd5fc2de8faf27e50262e2ec65ce716527d24022531561b3fd43",
+  "knowledge_pack_identity": "3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5",
   "knowledge_pack_version": "JIANGHE_V1_1",
   "primary_eligible": "NO",
   "real_model_provider": "NOT_IMPLEMENTED",

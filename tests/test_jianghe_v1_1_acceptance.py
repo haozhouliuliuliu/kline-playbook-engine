@@ -88,17 +88,18 @@ class JiangheV11AcceptanceTests(unittest.TestCase):
         self.assertIn("ENGINEERING OPEN, NOT A SEMANTIC BLOCKER", unknown)
         self.assertRegex(contradiction, r"Open contradiction count\s*\n\n`0`")
 
-    def test_current_view_and_verification_do_not_unlock_outcomes(self):
+    def test_current_view_source_only_verification_does_not_unlock_outcomes(self):
         current_view = (JH / "JIANGHE_CURRENT_VIEW_V1_1.md").read_text(encoding="utf-8")
         verification = (JH / "JIANGHE_SECOND_PASS_VERIFICATION_REPORT_V1_1.md").read_text(encoding="utf-8")
         combined = current_view + "\n" + verification
+        self.assertIn("SOURCE_ONLY_VERIFIED=YES", current_view)
+        self.assertIn("SOURCE_ONLY_VERIFIED=NO", verification)
         required = (
             "FULL_TIMELINE_SECOND_PASS_AVAILABLE_MEDIA=98",
             "UNACCOUNTED_TIMELINE_GAP=0",
             "SECOND_PASS_UNDEREXTRACTION_SOURCES=22",
             "SECOND_PASS_RECOVERED_CLAIMS=64",
             "SECOND_PASS_RECOVERED_CASES=9",
-            "SOURCE_ONLY_VERIFIED=NO",
             "PRIMARY_ELIGIBLE=NO",
             "CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED",
             "REAL_MONEY=NOT_AUTHORIZED",

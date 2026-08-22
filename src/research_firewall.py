@@ -122,6 +122,21 @@ class ProtectedMarketAccessMode(str, Enum):
     ACCESSIBLE = "ACCESSIBLE"
 
 
+class ProtectedProjectSurface(str, Enum):
+    """受 SOURCE_ONLY 保护的项目结果能力。
+
+    该枚举让拒绝记录说明尝试访问的具体项目能力。它不是一组可调用的
+    结果服务；SOURCE_ONLY 环境对其中每一项都只能返回拒绝。
+    """
+
+    MARKET_OUTCOME = "MARKET_OUTCOME"
+    CANDIDATE_OUTCOME_RUNNER = "CANDIDATE_OUTCOME_RUNNER"
+    CANDIDATE_PNL = "CANDIDATE_PNL"
+    VALIDATION = "VALIDATION"
+    FINAL = "FINAL"
+    OUTCOME_ARTIFACT = "OUTCOME_ARTIFACT"
+
+
 @dataclass(frozen=True)
 class SourceOnlySession:
     """Immutable SOURCE_ONLY session evidence record (Claim Schema v1.0 §4).
@@ -139,6 +154,9 @@ class SourceOnlySession:
     tool_retrieval_mode: str
     protected_market_access_mode: ProtectedMarketAccessMode
     researcher_model_exposure_note: str | None = None
+    knowledge_pack_identity: str | None = None
+    claim_manifest_identity: str | None = None
+    case_manifest_identity: str | None = None
     verification_evidence: str | None = None
 
     def __post_init__(self) -> None:
@@ -167,6 +185,9 @@ class SourceOnlySession:
                 "tool_retrieval_mode": self.tool_retrieval_mode,
                 "protected_market_access_mode": self.protected_market_access_mode.value,
                 "researcher_model_exposure_note": self.researcher_model_exposure_note,
+                "knowledge_pack_identity": self.knowledge_pack_identity,
+                "claim_manifest_identity": self.claim_manifest_identity,
+                "case_manifest_identity": self.case_manifest_identity,
             }
         )
 
@@ -176,6 +197,7 @@ class ProtectedOutcomeRequestResult:
     session_id: str | None
     outcome: str
     reason: str
+    requested_surface: ProtectedProjectSurface = ProtectedProjectSurface.MARKET_OUTCOME
 
 
 class SourceOnlyPolicy:
@@ -236,6 +258,9 @@ class SourceOnlyPolicy:
         source_bundle_hash: str,
         tool_retrieval_mode: str,
         researcher_model_exposure_note: str | None = None,
+        knowledge_pack_identity: str | None = None,
+        claim_manifest_identity: str | None = None,
+        case_manifest_identity: str | None = None,
     ) -> SourceOnlySession:
         """Project-owned verified-session creation path.
 
@@ -255,6 +280,9 @@ class SourceOnlyPolicy:
             tool_retrieval_mode=tool_retrieval_mode,
             protected_market_access_mode=ProtectedMarketAccessMode.TECHNICALLY_DENIED,
             researcher_model_exposure_note=researcher_model_exposure_note,
+            knowledge_pack_identity=knowledge_pack_identity,
+            claim_manifest_identity=claim_manifest_identity,
+            case_manifest_identity=case_manifest_identity,
         )
         session = replace(base, verification_evidence=secrets.token_hex(32))
         self._sessions[session_id] = session
@@ -292,7 +320,29 @@ class SourceOnlyPolicy:
     def request_protected_market_outcome(self, session_id: str | None) -> ProtectedOutcomeRequestResult:
         """Technical denial surface: any attempt to obtain project market outcomes
         through SOURCE_ONLY is DENIED. No retrieval surface is ever exposed."""
-        denial = ProtectedOutcomeRequestResult(session_id, "DENIED", "SOURCE_ONLY_TECHNICAL_DENIAL")
+        return self.request_protected_project_surface(
+            session_id,
+            ProtectedProjectSurface.MARKET_OUTCOME,
+        )
+
+    def request_protected_project_surface(
+        self,
+        session_id: str | None,
+        surface: ProtectedProjectSurface,
+    ) -> ProtectedOutcomeRequestResult:
+        """拒绝每一种受保护项目结果能力并保留审计记录。
+
+        SOURCE_ONLY 不提供候选运行器、候选 PnL、Validation、Final 或结果
+        工件读取能力。调用本方法不会打开任何工件，始终只返回拒绝记录。
+        """
+        if not isinstance(surface, ProtectedProjectSurface):
+            raise ValueError("protected project surface must be explicit")
+        denial = ProtectedOutcomeRequestResult(
+            session_id,
+            "DENIED",
+            "SOURCE_ONLY_TECHNICAL_DENIAL",
+            surface,
+        )
         self._denials.append(denial)
         return denial
 
@@ -742,9 +792,20 @@ class SourceOnlyClaimExtractionContext:
 
     def request_protected_market_outcome(self, request_reference: str | None) -> ProtectedOutcomeRequestResult:
         """Technical denial: the runner has no market-outcome surface; always DENY + audit."""
-        denial = self._source_only.request_protected_market_outcome(self._session_id)
+        return self.request_protected_project_surface(ProtectedProjectSurface.MARKET_OUTCOME)
+
+    def request_protected_project_surface(
+        self,
+        surface: ProtectedProjectSurface,
+    ) -> ProtectedOutcomeRequestResult:
+        """拒绝指定的项目结果能力；不会打开或返回任何结果工件。"""
+        denial = self._source_only.request_protected_project_surface(self._session_id, surface)
         self._denials.append(denial)
         return denial
+
+    def attempt_open_protected_outcome_artifact(self) -> ProtectedOutcomeRequestResult:
+        """显式拒绝结果工件打开尝试，避免把静默文件读取当成 SOURCE_ONLY。"""
+        return self.request_protected_project_surface(ProtectedProjectSurface.OUTCOME_ARTIFACT)
 
 
 # ---------------------------------------------------------------------------
@@ -2024,7 +2085,12 @@ class ResearchFirewall:
             ],
             "source_only_issued_verified": self._source_only.issued_verified_identities,
             "source_only_denials": [
-                {"session_id": item.session_id, "outcome": item.outcome, "reason": item.reason}
+                {
+                    "session_id": item.session_id,
+                    "outcome": item.outcome,
+                    "reason": item.reason,
+                    "requested_surface": item.requested_surface.value,
+                }
                 for item in self._source_only.denial_records
             ],
             "outcome_registrations": [
@@ -2071,7 +2137,14 @@ class ResearchFirewall:
         policy._issued_verified = dict(data.get("source_only_issued_verified", {}))
         for denial in data.get("source_only_denials", ()):
             policy._denials.append(
-                ProtectedOutcomeRequestResult(denial["session_id"], denial["outcome"], denial["reason"])
+                ProtectedOutcomeRequestResult(
+                    denial["session_id"],
+                    denial["outcome"],
+                    denial["reason"],
+                    ProtectedProjectSurface(
+                        denial.get("requested_surface", ProtectedProjectSurface.MARKET_OUTCOME.value)
+                    ),
+                )
             )
         for registration_data in data.get("outcome_registrations", ()):
             firewall._tests.register(_registration_from_state(registration_data))
@@ -2180,6 +2253,9 @@ def _source_only_session_to_state(session: SourceOnlySession) -> dict[str, Any]:
         "tool_retrieval_mode": session.tool_retrieval_mode,
         "protected_market_access_mode": session.protected_market_access_mode.value,
         "researcher_model_exposure_note": session.researcher_model_exposure_note,
+        "knowledge_pack_identity": session.knowledge_pack_identity,
+        "claim_manifest_identity": session.claim_manifest_identity,
+        "case_manifest_identity": session.case_manifest_identity,
         "verification_evidence": session.verification_evidence,
     }
 
@@ -2194,6 +2270,9 @@ def _source_only_session_from_state(data: dict[str, Any]) -> SourceOnlySession:
         tool_retrieval_mode=data["tool_retrieval_mode"],
         protected_market_access_mode=ProtectedMarketAccessMode(data["protected_market_access_mode"]),
         researcher_model_exposure_note=data.get("researcher_model_exposure_note"),
+        knowledge_pack_identity=data.get("knowledge_pack_identity"),
+        claim_manifest_identity=data.get("claim_manifest_identity"),
+        case_manifest_identity=data.get("case_manifest_identity"),
         verification_evidence=data.get("verification_evidence"),
     )
 
