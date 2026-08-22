@@ -1,0 +1,34 @@
+# 江河交易员当前研究视图 V0.2
+
+```text
+TRADER_ID=JIANGHE_TRADER
+SOURCE_SCOPE=001..033
+ANALYZED_AVAILABLE=31
+BLOCKED_LOCAL_MEDIA=007
+BLOCKED_PAID_GATE=022
+SOURCE_ONLY_VERIFIED=NO
+PRIMARY_ELIGIBLE=NO
+EVIDENCE_STAGE=PRELIMINARY_SOURCE_INTERPRETATION_EVIDENCE
+```
+
+## 当前权威组合
+
+V0.2 不覆盖或删除 V0.1 的历史证据。当前视图按以下优先级读取：
+
+1. `JIANGHE_SOL_REVIEW_RESOLUTION_V0_2.md`：对 V0.1 的 7 条 Sol 待确认项给出最终复核结论；与 V0.1 冲突时，本文件优先。
+2. `JIANGHE_TRADER_DOSSIER_V0_2.md`：001–033 的累计 14 项 Dossier。
+3. `JIANGHE_STRATEGY_FAMILIES_V0_2.md`：001–033 的累计 Family A–D 规格。
+4. `JIANGHE_CLAIM_LEDGER_V0_1.jsonl`：001–028 的基础 claim ledger。
+5. `JIANGHE_CLAIM_LEDGER_DELTA_029_033_V0_2.jsonl`：029–033 新增 claim。
+6. `JIANGHE_CASE_LIBRARY_V0_1.md` + `JIANGHE_CASE_LIBRARY_DELTA_029_033_V0_2.md`：累计案例库。
+7. `JIANGHE_UNKNOWN_REGISTER_V0_2.md`、`JIANGHE_CONTRADICTION_REGISTER_V0_2.md`、`JIANGHE_EVIDENCE_REVIEW_QUEUE_V0_2.csv`：当前未解项、冲突与 Sol 复核队列。
+8. `JIANGHE_SOURCE_INDEX_V0_1.csv` + `JIANGHE_SOURCE_INDEX_DELTA_029_033_V0_2.csv`：001–033 来源索引。
+
+## 解释边界
+
+- `SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION`。
+- SRT 只用于导航；图表相关语义必须以原视频同时间语言和画面为准。
+- 没有来源固定的数字、边界、评分公式或视觉阈值保持 `UNKNOWN`。
+- 033 主要是第三方学生案例；除江河本人明确认领的部分外，不把第三方的退出/风险规则迁移成江河规则。
+- 视频中的收益、R 倍数、账户增长只属于 `SOURCE_CASE_CONTENT`，不是策略有效性证据。
+- 当前 `SOURCE_ONLY_VERIFIED=NO`，因此所有材料仍为 preliminary evidence，不能升级为 PRIMARY-ready 或触发 outcome testing。
