@@ -390,6 +390,28 @@ still separate pre-outcome work. Authority:
 
 ---
 
+## LIMIT-012 — Jianghe real-model fidelity evaluation is not yet implemented
+
+```text
+STATUS=DEFERRED_NON_OUTCOME_PRE_PRIMARY_WORK
+PRIORITY=HIGH_FOR_NEXT_NORMAL_PHASE
+CURRENT_BLOCKER=NO_FOR_GLOBAL_ENGINEERING
+ACTIVATE_BEFORE=any source-justified PRIMARY branch promotion
+AUTHORITY=docs/reviews/JIANGHE_AI_FIDELITY_AND_REPLAY_INTEGRATION_REVIEW_V0_1.md
+REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
+FIDELITY_CORPUS=INTEGRATED_NON_OUTCOME
+OBSERVATION_REPLAY=INTEGRATED_SYNTHETIC_NON_OUTCOME
+```
+
+The fidelity fixture corpus V0.1 and the local observation/replay V0.2 are integrated as a
+non-outcome foundation, but no real model/provider is wired and no fidelity evaluation has
+been run. `JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED` remains. Real-model fidelity
+candidate evaluation (using the integrated non-outcome fixtures only) plus source-justified
+PRIMARY branch work is the next normal phase, all without candidate outcomes. Do not treat
+`SOURCE_ONLY_VERIFIED=YES` or the integrated fixtures as PRIMARY or outcome authorization.
+
+---
+
 ## Maintenance rule
 
 When a listed item becomes relevant to the current bounded package, `CURRENT_STATE.md` should

@@ -34,17 +34,19 @@ Keep this file short. Detailed evidence stays in `CURRENT_STATE.md`, ADRs, proto
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=ca7d99beacdaeb3b6bd7d8ef9fc3422f9481bf28
+LAST_MATERIAL_STATE_COMMIT=4e17509e0c12c86d0966e6920d3fb0ddb2f6e7c2
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
 JIANGHE_SOURCE_ONLY_VERIFIED=YES
 JIANGHE_PRIMARY_ELIGIBLE=NO
+JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME
+JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REPLAY_SCOPE=SYNTHETIC_NON_OUTCOME_ONLY
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
-CURRENT_NORMAL_WORK=INTEGRATE_FIDELITY_FIXTURE_CORPUS_AND_LOCAL_OBSERVATION_REPLAY_V0_2_THEN_RUN_REAL_MODEL_FIDELITY_EVIDENCE
+CURRENT_NORMAL_WORK=REAL_MODEL_FIDELITY_CANDIDATE_EVALUATION_PLUS_SOURCE_JUSTIFIED_PRIMARY_BRANCH_WORK_WITHOUT_CANDIDATE_OUTCOMES
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
@@ -53,8 +55,9 @@ BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
 ```
 
-Current integration inputs:
-- `research/jianghe-ai-fidelity-fixtures-v01` commit `2cf678d3c1c79a953e035572dd4ff6478a1d1e57` — fidelity fixture/scoring corpus, not yet in `main`;
-- local WorkBuddy observation/replay implementation — four uncommitted files in the Jianghe fidelity worktree, not yet GitHub authority.
+Current integration inputs (2026-08-23):
+- fidelity fixture/scoring corpus (`research/jianghe-ai-fidelity-fixtures-v01` @ `2cf678d`) — **integrated to `main`**;
+- local WorkBuddy observation/replay implementation (four files, protection commit `2d885a5`) — **integrated to `main`**.
 
-After those are safely integrated, this pointer must be updated in the same integration task.
+After those were safely integrated, this pointer was updated in the same integration task.
+Next normal phase: real-model fidelity candidate evaluation + source-justified PRIMARY branch work, all WITHOUT candidate outcomes.
