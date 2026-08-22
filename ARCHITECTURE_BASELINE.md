@@ -1,215 +1,173 @@
 # ARCHITECTURE_BASELINE
 
 ## Status
-Baseline: Skeleton v1.0
-State: ACCEPTED
-Purpose: Initial architecture baseline for a clean-room China commodity futures intraday automated trading project.
-
-This architecture does not define concrete K-line strategies, books, indicators, social-media sources, or final trading playbooks.
-
-## Current adopted architecture amendment
-
-Skeleton v1.0 remains accepted historical baseline. The Owner-approved current architecture is additionally governed by `docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
 
 ```text
 CURRENT_ADOPTED_ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
-JIANGHE_AI_MAY_PROPOSE_CONSTRAINED_TRADE_INTENT=YES
-DETERMINISTIC_RISK_AND_EXECUTION_OWNERSHIP=UNCHANGED
+STATE=ACCEPTED
 ```
 
-The amendment deliberately preserves Data Substrate, ResearchFirewall, RiskGate, OMS, STOP/OCO, TradingState, PaperBroker, Safety, reconciliation and Ledger. It changes only the product decision layer: a versioned Jianghe AI Trader may interpret point-in-time market observations and propose a constrained intent; it never owns capital, positions, broker facts, risk hard limits, order lifecycle or safety overrides.
+This file contains the **current consolidated architecture only**. Historical Skeleton wording is preserved in Git history and accepted evidence; it is not repeated here because contradictory historical wording must not pollute the active project-brain context.
 
-## Historical Skeleton v1.0 content
+Binding decision-layer detail:
+`docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
 
-The following original Skeleton v1.0 sections are preserved verbatim for history. Where they
-conflict with the adopted amendment above, the ADR is the current authority.
+## 1. Core architecture
 
-## Core principles
-- AI operates mainly in the offline research layer.
-- The live trading critical path does not rely on discretionary LLM decisions.
-- Important facts and mutable state have one clear owner.
-- Backtest/validation must prevent repeated holdout leakage and automated overfitting.
-- Third-party frameworks are candidates until explicitly verified and adopted.
+```text
+Market Data
+-> Rolling Market State
+-> Multi-Timeframe Observation
+-> Jianghe AI Decision Layer
+-> constrained TradeIntent
+-> deterministic RiskGate
+-> OMS / STOP-OCO
+-> Execution / Broker Adapter
+-> Broker Reports
+-> Reconciliation
+-> Safety
+-> Ledger
+```
 
-## 1. Data Substrate
-Owns normalized market and contract semantics:
-- instrument/contract master;
-- China futures trading calendar and night-session semantics;
-- tick/bar and multi-timeframe generation;
-- contract multiplier/tick/limit metadata;
-- margin, fee, close-today/close-yesterday and other cost metadata;
-- contract mapping, main/continuous/roll metadata;
-- point-in-time availability boundaries;
-- data-quality checks;
-- normalized historical storage;
-- live market-data recording;
-- versioned cost/slippage metadata contract.
+The central product split is deliberate:
 
-All downstream components consume the same normalized data semantics.
+- **AI owns market interpretation and discretionary trade proposals within the Jianghe knowledge boundary.**
+- **Deterministic systems own hard risk, order lifecycle, broker/account truth, reconciliation and safety.**
 
-## 2. Strategy Catalog
-A strategy follows a Playbook Contract rather than a custom programming language.
+## 2. Data substrate
 
-Each strategy should have at least:
-- family_id and lineage/parent relation;
-- version;
-- provenance/source;
-- applicable instruments;
-- timeframe;
-- typed parameters;
-- parameter hash;
-- required MarketContext;
-- deterministic intent interface;
-- exit logic;
-- code hash;
-- environment/dependency hash;
-- lifecycle state;
-- data-exposure history.
+The data layer owns normalized, point-in-time market and contract facts:
 
-Meaningful logic or parameter changes create a new immutable version.
+- concrete instrument / contract identity;
+- China-futures trading calendar and night-session semantics;
+- 1m bars and causal higher-timeframe aggregation;
+- tick / multiplier / limit / fee / margin metadata when governed;
+- contract mapping / roll authority;
+- `available_at` and completeness semantics;
+- historical storage and live market-data recording;
+- data-quality and provenance identities.
 
-## 3. Backtest & Validation Engine
-One validation system may provide:
-- FAST MODE for inexpensive rejection of large candidate pools;
-- CONFIRMATORY MODE for chronological/event-driven verification with realistic trading semantics.
+Downstream components must consume the same normalized semantics. Future information may not enter an observation or replay snapshot.
 
-Both modes must execute the same strategy artifact/code hash. Fast mode may reject but cannot establish final validity.
+## 3. Jianghe knowledge and AI decision layer
 
-Confirmatory validation should progressively model:
-- timestamps/session semantics;
-- orders and execution timing;
-- costs and slippage;
-- capital and margin;
-- multiple strategy interaction;
-- price-limit non-fill conditions;
-- contract mapping/roll;
-- insufficient-margin and forced-liquidation paths where relevant.
+Jianghe V1 is the sole current trading knowledge source unless `CURRENT_STATE.md` changes that direction.
 
-### Selection Firewall
-The firewall is code-enforced, not just logged.
+The AI decision layer may:
 
-Minimum requirements:
-- development / validation / final-unseen separation;
-- technical denial of final-unseen access before explicit unlock;
-- once observed, data permanently loses unseen status for the research family and descendants;
-- family lineage prevents laundering exposure by renaming family_id;
-- total search freedom records strategy × parameters × instruments × timeframe × context/regime;
-- large automated searches require reasonable multiple-testing / overfitting controls;
-- final candidates require correlation / false-diversification checks;
-- future Shadow/Forward data supplies continuing genuinely unseen evidence.
+- read causal structured OHLCV and standardized charts;
+- maintain versioned working memory and AI annotations;
+- interpret market state, timeframe-specific trend, location, relative strength and execution-timeframe behavior;
+- classify A / B / C / D / NONE;
+- output WAIT / NO_TRADE / WATCH / CANDIDATE / ENTER / MANAGE / EXIT;
+- propose a constrained trade intent and invalidation logic.
 
-## 4. Research Loop
-Offline only.
+It must allow `NO_TRADE` when the market is unfamiliar, source evidence is UNKNOWN/contradictory, or Jianghe permission conditions are not met.
 
-AI may:
-- find candidate ideas;
-- organize knowledge;
-- implement strategy drafts;
-- write tests;
-- analyze experiments;
-- find bugs;
-- red-team hypotheses;
-- explain results.
+The AI does **not** own:
 
-AI may not:
-- make discretionary live buy/sell decisions;
-- change live sizing/stops/strategy logic;
-- inspect final-unseen results and silently tune the same version;
-- approve its own research as valid without independent/explicit validation.
+- capital truth;
+- position truth;
+- broker truth;
+- hard risk limits;
+- order lifecycle truth;
+- Safety overrides.
 
-MVP does not require multi-agent orchestration, knowledge graphs, RD-Agent/Qlib/TradingAgents/MiroFish integration, or automatic pattern discovery.
+## 4. Versioned AI Trader identity
 
-## 5. Trading Loop
-Conceptual chain:
-Tick/Bar → MarketContext → Strategy.intent() → deterministic conflict resolution → RiskGate → OMS → Execution → broker reports → reconciliation → Safety → Ledger.
+The research object is not merely a model name. `JiangheAITraderIdentity` binds outcome-affecting components including:
 
-### TradingState
-TradingState is the only authoritative mutable local real-time state owner.
-Strategies receive immutable snapshots for intent computation.
+- Jianghe knowledge-pack identity;
+- model provider / model version;
+- system and decision prompt identities;
+- context-selection policy;
+- memory policy;
+- chart renderer;
+- observation schema;
+- wake policy;
+- decision schema / normalizer;
+- inference configuration;
+- tool capability set;
+- Jianghe family scope.
 
-Broker events require:
-- unique event_id;
-- idempotent application;
-- deduplication;
-- defined out-of-order handling;
-- sequence/trading-day conventions.
+A material change creates a new version/descendant and inherits prior exposure as required by research governance.
 
-Broker/exchange facts override local inference.
-Crash/restart must rebuild state from persistent facts plus broker reconciliation.
+## 5. Observation / attention / replay
 
-### Risk ownership
-RiskGate owns versioned:
-- per-strategy risk rules;
-- portfolio capital allocation;
-- portfolio risk budgets;
-- total risk limits.
+The AI does not receive occasional large retrospective packages. Market state is continuous; `JiangheObservation` is the point-in-time snapshot created when the AI is awakened.
 
-### Safety
-Safety overrides strategies and must cover at least:
+Supported attention semantics include SCAN / WATCH / CANDIDATE / IN_POSITION. Wake events may include new closed bars, price entry/exit from AI watch regions, invalidation touches, order/position events, safety events and session events.
+
+Historical V1 replay has a hard evidence boundary:
+
+```text
+HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
+NO_SYNTHETIC_SUB_MINUTE_PATH_FROM_1M_OHLC=YES
+```
+
+Any future live use of partial-bar / sub-minute information is a different capability/version and cannot be claimed equivalent to 1m historical replay.
+
+## 6. Working memory and audit
+
+AI working memory is persistent within the governed replay/session and mutation-audited. It may retain:
+
+- market hypotheses;
+- timeframe-specific trend views;
+- directional bias;
+- watch / key / invalidation regions;
+- active family hypothesis;
+- expected trigger;
+- UNKNOWN/open questions;
+- prior meaningful decisions and state transitions.
+
+AI annotations are hypotheses, never market facts.
+
+Every real model call must be auditable with observation identity, raw/normalized response, timing/latency chain, decision identity and memory mutation evidence.
+
+## 7. TradingState / RiskGate / execution
+
+`TradingState` is the only authoritative mutable local realtime state owner.
+
+`RiskGate` owns versioned hard limits and may reject AI intents. The AI cannot enlarge its own capital/risk allowance or bypass safety.
+
+OMS / STOP-OCO / Broker Adapter / reconciliation remain deterministic project-owned execution infrastructure. Broker/exchange facts override local inference. Crash/restart must rebuild from persistent facts plus broker reconciliation.
+
+## 8. Safety
+
+Safety is fail-closed and overrides the AI and execution path for at least:
+
 - stale/missing market data;
 - broker disconnect;
 - duplicate/order inconsistency;
 - account/position mismatch;
-- margin/risk abnormality;
+- abnormal margin/risk;
 - clock/session abnormality;
 - kill switch.
 
-External execution frameworks must sit behind a thin project-owned Broker Adapter. Core business logic must not bind directly to third-party private data structures.
+## 9. Research / validation firewall
 
-## 6. Ledger
-Immutable factual history.
+Human-playbook/source governance and candidate outcome access remain separate from implementation readiness.
 
-Initial storage may use:
-- SQLite for metadata/experiments/orders/fills/lifecycle/safety/reconciliation;
-- Parquet for market and large analytical datasets;
-- optional DuckDB for local analysis.
+The project preserves:
 
-Record at least:
-- experiment identity;
-- research family and strategy version;
-- code/parameter/environment hashes;
-- feature_version and data version;
-- dataset exposure;
-- validation result/rejection reason;
-- intent/order/cancel/fill;
-- position transition;
-- safety/reconciliation events;
-- lifecycle transitions.
+- SOURCE / AI interpretation / project operationalization separation;
+- point-in-time data rules;
+- family/version lineage and exposure inheritance;
+- development / validation / final-holdout separation;
+- technical denial of protected outcome access before authorization;
+- search-freedom / multiplicity governance;
+- genuinely unseen future Shadow/Forward evidence when later authorized.
 
-Ledger records what happened; it does not own live mutable state.
+Current authorization values live only in `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`; this architecture file grants no outcome, Shadow, broker or real-money permission by itself.
 
-## 7. Observability & Control
-Owner-facing control surface should eventually show:
-- instruments scanned;
-- active strategies;
-- signals and executed trades;
-- reason for each trade;
-- positions;
-- PnL and drawdown/risk;
-- suspended strategies;
-- data/broker/reconciliation health;
-- system exceptions;
-- kill switch.
+## 10. Ledger / observability
 
-MVP should avoid distributed observability infrastructure unless proven necessary.
+Ledger stores immutable factual history for identities, exposures, decisions, intents, orders, fills, position transitions, safety/reconciliation events and lifecycle changes. It does not own live mutable state.
 
-## MarketContext / Regime
-MVP does not require a standalone central Regime Router.
-Data/context may expose causal, point-in-time features such as volatility, trend strength, volume state, time-of-day, and gap/session state.
+Owner-facing observability should ultimately expose what the AI is watching, why a trade was proposed/rejected, positions/orders, risk/safety health and a kill switch without forcing the Owner to inspect internal engineering details.
 
-Feature definitions must be versioned (`feature_version`).
-If a central Regime Router is introduced later, it becomes a separately versioned research object subject to out-of-sample and leakage controls.
+## 11. Tool policy
 
-## Open-source position at baseline
-Candidate only unless formally verified/adopted:
-- Primary execution backbone candidate: VeighNa / vn.py
-- Fast screening candidate: vectorbt
-- Data/simulation candidates: TqSdk, openctp, SimNow
-- Phase-2/reference: NautilusTrader, STUMPY, RD-Agent, Qlib, TradingAgents, MiroFish, Freqtrade, Jesse, QuantConnect LEAN
-- Lightweight storage: SQLite, Parquet, optional DuckDB
-- Deferred until proven need: DVC, MLflow, Optuna, Prometheus/Grafana, knowledge graph, multi-agent orchestration, microservices/distributed architecture
+External execution frameworks, model providers, agent frameworks and open-source tools remain `CANDIDATE` until this project verifies/adopts them. Core business logic must remain behind project-owned interfaces.
 
-## Architecture acceptance
-Skeleton v1.0 was accepted after independent engineering/open-source, statistical-overfitting, complexity, and final clean-room architecture reviews.
-
-Do not reopen the whole architecture without a concrete fatal flaw. Exact defects may be fixed without redesigning the project.
+Current architecture does not require a vector database, knowledge graph, multi-agent runtime, message queue, microservices or distributed infrastructure merely because those tools exist.
