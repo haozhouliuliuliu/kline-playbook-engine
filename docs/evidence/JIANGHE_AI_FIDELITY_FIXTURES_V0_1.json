@@ -1,0 +1,1745 @@
+{
+  "corpus_id": "JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1",
+  "version": "0.1",
+  "status": "READY_FOR_MODEL_EVALUATION",
+  "trader_id": "JIANGHE_TRADER",
+  "knowledge_pack_reference": "JIANGHE_V1_1",
+  "baseline_commit": "ebc9da72c989086f97ff77f9840dcb124c3c5935",
+  "branch": "research/jianghe-ai-fidelity-fixtures-v01",
+  "purpose": "评估模型是否像江河地理解市场（忠实度），而不是模型是否赚钱。",
+  "grading_question": "MODEL_LIKE_JIANGHE",
+  "non_outcome_guarantee": {
+    "real_candidate_pnl": "EXCLUDED",
+    "future_price_performance_as_answer": "EXCLUDED",
+    "win_loss_labels": "EXCLUDED",
+    "outcome_based_model_selection": "EXCLUDED",
+    "later_went_up_therefore_buy": "EXCLUDED",
+    "source_case_later_returns_are_grading_targets": "EXCLUDED",
+    "fixture_observations": "SYNTHETIC_NON_OUTCOME_ONLY",
+    "allowed_source_semantics": "FIGURE_AND_BEHAVIOR_SEMANTICS_ONLY",
+    "authority": "SOURCE_ONLY_VERIFIED=NO / PRIMARY_ELIGIBLE=NO / CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED / VALIDATION_ACCESS=LOCKED / REAL_MONEY=NOT_AUTHORIZED"
+  },
+  "scoring_semantics": {
+    "answer_language": "FREE_FORM__MULTIPLE_REASONABLE_ANSWERS_ALLOWED",
+    "no_fixed_text_recitation": true,
+    "verdict_rule": "PASS_IF_ANY_PASS_PATH_SATISFIED_AND_NO_FAIL_CONDITION_TRIGGERED",
+    "pass_example": "识别为A并等待确认",
+    "pass_example_2": "A候选但NO_TRADE，因为触发未完成",
+    "fail_example": "仅看到吞没就直接LONG",
+    "semantic_constraint_types": [
+      "family_in", "family_not_in",
+      "action_in", "action_not_in",
+      "direction_in", "direction_not_in",
+      "principle_acknowledged", "principle_violated",
+      "no_invented_threshold", "invented_threshold",
+      "declares_unknown", "no_outcome_reference", "outcome_referenced"
+    ]
+  },
+  "hard_negatives": [
+    {
+      "id": "HN-001",
+      "name": "PATTERN_ALONE_IS_NOT_TRADE_PERMISSION",
+      "statement": "形态/N字/吞没/影线单独出现，不构成完整入场理由。",
+      "source_anchors": {
+        "claims": ["JH-CLM-002-002", "JH-CLM-006-SP04"],
+        "cases": ["JH-CASE-023-001"]
+      }
+    },
+    {
+      "id": "HN-002",
+      "name": "LOCATION_IS_NOT_TRIGGER",
+      "statement": "关键位/偏向只过滤方向，触发仍需独立反应或确认。",
+      "source_anchors": {
+        "claims": ["JH-CLM-005-SP01", "JH-CLM-011-SP02"],
+        "cases": ["JH-CASE-005-001"],
+        "contradictions": ["JH-CON-015"]
+      }
+    },
+    {
+      "id": "HN-003",
+      "name": "WEAKENING_IS_NOT_REVERSAL",
+      "statement": "旧方向弱化/失速不等于反转；需要新方向真正接管。",
+      "source_anchors": {
+        "claims": ["JH-CLM-012-SP01", "JH-CLM-068-001"],
+        "contradictions": ["JH-CON-011", "JH-CON-021"]
+      }
+    },
+    {
+      "id": "HN-004",
+      "name": "RANGE_MIDDLE_NO_TRADE",
+      "statement": "震荡中部不是主周期波段许可；只有外边界才是行动区。",
+      "source_anchors": {
+        "claims": ["JH-CLM-021-SP01", "JH-CLM-067-001"],
+        "cases": ["JH-CASE-021-001"]
+      }
+    },
+    {
+      "id": "HN-005",
+      "name": "CONTEST_UNRESOLVED_WAIT",
+      "statement": "对抗/重叠未分胜负 => 等待，不是看到形态就行动。",
+      "source_anchors": {
+        "claims": ["JH-CLM-078-009", "JH-CLM-078-008"],
+        "unknowns": ["JH-UNK-039"]
+      }
+    },
+    {
+      "id": "HN-006",
+      "name": "FALSE_BREAKOUT_IS_NOT_TRUE",
+      "statement": "刺破/快速回到原空间/无跟随，不是真突破。",
+      "source_anchors": {
+        "claims": ["JH-CLM-015-SP02", "JH-CLM-023-SP01"],
+        "cases": ["JH-CASE-023-001"]
+      }
+    },
+    {
+      "id": "HN-007",
+      "name": "SAME_TF_INTERNAL_IS_NOT_LOWER_TF_SETUP",
+      "statement": "同周期内部结构不能冒充实际低周期外部结构。",
+      "source_anchors": {
+        "claims": ["JH-CLM-069-002", "JH-CLM-062-001", "JH-CLM-069-001"],
+        "contradictions": ["JH-CON-016"],
+        "unknowns": ["JH-UNK-031"]
+      }
+    },
+    {
+      "id": "HN-008",
+      "name": "LONG_INVALID_IS_NOT_SHORT_VALID",
+      "statement": "不能做多不等于可以做空；一方失效不代表另一方自动有效。",
+      "source_anchors": {
+        "claims": ["JH-CLM-050-001", "JH-CLM-085-001", "JH-CLM-027-SP01"]
+      }
+    },
+    {
+      "id": "HN-009",
+      "name": "UNKNOWN_OR_CONTRADICTION_NO_INVENTION",
+      "statement": "来源未钉死或内部矛盾的概念，不虚构阈值或风险参数。",
+      "source_anchors": {
+        "unknowns": ["JH-UNK-003", "JH-UNK-004", "JH-UNK-008"],
+        "contradictions": ["JH-CON-007"]
+      }
+    }
+  ],
+  "principles": [
+    {
+      "id": "JH-PRINC-001",
+      "name": "PATTERN_IS_NOT_PERMISSION",
+      "canonical": "形态/N字/吞没/影线单独出现永远不构成完整入场理由。",
+      "source_anchors": {
+        "claims": ["JH-CLM-002-002", "JH-CLM-006-SP04"]
+      }
+    },
+    {
+      "id": "JH-PRINC-002",
+      "name": "LOCATION_IS_NOT_TRIGGER",
+      "canonical": "关键位/偏向只过滤方向，触发仍需独立反应或确认。",
+      "source_anchors": {
+        "claims": ["JH-CLM-005-SP01", "JH-CLM-011-SP02"]
+      }
+    },
+    {
+      "id": "JH-PRINC-003",
+      "name": "WEAKENING_IS_NOT_REVERSAL",
+      "canonical": "旧方向弱化不等于反转；新方向必须真正接管。",
+      "source_anchors": {
+        "claims": ["JH-CLM-012-SP01"],
+        "contradictions": ["JH-CON-011"]
+      }
+    },
+    {
+      "id": "JH-PRINC-004",
+      "name": "RANGE_MIDDLE_NO_TRADE",
+      "canonical": "震荡中部不是主周期波段许可；外边界才是行动区。",
+      "source_anchors": {
+        "claims": ["JH-CLM-021-SP01"]
+      }
+    },
+    {
+      "id": "JH-PRINC-005",
+      "name": "CONTEST_UNRESOLVED_WAIT",
+      "canonical": "对抗/重叠未分胜负 => 等待。",
+      "source_anchors": {
+        "claims": ["JH-CLM-078-009"],
+        "unknowns": ["JH-UNK-039"]
+      }
+    },
+    {
+      "id": "JH-PRINC-006",
+      "name": "FALSE_BREAKOUT_IS_NOT_TRUE",
+      "canonical": "刺破/快速回原空间/无跟随不是真突破。",
+      "source_anchors": {
+        "claims": ["JH-CLM-015-SP02", "JH-CLM-023-SP01"]
+      }
+    },
+    {
+      "id": "JH-PRINC-007",
+      "name": "SAME_TF_INTERNAL_IS_NOT_LOWER_TF_SETUP",
+      "canonical": "同周期内部结构不是独立入场许可；需要实际低周期外部结构。",
+      "source_anchors": {
+        "claims": ["JH-CLM-069-002"],
+        "contradictions": ["JH-CON-016"],
+        "unknowns": ["JH-UNK-031"]
+      }
+    },
+    {
+      "id": "JH-PRINC-008",
+      "name": "LONG_INVALID_IS_NOT_SHORT_VALID",
+      "canonical": "不能做多不等于可以做空；一方失效不代表另一方自动有效。",
+      "source_anchors": {
+        "claims": ["JH-CLM-050-001", "JH-CLM-085-001"]
+      }
+    },
+    {
+      "id": "JH-PRINC-009",
+      "name": "UNKNOWN_NO_INVENTION",
+      "canonical": "来源未钉死或内部矛盾，不虚构阈值或风险参数。",
+      "source_anchors": {
+        "unknowns": ["JH-UNK-003", "JH-UNK-008"]
+      }
+    },
+    {
+      "id": "JH-PRINC-010",
+      "name": "NO_TRADE_IS_REASONABLE",
+      "canonical": "拒绝交易是合法的忠实度结果，不是失败。",
+      "source_anchors": {
+        "claims": ["JH-CLM-005-SP01", "JH-CLM-095-001"]
+      }
+    },
+    {
+      "id": "JH-PRINC-011",
+      "name": "OUTCOME_NOT_EVIDENCE",
+      "canonical": "未来价格/利润/结果不是有效性证据。",
+      "source_anchors": {
+        "contradictions": ["JH-CON-012", "JH-CON-024"]
+      }
+    },
+    {
+      "id": "JH-PRINC-012",
+      "name": "TREND_IS_TIMEFRAME_SPECIFIC",
+      "canonical": "任何趋势表述必须绑定周期。",
+      "source_anchors": {
+        "claims": ["JH-CLM-019-SP04", "JH-CLM-019-SP05"]
+      }
+    },
+    {
+      "id": "JH-PRINC-013",
+      "name": "BREAKOUT_REQUIRES_FOLLOW_THROUGH",
+      "canonical": "确认突破需要真实离开原空间加跟随/低周期确认。",
+      "source_anchors": {
+        "claims": ["JH-CLM-015-SP02", "JH-CLM-023-SP01"]
+      }
+    },
+    {
+      "id": "JH-PRINC-014",
+      "name": "SECOND_PUSH_FAILURE_CONFIRMS_REVERSAL",
+      "canonical": "二推/多推不能创新极值加反向确认才是边界反转线索。",
+      "source_anchors": {
+        "claims": ["JH-CLM-021-SP02"],
+        "cases": ["JH-CASE-021-001"]
+      }
+    },
+    {
+      "id": "JH-PRINC-015",
+      "name": "CONFIRMATION_CLOSE_REQUIRED",
+      "canonical": "执行周期需要真实反应/确认收盘；无确认不升级为入场。",
+      "source_anchors": {
+        "claims": ["JH-CLM-005-SP01", "JH-CLM-025-SP02"]
+      }
+    },
+    {
+      "id": "JH-PRINC-016",
+      "name": "D_GENUINE_BREAKOUT_SWITCHES_TO_C",
+      "canonical": "真突破导致机制重分类；不要沿用旧震荡反转逻辑。",
+      "source_anchors": {
+        "claims": ["JH-CLM-027-SP02"],
+        "cases": ["JH-CASE-027-002"]
+      }
+    },
+    {
+      "id": "JH-PRINC-017",
+      "name": "TREND_INTACT_NO_BLIND_REVERSAL",
+      "canonical": "趋势未受损不盲目逆势；B家族需要受损加接管证据。",
+      "source_anchors": {
+        "claims": ["JH-CLM-012-SP01"],
+        "contradictions": ["JH-CON-021"]
+      }
+    },
+    {
+      "id": "JH-PRINC-018",
+      "name": "STOP_OUT_NOT_PERMANENT_BAN",
+      "canonical": "止损出局不永久禁止；新的独立条件可恢复许可。",
+      "source_anchors": {
+        "claims": ["JH-CLM-025-SP04", "JH-CLM-027-SP01"]
+      }
+    }
+  ],
+  "unknown_register_ids": [
+    "JH-UNK-002",
+    "JH-UNK-003",
+    "JH-UNK-004",
+    "JH-UNK-005",
+    "JH-UNK-006",
+    "JH-UNK-008",
+    "JH-UNK-016",
+    "JH-UNK-030",
+    "JH-UNK-031",
+    "JH-UNK-032",
+    "JH-UNK-033",
+    "JH-UNK-039",
+    "JH-UNK-043",
+    "JH-UNK-044"
+  ],
+  "contradiction_register_ids": [
+    "JH-CON-007",
+    "JH-CON-011",
+    "JH-CON-012",
+    "JH-CON-015",
+    "JH-CON-016",
+    "JH-CON-021",
+    "JH-CON-024"
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "JH-FIX-A-001",
+      "coverage": "A",
+      "title": "趋势关键位回调延续：到位但触发未完成",
+      "hard_negative_tags": ["HN-001", "HN-002", "HN-009"],
+      "source_anchors": {
+        "claims": ["JH-CLM-006-SP01", "JH-CLM-011-SP02", "JH-CLM-024-SP01", "JH-CLM-024-SP02"],
+        "cases": ["JH-CASE-024-001", "JH-CASE-024-SP01", "JH-CASE-005-SP01"],
+        "dossier_sections": ["02", "03", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：4H 呈现确认的趋势（高点/低点序列上升），1H 在趋势防守/起始区域出现相对较弱、较浅的回调，反向K线数量与强度都小于此前的推动段。当前执行周期5m尚未出现顺向确认收盘，也没有条件突破。关键位已到，但尚未观察到真实反应。",
+        "timeframes": ["4H", "1H", "5m"],
+        "market_state": "TREND_WITH_SHALLOW_PULLBACK",
+        "synthetic_observations": [
+          "4H 趋势方向明确且未受损",
+          "1H 回调深度浅、反向推动弱",
+          "5m 尚无顺向确认收盘/条件突破",
+          "关键防守位已触及但无确认反应"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": [
+          "后续价格路径",
+          "回调是否完成",
+          "任何盈亏结果",
+          "任何胜率/期望值"
+        ]
+      },
+      "expected": {
+        "permissible_family_set": ["A"],
+        "forbidden_family_set": ["B", "C", "D"],
+        "direction_permission": {
+          "LONG": "CONDITIONAL_ON_TRIGGER",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "WAIT_OR_NO_TRADE_UNTIL_TRIGGER",
+        "required_principles": ["JH-PRINC-002", "JH-PRINC-015", "JH-PRINC-001"],
+        "acceptable_ambiguity": [
+          "可以表述为「A 家族，等待确认」",
+          "可以表述为「A 候选但 NO_TRADE，因为触发未完成」",
+          "可以提及回调延续而非直接说出家族代码 A",
+          "WAIT 与 NO_TRADE 均可，只要原因是触发未完成"
+        ],
+        "explicit_unknown": ["JH-UNK-002", "JH-UNK-003", "JH-UNK-004"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "A_recognized_and_wait_for_confirmation",
+            "constraints": [
+              {"type": "family_in", "values": ["A"]},
+              {"type": "action_in", "values": ["WAIT", "NO_TRADE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-002", "JH-PRINC-015"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "engulf_or_pattern_alone_immediate_long",
+            "constraints": [
+              {"type": "family_in", "values": ["A"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-001", "JH-PRINC-002"]}
+            ]
+          },
+          {
+            "name": "countertrend_short_against_intact_trend",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-A-002",
+      "coverage": "A",
+      "title": "趋势关键位回调延续：确认完成可入场",
+      "hard_negative_tags": ["HN-001", "HN-002"],
+      "source_anchors": {
+        "claims": ["JH-CLM-024-SP02", "JH-CLM-025-SP02", "JH-CLM-005-SP01"],
+        "cases": ["JH-CASE-024-SP01", "JH-CASE-025-SP01"],
+        "dossier_sections": ["04", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：4H 趋势完整，1H 弱回调到防守位后，5m 出现顺向确认收盘/条件突破（收盘重新站上回调段高点），执行周期出现真实的趋势方向恢复。回调推动明显弱于此前趋势推动。",
+        "timeframes": ["4H", "1H", "5m"],
+        "market_state": "TREND_PULLBACK_CONFIRMED",
+        "synthetic_observations": [
+          "4H 趋势完整",
+          "1H 弱回调后出现趋势方向恢复",
+          "5m 确认收盘/条件突破出现",
+          "反向推动弱于顺向推动"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "该笔盈亏", "任何结果标签"]
+      },
+      "expected": {
+        "permissible_family_set": ["A"],
+        "forbidden_family_set": ["B", "C", "D"],
+        "direction_permission": {
+          "LONG": "PERMITTED_AFTER_CONFIRMATION",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "ENTRY_PERMITTED_ON_ACTUAL_CONFIRMATION",
+        "required_principles": ["JH-PRINC-015", "JH-PRINC-001"],
+        "acceptable_ambiguity": [
+          "可以表述为「A，确认后做多」",
+          "可以表述为「确认收盘成立，条件突破，倾向 LONG」",
+          "可以保守地选择 WATCH/CANDIDATE 再等一根确认，只要明确基于确认逻辑"
+        ],
+        "explicit_unknown": ["JH-UNK-002", "JH-UNK-004"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "A_confirmed_entry_allowed",
+            "constraints": [
+              {"type": "family_in", "values": ["A"]},
+              {"type": "direction_in", "values": ["LONG"]},
+              {"type": "action_in", "values": ["ENTER", "CANDIDATE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-015", "JH-PRINC-001"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "pattern_alone_without_confirmation",
+            "constraints": [
+              {"type": "principle_violated", "values": ["JH-PRINC-001"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "short_against_trend",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-A-003",
+      "coverage": "A",
+      "title": "回调过深/加速：A 失效，不做",
+      "hard_negative_tags": ["HN-001", "HN-009"],
+      "source_anchors": {
+        "claims": ["JH-CLM-024-SP01", "JH-CLM-008-SP01"],
+        "cases": ["JH-CASE-024-SP01"],
+        "dossier_sections": ["02", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：此前 4H 趋势出现回调，但回调已明显过深——连续多根同向（反向）K线且逐步加速，跌破此前的回调深度限制，趋势在该周期不再稳定。不存在任何新的顺向确认。",
+        "timeframes": ["4H", "1H"],
+        "market_state": "TREND_UNDER_DAMAGE_DEEP_PULLBACK",
+        "synthetic_observations": [
+          "4H 趋势此前存在",
+          "1H 回调深且加速",
+          "同向（反向）K线数量过多",
+          "无顺向确认"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "该笔盈亏", "回调后是否反转"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["A", "B", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE__DEEP_PULLBACK_INVALIDATES_A",
+        "required_principles": ["JH-PRINC-010", "JH-PRINC-001"],
+        "acceptable_ambiguity": [
+          "可以表述为「A 条件不再成立，不做」",
+          "可以表述为「回调过深，降级/放弃，NO_TRADE」",
+          "即便说出 A 家族但决定 NO_TRADE 也接受"
+        ],
+        "explicit_unknown": ["JH-UNK-003", "JH-UNK-004", "JH-UNK-006"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "no_trade_on_deep_pullback",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-010", "JH-PRINC-001", "JH-PRINC-002"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "long_into_deep_pullback",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "family_a_entry_without_conditions",
+            "constraints": [
+              {"type": "family_in", "values": ["A"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-B-001",
+      "coverage": "B",
+      "title": "趋势衰弱：弱化不等于反转，等待接管",
+      "hard_negative_tags": ["HN-003", "HN-008", "HN-005"],
+      "source_anchors": {
+        "claims": ["JH-CLM-012-SP01", "JH-CLM-012-SP02", "JH-CLM-068-001"],
+        "cases": ["JH-CASE-012-001", "JH-CASE-012-SP01"],
+        "dossier_sections": ["02", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：4H 上升趋势无法再创新高，原防守位被破，但只出现小幅反向K线，没有爆发/加速/跟随，执行周期也没有完整反转结构。旧多头与新空头处于对抗未决状态。",
+        "timeframes": ["4H", "1H", "15m"],
+        "market_state": "OLD_TREND_WEAKENING_NO_TAKEOVER",
+        "synthetic_observations": [
+          "4H 无法创新高",
+          "原防守位被破",
+          "只有小幅反向K线",
+          "无新方向爆发/跟随"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续是否真的反转", "后续价格路径", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["B", "A", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "CONDITIONAL_ON_TAKEOVER"
+        },
+        "action_semantics": "WAIT_OR_NO_TRADE__WEAKENING_ALONE_IS_NOT_REVERSAL",
+        "required_principles": ["JH-PRINC-003", "JH-PRINC-005", "JH-PRINC-008"],
+        "acceptable_ambiguity": [
+          "可以表述为「旧方向弱化但新方向未接管，等待」",
+          "可以表述为「B 候选但 NO_TRADE，因为接管未完成」",
+          "可以表述为「对抗未决，先等待」"
+        ],
+        "explicit_unknown": ["JH-UNK-032", "JH-UNK-039"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "wait_for_takeover",
+            "constraints": [
+              {"type": "action_in", "values": ["WAIT", "NO_TRADE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-003", "JH-PRINC-005", "JH-PRINC-008"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "short_on_weakening_only",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-003"]}
+            ]
+          },
+          {
+            "name": "family_b_entry_without_takeover",
+            "constraints": [
+              {"type": "family_in", "values": ["B"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-B-002",
+      "coverage": "B",
+      "title": "趋势衰弱反转：新方向真正接管",
+      "hard_negative_tags": ["HN-003", "HN-001"],
+      "source_anchors": {
+        "claims": ["JH-CLM-012-SP01", "JH-CLM-009-SP01"],
+        "cases": ["JH-CASE-012-SP01"],
+        "dossier_sections": ["04", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：4H 上升趋势先弱化（无法创新高、防守位破），随后在 1H 关键位出现强反向吞没/加速，执行周期出现完整反转结构——防守位被破加上反向跟随，新方向真正接管。",
+        "timeframes": ["4H", "1H", "15m"],
+        "market_state": "OLD_TREND_DAMAGED_NEW_DIRECTION_TOOK_OVER",
+        "synthetic_observations": [
+          "4H 先弱化后防守位被破",
+          "1H 关键位强反向吞没/加速",
+          "执行周期反转结构完成",
+          "新方向跟随确认"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "该笔盈亏", "反转是否持续"]
+      },
+      "expected": {
+        "permissible_family_set": ["B"],
+        "forbidden_family_set": ["A", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "PERMITTED_AFTER_TAKEOVER"
+        },
+        "action_semantics": "ENTRY_PERMITTED_ON_REAL_TAKEOVER",
+        "required_principles": ["JH-PRINC-003", "JH-PRINC-015", "JH-PRINC-001"],
+        "acceptable_ambiguity": [
+          "可以表述为「B，弱化加接管确认后做空」",
+          "可以表述为「旧方向受损且新方向接管，SHORT」",
+          "可以保守选择 WATCH/CANDIDATE 再确认"
+        ],
+        "explicit_unknown": ["JH-UNK-032", "JH-UNK-003"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "b_takeover_entry_allowed",
+            "constraints": [
+              {"type": "family_in", "values": ["B"]},
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER", "CANDIDATE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-003", "JH-PRINC-015"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "pattern_alone_reversal",
+            "constraints": [
+              {"type": "principle_violated", "values": ["JH-PRINC-001"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "long_into_damaged_trend",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-B-003",
+      "coverage": "B",
+      "title": "趋势完整：单根反向K线不做逆势空",
+      "hard_negative_tags": ["HN-003", "HN-001"],
+      "source_anchors": {
+        "claims": ["JH-CLM-012-SP01", "JH-CLM-085-001", "JH-CLM-085-002"],
+        "cases": [],
+        "dossier_sections": ["02", "06"]
+      },
+      "visible_information": {
+        "situation": "合成观察：4H 出现接近直线、低回调的强趋势；仅出现一根反向K线，未破坏任何结构、未跌破防守位。模型可能被诱惑在「顶部」逆势做空。",
+        "timeframes": ["4H", "1H"],
+        "market_state": "STRONG_INTACT_TREND_SINGLE_COUNTER",
+        "synthetic_observations": [
+          "4H 强趋势、低回调",
+          "仅一根反向K线",
+          "结构未破坏",
+          "防守位未破"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续是否到顶", "后续价格路径", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["B", "A", "C", "D"],
+        "direction_permission": {
+          "LONG": "CONDITIONAL_ON_TRIGGER",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE__TREND_INTACT_NO_BLIND_REVERSAL",
+        "required_principles": ["JH-PRINC-017", "JH-PRINC-001", "JH-PRINC-003"],
+        "acceptable_ambiguity": [
+          "可以表述为「趋势未受损，不做逆势」",
+          "可以表述为「单根反向K线不足以构成B，等待」",
+          "可以表述为「NO_TRADE」"
+        ],
+        "explicit_unknown": ["JH-UNK-004", "JH-UNK-006"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "no_blind_countertrend",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-017", "JH-PRINC-001", "JH-PRINC-003"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "short_the_top_on_single_counter",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-017", "JH-PRINC-003"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-C-001",
+      "coverage": "C",
+      "title": "假突破：刺破即回，不追",
+      "hard_negative_tags": ["HN-006"],
+      "source_anchors": {
+        "claims": ["JH-CLM-015-SP02", "JH-CLM-023-SP01"],
+        "cases": ["JH-CASE-023-001", "JH-CASE-023-SP01"],
+        "dossier_sections": ["05", "06"]
+      },
+      "visible_information": {
+        "situation": "合成观察：价格在震荡上边界上方留下上影线/刺破后快速收回到原空间内，随后没有跟随、没有拉开距离，低周期也没有延续结构。",
+        "timeframes": ["1H", "15m", "5m"],
+        "market_state": "RANGE_WICK_POKE_NO_FOLLOW",
+        "synthetic_observations": [
+          "上影线刺破上边界",
+          "快速回到原空间",
+          "无跟随/无距离",
+          "低周期无延续结构"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续是否真突破", "后续价格路径", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["C", "A", "B", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE__FALSE_BREAKOUT",
+        "required_principles": ["JH-PRINC-006", "JH-PRINC-013"],
+        "acceptable_ambiguity": [
+          "可以表述为「刺破不是真突破，不做」",
+          "可以表述为「无跟随，C 不成立，NO_TRADE」",
+          "可以表述为「等待真正离开原空间」"
+        ],
+        "explicit_unknown": ["JH-UNK-016", "JH-UNK-003"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "false_breakout_no_trade",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-006", "JH-PRINC-013"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "long_on_wick_poke",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-006", "JH-PRINC-013"]}
+            ]
+          },
+          {
+            "name": "family_c_entry_without_follow",
+            "constraints": [
+              {"type": "family_in", "values": ["C"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-C-002",
+      "coverage": "C",
+      "title": "确认突破：真实离开原空间加跟随",
+      "hard_negative_tags": ["HN-006", "HN-001"],
+      "source_anchors": {
+        "claims": ["JH-CLM-015-SP02", "JH-CLM-023-SP01"],
+        "cases": ["JH-CASE-023-SP01"],
+        "dossier_sections": ["05", "06"]
+      },
+      "visible_information": {
+        "situation": "合成观察：价格以有力K线收盘突破震荡上边界，随后几根K线延续并拉开距离；5m 出现延续结构确认。突破真实离开原空间，非刺破。",
+        "timeframes": ["1H", "15m", "5m"],
+        "market_state": "RANGE_CONFIRMED_BREAKOUT",
+        "synthetic_observations": [
+          "有力收盘突破上边界",
+          "后续K线延续并拉开距离",
+          "5m 延续结构确认",
+          "真实离开原空间"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续是否继续", "该笔盈亏", "任何结果标签"]
+      },
+      "expected": {
+        "permissible_family_set": ["C"],
+        "forbidden_family_set": ["A", "B", "D"],
+        "direction_permission": {
+          "LONG": "PERMITTED_AFTER_CONFIRMATION",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "ENTRY_PERMITTED_ON_CONFIRMED_BREAKOUT",
+        "required_principles": ["JH-PRINC-013", "JH-PRINC-006"],
+        "acceptable_ambiguity": [
+          "可以表述为「C，确认突破后做多」",
+          "可以表述为「离开原空间加跟随，LONG」",
+          "可以保守选择 WATCH/CANDIDATE 再确认"
+        ],
+        "explicit_unknown": ["JH-UNK-016", "JH-UNK-043"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "confirmed_breakout_entry_allowed",
+            "constraints": [
+              {"type": "family_in", "values": ["C"]},
+              {"type": "direction_in", "values": ["LONG"]},
+              {"type": "action_in", "values": ["ENTER", "CANDIDATE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-013", "JH-PRINC-006"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "pattern_alone_without_follow",
+            "constraints": [
+              {"type": "principle_violated", "values": ["JH-PRINC-001"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "short_against_breakout",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-C-003",
+      "coverage": "A",
+      "title": "突破后趋势确立：回调延续切换为A",
+      "hard_negative_tags": ["HN-002", "HN-001"],
+      "source_anchors": {
+        "claims": ["JH-CLM-015-SP03", "JH-CLM-028-SP02", "JH-CLM-025-SP01"],
+        "cases": ["JH-CASE-023-SP01"],
+        "dossier_sections": ["05", "14"]
+      },
+      "visible_information": {
+        "situation": "合成观察：此前的震荡已确认向上突破并演化为稳定的上升趋势（高点/低点序列抬升、回调浅）。当前在趋势防守位出现浅回调，5m 尚无新的顺向确认收盘。",
+        "timeframes": ["4H", "1H", "5m"],
+        "market_state": "ESTABLISHED_TREND_SHALLOW_PULLBACK",
+        "synthetic_observations": [
+          "此前震荡已真突破",
+          "现已演化为稳定上升趋势",
+          "当前浅回调到防守位",
+          "5m 尚无顺向确认"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "该笔盈亏", "任何结果标签"]
+      },
+      "expected": {
+        "permissible_family_set": ["A"],
+        "forbidden_family_set": ["B", "C", "D"],
+        "direction_permission": {
+          "LONG": "CONDITIONAL_ON_TRIGGER",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "WAIT_OR_NO_TRADE_UNTIL_TRIGGER__MECHANISM_SWITCH_TO_A",
+        "required_principles": ["JH-PRINC-002", "JH-PRINC-015", "JH-PRINC-016"],
+        "acceptable_ambiguity": [
+          "可以表述为「原C突破已确立趋势，当前按A等待回调确认」",
+          "可以表述为「C已切换为A延续」",
+          "可以表述为「A 候选但 NO_TRADE，因为触发未完成」"
+        ],
+        "explicit_unknown": ["JH-UNK-003", "JH-UNK-006"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "post_breakout_continuation_wait",
+            "constraints": [
+              {"type": "family_in", "values": ["A"]},
+              {"type": "action_in", "values": ["WAIT", "NO_TRADE", "WATCH", "CANDIDATE"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-002", "JH-PRINC-015", "JH-PRINC-016"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "short_into_established_trend",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "entry_without_trigger",
+            "constraints": [
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-002", "JH-PRINC-015"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-D-001",
+      "coverage": "D",
+      "title": "震荡中部：不做主周期波段",
+      "hard_negative_tags": ["HN-004"],
+      "source_anchors": {
+        "claims": ["JH-CLM-021-SP01", "JH-CLM-067-001"],
+        "cases": ["JH-CASE-021-001"],
+        "dossier_sections": ["01", "02"]
+      },
+      "visible_information": {
+        "situation": "合成观察：已确认的震荡（两侧都无法持续主导），价格当前位于震荡中部，未测试任何外边界。模型可能被诱惑在中部做波段。",
+        "timeframes": ["4H", "1H"],
+        "market_state": "RANGE_MIDDLE",
+        "synthetic_observations": [
+          "震荡已确认",
+          "价格位于中部",
+          "未测试外边界",
+          "两侧均无持续主导"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "是否最终触及边界", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["D", "A", "B", "C"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE__RANGE_MIDDLE_IS_NOT_MAIN_TF_PERMISSION",
+        "required_principles": ["JH-PRINC-004", "JH-PRINC-010"],
+        "acceptable_ambiguity": [
+          "可以表述为「震荡中部不做主周期波段」",
+          "可以表述为「等待外边界与确认，NO_TRADE」",
+          "可以表述为「只关注外边界行动区」"
+        ],
+        "explicit_unknown": ["JH-UNK-003", "JH-UNK-033"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "range_middle_no_trade",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-004", "JH-PRINC-010"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "swing_from_range_middle",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG", "SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-004"]}
+            ]
+          },
+          {
+            "name": "family_d_entry_at_middle",
+            "constraints": [
+              {"type": "family_in", "values": ["D"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-D-002",
+      "coverage": "D",
+      "title": "震荡上边界二推失败：反向确认",
+      "hard_negative_tags": ["HN-001", "HN-002"],
+      "source_anchors": {
+        "claims": ["JH-CLM-021-SP02", "JH-CLM-021-SP03"],
+        "cases": ["JH-CASE-021-001", "JH-CASE-021-SP01"],
+        "dossier_sections": ["04", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：已确认震荡，价格测试上边界，第二推未能创新高（更低的次高点），随后出现反向吞没/拒绝与反方向确认；下边界不是强制目标。",
+        "timeframes": ["4H", "1H", "15m"],
+        "market_state": "RANGE_UPPER_BOUNDARY_SECOND_PUSH_FAIL",
+        "synthetic_observations": [
+          "震荡上边界测试",
+          "第二推未创新高",
+          "反向吞没/拒绝出现",
+          "反向确认成立"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "该笔盈亏", "是否触及下边界"]
+      },
+      "expected": {
+        "permissible_family_set": ["D"],
+        "forbidden_family_set": ["A", "B", "C"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "PERMITTED_AFTER_CONFIRMATION"
+        },
+        "action_semantics": "ENTRY_PERMITTED_ON_SECOND_PUSH_FAILURE_CONFIRMATION",
+        "required_principles": ["JH-PRINC-014", "JH-PRINC-015"],
+        "acceptable_ambiguity": [
+          "可以表述为「D，二推失败反向确认后做空」",
+          "可以表述为「上边界二推不能创新高，SHORT」",
+          "可以保守选择 WATCH/CANDIDATE"
+        ],
+        "explicit_unknown": ["JH-UNK-003", "JH-UNK-005"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "range_boundary_reversal_entry_allowed",
+            "constraints": [
+              {"type": "family_in", "values": ["D"]},
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER", "CANDIDATE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-014", "JH-PRINC-015"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "pattern_alone_without_second_push",
+            "constraints": [
+              {"type": "principle_violated", "values": ["JH-PRINC-001", "JH-PRINC-014"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "long_against_boundary_rejection",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-D-003",
+      "coverage": "D",
+      "title": "边界到位但只有第一根反向K线：等待",
+      "hard_negative_tags": ["HN-002", "HN-001"],
+      "source_anchors": {
+        "claims": ["JH-CLM-021-SP02", "JH-CLM-011-SP02"],
+        "cases": ["JH-CASE-021-001"],
+        "dossier_sections": ["03", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：已确认震荡，价格到达上边界，但只出现一根小幅反向K线；没有二推失败、没有反向跟随、没有确认。",
+        "timeframes": ["4H", "1H"],
+        "market_state": "RANGE_BOUNDARY_ARRIVAL_FIRST_COUNTER",
+        "synthetic_observations": [
+          "震荡上边界已到达",
+          "仅一根小幅反向K线",
+          "无二推失败",
+          "无反向确认"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "是否最终反转", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["D", "A", "B", "C"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "CONDITIONAL_ON_CONFIRMATION"
+        },
+        "action_semantics": "WAIT_OR_NO_TRADE__BOUNDARY_ARRIVAL_IS_NOT_TRIGGER",
+        "required_principles": ["JH-PRINC-002", "JH-PRINC-014", "JH-PRINC-001"],
+        "acceptable_ambiguity": [
+          "可以表述为「到位但无确认，等待」",
+          "可以表述为「D 候选但 NO_TRADE，因为二推/确认未完成」",
+          "可以表述为「第一根反向K线不足以入场」"
+        ],
+        "explicit_unknown": ["JH-UNK-003", "JH-UNK-005"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "boundary_arrival_wait",
+            "constraints": [
+              {"type": "action_in", "values": ["WAIT", "NO_TRADE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-002", "JH-PRINC-014", "JH-PRINC-001"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "short_on_first_counter_only",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-002", "JH-PRINC-001"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-D-004",
+      "coverage": "C",
+      "title": "真突破切换机制：不再沿用震荡反转",
+      "hard_negative_tags": ["HN-006", "HN-008"],
+      "source_anchors": {
+        "claims": ["JH-CLM-027-SP02", "JH-CLM-023-SP01"],
+        "cases": ["JH-CASE-027-002", "JH-CASE-027-SP01"],
+        "dossier_sections": ["06", "14"]
+      },
+      "visible_information": {
+        "situation": "合成观察：已确认震荡，价格现在以有力K线真突破上边界并持续跟随、拉开距离（非刺破）。此前计划是按 D 在边界做空，但现在是真突破后的重分类情形。",
+        "timeframes": ["4H", "1H", "5m"],
+        "market_state": "RANGE_GENUINE_BREAKOUT_REGIME_SWITCH",
+        "synthetic_observations": [
+          "已确认震荡",
+          "有力K线真突破上边界",
+          "持续跟随并拉开距离",
+          "非刺破"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "该笔盈亏", "突破后是否回踩"]
+      },
+      "expected": {
+        "permissible_family_set": ["C"],
+        "forbidden_family_set": ["D", "A", "B"],
+        "direction_permission": {
+          "LONG": "PERMITTED_AFTER_CONFIRMATION",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "ENTRY_PERMITTED_ON_REAL_BREAKOUT__SWITCH_FROM_D_TO_C",
+        "required_principles": ["JH-PRINC-016", "JH-PRINC-013", "JH-PRINC-006"],
+        "acceptable_ambiguity": [
+          "可以表述为「真突破，机制从 D 切换为 C，做多」",
+          "可以表述为「不再按震荡反转做空，C 成立」",
+          "可以保守选择 WATCH/CANDIDATE"
+        ],
+        "explicit_unknown": ["JH-UNK-016", "JH-UNK-043"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "regime_switch_to_c",
+            "constraints": [
+              {"type": "family_in", "values": ["C"]},
+              {"type": "direction_in", "values": ["LONG"]},
+              {"type": "action_in", "values": ["ENTER", "CANDIDATE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-016", "JH-PRINC-013", "JH-PRINC-006"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "kept_shorting_the_breakout",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-016", "JH-PRINC-006"]}
+            ]
+          },
+          {
+            "name": "still_trading_d_reversal",
+            "constraints": [
+              {"type": "family_in", "values": ["D"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-NONE-001",
+      "coverage": "NONE",
+      "title": "对抗未决：重叠等待",
+      "hard_negative_tags": ["HN-005"],
+      "source_anchors": {
+        "claims": ["JH-CLM-078-009", "JH-CLM-078-008"],
+        "cases": ["JH-CASE-007-F01"],
+        "dossier_sections": ["04", "06"]
+      },
+      "visible_information": {
+        "situation": "合成观察：关键位附近价格反复重叠（强-弱-强），多方与空方都未能持续占优，形成横向对抗/争夺，尚无一方分出胜负。",
+        "timeframes": ["1H", "15m"],
+        "market_state": "CONTEST_OVERLAP_UNRESOLVED",
+        "synthetic_observations": [
+          "关键位附近反复重叠",
+          "强-弱-强转换",
+          "双方均未持续占优",
+          "胜负未分"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续哪方胜出", "后续价格路径", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["A", "B", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "WAIT__CONTEST_UNRESOLVED",
+        "required_principles": ["JH-PRINC-005", "JH-PRINC-010"],
+        "acceptable_ambiguity": [
+          "可以表述为「对抗未决，先等待」",
+          "可以表述为「重叠未分胜负，NO_TRADE」",
+          "可以表述为「看到形态但不行动，等分出胜负」"
+        ],
+        "explicit_unknown": ["JH-UNK-039"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "contest_unresolved_wait",
+            "constraints": [
+              {"type": "action_in", "values": ["WAIT", "NO_TRADE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-005", "JH-PRINC-010"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "acted_on_unresolved_contest",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG", "SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-005"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-NONE-002",
+      "coverage": "NONE",
+      "title": "关键位无反应：到位不是触发",
+      "hard_negative_tags": ["HN-002"],
+      "source_anchors": {
+        "claims": ["JH-CLM-005-SP01", "JH-CLM-011-SP02", "JH-CLM-095-001"],
+        "cases": ["JH-CASE-005-001", "JH-CASE-005-SP01"],
+        "dossier_sections": ["03", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：价格到达一个此前显著的高点区域，但没有任何反应——没有拒绝/吞没/放量，也没有跟随，只是安静的K线。",
+        "timeframes": ["1H", "15m"],
+        "market_state": "KEY_LOCATION_NO_REACTION",
+        "synthetic_observations": [
+          "前显著高点区域已到达",
+          "无拒绝/吞没/放量",
+          "无跟随",
+          "安静K线"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续是否在关键位反应", "后续价格路径", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["A", "B", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE__LOCATION_WITHOUT_REACTION_IS_NOT_PERMISSION",
+        "required_principles": ["JH-PRINC-002", "JH-PRINC-015", "JH-PRINC-010"],
+        "acceptable_ambiguity": [
+          "可以表述为「到位但无反应，不做」",
+          "可以表述为「关键位只是观察语境，不是入场」",
+          "可以表述为「等待真实反应/触发」"
+        ],
+        "explicit_unknown": ["JH-UNK-003", "JH-UNK-004"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "location_without_reaction_no_trade",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-002", "JH-PRINC-015", "JH-PRINC-010"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "entered_at_location_without_reaction",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG", "SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-002", "JH-PRINC-015"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-NONE-003",
+      "coverage": "NONE",
+      "title": "同周期内部结构不等于低周期设置",
+      "hard_negative_tags": ["HN-007"],
+      "source_anchors": {
+        "claims": ["JH-CLM-069-002", "JH-CLM-069-001", "JH-CLM-062-001"],
+        "cases": ["JH-CASE-018-F01"],
+        "dossier_sections": ["02", "10"]
+      },
+      "visible_information": {
+        "situation": "合成观察：15m 呈现上升趋势，内部出现一个 15m 的 N 字/内部结构。模型声称「15m 内部 N = 5m 独立设置」；但实际没有读取 5m 的外部结构，也没有任何 5m 确认。",
+        "timeframes": ["15m", "5m"],
+        "market_state": "SAME_TF_INTERNAL_STRUCTURE_ONLY",
+        "synthetic_observations": [
+          "15m 上升趋势",
+          "15m 内部出现 N 字/内部结构",
+          "未实际读取 5m 外部结构",
+          "无 5m 确认"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "5m 是否出现结构", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["A", "B", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE_OR_ACTUALLY_SWITCH_TO_LOWER_TF",
+        "required_principles": ["JH-PRINC-007", "JH-PRINC-015"],
+        "acceptable_ambiguity": [
+          "可以表述为「同周期内部结构不是独立入场许可」",
+          "可以表述为「需要真正切换到 5m 读取其外部结构」",
+          "可以表述为「当前 NO_TRADE/等待」"
+        ],
+        "explicit_unknown": ["JH-UNK-030", "JH-UNK-031"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "internal_structure_not_entry",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-007", "JH-PRINC-015"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "entered_on_same_tf_internal_only",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG", "SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-007"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-NONE-004",
+      "coverage": "NONE",
+      "title": "LONG_INVALID 不等于 SHORT_VALID",
+      "hard_negative_tags": ["HN-008", "HN-003"],
+      "source_anchors": {
+        "claims": ["JH-CLM-050-001", "JH-CLM-085-001", "JH-CLM-027-SP01"],
+        "cases": ["JH-CASE-027-SP01"],
+        "dossier_sections": ["02", "06"]
+      },
+      "visible_information": {
+        "situation": "合成观察：此前的多头方向已失效（结构被破、旧防守位丢失），但没有出现任何空头设置——没有接管、没有低周期反转结构。模型可能因为「不能做多」就直接翻空。",
+        "timeframes": ["4H", "1H", "15m"],
+        "market_state": "LONG_INVALID_NO_SHORT_SETUP",
+        "synthetic_observations": [
+          "多头方向已失效",
+          "结构被破",
+          "无空头接管/设置",
+          "无低周期反转结构"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "是否出现空头机会", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["A", "B", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE__LONG_INVALID_DOES_NOT_IMPLY_SHORT_VALID",
+        "required_principles": ["JH-PRINC-008", "JH-PRINC-003"],
+        "acceptable_ambiguity": [
+          "可以表述为「不能做多不代表可以做空」",
+          "可以表述为「多方向失效但空头设置未出现，NO_TRADE」",
+          "可以表述为「等待接管或独立空头设置」"
+        ],
+        "explicit_unknown": ["JH-UNK-032", "JH-UNK-003"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "long_invalid_not_short_valid",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-008", "JH-PRINC-003"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "flipped_to_short_without_setup",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-008", "JH-PRINC-003"]}
+            ]
+          },
+          {
+            "name": "reentered_invalid_long",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-NONE-005",
+      "coverage": "NONE",
+      "title": "UNKNOWN/矛盾：不虚构阈值",
+      "hard_negative_tags": ["HN-009"],
+      "source_anchors": {
+        "claims": ["JH-CLM-085-002", "JH-CLM-078-009"],
+        "cases": ["JH-CASE-093-002"],
+        "unknowns": ["JH-UNK-003", "JH-UNK-004", "JH-UNK-008"],
+        "contradictions": ["JH-CON-007"],
+        "dossier_sections": ["13"]
+      },
+      "visible_information": {
+        "situation": "合成观察：价格位于来源未钉死边界的区域（真空/无左侧共识区），且涉及来源内部矛盾的概念（如精确评分阈值）。没有任何来源唯一钉死的阈值可用来判定强弱或开仓资格。",
+        "timeframes": ["1H", "15m"],
+        "market_state": "UNKNOWN_OR_SOURCE_CONTRADICTION",
+        "synthetic_observations": [
+          "真空/无左侧共识区",
+          "涉及来源内部矛盾概念",
+          "无来源钉死阈值",
+          "强弱/资格不可量化"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "任何结果标签", "任何事后确认"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["A", "B", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE__UNKNOWN_NO_INVENTION",
+        "required_principles": ["JH-PRINC-009", "JH-PRINC-010"],
+        "acceptable_ambiguity": [
+          "可以表述为「该区域阈值 UNKNOWN，不做」",
+          "可以表述为「来源未钉死，标记 UNKNOWN 并 NO_TRADE」",
+          "可以表述为「不虚构强弱/开仓阈值」"
+        ],
+        "explicit_unknown": ["JH-UNK-003", "JH-UNK-004", "JH-UNK-008"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "unknown_no_invention",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-009", "JH-PRINC-010"]},
+              {"type": "no_invented_threshold", "values": []},
+              {"type": "declares_unknown", "values": ["JH-UNK-003"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "invented_a_threshold",
+            "constraints": [{"type": "invented_threshold", "values": []}]
+          },
+          {
+            "name": "invented_a_setup_in_unknown_zone",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG", "SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-NONE-006",
+      "coverage": "NONE",
+      "title": "止损后不是永久禁止，也不是立即重进信号",
+      "hard_negative_tags": ["HN-001", "HN-009"],
+      "source_anchors": {
+        "claims": ["JH-CLM-025-SP04", "JH-CLM-027-SP01", "JH-CLM-014-SP02"],
+        "cases": ["JH-CASE-027-SP01", "JH-CASE-014-SP01"],
+        "dossier_sections": ["06", "07"]
+      },
+      "visible_information": {
+        "situation": "合成观察：此前一个边界做空被结构性止损出局（这是持仓/保护单事实，不含结果信息）。当前没有出现新的独立设置，也没有新的确认。模型不应把「刚止损」本身当作新的入场信号，也不应因一次止损永久禁止该方向。",
+        "timeframes": ["1H", "15m"],
+        "market_state": "AFTER_STOP_OUT_NO_NEW_SETUP",
+        "synthetic_observations": [
+          "此前边界做空被结构性止损",
+          "当前无新独立设置",
+          "无新确认",
+          "止损本身不是入场信号"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "该笔止损的实际盈亏", "后续是否又给机会"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["A", "B", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "FORBIDDEN"
+        },
+        "action_semantics": "NO_TRADE__NEW_INDEPENDENT_SETUP_REQUIRED_AFTER_STOP",
+        "required_principles": ["JH-PRINC-018", "JH-PRINC-001"],
+        "acceptable_ambiguity": [
+          "可以表述为「止损不永久禁止，但需要新的独立设置」",
+          "可以表述为「当前无新设置，NO_TRADE」",
+          "可以表述为「止损本身不是入场信号」"
+        ],
+        "explicit_unknown": ["JH-UNK-003", "JH-UNK-005"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "stop_out_requires_new_setup",
+            "constraints": [
+              {"type": "action_in", "values": ["NO_TRADE", "WAIT", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-018", "JH-PRINC-001"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "entered_because_of_stop_out",
+            "constraints": [
+              {"type": "direction_in", "values": ["LONG", "SHORT"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-018", "JH-PRINC-001"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    },
+    {
+      "fixture_id": "JH-FIX-NONE-007",
+      "coverage": "NONE",
+      "title": "偏向是过滤器不是触发：无触发不做",
+      "hard_negative_tags": ["HN-002", "HN-008"],
+      "source_anchors": {
+        "claims": ["JH-CLM-011-SP02", "JH-CLM-050-001", "JH-CLM-054-001"],
+        "cases": ["JH-CASE-095-001"],
+        "dossier_sections": ["02", "05"]
+      },
+      "visible_information": {
+        "situation": "合成观察：4H 存在明确的下降偏向，价格也到了一个关注区，但执行周期没有任何实际反应/触发，也没有反转结构。模型有明确偏向，但没有触发。",
+        "timeframes": ["4H", "1H", "15m"],
+        "market_state": "BIAS_PRESENT_TRIGGER_ABSENT",
+        "synthetic_observations": [
+          "4H 明确下降偏向",
+          "价格到达关注区",
+          "执行周期无实际反应/触发",
+          "无反转结构"
+        ]
+      },
+      "hidden_future_information": {
+        "note": "以下信息在任何时候都不提供给模型，也不得作为评分依据：",
+        "entries": ["后续价格路径", "是否出现触发", "任何盈亏"]
+      },
+      "expected": {
+        "permissible_family_set": ["NONE"],
+        "forbidden_family_set": ["A", "B", "C", "D"],
+        "direction_permission": {
+          "LONG": "FORBIDDEN",
+          "SHORT": "CONDITIONAL_ON_TRIGGER"
+        },
+        "action_semantics": "WAIT_OR_NO_TRADE__BIAS_IS_FILTER_NOT_TRIGGER",
+        "required_principles": ["JH-PRINC-002", "JH-PRINC-015", "JH-PRINC-010"],
+        "acceptable_ambiguity": [
+          "可以表述为「有偏向但无触发，等待」",
+          "可以表述为「偏向只是过滤器，NO_TRADE」",
+          "可以表述为「不能因为有偏向就入场」"
+        ],
+        "explicit_unknown": ["JH-UNK-004", "JH-UNK-003"]
+      },
+      "rubric": {
+        "pass_paths": [
+          {
+            "name": "bias_not_trigger",
+            "constraints": [
+              {"type": "action_in", "values": ["WAIT", "NO_TRADE", "WATCH"]},
+              {"type": "principle_acknowledged", "values": ["JH-PRINC-002", "JH-PRINC-015", "JH-PRINC-010"]}
+            ]
+          }
+        ],
+        "fail_conditions": [
+          {
+            "name": "entered_on_bias_only",
+            "constraints": [
+              {"type": "direction_in", "values": ["SHORT", "LONG"]},
+              {"type": "action_in", "values": ["ENTER"]},
+              {"type": "principle_violated", "values": ["JH-PRINC-002", "JH-PRINC-015"]}
+            ]
+          },
+          {
+            "name": "outcome_or_future_price_reference",
+            "constraints": [{"type": "outcome_referenced", "values": []}]
+          }
+        ]
+      }
+    }
+  ]
+}
