@@ -28,6 +28,13 @@ class JiangheCorpusGapAuditTests(unittest.TestCase):
         ], 3)
         self.assertFalse(result["timestamps_monotonic"])
 
+    def test_timeline_validation_requires_start_middle_end_coverage(self):
+        result = validate_timeline([
+            {"start": 0, "end": 2}, {"start": 90, "end": 95},
+        ], 100)
+        self.assertFalse(result["start_middle_end_transcribed"])
+        self.assertFalse(result["audio_decode_and_timeline_pass"])
+
 
 if __name__ == "__main__":
     unittest.main()

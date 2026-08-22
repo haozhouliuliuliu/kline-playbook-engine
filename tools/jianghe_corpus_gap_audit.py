@@ -35,6 +35,7 @@ from tools.bilibili_corpus_acquisition import (
     signed_wbi_query,
     wbi_mixin_key,
 )
+from tools.parallel_range_downloader import DownloadReport, download_with_ranges
 
 
 SOURCE_COUNT = 99
@@ -124,6 +125,17 @@ def ffprobe_media(ffprobe: str, path: Path) -> dict[str, Any]:
         "codec": video.get("codec_name") if video else None,
         "error": redact_sensitive_text(completed.stderr[-300:]) if completed.stderr.strip() else None,
     }
+
+
+def full_decode_media(path: Path) -> dict[str, Any]:
+    """严格完整解码视频与音频；只要 stderr 有错误就不能替换旧文件。"""
+    command = ["ffmpeg", "-v", "error", "-i", str(path), "-map", "0:v:0", "-map", "0:a:0", "-f", "null", "-"]
+    try:
+        completed = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+    except OSError as error:
+        return {"full_decode_ok": False, "error": f"ffmpeg 无法启动：{error}"}
+    error_text = redact_sensitive_text(completed.stderr[-500:])
+    return {"full_decode_ok": completed.returncode == 0 and not completed.stderr.strip(), "error": error_text or None}
 
 
 def download_binary(opener: Any, urls: list[str], output_path: Path, max_attempts: int = 6) -> None:
@@ -221,7 +233,18 @@ def repair_media_from_dash(opener: Any, source: dict[str, Any], root: Path, ffpr
     return {"bvid": bvid, "cid": cid, "final_media_path": str(old_path), "quarantine_path": str(quarantined), "ffprobe": probe}
 
 
-def repair_media_direct_from_dash(opener: Any, source: dict[str, Any], root: Path, ffprobe: str) -> dict[str, Any]:
+def _report_summary(report: DownloadReport) -> dict[str, Any]:
+    return {
+        "expected_bytes": report.expected_bytes,
+        "transferred_bytes": report.transferred_bytes,
+        "elapsed_seconds": round(report.elapsed_seconds, 3),
+        "megabytes_per_second": round(report.megabytes_per_second, 4),
+        "concurrency": report.concurrency,
+        "resumed_chunks": report.resumed_chunks,
+    }
+
+
+def repair_media_direct_from_dash(opener: Any, source: dict[str, Any], root: Path, ffprobe: str, range_concurrency: int = 4) -> dict[str, Any]:
     """WBI 返回的最佳 DASH 视频和音频分开断点续传，再无损 mux。"""
     bvid = str(source["bvid"])
     view = wbi_json(opener, "/x/web-interface/wbi/view", {"bvid": bvid})
@@ -234,20 +257,27 @@ def repair_media_direct_from_dash(opener: Any, source: dict[str, Any], root: Pat
     video, audio = best_dash_item(dash.get("video")), best_dash_item(dash.get("audio"))
     if not video or not audio:
         raise RuntimeError("当前登录态下来源未提供完整视频与音频 DASH 流")
-    repair_dir = root / "repair" / f"{int(source['ordinal']):03}__{bvid}" / "direct_retry"
+    repair_dir = root / "repair" / f"{int(source['ordinal']):03}__{bvid}" / "parallel_retry"
     video_path, audio_path, candidate = repair_dir / "source-video.m4s", repair_dir / "source-audio.m4s", repair_dir / "candidate.mp4"
     if candidate.exists():
         raise RuntimeError("直接修复目录已有 candidate.mp4，拒绝覆盖")
-    video_urls = [stream_url(video)] + [str(item) for item in video.get("backup_url", video.get("backupUrl", [])) if str(item).startswith("https://")]
-    audio_urls = [stream_url(audio)] + [str(item) for item in audio.get("backup_url", audio.get("backupUrl", [])) if str(item).startswith("https://")]
-    download_binary(opener, video_urls, video_path)
-    download_binary(opener, audio_urls, audio_path)
+    video_report = download_with_ranges(
+        opener, stream_url(video), video_path, repair_dir / "video_chunks", headers=HTTP_HEADERS,
+        concurrency=range_concurrency,
+    )
+    audio_report = download_with_ranges(
+        opener, stream_url(audio), audio_path, repair_dir / "audio_chunks", headers=HTTP_HEADERS,
+        concurrency=range_concurrency,
+    )
     mux = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(video_path), "-i", str(audio_path), "-c", "copy", "-movflags", "+faststart", str(candidate)], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
     if mux.returncode != 0 or mux.stderr.strip():
         raise RuntimeError("直接 DASH 无损 mux 失败：" + redact_sensitive_text(mux.stderr[-300:]))
     probe = ffprobe_media(ffprobe, candidate)
     if not probe.get("ffprobe_ok"):
         raise RuntimeError("直接 DASH 新媒体 ffprobe 未通过：" + str(probe.get("error") or "缺少音视频流"))
+    full_decode = full_decode_media(candidate)
+    if not full_decode.get("full_decode_ok"):
+        raise RuntimeError("直接 DASH 新媒体完整解码未通过：" + str(full_decode.get("error") or "未知错误"))
     current_media = local_file_index(root / "media").get(bvid, [])
     if len(current_media) != 1:
         raise RuntimeError("直接修复替换前本地媒体文件数量异常")
@@ -263,7 +293,11 @@ def repair_media_direct_from_dash(opener: Any, source: dict[str, Any], root: Pat
     except Exception:
         shutil.move(str(quarantined), str(old_path))
         raise
-    return {"bvid": bvid, "cid": cid, "final_media_path": str(old_path), "quarantine_path": str(quarantined), "ffprobe": probe}
+    return {
+        "bvid": bvid, "cid": cid, "final_media_path": str(old_path), "quarantine_path": str(quarantined),
+        "ffprobe": probe, "full_decode": full_decode, "video_download": _report_summary(video_report),
+        "audio_download": _report_summary(audio_report), "codec": probe.get("codec"), "width": probe.get("width"), "height": probe.get("height"),
+    }
 
 
 def load_cookie_opener(cookie_path: Path):
@@ -565,6 +599,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source-access-bvid", action="append", default=[], help="仅验证指定 BVID 当前媒体访问状态")
     parser.add_argument("--repair-bvid", help="从当前登录态无损修复一个已确认损坏的本地媒体")
     parser.add_argument("--repair-direct-bvid", help="使用 WBI/DASH 断点续传无损修复一个媒体")
+    parser.add_argument("--range-concurrency", type=int, default=4, help="DASH Range 并发数（1--8）")
     parser.add_argument("--create-sol-package-ordinal", type=int, action="append", default=[], help="为指定来源生成 Sol 工程证据包")
     return parser.parse_args()
 
@@ -584,7 +619,7 @@ def main() -> int:
             raise RuntimeError("修复 BVID 不在唯一 source manifest 中")
         cookie_path = Path(args.auth_cookie).resolve()
         opener = load_cookie_opener(cookie_path)
-        repair_result = repair_media_direct_from_dash(opener, selected[0], Path(args.corpus_root).resolve(), args.ffprobe) if args.repair_direct_bvid else repair_media_from_dash(opener, selected[0], Path(args.corpus_root).resolve(), args.ffprobe, cookie_path)
+        repair_result = repair_media_direct_from_dash(opener, selected[0], Path(args.corpus_root).resolve(), args.ffprobe, args.range_concurrency) if args.repair_direct_bvid else repair_media_from_dash(opener, selected[0], Path(args.corpus_root).resolve(), args.ffprobe, cookie_path)
     records = audit(args)
     access_results: list[dict[str, Any]] = []
     if args.source_access_bvid:

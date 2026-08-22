@@ -53,6 +53,14 @@ def validate_timeline(segments: list[dict[str, Any]], duration: float | None) ->
     first_start = float(segments[0]["start"]) if segments else None
     last_end = float(segments[-1]["end"]) if segments else None
     tail_gap = duration - last_end if duration is not None and last_end is not None else None
+    thirds_covered = [False, False, False]
+    if duration and duration > 0:
+        for segment in segments:
+            start, end = float(segment["start"]), float(segment["end"])
+            for index in range(3):
+                lower, upper = duration * index / 3, duration * (index + 1) / 3
+                if start < upper and end > lower:
+                    thirds_covered[index] = True
     return {
         "segment_count": len(segments),
         "timestamps_monotonic": monotonic,
@@ -60,7 +68,8 @@ def validate_timeline(segments: list[dict[str, Any]], duration: float | None) ->
         "last_speech_end_seconds": last_end,
         "media_duration_seconds": duration,
         "tail_gap_seconds": tail_gap,
-        "audio_decode_and_timeline_pass": bool(segments and monotonic and (tail_gap is None or tail_gap <= 30)),
+        "start_middle_end_transcribed": all(thirds_covered) if duration and duration > 0 else bool(segments),
+        "audio_decode_and_timeline_pass": bool(segments and monotonic and (tail_gap is None or tail_gap <= 30) and (all(thirds_covered) if duration and duration > 0 else True)),
         "alignment_sampling_seconds": [0, round((duration or 0) / 2, 3), round(max(0, (duration or 0) - 10), 3)],
         "alignment_note": "三个时间点仅作音频/画面回听复核索引；本工具不解释任何交易内容。",
     }
@@ -165,6 +174,7 @@ def main() -> int:
     parser.add_argument("--corpus-root", default=r"D:\江河交易员")
     parser.add_argument("--ordinal", type=int, action="append", help="只转写指定 ordinal；默认全部需要 ASR 的条目")
     parser.add_argument("--record-failure", help="仅记录已验证的 ASR 引擎失败原因，并生成 Sol 证据包")
+    parser.add_argument("--model-path", help="已完成校验的本地 faster-whisper 模型目录；不填才使用缓存模型名")
     args = parser.parse_args()
     try:
         from faster_whisper import WhisperModel
@@ -181,7 +191,7 @@ def main() -> int:
         results = [{"bvid": record["bvid"], "status": "ASR_FAILED", "package": str(write_failed_package(record, args.record_failure, root))} for record in selected]
         print(json.dumps({"STATUS": "ASR_FAILED_RECORDED", "results": results}, ensure_ascii=False))
         return 2
-    model = WhisperModel("small", device="cpu", compute_type="int8")
+    model = WhisperModel(args.model_path or "small", device="cpu", compute_type="int8")
     results = [transcribe_record(model, record, root) for record in selected]
     print(json.dumps({"STATUS": "PASS", "results": results}, ensure_ascii=False))
     return 0
