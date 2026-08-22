@@ -88,7 +88,7 @@ Key integrated evidence (2026-08-21):
 - `docs/evidence/RASCHKE_NR7_INTERPRETATION_STATUS_V0_1.md` + `RASCHKE_NR7_PLAYBOOK_CONTRACT_DRAFT_V0_1.json` / `.md`
 - `docs/reviews/RASCHKE_NR7_SOURCE_SEMANTIC_RESOLUTION_V0_2.md` (+ `.json`；NR7 仍失败闭合，未创建机器实现)
 - `docs/reviews/CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1.md` (+ `.json`；三个既有中国期货来源线索顺序审查完成，`SELECTED_SOURCE=NONE`，未创建假 dossier/claim corpus/机器策略)
-- `docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_WAVE_V0_1.md` (+ `.json`；Failure Test 来源语义完成后失败闭合，未创建机器策略)
+- `docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1.md` (+ `.json`；Failure Test 来源语义完成后失败闭合，未创建机器策略)
 - `docs/evidence/CANONICAL_CORPUS_REVALIDATION_D01_D02_V0_1.md` (+ `.json`)
 - `docs/evidence/CANONICAL_D01_D02_TARGETED_REPAIR_QUALIFICATION_V0_1.md` (+ `.json`)
 - `docs/reviews/CANONICAL_D01_D02_116_FAILURE_ROOT_CAUSE_REVIEW_V0_1.md` (+ `.json`)
