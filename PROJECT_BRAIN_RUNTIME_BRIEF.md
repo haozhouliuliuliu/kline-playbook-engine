@@ -8,17 +8,17 @@ After takeover acceptance, before every **substantive project reply**:
 
 1. fetch current `main` HEAD;
 2. fetch this file from current `main`;
-3. do not use chat memory as the authority for mutable project facts;
+3. do not use chat memory as authority for mutable project facts;
 4. if the question concerns state / architecture / locks / next work / worker prompts / model or tool adoption, or if material state moved beyond `LAST_MATERIAL_STATE_COMMIT`, refresh `CURRENT_STATE.md` and the authority it names.
 
-`LAST_MATERIAL_STATE_COMMIT` tracks the latest substantive code/research-state change incorporated by this brief. Later documentation-only hygiene/consolidation commits do not make the marker stale.
+`LAST_MATERIAL_STATE_COMMIT` tracks the latest substantive code/research-state change incorporated by this brief. Later documentation-only hygiene commits do not make the marker stale.
 
-Fresh conversations still follow the full read-only takeover in `00_READ_FIRST.md`.
+Fresh conversations still follow the read-only takeover in `00_READ_FIRST.md`.
 
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=4e17509e0c12c86d0966e6920d3fb0ddb2f6e7c2
+LAST_MATERIAL_STATE_COMMIT=d5076f5dd1008fe94e8e1765e09f996024ffc796
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -27,10 +27,12 @@ JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
 JIANGHE_SOURCE_ONLY_VERIFIED=YES
 JIANGHE_PRIMARY_ELIGIBLE=NO
+JIANGHE_PRIMARY_SEMANTICS=SOURCE_JUSTIFIED_AI_INTERPRETATION_BRANCH_NOT_FIXED_RULE_MACHINE
 JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
+JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
 NEXT_NORMAL_PHASE=REAL_MODEL_FIDELITY_CANDIDATE_EVALUATION_PLUS_SOURCE_JUSTIFIED_PRIMARY_BRANCH_WORK_WITHOUT_CANDIDATE_OUTCOMES
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
@@ -48,6 +50,7 @@ MECHANICAL_ROLE=HARD_RISK_ORDER_EXECUTION_RECONCILIATION_SAFETY
 JIANGHE_KNOWLEDGE_AUTHORITY=REPOSITORY_V1_1_PACK_NOT_CHAT_SUMMARY
 UNKNOWN_OR_UNFAMILIAR=WAIT_OR_NO_TRADE
 INITIAL_MODEL_SELECTION_TARGET=JIANGHE_FIDELITY_NOT_PROFIT
+REAL_MODEL_SELECTION_MUST_INCLUDE_VISUAL_KLINE_EYES=YES
 HISTORICAL_REPLAY_BASELINE=COMPLETED_1_MINUTE_BAR
 SUB_MINUTE_LIVE_IF_ADDED=SEPARATE_VERSION_NOT_1M_EQUIVALENT
 NORMAL_SCAN_OUTPUT=COMPACT
@@ -56,12 +59,15 @@ FULL_RATIONALE=MEANINGFUL_STATE_TRANSITION_OR_TRADE_MANAGEMENT
 
 ## Local worker relay facts / Owner workflow
 
-Current local workflow:
-
 ```text
 WORKBUDDY=LOCAL_ONLY_NO_GITHUB_IN_CURRENT_SETUP
+PRIMARY_LOCAL_REPO_LAST_REPORTED=C:\Users\H\Documents\ChatGPT\Kline-Playbook-engine
+VERIFY_LOCAL_FOLDER_BEFORE_ASSIGNMENT=YES
 WORKBUDDY_DEFAULT_OPEN_TARGET=DEDICATED_KLINE_PLAYBOOK_ENGINE_REPO_OR_WORKTREE_ROOT
 WORKBUDDY_PUSH_MAIN=NO
+WORKBUDDY_MODEL_MENU_LAST_REPORTED=Hy3,GLM-5.3,GLM-5.2,GLM-5.1,GLM-5v-Turbo,MiniMax-M3,Kimi-K3
+WORKBUDDY_MODEL_MENU_IS_VOLATILE=YES
+WORKBUDDY_MODEL_ACCESS_DOES_NOT_PROVE_PROGRAMMATIC_TRADING_PROVIDER_ACCESS=YES
 LOCAL_MODEL_SELECTION=TASK_SPECIFIC_NOT_PERMANENTLY_ADOPTED
 DS_FLASH=AVAILABLE_FOR_ORDINARY_MECHANICAL_ENGINEERING_REVIEW_AND_GIT_INTEGRATION
 CODEX=RESERVE_FOR_HIGH_VALUE_ARCHITECTURE_RESEARCH_OR_COMPLEX_INTEGRATION
@@ -69,13 +75,13 @@ PARALLEL_WORKERS_MUST_USE_DIFFERENT_WORKTREES=YES
 MAIN_INTEGRATION_LANE=ONE_ONLY
 ```
 
-When assigning WorkBuddy, tell the Owner **before the prompt**:
-- the exact local folder/worktree to open;
-- the recommended currently available model;
-- then provide one complete copy-paste task prompt.
+Before every WorkBuddy prompt, tell the Owner:
+- exact local folder/worktree to open;
+- exact currently recommended model;
+- then one complete copy-paste prompt.
 
-WorkBuddy output remains local until a GitHub-capable integration lane reviews/protects/commits it.
+The model-menu snapshot above is only the last Owner-reported UI availability. Reconfirm when model availability materially affects a task. WorkBuddy output remains local until a GitHub-capable lane reviews/protects/commits it.
 
 ## Update rule
 
-The `main` integration lane updates this brief whenever current phase, architecture, authorization locks, Jianghe readiness, next work, or adopted model/tool/provider changes. Keep details in `CURRENT_STATE.md`, ADRs, protocols and evidence; keep this file short.
+The `main` integration lane updates this brief whenever current phase, architecture, locks, Jianghe readiness, next work, or adopted model/tool/provider changes. Keep details in `CURRENT_STATE.md`, ADRs, protocols and evidence; keep this file short.
