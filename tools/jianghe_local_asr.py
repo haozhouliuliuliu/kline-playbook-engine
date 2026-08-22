@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ from tools.jianghe_corpus_gap_audit import seconds_to_srt
 
 LOW_CONFIDENCE_AVG_LOGPROB = -1.0
 LOW_CONFIDENCE_NO_SPEECH = 0.60
+TIMESTAMP_EPSILON_SECONDS = 0.001
 
 
 def read_audit(path: Path) -> list[dict[str, Any]]:
@@ -45,9 +47,9 @@ def low_confidence(segment: dict[str, Any]) -> bool:
 
 def validate_timeline(segments: list[dict[str, Any]], duration: float | None) -> dict[str, Any]:
     monotonic = all(
-        float(current["start"]) >= float(previous["start"])
-        and float(current["end"]) >= float(current["start"])
-        and float(current["start"]) >= float(previous["end"])
+        float(current["start"]) + TIMESTAMP_EPSILON_SECONDS >= float(previous["start"])
+        and float(current["end"]) + TIMESTAMP_EPSILON_SECONDS >= float(current["start"])
+        and float(current["start"]) + TIMESTAMP_EPSILON_SECONDS >= float(previous["end"])
         for previous, current in zip(segments, segments[1:])
     )
     first_start = float(segments[0]["start"]) if segments else None
@@ -133,24 +135,44 @@ def write_failed_package(record: dict[str, Any], reason: str, root: Path) -> Pat
     return package
 
 
-def transcribe_record(model: Any, record: dict[str, Any], root: Path) -> dict[str, Any]:
+def normalized_audio_for_asr(media_path: Path, work_path: Path) -> Path:
+    work_path.parent.mkdir(parents=True, exist_ok=True)
+    completed = subprocess.run(
+        ["ffmpeg", "-y", "-v", "error", "-i", str(media_path), "-map", "0:a:0", "-af", "loudnorm", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", str(work_path)],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", check=False,
+    )
+    if completed.returncode != 0 or not work_path.is_file() or work_path.stat().st_size == 0:
+        raise RuntimeError("ASR 临时音频归一化失败")
+    return work_path
+
+
+def transcribe_record(model: Any, record: dict[str, Any], root: Path, vad_filter: bool, normalize_audio: bool, retain_low_confidence_audio: bool) -> dict[str, Any]:
     media_path = Path(str(record["media_path"]))
     if not media_path.is_file():
         raise RuntimeError(f"媒体不存在：{media_path}")
-    segments_iter, info = model.transcribe(
-        str(media_path), language="zh", beam_size=5, vad_filter=True, condition_on_previous_text=False,
-    )
-    segments = [
-        {
-            "start": segment.start,
-            "end": segment.end,
-            "text": segment.text,
-            "avg_logprob": segment.avg_logprob,
-            "no_speech_prob": segment.no_speech_prob,
-            "compression_ratio": segment.compression_ratio,
+    temporary_audio = root / "asr" / ".work" / f"{int(record['source_ordinal']):03}__{record['bvid']}.normalized.wav"
+    input_path = normalized_audio_for_asr(media_path, temporary_audio) if normalize_audio else media_path
+    try:
+        options = {
+            "language": "zh", "beam_size": 5, "vad_filter": vad_filter, "condition_on_previous_text": False,
         }
-        for segment in segments_iter
-    ]
+        if retain_low_confidence_audio:
+            options.update({"no_speech_threshold": 1.0, "log_prob_threshold": None, "compression_ratio_threshold": None})
+        segments_iter, info = model.transcribe(str(input_path), **options)
+        segments = [
+            {
+                "start": segment.start,
+                "end": segment.end,
+                "text": segment.text,
+                "avg_logprob": segment.avg_logprob,
+                "no_speech_prob": segment.no_speech_prob,
+                "compression_ratio": segment.compression_ratio,
+            }
+            for segment in segments_iter
+        ]
+    finally:
+        if normalize_audio and temporary_audio.is_file():
+            temporary_audio.unlink()
     validation = validate_timeline(segments, record.get("duration"))
     asr_dir = root / "asr"
     asr_dir.mkdir(parents=True, exist_ok=True)
@@ -160,7 +182,7 @@ def transcribe_record(model: Any, record: dict[str, Any], root: Path) -> dict[st
     payload = {
         "source_ordinal": record["source_ordinal"], "bvid": record["bvid"], "language": getattr(info, "language", "zh"),
         "language_probability": getattr(info, "language_probability", None), "engine": "faster-whisper",
-        "model": "small", "device": "cpu", "compute_type": "int8", "segments": segments, "validation": validation,
+        "model": "small", "device": "cpu", "compute_type": "int8", "vad_filter": vad_filter, "normalize_audio": normalize_audio, "retain_low_confidence_audio": retain_low_confidence_audio, "segments": segments, "validation": validation,
     }
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     srt_path.write_text(srt_text(segments), encoding="utf-8", newline="\n")
@@ -175,6 +197,9 @@ def main() -> int:
     parser.add_argument("--ordinal", type=int, action="append", help="只转写指定 ordinal；默认全部需要 ASR 的条目")
     parser.add_argument("--record-failure", help="仅记录已验证的 ASR 引擎失败原因，并生成 Sol 证据包")
     parser.add_argument("--model-path", help="已完成校验的本地 faster-whisper 模型目录；不填才使用缓存模型名")
+    parser.add_argument("--disable-vad-filter", action="store_true", help="仅在完整覆盖验收失败时关闭 VAD，保留全音频转写")
+    parser.add_argument("--normalize-audio", action="store_true", help="为 ASR 临时归一化单声道音频，不修改原视频")
+    parser.add_argument("--retain-low-confidence-audio", action="store_true", help="保留模型低置信音频段并在工程包中标记，不人工补写文本")
     args = parser.parse_args()
     try:
         from faster_whisper import WhisperModel
@@ -192,7 +217,7 @@ def main() -> int:
         print(json.dumps({"STATUS": "ASR_FAILED_RECORDED", "results": results}, ensure_ascii=False))
         return 2
     model = WhisperModel(args.model_path or "small", device="cpu", compute_type="int8")
-    results = [transcribe_record(model, record, root) for record in selected]
+    results = [transcribe_record(model, record, root, vad_filter=not args.disable_vad_filter, normalize_audio=args.normalize_audio, retain_low_confidence_audio=args.retain_low_confidence_audio) for record in selected]
     print(json.dumps({"STATUS": "PASS", "results": results}, ensure_ascii=False))
     return 0
 
