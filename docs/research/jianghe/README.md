@@ -1,62 +1,66 @@
-# 江河交易员正式研究证据包 — Current View V1.0 Final
+# 江河交易员正式研究证据包 — Second-Pass Coverage Audit Open
 
 ```text
 TRADER_ID=JIANGHE_TRADER
 SOURCE_SCOPE=001..099
 SOURCE_TOTAL=99
 MEDIA_AVAILABLE=98
-SEMANTICALLY_REVIEWED_WITH_RELIABLE_LANGUAGE_OR_BURNED_TEXT=97
-VISUAL_ONLY_NO_RELIABLE_LANGUAGE=065
 BLOCKED_PAID_GATE=022
+VISUAL_ONLY_NO_RELIABLE_LANGUAGE=065
 CORPUS_MEDIA_RECOVERY=COMPLETE
-FINAL_SOL_REVIEW=COMPLETE
-FINAL_SOURCE_DISTILLATION=COMPLETE
+V1_0_SOL_TARGETED_REVIEW=COMPLETE
+FINAL_SOURCE_DISTILLATION=REVOKED_PENDING_EXHAUSTIVE_SECOND_PASS
+SECOND_PASS_SOURCE_COVERAGE_AUDIT=OPEN
 SOURCE_ONLY_VERIFIED=NO
 PRIMARY_ELIGIBLE=NO
 TOOL_DECISION=USE_EXISTING
 ```
 
-先读 `JIANGHE_CURRENT_VIEW_V1_0.md`。
+先读：
 
-## V1.0 authority
+1. `JIANGHE_SECOND_PASS_COVERAGE_AUDIT_V1_1.md`
+2. `JIANGHE_CURRENT_VIEW_V1_0.md`
+3. `JIANGHE_SOL_FINAL_REVIEW_RESOLUTION_V1_0.md`（保留为 V1.0 targeted-review 历史，不再代表全语料最终完成）
 
-最终来源蒸馏组合：
+## 为什么撤回 V1.0 的 final-complete 状态
 
-- `JIANGHE_TRADER_DOSSIER_V1_0.md`
-- `JIANGHE_SOL_FINAL_REVIEW_RESOLUTION_V1_0.md`
-- `JIANGHE_CLAIM_LEDGER_SUPPLEMENT_FINAL_V1_0.jsonl`
-- `JIANGHE_CASE_LIBRARY_SUPPLEMENT_FINAL_V1_0.md`
-- `JIANGHE_SOURCE_INDEX_SUPPLEMENT_FINAL_V1_0.csv`
-- `JIANGHE_STRATEGY_FAMILIES_V1_0.md`
-- `JIANGHE_SYSTEM_PROCESS_V1_0.md`
-- `JIANGHE_UNKNOWN_REGISTER_V1_0.md`
-- `JIANGHE_CONTRADICTION_REGISTER_V1_0.md`
-- `JIANGHE_EVIDENCE_REVIEW_QUEUE_V1_0.csv`
-- `JIANGHE_ASR_SEMANTIC_QA_RULE_V1_0.md`
+二次 repo 审计发现，001–028 的证据粒度和后续批次明显不一致。以下可访问来源被标记为 `ANALYZED/SOL_ANALYZED`，但仓库中 `claim_count=0`：
 
-旧V0.1–V0.9证据不删除，继续作为演进历史与底层claim/case来源。
+`001,003,004,009,010,011,013,014,019,025,026`
 
-## Final corpus disposition
+同时，多条 8–36 分钟早期视频只有 1–3 个 claim。低 claim 数本身不证明错误，但当前没有逐段 timeline coverage record，无法证明这些材料是完整逐段复核后“没有更多独立语义”，还是被代表性压缩/跳过。
 
-- 007：损坏媒体已恢复并由Sol完整补审。
-- 016/017/018：本地ASR经最终语义抽检可用并已补审。
-- 048：所谓恢复远端SRT与视频内容不匹配，已拒绝；只使用视频直接烧录文字。
-- 065：无原生字幕；本地ASR在最终语义QA中被判明显幻觉并拒绝。媒体可看，但不从订单/图表结果倒推口述策略；语义claim=0。
-- 099：所谓恢复远端SRT与视频内容不匹配，已拒绝；视频自身完整烧录字幕可用并已补审。
-- 022：付费门控合法不可达例外，不购买、不绕过。
+因此 fail closed：**V1.0 的具体已核验结论继续保留，但“001–099 已完成最终来源蒸馏”这一全局状态撤回。**
 
-## Final family state
+## 当前 authority
 
-仍只有：
-- `JH-FAMILY-A` 趋势关键位回调延续
-- `JH-FAMILY-B` 趋势衰弱反转 / 高周期回调
-- `JH-FAMILY-C` 多周期确认突破
-- `JH-FAMILY-D` 震荡边界反转
+- `JIANGHE_SECOND_PASS_COVERAGE_AUDIT_V1_1.md`：当前最高优先级，定义二次核验缺口与验收标准。
+- `JIANGHE_TRADER_DOSSIER_V1_0.md`：历史综合快照，不再视为最终完整 Dossier。
+- `JIANGHE_SOL_FINAL_REVIEW_RESOLUTION_V1_0.md`：007/016/017/018/048/065/099 及 030/069/078/079/096 的 targeted review 结论继续有效，除非二次全量复核出现直接反证。
+- 既有 V0.1–V0.9 claim/case/source artifacts：继续作为底层来源记录。
 
-没有Family E。剥头皮保持非核心执行模式；均线/指标保持辅助角色。
+## 二次核验必须证明什么
+
+对 98 条可访问来源逐条建立完整时间轴覆盖记录，最终要求：
+
+```text
+AVAILABLE_SOURCE_DURATION_COVERAGE=100%
+UNACCOUNTED_TIMELINE_GAP=0
+CHART_DEPENDENT_CLAIM_WITHOUT_SAME_TIME_VISUAL=0
+UNEXPLAINED_ZERO_CLAIM_AVAILABLE_SOURCE=0
+```
+
+不能因为某条内容“和已有结论重复”就跳过；必须记录为 `DUPLICATE_SUPPORT`。没有交易语义也必须记录明确原因。
+
+## Corpus exceptions
+
+- `022`：`SOURCE_UNAVAILABLE_PAID_GATED`，合法不可达例外，不购买、不绕过。
+- `065`：现有 local ASR 因语义幻觉已被拒绝；如果没有新的可靠语言证据，继续保持视觉可用但禁止从订单/图表结果倒推口述策略。
 
 ## Research boundary
 
-仓库不保存完整视频、完整字幕或ASR全文。SRT/ASR只作证据导航；图表claim回到原视频同时间画面。收益、RR、账户结果仅属source case content，不作为validity evidence。
+`SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION`。
 
-`SOURCE_ONLY_VERIFIED=NO`、`PRIMARY_ELIGIBLE=NO`。V1.0是**江河001–099来源蒸馏收口**，不授权outcome testing、validation/final访问、PRIMARY冻结或真钱动作。
+收益、RR、账户结果只属于 source case content，不是 validity evidence。
+
+`SOURCE_ONLY_VERIFIED=NO`、`PRIMARY_ELIGIBLE=NO`，不授权 outcome testing、validation/final 访问、PRIMARY 冻结或真钱动作。
