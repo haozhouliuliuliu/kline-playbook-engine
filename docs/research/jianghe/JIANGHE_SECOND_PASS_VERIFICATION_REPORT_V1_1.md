@@ -22,9 +22,10 @@ SECOND_PASS_RECOVERED_CASES=9
 RECOVERED_REMOTE_SRT_USED_WITHOUT_IDENTITY_QA=0
 VISUAL_ONLY_NO_RELIABLE_LANGUAGE=065
 FINAL_SOURCE_DISTILLATION=COMPLETE_AFTER_EXHAUSTIVE_SECOND_PASS
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
+MUTABLE_READINESS_AUTHORITY=CURRENT_STATE.md + PROJECT_BRAIN_RUNTIME_BRIEF.md
 ```
+
+This report verifies source-distillation completeness only. Mutable SOURCE_ONLY / PRIMARY / outcome-access / validation / trading authorization must not be inferred from this report; use repository-root `CURRENT_STATE.md` and `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
 
 ## Independent mechanical checks performed after semantic pass
 
@@ -78,12 +79,11 @@ Apparent conflicts that can be explained by chronology, market stage, order mode
 
 ## Final research boundary
 
-Completion here means **source-faithful corpus distillation completeness after an exhaustive second pass**. It does not mean the strategy has economic edge or may be promoted.
+Completion here means **source-faithful corpus distillation completeness after an exhaustive second pass**. It does not mean the strategy has economic edge, PRIMARY eligibility, outcome authorization, or trading authorization.
 
 ```text
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
-REAL_MONEY=NOT_AUTHORIZED
+SOURCE_DISTILLATION_SCOPE=COMPLETE_AFTER_EXHAUSTIVE_SECOND_PASS
+SOURCE_DISTILLATION_DOCUMENT != MUTABLE_PROJECT_READINESS_AUTHORITY
 ```
+
+For current readiness and authorization, use repository-root `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
