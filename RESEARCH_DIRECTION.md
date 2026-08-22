@@ -2,210 +2,144 @@
 
 ## Status
 
+```text
 STATUS=OWNER_APPROVED
-EFFECTIVE_DATE=2026-08-18
 PROJECT_RESEARCH_PARADIGM=HUMAN_PLAYBOOK_FIRST
-
-This file defines the binding research-direction boundary for `kline-playbook-engine`.
-It does not define any concrete profitable strategy, parameter set, chronological
-split, final-unseen unlock, or live trading rule.
-
-## 1. Product/research direction
-
-The project's primary strategy-research route is:
-
-```text
-traceable human trading experience
--> AI-assisted extraction and structuring
--> versioned Playbook Contract
--> point-in-time market-scene representation / recognition
--> historical validation of applicability and failure conditions
--> strict validation / final-unseen governance
--> accepted or rejected playbook
+CURRENT_PRODUCT_DIRECTION=JIANGHE_AI_TRADER
 ```
 
-In plain language, the intended product is a **trader playbook library + market-reading brain**:
-the project should learn from mature, attributable human trading logic, make that logic
-explicit and testable, and determine when a playbook does or does not fit the market.
+This file defines the current binding research direction. Mutable readiness, locks and next work live in `CURRENT_STATE.md`.
 
-The primary research engine is therefore **not** an unconstrained search over indicators,
-rule combinations, chart/K-line patterns, or parameter grids whose objective is to discover
-the best historical equity curve.
+## 1. Strategy source direction
 
-## 2. Candidate knowledge sources
+The project learns trading judgment from attributable human trading experience rather than discovering a strategy by searching historical PnL.
 
-Candidate playbooks may originate from traceable human sources such as:
-
-- books;
-- public teaching material;
-- trader interviews or explanations;
-- videos or other attributable educational material;
-- other documented human trading experience admitted by the research protocol.
-
-Every admitted playbook must preserve provenance/source identity sufficient to answer:
-
-- where the idea came from;
-- what the source actually claimed;
-- what interpretation/translation was performed by AI or researchers;
-- what later changes created a new playbook version or lineage.
-
-A source being famous, experienced, persuasive, or profitable is **not** evidence that its
-playbook is valid for this project.
-
-## 3. What AI is for
-
-AI may be used mainly in the offline Research Loop to:
-
-- find and organize candidate human trading ideas;
-- extract natural-language trading logic into structured playbook fields;
-- distinguish market background, observation, confirmation, invalidation, exit logic,
-  and stated non-applicable environments;
-- propose testable representations of qualitative concepts;
-- locate historical analogues and counterexamples without violating dataset exposure rules;
-- analyze failures and regime/applicability boundaries;
-- help implement deterministic strategy artifacts and tests;
-- red-team whether a playbook has been mistranslated, overfit, or given excessive search freedom.
-
-AI output is a research hypothesis or implementation aid, not accepted trading truth.
-
-## 4. Playbook-first research object
-
-The Strategy Catalog's existing Playbook Contract remains the strategy owner.
-The research protocol should make a human-derived playbook explicit enough to preserve,
-as applicable:
-
-- provenance/source;
-- market background/context;
-- observed price/volume/volatility/session structure;
-- qualitative pattern or setup;
-- confirmation logic;
-- entry intent;
-- invalidation / "what would prove this read wrong";
-- exit logic;
-- known non-applicable environments;
-- applicable instruments/timeframes if supported;
-- implementation/feature interpretation version;
-- family lineage and data-exposure history.
-
-A meaningful change in interpretation or outcome-affecting logic creates a new version or
-lineage under the existing identity/evidence rules.
-
-## 5. Human source is hypothesis, not authority
-
-`HUMAN_PLAYBOOK_FIRST` does **not** weaken statistical or evidence standards.
-
-Every candidate remains subject to the existing architecture and evidence controls,
-including as applicable:
-
-- point-in-time / `available_at` semantics;
-- chronological validation;
-- execution realism;
-- Selection Firewall;
-- development / validation / final-unseen separation;
-- lineage-aware exposure inheritance;
-- search-freedom and multiple-testing controls;
-- correlation / false-diversification checks;
-- independent acceptance where required.
-
-The project must be able to reject a human trading idea cleanly when evidence does not
-support it.
-
-## 6. Prohibited default research route
-
-The following is **not** the project's default strategy-discovery route:
+For V1:
 
 ```text
-large indicator/rule/K-line-pattern/parameter universe
--> brute-force or automated search
--> rank by historical PnL/Sharpe/etc.
--> report the best survivor as the strategy
+CURRENT_TRADING_KNOWLEDGE_SOURCE=JIANGHE_V1_1
+STRATEGY_SOURCE_EXPANSION=PAUSED
 ```
 
-Bounded parameterization, robustness checks, feature interpretation, and controlled search
-may be used when they are necessary to formalize or test an already identified playbook.
-They must remain evidence-governed, recorded as search freedom, and must not silently turn
-back into unrestricted strategy mining.
+The Jianghe corpus is the knowledge boundary for the current trading brain. Additional traders/strategies are not part of the current normal work unless a later Owner-approved direction change reopens source expansion.
 
-### Anti-regression interpretation guard
-
-This section is a binding interpretation guard for later conversations and implementation work:
-
-- Generic language in `ARCHITECTURE_BASELINE.md` such as "AI may find candidate ideas" does **not** re-authorize data-first automatic K-line/chart-pattern/indicator discovery. This Owner-approved Human Playbook First direction specializes that broader architecture language.
-- The existence of normalized OHLCV/bar data does not create authority to mine shapes, indicators, rules, or parameter combinations first and then retrofit a human narrative afterward.
-- `MVP does not require automatic pattern discovery` in the architecture baseline must not be interpreted as "automatic pattern discovery is an equally authorized current route". It is not the current research route.
-- Tool availability, model capability, API quota, implementation convenience, or a promising backtest cannot silently change the research paradigm.
-- Results, parameters, strategies, failure histories, or route judgments from other projects cannot be imported as evidence for changing this route.
-- Any future move from Human Playbook First back toward data-first automatic strategy/pattern mining is a material research-direction change and requires explicit Owner approval plus formal authority updates before execution.
-
-## 7. Relationship to Skeleton v1.0
-
-This direction does **not** reopen or replace `ARCHITECTURE_BASELINE.md` Skeleton v1.0.
-It specializes the previously intentionally-open Research Loop / Strategy Catalog route:
-
-- Strategy Catalog already uses a Playbook Contract and requires provenance/source.
-- Research Loop already permits AI to find candidate ideas, organize knowledge, implement
-  drafts, analyze experiments, and red-team hypotheses.
-- Backtest & Validation / Selection Firewall remain the examination system that determines
-  whether a playbook survives evidence.
-
-The original live-critical-path boundary is historical Skeleton v1.0 context. It is now
-amended by the Owner decision recorded in
-`docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`: the Jianghe AI Trader may
-propose a versioned, constrained trade intent from a causal observation. Deterministic RiskGate,
-OMS, TradingState, broker reconciliation and Safety retain all execution and hard-risk truth.
-
-## 8. Jianghe AI market-reading boundary
-
-The long-term product concept includes machine assistance for recognizing which accepted
-playbook/market scene best matches the current market, faster and more consistently than a
-human trader.
-
-The product decision-layer direction is now frozen, but real external operation is not authorized.
+## 2. Current research route
 
 ```text
-JIANGHE_AI_DECISION_LAYER=ADOPTED_ARCHITECTURE_V0_1
-AI_OUTPUT=CONSTRAINED_TRADE_INTENT_ONLY
-DETERMINISTIC_RISK_EXECUTION_SAFETY=RETAINED
-REAL_SHADOW_BROKER_REAL_MONEY=NOT_AUTHORIZED
-MODEL_PROVIDER=ALL_CANDIDATE_UNTIL_FIDELITY_EVIDENCE
+traceable Jianghe source material
+-> source-faithful claims / cases / UNKNOWN / contradictions
+-> versioned Jianghe knowledge pack
+-> versioned Jianghe AI Trader identity
+-> causal observation + working memory + fidelity evaluation
+-> source-justified PRIMARY preparation
+-> governed candidate outcome research only after explicit gates
+-> protected validation / final-holdout governance
+-> genuinely unseen Shadow/Forward evidence when later authorized
 ```
 
-The current implementation provides only synthetic, non-outcome replay foundation. Any real
-model provider, sub-minute capability, Shadow, broker or real-money activation remains a
-separate future gate and cannot be inferred from this architecture amendment.
+The project must preserve the distinction:
 
-## 9. Relationship to the now-frozen Research Protocol
+```text
+SOURCE CLAIM
+!=
+AI / PROJECT INTERPRETATION
+!=
+IMPLEMENTED DECISION POLICY
+```
 
-The protocol-design work that was the next step when this direction was first approved has since been completed.
+Missing or contradictory source meaning stays UNKNOWN. The AI must be allowed to WAIT / NO_TRADE rather than invent a rule.
 
-Current binding authorities are:
-- `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md` — FROZEN / BINDING;
-- `docs/research/HUMAN_PLAYBOOK_CHRONOLOGICAL_SPLIT_V1_0.md` — FROZEN 12/6/6;
-- `CURRENT_STATE.md` — the only authority for the project's **current** work package / next action.
+## 3. What the Jianghe AI is for
 
-Do **not** infer a current next action from historical wording in this research-direction document. This file defines direction, not mutable project state.
+The product goal is not to compress Jianghe into a rigid indicator grid. The AI decision layer is intended to interpret the same kinds of contextual information Jianghe uses, including:
 
-The frozen protocol now governs at minimum:
-- admissible source/provenance rules;
-- natural-language claim separation and PRIMARY interpretation rules;
-- lineage/exposure inheritance;
-- search-freedom / whole-wave multiplicity;
-- SOURCE_ONLY interpretation controls;
-- development / validation / historical-final chronology;
-- validation revision categories;
-- common statistical-profile freeze before candidate outcomes;
-- historical-final access governance.
+- timeframe-specific market state and trend;
+- directional bias;
+- key location and remaining space;
+- relative strength / weakening / follow-through;
+- actual execution-timeframe behavior;
+- A/B/C/D family permission;
+- no-trade conditions, invalidation and management.
 
-## 10. What is not frozen by this file
+The AI is constrained by the Jianghe knowledge pack. It is not a general-purpose free-form trading agent.
 
-This research-direction decision itself does **not** freeze:
+Deterministic infrastructure remains responsible for hard risk, orders, execution truth, reconciliation and Safety.
 
-- specific books, creators, videos, traders, or playbooks;
-- any concrete K-line strategy conclusion;
-- parameter ranges;
-- strategy ranking metrics;
-- live scene-recognition implementation;
-- broker/execution framework;
-- permanent RiskGate rules.
+## 4. Fidelity before profitability
 
-Some research semantics that were intentionally left open when this file was first approved were later frozen by separate binding authority. In particular, Research Protocol v1.0 and the 12/6/6 chronology are now frozen elsewhere. This section must not be used to undo those later authorities.
+The first real-model question is:
+
+> **Does the model reason like Jianghe under the source-derived constraints?**
+
+Model/provider comparison must therefore begin with the non-outcome fidelity corpus and evaluate, at minimum:
+
+- market-state interpretation;
+- A/B/C/D/NONE classification;
+- no-trade discipline;
+- location != trigger;
+- weakening != reversal;
+- false vs confirmed breakout semantics;
+- multi-timeframe discipline;
+- UNKNOWN/contradiction honesty;
+- decision stability;
+- unjustified invention rate.
+
+Historical profit, win rate, Sharpe, expectancy or later price movement must not be used to choose the initial Jianghe decision model.
+
+## 5. Historical replay role
+
+Historical 1-minute data is used to simulate a trader moving forward through time, not to hand the AI a retrospective chart.
+
+The replay must preserve:
+
+- forward-only time;
+- no future bars;
+- persistent session working memory;
+- AI-created watch/key/invalidation regions;
+- model latency;
+- causal multi-timeframe aggregation;
+- the distinction between AI hypotheses and market facts.
+
+The current historical evidence cannot prove sub-minute decision behavior. Any future live sub-minute capability is a different version/capability.
+
+## 6. Prohibited default route
+
+The following remains outside the current authorized research direction:
+
+```text
+large indicator / chart-pattern / rule / parameter universe
+-> historical outcome search
+-> select winners
+-> retrofit Jianghe or another human narrative afterward
+```
+
+A promising backtest, tool capability or model suggestion cannot silently change this direction.
+
+## 7. Evidence / validation standards remain binding
+
+Human Playbook First does not weaken evidence standards. Applicable controls remain governed by the frozen research protocol and current AI Trader protocol, including:
+
+- provenance and source identity;
+- SOURCE_ONLY boundaries;
+- PRIMARY interpretation governance;
+- point-in-time information;
+- lineage and exposure inheritance;
+- search-freedom / multiplicity controls;
+- development / validation / final-holdout separation;
+- execution realism when outcome research is later authorized;
+- future genuinely unseen evidence.
+
+This file itself authorizes no candidate outcome access, Validation, Final, Shadow, broker or real-money action.
+
+## 8. Current architecture relationship
+
+The current architecture is defined by:
+
+- `ARCHITECTURE_BASELINE.md`;
+- `docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
+
+The AI may propose a constrained trade intent. RiskGate, OMS, TradingState, broker reconciliation and Safety retain deterministic authority over execution and hard-risk truth.
+
+## 9. Mutable state rule
+
+Do not infer current readiness or next action from this direction file. Always read current `main` + `PROJECT_BRAIN_RUNTIME_BRIEF.md`, then `CURRENT_STATE.md` when the answer depends on mutable project facts.
