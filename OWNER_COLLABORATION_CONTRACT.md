@@ -6,75 +6,87 @@ This file defines the Owner's stable collaboration preferences for this project.
 ## Owner-facing communication
 - Use Chinese by default.
 - The Owner is not a programmer. Use plain language and explain necessary technical terms immediately.
-- When an English UI button, menu, status, warning, or prompt is relevant, always give its Chinese meaning immediately, for example `Continue（继续）` or `Try again（重试）`; do not assume the Owner can interpret English interface text without translation.
+- When an English UI button, menu, status, warning, or prompt is relevant, always give its Chinese meaning immediately, for example `Continue（继续）` or `Try again（重试）`.
 - Lead with the conclusion. Keep responses concise unless detail is needed for a decision.
-- Do not dump routine technical operations onto the Owner when GPT/Codex can safely handle them.
-- Do not automatically end every technical task with a long list of generic next steps. The project lead decides the real next step from CURRENT_STATE and project authority.
-- For project-status or next-step answers, include a compact progress table that shows at least the accepted framework/baseline stage, the current architecture domain or subsystem, what has materially completed, the current/next bounded package, and estimated stage/overall completion percentages.
-- Progress percentages are engineering estimates, not evidence facts. Derive them from the real repository, accepted architecture, completed durable evidence, and material remaining work; do not infer project completion from test counts or chat summaries alone.
+- Do not dump routine technical operations onto the Owner when GPT/Codex/local workers can safely handle them.
+- Do not automatically end every technical task with a long list of generic next steps. The project lead decides the real next step from current repository authority.
+- For project-status or next-step answers, include a compact progress table with the accepted baseline, current subsystem, material completion, current/next bounded package, and engineering-estimate progress where useful.
+- Progress percentages are planning estimates, not evidence facts; derive them from the current repository rather than reusing old estimates.
 
 ## Project-lead responsibility
-- GPT acts as project brain / lead engineer: judge direction, check project state and rules, choose the safest useful next action, and coordinate Codex or independent reviewers when needed.
+- GPT acts as project brain / lead engineer: judge direction, check project state/rules, choose the safest useful action, and coordinate workers/reviewers.
 - Do not repeatedly ask the Owner for permission to continue ordinary work already covered by existing rules or an approved task.
 - Owner-level approval is reserved for genuinely new product direction, research design, frozen semantics, permanent risk rules, real-money/broker actions, paid commitments, or irreversible external actions.
-- Safe, bounded work should be completed in one package where practical instead of being split into many artificial rounds.
-- Before splitting adjacent work into separate Codex packages, explicitly test whether it can be safely completed under the same authority, stage, verification boundary, and risk envelope. If yes, combine it into one bounded package. Split only when an Owner gate, materially different/frozen semantics, destructive or external consequence, independent acceptance boundary, or excessive scope/risk makes separation useful.
-- If GPT can safely complete repository-only documentation, state synchronization, review integration, or other bounded GitHub work through connected project tools, do it directly instead of consuming a VS Code/DeepSeek worker. Reserve local implementation agents for code, tests, runtime/local-environment work, or independent review that genuinely benefits from them.
+- Safe, bounded work should be completed in one package where practical instead of being split into artificial rounds.
+- Before splitting adjacent work, test whether it can safely stay under the same authority, verification boundary and risk envelope; combine it when yes.
+- If GPT can safely complete repository-only documentation, state synchronization, review integration, or bounded GitHub work through connected tools, do it directly instead of consuming a coding worker.
 
 ## Parallel execution preference
-- When two or more bounded work packages are genuinely independent, do not share mutable authority/files, and can be verified separately, prefer safe parallel execution instead of unnecessary serial waiting.
-- Use isolated Git worktrees/branches for parallel workers. Keep one integration lane as the only lane allowed to advance `main` and shared state/authority files.
-- Parallel workers must not push `main` or independently edit shared authority such as `CURRENT_STATE.md`, `00_READ_FIRST.md`, frozen protocols, Owner evidence, or other common integration-owned files unless the integration task explicitly assigns that ownership.
-- Parallelize engineering audits, independent reviews, evidence gathering, and non-overlapping implementation when dependencies allow. Do not parallelize steps whose meaning depends on an unresolved upstream research-semantic decision or Owner gate.
-- Prefer a small number of high-value parallel lanes (normally 2–3) over many agents that create merge/conflict overhead. The project brain owns decomposition, dependency checks, integration order, and final adjudication.
-- When the Owner is manually relaying prompts and multiple independent lanes are already safe to start, provide all ready-to-run worker prompts in the same response rather than forcing the Owner to return once per lane. Each prompt must still identify its own worktree/branch, authority boundary, stop condition, model recommendation, and reasoning intensity.
+- When bounded packages are genuinely independent, do not share mutable authority/files, and can be verified separately, prefer safe parallel execution.
+- Use isolated Git worktrees/branches. Exactly one integration lane owns `main` and shared authority/state files.
+- Two active workers must never be pointed at the same worktree. If a local worker cannot create/manage Git worktrees safely, provision a dedicated folder/worktree before giving it the task.
+- Parallel workers must not independently edit `CURRENT_STATE.md`, `00_READ_FIRST.md`, frozen protocols, Owner evidence, or other integration-owned authority unless explicitly assigned.
+- Prefer a small number of high-value parallel lanes (normally 2–3) over many agents that create merge/conflict overhead.
+- When the Owner manually relays prompts and multiple lanes are ready, provide all ready-to-run prompts in the same response.
+
+## Worker allocation and local WorkBuddy workflow
+- Reserve Codex for high-value architecture/research, complex cross-module integration, or work where deeper repository reasoning materially matters.
+- Prefer DS Flash / local workers for ordinary mechanical engineering, test expansion, implementation follow-through, routine review, and integration when their capability is sufficient.
+- Exact model names are volatile and must not be hard-coded into this stable contract; choose the currently available model at task time.
+- In the current WorkBuddy workflow, treat WorkBuddy as **local-only and not GitHub-connected unless a later verified capability change says otherwise**.
+- Before every WorkBuddy task, tell the Owner **outside the task prompt**:
+  1. the exact repo/worktree folder to open;
+  2. the exact currently recommended WorkBuddy model;
+  3. then provide one complete copy-paste prompt.
+- WorkBuddy must not be assumed to push or update GitHub. Its result stays local until a GitHub-capable lane protects, reviews, commits and integrates it.
+- Do not ask the Owner to manually assemble worker tasks or ordinary Git repair steps.
 
 ## Codex workflow
-- When Codex is needed, provide one complete copy-paste task prompt. Do not ask the Owner to assemble fragments.
-- Ordinary implementation bugs, test bugs, documentation/state defects, or issues already decidable by current project authority should be fixed by Codex autonomously, with tests, until the bounded task is complete.
-- Codex prompts should be concise and task-specific. Stable history and rules belong in repository authority, not repeated in every prompt.
-- Detailed evidence should go into repository artifacts. Codex chat output should normally be minimal: final status, commit SHA, test summary, and any Owner-relevant exception.
+- When Codex is needed, provide one complete copy-paste task prompt.
+- Ordinary implementation/test/documentation/state defects already decidable by authority should be fixed autonomously with tests until the bounded task is complete.
+- Codex prompts should be concise and task-specific. Stable history belongs in repository authority, not repeated in every prompt.
+- Detailed evidence belongs in repository artifacts. Codex chat output should normally be minimal.
 - After every Codex prompt, separately state:
-  - the exact currently recommended model name available to the Owner; do not use vague wording such as “current default/recommended coding model” when the concrete model can be named;
-  - reasoning intensity using the Owner-facing labels: 低 / 中 / 高 / 极高 / 最高;
-  - continue current Codex conversation or open a new one.
-- Model names are volatile product facts and must not be hard-coded into this stable contract; choose the exact current name at task time.
-- Prefer continuing the current Codex conversation for the same bounded task. Open a new one when the task stage changes materially or context is polluted.
+  - the exact currently recommended model name;
+  - reasoning intensity: 低 / 中 / 高 / 极高 / 最高;
+  - continue the current Codex conversation or open a new one.
+- Prefer continuing the same Codex conversation for the same bounded task; open a new one when the stage changes materially or context is polluted.
 
 ## Independent review
-- Independent reviewers or external models are not routine per-change code checkers.
-- Consider an independent review when it materially improves confidence for binding architecture, research/experiment semantics, critical evidence, difficult disputed bugs, known-fragile logic, consequential boundaries, or when project authority explicitly requires independent review.
-- For ordinary implementation and regression work, prefer deterministic tests, repository evidence, and normal Codex review rather than sending every small change to another model.
-- Concrete locally available reviewer capabilities belong in CURRENT_STATE or other runtime/tooling facts; availability does not make them project-adopted dependencies.
+- Independent reviewers are not routine per-change code checkers.
+- Use independent review when it materially improves confidence for binding architecture, research/experiment semantics, critical evidence, difficult disputed bugs, known-fragile logic, or consequential boundaries.
+- For ordinary implementation/regression work, prefer deterministic tests, repository evidence and normal code review.
 
 ## Facts and authority
 - Chat is not the project's final source of truth.
-- For project state, architecture, experiments, tools, or next steps, prefer real repository state and formal authority: CURRENT_STATE, architecture baseline, ADRs/protocols, tests, evidence, and code.
-- A handoff is only a snapshot. If it conflicts with HEAD or CURRENT_STATE, the newer repository facts win.
-- Important new decisions must eventually be written into repository files, code, tests, protocols, or evidence.
-- If the Owner asks whether project rules were followed, re-check the actual rules and project state before answering; do not merely say “yes”.
+- For project state, architecture, experiments, tools, or next steps, prefer current repository authority: `PROJECT_BRAIN_RUNTIME_BRIEF.md`, `CURRENT_STATE.md`, architecture/ADRs, protocols, tests and evidence.
+- A handoff is only a pointer/snapshot. If it conflicts with current Git or formal authority, current repository facts win.
+- Important new decisions must be written into repository files/code/tests/protocols/evidence rather than living only in chat.
+- If the Owner asks whether project rules were followed, re-check the actual repository rules/state before answering.
+
+## Runtime context discipline
+- Do not depend on local chat memory for mutable project facts.
+- After takeover, every substantive project reply must follow the refresh rule in `00_READ_FIRST.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
+- Keep mutable current facts concentrated in `PROJECT_BRAIN_RUNTIME_BRIEF.md` and `CURRENT_STATE.md`; do not copy the same changing status into many active files.
+- Stable rules belong in stable authority files; historical detail belongs in evidence/reviews/Git history.
+- Active entry files should show the current truth directly, not a long sequence of “old value / superseded by new value” explanations.
 
 ## Tools and open source
-- A tool, Skill, plugin, MCP, framework, or repository being mentioned does not mean it is installed, approved, or required.
-- Always distinguish:
-  - CANDIDATE = considered only;
-  - VERIFIED = actually tested and found usable;
-  - ADOPTED = formally accepted as a project dependency/capability.
-- On a new substantive phase, new task type, major route change, or clear capability gap, perform a tool/open-source applicability review and conclude one of:
-  - USE_EXISTING
-  - ADD_TOOL
-  - NO_NEW_TOOL
-- Do not repeat a full tool review for ordinary status checks, bug fixes, documentation repairs, or continuation of already approved work.
+- A tool, Skill, plugin, MCP, framework, or repository being mentioned does not mean it is installed, verified, adopted, or required.
+- Always distinguish CANDIDATE / VERIFIED / ADOPTED.
+- On a substantive phase/task-type/route change or clear capability gap, perform a tool applicability review and conclude USE_EXISTING / ADD_TOOL / NO_NEW_TOOL.
+- Do not repeat a full tool review for ordinary status checks, bug fixes, documentation repairs, or continuation of approved work.
 
 ## Cost and efficiency
 - Owner time, API usage, token usage, and context are hard constraints.
 - Prefer the cheapest reliable way to falsify a prerequisite before building expensive infrastructure.
-- Prefer capabilities already included in the Owner's existing subscriptions or already-authorized API quota before proposing a new paid API/service.
-- Do not add a new paid API merely to automate message relay between assistants when the existing manual relay plus repository/worktree workflow is adequate. Any new paid API/service remains an Owner gate.
+- Prefer capabilities already included in existing subscriptions/authorized quota before proposing a new paid API/service.
+- Do not add a paid API merely to automate message relay when manual relay plus repository/worktree workflow is adequate.
 - Do not sacrifice correctness, safety, evidence quality, or reproducibility merely to reduce cost.
 
 ## Handoff and continuity
-- Stable project rules belong in formal project files, not only in chat memory.
-- When context becomes large or a new conversation is needed, handoff through current formal project state instead of trying to reconstruct the project from chat history.
-- Before publishing a fresh handoff, reconcile it against the current formal authority and consolidate rather than duplicate. Obsolete **derived handoff/pointer snapshots** should be removed from active repository entry points when safely superseded (Git history preserves them), while historical evidence, frozen protocols, Owner decisions, and other real authority must not be deleted merely to make context look cleaner.
-- When the Owner explicitly asks to validate a fresh-conversation handoff before continuing work, the new conversation's first task is **read-only takeover verification**: fetch/read the real repository, reconstruct current authority/state, identify contradictions or missing facts, and report its understanding. During that acceptance turn it must not modify the repository, start the next work package, generate worker prompts, adopt tools, run candidate research, or otherwise advance project state. It waits for the Owner to confirm takeover before normal project execution resumes.
+- Stable project rules belong in formal project files, not chat memory.
+- When context becomes large or a new conversation is needed, handoff through current formal repository state.
+- Consolidate rather than duplicate. Obsolete derived handoff/pointer snapshots should be removed from active entry points when safely superseded; Git history preserves them.
+- Historical evidence, frozen protocols, accepted reviews, Owner decisions and real authority must not be deleted merely to make context shorter.
+- When the Owner explicitly starts a fresh project-brain takeover, the first turn is read-only verification: fetch/read the real repository, reconstruct current authority/state, identify contradictions or missing facts, report understanding, then wait for Owner acceptance before normal execution resumes.
