@@ -124,7 +124,7 @@ V006 early wording (`body >50%` vs opposite) and V078 later overlapping `>=50%` 
 
 003/013/019/026/080 repeatedly recommend large samples, historical simulation/replay or repeated feedback to build confidence and optimize a personal system. These are **source claims about Jianghe's method**.
 
-They do not authorize this project's candidate outcome backtest, validation access or holdout use. Project research authority remains unchanged.
+They do not themselves authorize this project's candidate outcome backtest, validation access or holdout use. Current project authorization is intentionally external to this source-distillation document and must be read from repository-root `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
 
 ## 6. Recovered subtitle contamination boundary
 
@@ -148,9 +148,9 @@ These remain UNKNOWN/non-machine-eligible rather than guessed.
 ## 8. Research boundary
 
 ```text
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
-REAL_MONEY=NOT_AUTHORIZED
+SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION
+UNKNOWN > GUESSING
+SOURCE_DISTILLATION_DOCUMENT != MUTABLE_PROJECT_READINESS_AUTHORITY
 ```
+
+This reconciliation owns source-semantic reconciliation only. Current SOURCE_ONLY / PRIMARY / candidate-outcome / Validation / Final / Shadow / Broker / real-money readiness is owned by repository-root `CURRENT_STATE.md` and `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
