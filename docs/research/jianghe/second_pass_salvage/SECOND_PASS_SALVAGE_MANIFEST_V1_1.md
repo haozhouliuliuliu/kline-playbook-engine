@@ -15,6 +15,8 @@
 
 The dossier and reconciliation are committed directly under `docs/research/jianghe/`.
 
+The sizes/hashes above identify the **historical local rescue versions**. Later authority-hygiene edits may change the tracked Markdown bytes while preserving the rescued source semantics; those later edits do not rewrite this provenance record.
+
 The larger CSV/JSONL artifacts were intentionally committed in four ordered parts each so the rescue could be pushed in small commits rather than held until one large final write.
 
 ### GitHub text newline normalization qualification
@@ -119,17 +121,16 @@ The 64 claims are a **recovery delta**, concentrated on material semantics that 
 | `2edd8f203d1573aeec2a588b14d1260cd24c1756` | `JIANGHE_SECOND_PASS_RECOVERED_FINDINGS_001_043_V1_1.md` |
 | `f896d5b129fd891f707527cde17adc775bd65f5f` | `JIANGHE_SECOND_PASS_WORKING_INVENTORY_044_099_V1_1.md` |
 | `f9f8aaac3a3f21d12561bb17c53808395282e35d` | README links/authority rescue update |
-| `7ff5c8b87917b4a3d0440a6e85fa5117c41adffe` | exact `JIANGHE_SECOND_PASS_RECONCILIATION_V1_1.md` |
-| `4a27dea60aed020d20c3d97a394fa9a90408fc09` | exact `JIANGHE_TRADER_DOSSIER_V1_1.md` |
+| `7ff5c8b87917b4a3d0440a6e85fa5117c41adffe` | exact historical rescue `JIANGHE_SECOND_PASS_RECONCILIATION_V1_1.md` |
+| `4a27dea60aed020d20c3d97a394fa9a90408fc09` | exact historical rescue `JIANGHE_TRADER_DOSSIER_V1_1.md` |
 
 ## 5. Research boundary
 
-These artifacts preserve the exhaustive second-pass research state. They do **not** authorize outcome testing, validation/final holdout access, PRIMARY promotion, broker access, paid actions or real-money trading.
+These artifacts preserve the exhaustive second-pass research state and historical rescue provenance. They are **not mutable project readiness authority**.
 
 ```text
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
-REAL_MONEY=NOT_AUTHORIZED
+SOURCE_DISTILLATION_INTEGRITY_MANIFEST != MUTABLE_PROJECT_READINESS_AUTHORITY
+MUTABLE_READINESS_AUTHORITY = CURRENT_STATE.md + PROJECT_BRAIN_RUNTIME_BRIEF.md
 ```
+
+Current SOURCE_ONLY / PRIMARY / candidate-outcome / Validation / Final / Shadow / Broker / real-money status must be read from repository-root `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
