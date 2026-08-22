@@ -4,8 +4,11 @@
   "status": "READY_FOR_MODEL_EVALUATION",
   "trader_id": "JIANGHE_TRADER",
   "knowledge_pack_reference": "JIANGHE_V1_1",
+  "knowledge_pack_identity": "3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5",
   "baseline_commit": "ebc9da72c989086f97ff77f9840dcb124c3c5935",
   "branch": "research/jianghe-ai-fidelity-fixtures-v01",
+  "integration_state": "INTEGRATED_NON_OUTCOME",
+  "integrated_on_main": "YES",
   "purpose": "评估模型是否像江河地理解市场（忠实度），而不是模型是否赚钱。",
   "grading_question": "MODEL_LIKE_JIANGHE",
   "non_outcome_guarantee": {
@@ -17,7 +20,7 @@
     "source_case_later_returns_are_grading_targets": "EXCLUDED",
     "fixture_observations": "SYNTHETIC_NON_OUTCOME_ONLY",
     "allowed_source_semantics": "FIGURE_AND_BEHAVIOR_SEMANTICS_ONLY",
-    "authority": "SOURCE_ONLY_VERIFIED=NO / PRIMARY_ELIGIBLE=NO / CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED / VALIDATION_ACCESS=LOCKED / REAL_MONEY=NOT_AUTHORIZED"
+    "authority": "SOURCE_ONLY_VERIFIED=YES / PRIMARY_ELIGIBLE=NO / CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED / VALIDATION_ACCESS=LOCKED / REAL_MONEY=NOT_AUTHORIZED / FIDELITY_CORPUS=INTEGRATED_NON_OUTCOME"
   },
   "scoring_semantics": {
     "answer_language": "FREE_FORM__MULTIPLE_REASONABLE_ANSWERS_ALLOWED",
