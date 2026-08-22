@@ -1,0 +1,218 @@
+{
+  "artifact_id": "JIANGHE_PRIMARY_BRANCH_PREPARATION_SCHEMA_V0_1",
+  "status": "INTEGRATED_PRE_FREEZE_NON_OUTCOME_PREPARATION",
+  "purpose": "Define the claim-level, source-justified PRIMARY preparation contract for Jianghe AI Trader without freezing semantics or using candidate outcomes.",
+  "authority": {
+    "human_playbook_protocol": "docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md",
+    "claim_schema": "docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md",
+    "jianghe_ai_trader_protocol": "docs/research/JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md",
+    "jianghe_source_view": "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md",
+    "mutable_readiness": [
+      "CURRENT_STATE.md",
+      "PROJECT_BRAIN_RUNTIME_BRIEF.md"
+    ]
+  },
+  "source_bindings": {
+    "knowledge_pack_version": "JIANGHE_V1_1",
+    "knowledge_pack_identity": "3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5",
+    "claim_manifest_identity": "60d4a1f9069a6dc33d04a82ce544d7525cd4bf2805c5b6e8dd9502d85bf39940",
+    "claim_record_count": 352,
+    "case_manifest_identity": "06dc398086ada39da0214230dcff015561592ea55f041b31fdf0f58258638ac1",
+    "case_record_count": 80
+  },
+  "identity_semantics": {
+    "scope": "ONE_PRIMARY_BRANCH_OBJECT_PER_CLAIM",
+    "family_scope_is_not_a_substitute_for_claim_mapping": true,
+    "deterministic_identity_required": true,
+    "deterministic_market_decision_required": false,
+    "outcome_selection_forbidden": true,
+    "unknown_may_not_be_filled_by_project_guess": true,
+    "source_conflict_may_not_be_silently_resolved": true
+  },
+  "pre_freeze_dispositions": [
+    "READY_FOR_PRIMARY_FREEZE",
+    "STOP_SOURCE_AMBIGUOUS",
+    "STOP_SOURCE_CONFLICT",
+    "STOP_OBSERVABILITY_GAP",
+    "STOP_IDENTITY_INCOMPLETE"
+  ],
+  "semantic_modes": [
+    "DIRECT_SOURCE_RELATION",
+    "AI_CONTEXTUAL_INTERPRETATION",
+    "NO_TRADE_GUARD",
+    "SOURCE_SCOPED_CASE_RULE",
+    "PRESERVE_UNKNOWN",
+    "PROCESS_OR_AUDIT_ONLY"
+  ],
+  "operationalization_modes": [
+    "DETERMINISTIC_RELATION",
+    "AI_INTERPRETATION_WITH_SOURCE_GUARDS",
+    "NO_TRADE_OR_WAIT_GUARD",
+    "AUDIT_ONLY",
+    "NOT_OPERATIONALIZABLE_STOP"
+  ],
+  "required_branch_fields": [
+    "claim_id",
+    "claim_manifest_identity",
+    "knowledge_pack_identity",
+    "source_ordinal",
+    "source_anchor",
+    "claim_status",
+    "claim_category",
+    "selected_interpretation_text",
+    "interpretation_evidence_basis",
+    "family_scope",
+    "case_references",
+    "applicability_scope",
+    "no_trade_guard",
+    "invalidation_scope",
+    "management_or_exit_scope",
+    "ambiguity_preserved",
+    "unknown_ids",
+    "contradiction_ids",
+    "observability_status",
+    "observability_missing_inputs",
+    "semantic_mode",
+    "operationalization_mode",
+    "alternative_interpretation_ids_predeclared",
+    "primary_branch_version",
+    "primary_branch_identity",
+    "pre_freeze_disposition",
+    "review_evidence"
+  ],
+  "family_guardrails": {
+    "A": {
+      "meaning": "trend key-location pullback continuation",
+      "required": [
+        "timeframe-bound trend context",
+        "location/context is not entry permission",
+        "actual trend-direction recovery or confirmation"
+      ],
+      "forbidden_inventions": [
+        "universal pullback-depth threshold",
+        "universal key-zone algorithm"
+      ]
+    },
+    "B": {
+      "meaning": "trend weakening reversal or higher-timeframe pullback",
+      "required": [
+        "old-direction weakening or damage",
+        "actual new-direction takeover or follow-through"
+      ],
+      "no_trade": [
+        "intact strong trend with blind countertrend attempt",
+        "weakening without takeover"
+      ],
+      "forbidden_inventions": [
+        "universal acceleration threshold",
+        "universal reversal-stage classifier"
+      ]
+    },
+    "C": {
+      "meaning": "confirmed breakout",
+      "required": [
+        "genuine departure from old space",
+        "follow-through or confirmation"
+      ],
+      "no_trade": [
+        "wick-only test",
+        "rapid return to old space",
+        "insufficient follow-through"
+      ],
+      "forbidden_inventions": [
+        "universal breakout-distance threshold",
+        "universal follow-through threshold"
+      ]
+    },
+    "D": {
+      "meaning": "range-boundary reversal",
+      "required": [
+        "confirmed range",
+        "outer boundary",
+        "failed continuation or strength conversion",
+        "counter confirmation"
+      ],
+      "no_trade": [
+        "main-timeframe range middle",
+        "boundary arrival without confirmation",
+        "genuine breakout with continuation"
+      ],
+      "forbidden_inventions": [
+        "universal range-boundary algorithm",
+        "permanent 0.5x range sizing rule"
+      ]
+    },
+    "NONE": {
+      "meaning": "WAIT or NO_TRADE is a first-class decision",
+      "required": [
+        "preserve unknown and contradiction",
+        "allow unfamiliar or unsupported state to remain no-trade",
+        "do not force LONG or SHORT"
+      ]
+    }
+  },
+  "cross_cutting_guardrails": {
+    "multi_timeframe": [
+      "higher or main timeframe owns context and location",
+      "execution timeframe owns actual execution behavior where used",
+      "same-timeframe internal structure is not silently relabeled as independent lower-timeframe structure"
+    ],
+    "risk": [
+      "source-scoped tolerated-loss and stop-distance arithmetic may be preserved where explicit",
+      "quality/context-based risk adjustment may be preserved as discretionary when source-supported",
+      "no universal account-risk percentage is source-pinned",
+      "no unified cross-family risk mother formula is source-pinned",
+      "no exact universal score threshold may be invented"
+    ],
+    "management": [
+      "fixed RR, key-location/space and dynamic-structure exits are contextual alternatives",
+      "source-era preferences are not universalized",
+      "PnL hindsight may not choose the branch"
+    ],
+    "evidence": [
+      "wrong-video subtitles cannot support PRIMARY",
+      "semantically failed ASR cannot support PRIMARY",
+      "unvalidated recovered language tracks cannot support PRIMARY",
+      "source case PnL or R is not project validity evidence"
+    ]
+  },
+  "assignment_rules": [
+    "Bind the exact claim record and source anchor.",
+    "Preserve EXPLICIT, INFERRED or UNKNOWN status.",
+    "Record relevant V1.1 family, case, UNKNOWN and contradiction authority.",
+    "Select exactly one source-justified interpretation without outcome access.",
+    "Predeclare alternatives before outcome access.",
+    "Determine observability from the causal Jianghe observation surface.",
+    "Assign semantic and operationalization modes.",
+    "Generate deterministic branch identity over canonicalized branch content.",
+    "Use READY_FOR_PRIMARY_FREEZE only when unique, source-justified and identity-complete; otherwise STOP."
+  ],
+  "forbidden_shortcuts": [
+    "Map solely from strategy_family_ids.",
+    "Map solely from machineability.",
+    "Map solely from a title or case outcome.",
+    "Use later market movement, candidate PnL, win rate, Sharpe or expectancy to select interpretation.",
+    "Invent numeric proxies for source-unpinned visual or discretionary concepts."
+  ],
+  "pre_freeze_completeness_gate": {
+    "claim_manifest_records": 352,
+    "claim_level_records_reviewed_required": 352,
+    "unmapped_claims_required": 0,
+    "duplicate_claim_assignments_required": 0,
+    "hidden_alternatives_required": 0,
+    "outcome_references_used_for_branch_selection_required": 0,
+    "unknown_filled_by_project_guess_required": 0,
+    "source_conflicts_silently_resolved_required": 0,
+    "branch_identities_deterministic_required": true,
+    "knowledge_pack_identity_bound_required": true,
+    "claim_manifest_identity_bound_required": true
+  },
+  "current_artifact_boundary": {
+    "primary_semantics_frozen": false,
+    "primary_eligibility_promoted": false,
+    "claim_level_assignments_included": false,
+    "real_model_provider_adopted": false,
+    "candidate_outcomes_used": false,
+    "owner_freeze_required_later": true
+  }
+}
