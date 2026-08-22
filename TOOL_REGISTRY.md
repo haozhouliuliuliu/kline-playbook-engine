@@ -442,6 +442,18 @@ project record is `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md` and
 - **Revalidate when:** Catalog schema/version changes.
 - **Remove:** Rebuild from accepted manifests before removing.
 
+## faster-whisper
+
+- **Role:** `LOCAL_ASR_FOR_SOURCE_EVIDENCE_TRANSPORT_WHEN_NATIVE_SUBTITLE_UNAVAILABLE`.
+- **Status:** `APPROVED` (project scope: local, free, CPU/int8 source-evidence transport only).
+- **Source/pin:** `faster-whisper 1.2.1` with the official `Systran/faster-whisper-small` model identity; the verified runtime used the `small` model on CPU with `int8` compute.
+- **Activation condition:** Use only after native subtitles are confirmed unavailable, and only to produce a complete timestamped local transcript for source review.
+- **Material risk:** ASR text can contain recognition errors or low-confidence spans. It is transport evidence, not a semantic authority; preserve timestamps and disclose low-confidence segments.
+- **Overlap:** Native Bilibili subtitles remain preferred when available.
+- **Decision:** Approved after official model identity verification, CTranslate2 load verification, and four complete local ASR/time-axis validations for source ordinals 016, 017, 018, and 065. Verified evidence: commit `1027ea40d65ff7d86e9f65ea8bd38654fd654377`.
+- **Revalidate when:** Model identity, runtime version, CPU/int8 configuration, or timestamp-validation rules change materially.
+- **Remove:** Preserve the source transcript, validation evidence, and low-confidence-segment record before retiring the local ASR path.
+
 ## DuckDB
 
 - **Role:** RESEARCH_QUERY_ENGINE (optional).
