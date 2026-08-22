@@ -38,6 +38,38 @@ Evidence/review:
 | UNKNOWN 与矛盾诚实性 | 未被来源唯一钉死的概念不虚构阈值或风险参数。 |
 | 稳定性与幻觉 | 相同固定输入的变化可测；无依据的江河断言计入不当发明。 |
 
+## 真实模型 Fidelity 必须分轨评测
+
+真实交易脑不能只通过文字语义题。至少要分别形成以下非结果证据：
+
+### A. Knowledge / semantic track
+使用现有 claims / cases / hard negatives / UNKNOWN / contradiction fixture，测试江河语义忠实度。
+
+### B. Visual observation track
+使用 `JiangheChartRenderer` 基于合成/非结果 causal observation 生成的标准化多周期 K 线图，测试模型是否能：
+- 正确区分周期；
+- 读取当前可见结构、位置、强弱/跟随；
+- 区分 closed / partial；
+- 不把 AI watch/key/invalidation annotation 当市场客观事实；
+- 不引用图中不存在或未来才出现的信息。
+
+### C. Structured observation track
+对与视觉图完全对应的 point-in-time OHLCV / timestamps / metadata 输入，测试时间、bar 状态、多周期关系和 causal cutoff 理解。
+
+### D. Dual-input consistency track
+当标准化图和结构化数据代表同一个 `JiangheObservation` 时，比较两种输入得到的核心市场判断。允许合理措辞差异，但无依据的 family / direction / permission 重大冲突必须计入 Fidelity 缺陷。
+
+### E. Operational provider track
+记录并验证：
+- provider/model/version 可识别；
+- 实际项目调用方式可治理；
+- raw response 可保存；
+- latency 可测；
+- inference configuration 可绑定；
+- 能形成稳定 `JiangheAITraderIdentity`。
+
+仅能在 WorkBuddy/其他 UI 里点选某模型，不等于该模型已经通过 Operational provider track，也不证明存在项目可编程 API。
+
 ## 模型评价记录
 
 每个模型评测必须绑定版本化 `JiangheAITraderIdentity`，至少保存：
@@ -47,9 +79,10 @@ Evidence/review:
 - prompt / context / memory / renderer / observation / wake / normalizer identities；
 - inference configuration；
 - fixture id / observation identity；
+- input track（semantic / visual / structured / dual）；
 - raw response；
 - normalized decision；
-- semantic score / violation reasons；
+- semantic/visual constraint score + violation reasons；
 - latency；
 - repeated-run stability evidence when the protocol requires it.
 
@@ -61,10 +94,15 @@ Provider/model 初始状态都是 `CANDIDATE`。
 
 ```text
 JIANGHE_FIDELITY
++ VISUAL_OBSERVATION_FIDELITY
++ STRUCTURED_OBSERVATION_FIDELITY
++ DUAL_INPUT_CONSISTENCY
 + NO_TRADE_DISCIPLINE
 + UNKNOWN_HONESTY
 + DECISION_STABILITY
 + LOW_UNJUSTIFIED_INVENTION
++ GOVERNABLE_PROVIDER_CALLABILITY
++ ACCEPTABLE_LATENCY_FOR_INTENDED_WAKE_MODE
 ```
 
 不是收益。
