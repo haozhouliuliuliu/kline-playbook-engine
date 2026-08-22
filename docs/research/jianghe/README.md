@@ -22,6 +22,7 @@ TOOL_DECISION=USE_EXISTING / NO_NEW_TOOL
 
 - V0.1：001–028 的基础 claim ledger、case library、source index；
 - `JIANGHE_SOL_REVIEW_RESOLUTION_V0_2.md`：解决 V0.1 的 7 条 Sol 待确认项，并在冲突时覆盖旧字段；
+- `JIANGHE_CLAIM_LEDGER_SUPPLEMENT_RESOLVED_V0_2.jsonl`：把已复核但 V0.1 ledger 缺失的 001/017 关键 claim 和 V024 第二条 ABC 禁止条件正式补入当前视图；
 - V0.2：029–033 claim/case/source delta，以及累计 Dossier / Family / UNKNOWN / contradiction / review queue。
 
 ### V0.2 文件
@@ -30,6 +31,7 @@ TOOL_DECISION=USE_EXISTING / NO_NEW_TOOL
 - `JIANGHE_TRADER_DOSSIER_V0_2.md`：001–033 的 14 部分累计 Dossier。
 - `JIANGHE_STRATEGY_FAMILIES_V0_2.md`：累计 Family A–D 来源规格。
 - `JIANGHE_SOL_REVIEW_RESOLUTION_V0_2.md`：V0.1 七项 Sol 原视频复核。
+- `JIANGHE_CLAIM_LEDGER_SUPPLEMENT_RESOLVED_V0_2.jsonl`：复核补充 claim。
 - `JIANGHE_CLAIM_LEDGER_DELTA_029_033_V0_2.jsonl`：029–033 的新增 claim。
 - `JIANGHE_CASE_LIBRARY_DELTA_029_033_V0_2.md`：029–033 的新增案例。
 - `JIANGHE_SOURCE_INDEX_DELTA_029_033_V0_2.csv`：029–033 来源索引。
