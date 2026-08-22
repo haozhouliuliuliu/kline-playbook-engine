@@ -1,76 +1,90 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Tests for tools/exact_range.py — read-only frame/clip extraction."""
+"""Portable local-corpus integration tests for tools/exact_range.py.
+
+These tests require the Jianghe media corpus and ffmpeg. They skip cleanly when
+that local evidence environment is unavailable, so repository-wide unittest
+discovery remains portable.
+"""
 import json
 import os
 import subprocess
 import sys
 import tempfile
+import unittest
+
+from tools import exact_range
 
 TOOL = os.path.join(os.path.dirname(__file__), "..", "tools", "exact_range.py")
-PY = "C:/Users/H/.workbuddy/binaries/python/versions/3.13.12/python.exe"
-
-# First available video from the acceptance output (known to exist locally).
+PY = sys.executable
 KNOWN_BVID = "BV1yxebzoERD"
-KNOWN_DURATION = 474.756
+
+
+def _local_evidence_available():
+    if not os.path.isfile(exact_range.FFMPEG):
+        return False
+    try:
+        exact_range.resolve_media(KNOWN_BVID)
+    except ValueError:
+        return False
+    return True
 
 
 def _run(args):
     return subprocess.run([PY, TOOL] + args, capture_output=True, text=True)
 
 
-def test_exact_timestamp():
-    with tempfile.TemporaryDirectory() as td:
-        out_dir = td
-        r = _run(["--bvid", KNOWN_BVID, "--start", "5.0", "--out", out_dir, "--single"])
-        assert r.returncode == 0, r.stderr
-        res = json.loads(r.stdout)
-        p = res["frames"][0]["path"]
-        assert os.path.exists(p) and os.path.getsize(p) > 0, "frame png not created"
+@unittest.skipUnless(
+    _local_evidence_available(),
+    "requires local Jianghe corpus and configured ffmpeg evidence environment",
+)
+class ExactRangeLocalIntegrationTests(unittest.TestCase):
+    def test_exact_timestamp(self):
+        with tempfile.TemporaryDirectory() as td:
+            r = _run(["--bvid", KNOWN_BVID, "--start", "5.0", "--out", td, "--single"])
+            self.assertEqual(r.returncode, 0, r.stderr)
+            res = json.loads(r.stdout)
+            p = res["frames"][0]["path"]
+            self.assertTrue(os.path.exists(p) and os.path.getsize(p) > 0, "frame png not created")
+
+    def test_range_extraction(self):
+        with tempfile.TemporaryDirectory() as td:
+            r = _run([
+                "--bvid", KNOWN_BVID,
+                "--start", "5.0",
+                "--end", "7.0",
+                "--interval", "0.5",
+                "--out", td,
+            ])
+            self.assertEqual(r.returncode, 0, r.stderr)
+            res = json.loads(r.stdout)
+            self.assertEqual(len(res["frames"]), 4)
+            for frame in res["frames"]:
+                self.assertGreater(os.path.getsize(frame["path"]), 0)
+
+    def test_windows_path(self):
+        with tempfile.TemporaryDirectory() as td:
+            win_out = td.replace("/", "\\") if os.name == "nt" else td
+            r = _run(["--bvid", KNOWN_BVID, "--start", "3.0", "--out", win_out, "--single"])
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue(os.path.exists(os.path.join(td, "frame_t3.000.png")))
+
+    def test_creates_missing_output_directory(self):
+        with tempfile.TemporaryDirectory() as td:
+            out_dir = os.path.join(td, "new", "nested", "frames")
+            r = _run(["--bvid", KNOWN_BVID, "--start", "4.0", "--out", out_dir, "--single"])
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue(os.path.exists(os.path.join(out_dir, "frame_t4.000.png")))
 
 
-def test_range_extraction():
-    with tempfile.TemporaryDirectory() as td:
-        r = _run(["--bvid", KNOWN_BVID, "--start", "5.0", "--end", "7.0",
-                  "--interval", "0.5", "--out", td])
-        assert r.returncode == 0, r.stderr
-        res = json.loads(r.stdout)
-        # 5.0,  ](5.5, 6.0, 6.5 -> 4 frames; 7.0 excluded
-        assert len(res["frames"]) == 4, "expected 4 frames, got %d" % len(res["frames"])
-        for fr in res["frames"]:
-            assert os.path.getsize(fr["path"]) > 0
-
-
-def test_windows_path():
-    # output dir given in Windows-style backslash form must work
-    with tempfile.TemporaryDirectory() as td:
-        win_out = td.replace("/", "\\")
-        r = _run(["--bvid", KNOWN_BVID, "--start", "3.0", "--out", win_out, "--single"])
-        assert r.returncode == 0, r.stderr
-        assert os.path.exists(os.path.join(td, "frame_t3.000.png"))
-
-
-def test_creates_missing_output_directory():
-    with tempfile.TemporaryDirectory() as td:
-        out_dir = os.path.join(td, "new", "nested", "frames")
-        r = _run(["--bvid", KNOWN_BVID, "--start", "4.0", "--out", out_dir, "--single"])
-        assert r.returncode == 0, r.stderr
-        assert os.path.exists(os.path.join(out_dir, "frame_t4.000.png"))
-
-
-def test_invalid_bvid():
-    with tempfile.TemporaryDirectory() as td:
-        r = _run(["--bvid", "BV_INVALID_XYZ", "--start", "0", "--out", td, "--single"])
-        assert r.returncode == 2, "invalid BVID must exit 2"
-        assert "BVID_NOT_FOUND" in r.stderr
-        # ensure no stray output file created
-        assert not any(f.endswith(".png") for f in os.listdir(td))
+class ExactRangePortableBehaviorTests(unittest.TestCase):
+    def test_invalid_bvid_fails_closed_without_output(self):
+        with tempfile.TemporaryDirectory() as td:
+            r = _run(["--bvid", "BV_INVALID_XYZ", "--start", "0", "--out", td, "--single"])
+            self.assertEqual(r.returncode, 2)
+            self.assertIn("BVID_NOT_FOUND", r.stderr)
+            self.assertFalse(any(name.endswith(".png") for name in os.listdir(td)))
 
 
 if __name__ == "__main__":
-    test_exact_timestamp()
-    test_range_extraction()
-    test_windows_path()
-    test_creates_missing_output_directory()
-    test_invalid_bvid()
-    print("ALL TESTS PASSED")
+    unittest.main()
