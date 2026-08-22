@@ -1,9 +1,40 @@
 # 江河 001–099 二次覆盖审计 V1.1
 
-> Status: ACTIVE / CORRECTIVE AUDIT
+> Status: CLOSED / SUPERSEDED BY EXHAUSTIVE SECOND-PASS COMPLETION  
+> Historical status when opened: ACTIVE / CORRECTIVE AUDIT  
 > Scope: corpus-wide source-coverage completeness, not outcome validation
 
-## 结论
+## Closure note — 2026-08-23
+
+本文件保留 V1.0 完成结论被撤回时的**原始审计理由、风险和验收标准**。这些历史内容不应被机器或后续研究对话误读为当前仍 `OPEN`。
+
+当前权威完成状态由以下文件给出：
+
+- `JIANGHE_CURRENT_VIEW_V1_1.md`
+- `JIANGHE_SECOND_PASS_VERIFICATION_REPORT_V1_1.md`
+- `JIANGHE_TRADER_DOSSIER_V1_1.md`
+- `JIANGHE_SECOND_PASS_RECONCILIATION_V1_1.md`
+- `second_pass_salvage/SECOND_PASS_SALVAGE_MANIFEST_V1_1.md`
+
+当前状态：
+
+```text
+SECOND_PASS_SOURCE_COVERAGE_AUDIT=COMPLETE
+FINAL_SOURCE_DISTILLATION=COMPLETE_V1_1_AFTER_CORRECTIVE_SECOND_PASS
+FULL_TIMELINE_REVIEWED_AVAILABLE_MEDIA=98
+UNACCOUNTED_TIMELINE_GAP=0
+SOURCE_ONLY_VERIFIED=NO
+PRIMARY_ELIGIBLE=NO
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+```
+
+原审计要求中的远端字幕污染工程根因**尚不作为 V1.1 来源语义完成的阻断项**，因为 048/099 已拒绝、009/014 已 fail-closed 不使用，且 V1.1 没有依赖这些未验证轨道。该工程根因转为**该远端自动字幕获取链路再次被当作可信语言来源之前的阻断项**；在修复和重新验证之前，不得把该链路自动视为语义可信。
+
+以下为审计打开时的历史正文，保留用于说明为什么 V1.0 被撤回及 V1.1 必须满足什么标准。
+
+---
+
+## 结论（历史：审计打开时）
 
 V1.0 的“FINAL_SOURCE_DISTILLATION=COMPLETE”结论被撤回。
 
@@ -11,7 +42,7 @@ V1.0 的“FINAL_SOURCE_DISTILLATION=COMPLETE”结论被撤回。
 
 另外，字幕恢复链路也暴露了**语义身份验证缺口**：corpus gap audit 从远端恢复的 4 条字幕是 `009,014,048,099`，而 V1.0 final Sol review 已确认其中 `048` 与 `099` 的恢复字幕属于错视频内容并已拒绝。因此另外两条 `009/014` 也不能因“下载成功/BVID记录正确”就直接视为语义可信，必须在二次核验中做视频—字幕内容一致性检查。
 
-因此当前必须 fail closed：
+因此审计打开时必须 fail closed：
 
 ```text
 FINAL_SOURCE_DISTILLATION=REVOKED_PENDING_EXHAUSTIVE_SECOND_PASS
