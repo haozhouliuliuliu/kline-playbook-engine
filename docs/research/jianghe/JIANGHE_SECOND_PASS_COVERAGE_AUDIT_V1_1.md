@@ -9,6 +9,8 @@ V1.0 的“FINAL_SOURCE_DISTILLATION=COMPLETE”结论被撤回。
 
 原因不是已发现某条具体策略结论必然错误，而是**证据覆盖证明不足**：早期 001–028 的 Claim Ledger 与后续批次相比存在明显稀疏/不对称，且若干长视频被标记为 `SOL_ANALYZED`，但仓库中 `claim_count=0` 或仅 1–2 条 claim。仅凭高层 Dossier 无法证明这些视频已经被完整逐段复核而不是被压缩、跳过或只提取代表性内容。
 
+另外，字幕恢复链路也暴露了**语义身份验证缺口**：corpus gap audit 从远端恢复的 4 条字幕是 `009,014,048,099`，而 V1.0 final Sol review 已确认其中 `048` 与 `099` 的恢复字幕属于错视频内容并已拒绝。因此另外两条 `009/014` 也不能因“下载成功/BVID记录正确”就直接视为语义可信，必须在二次核验中做视频—字幕内容一致性检查。
+
 因此当前必须 fail closed：
 
 ```text
@@ -50,11 +52,37 @@ V1.0 已补审的 `007,016,017,018` 不在上述剩余零-claim集合中。
 
 低 claim 数本身不是错误，但**没有逐段覆盖记录时，它不能证明没有被压缩**。
 
-### C. 后续批次覆盖结构更一致
+### C. 远端字幕恢复存在身份/语义污染风险
+
+机械审计曾恢复 4 条远端字幕：
+
+```text
+009 = BV1qXWvzTETj
+014 = BV1xX1SBFE3s
+048 = BV1Ybckz4EKX
+099 = BV1Yu8p68EYJ
+```
+
+V1.0 final Sol review 已证明：
+
+```text
+048_RECOVERED_REMOTE_SRT = WRONG_VIDEO / REJECTED
+099_RECOVERED_REMOTE_SRT = WRONG_VIDEO / REJECTED
+```
+
+因此：
+
+- `009/014` 的恢复字幕必须重新做**内容一致性**验证；
+- 二次核验不能把“BVID/CID/文件名匹配”当成语义身份验证；
+- 所有字幕都至少做 beginning/middle/end 视频—字幕语义 spot check；
+- 若发现更多错配，立即拒绝对应字幕，回到视频烧录文字、可靠音频或重新转写；
+- 必须追查 4 条恢复字幕中 2 条错配的工程根因，确认是下载映射、轨道选择、文件落盘命名还是远端接口异常。
+
+### D. 后续批次覆盖结构更一致，但仍需全时长证明
 
 029–098 的 source indexes 普遍给每条来源留下多个 claim，且 case / notes / review queue 更系统；037 有“仅结果展示、无新增策略语义”的明确 no-claim 理由；065 有“可靠语言不可用、禁止视觉倒推”的明确 no-claim 理由；022 是付费门控例外。
 
-这进一步说明 001–028 与后续批次的证据粒度不一致，必须统一重审标准。
+这说明 001–028 与后续批次证据粒度不一致；但这**不等于后续批次自动免检**。029–099 仍必须建立全时长 coverage record，以排除“只抽代表片段”的风险。
 
 ## 二次核验标准
 
@@ -64,6 +92,7 @@ V1.0 已补审的 `007,016,017,018` 不在上述剩余零-claim集合中。
 
 - source ordinal / BVID / duration;
 - language basis;
+- subtitle/video identity QA status;
 - 全时长分段清单；
 - 每段是否实际复核语言；
 - 图表依赖段是否复核 same-time visual；
@@ -78,6 +107,8 @@ AVAILABLE_SOURCE_DURATION_COVERAGE=100%
 UNACCOUNTED_TIMELINE_GAP=0
 CHART_DEPENDENT_CLAIM_WITHOUT_SAME_TIME_VISUAL=0
 UNEXPLAINED_ZERO_CLAIM_AVAILABLE_SOURCE=0
+SUBTITLE_VIDEO_IDENTITY_QA_REQUIRED=YES
+UNRESOLVED_RECOVERED_SUBTITLE_IDENTITY=0
 ```
 
 ## 优先级
@@ -85,6 +116,8 @@ UNEXPLAINED_ZERO_CLAIM_AVAILABLE_SOURCE=0
 ### Priority 1 — 全量重审 001–028
 
 除 022 付费不可达外，001–028 全部重新逐段复核；007/016/017/018 虽已在 V1.0 补审，也纳入覆盖记录，防止只复核了候选片段。
+
+`009/014` 额外要求先验证恢复字幕与实际视频语义是否匹配。
 
 ### Priority 2 — 抽掉“代表性压缩”风险
 
@@ -112,4 +145,4 @@ UNEXPLAINED_ZERO_CLAIM_AVAILABLE_SOURCE=0
 TOOL_DECISION=USE_EXISTING
 ```
 
-不新增语义模型。Codex只可做机械分段、字幕/ASR运输、时间轴覆盖清单和证据打包；最终语义判定继续由 GPT-5.6 Sol 完成。
+不新增语义模型。Codex只可做机械分段、字幕/ASR运输、时间轴覆盖清单、字幕身份QA辅助和证据打包；最终语义判定继续由 GPT-5.6 Sol 完成。
