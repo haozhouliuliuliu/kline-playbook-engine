@@ -2,7 +2,7 @@
 
 The canonical local artifact `JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.md` was preserved in five exact line-order fragments so each write could be committed/pushed immediately.
 
-Reconstruct by raw concatenation in this order:
+Reconstruct the **current repository text view** by concatenating in this order:
 
 ```text
 JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.part00.md
@@ -13,7 +13,9 @@ JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.part00.md
 = JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.md
 ```
 
-| Part | Bytes | Newlines | SHA-256 | Commit |
+The following table and reconstructed hash describe the **historical canonical rescue version before later authority-hygiene edits**. Source findings 001–099 are unchanged; only the final mutable-readiness sentence in `part04.md` was later replaced by a pointer to repository-root mutable authority so historical `SOURCE_ONLY_VERIFIED=NO` cannot be misread as current state.
+
+| Part | Historical bytes | Historical newlines | Historical SHA-256 | Historical commit |
 |---|---:|---:|---|---|
 | `part00.md` | 11575 | 80 | `c57d511e287887eb6b22f070df30ae1988c6880d4cf2b4fd1158ba78f9cfdb17` | `c0ae065e19e67002143381d665b900f59309c306` |
 | `part01.md` | 7364 | 80 | `4c3ab1c49701116d9a28ffa74610660ad4d95226f18dc9e8c5ad9a7be4dde117` | `b7d9a634df2d6d5e7a0c63067472c5ea1a52fea8` |
@@ -21,12 +23,13 @@ JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.part00.md
 | `part03.md` | 7257 | 80 | `6ec7b91544b05813e46e33b7b0ce49c7b89766667dff7a6aa475bbe4c10267a3` | `6c1f6f32a8e270d1fc88cce05a3d6247f0d46e12` |
 | `part04.md` | 136 | 1 | `de7eb390fd0f91be39c93f51df6805cbbc89d7a8b9f34de29fa1b356c6dea894` | `2679cf615f77899c6904d5cdd3d5d221c4fec68f` |
 
-Canonical reconstructed artifact:
+Historical canonical reconstructed artifact:
 
 ```text
-bytes = 33771
-newline_count = 321
-sha256 = 9d5beebafa1c22bf5dd7419e8331998f14315c7870e76d692e7124c030efb88d
+historical_bytes = 33771
+historical_newline_count = 321
+historical_sha256 = 9d5beebafa1c22bf5dd7419e8331998f14315c7870e76d692e7124c030efb88d
+CURRENT_RAW_BYTE_IDENTITY_TO_HISTORICAL_RESCUE = NOT_CLAIMED_AFTER_AUTHORITY_HYGIENE_EDIT
 ```
 
-This artifact is the source-by-source prose audit for all 001–099. It is supporting evidence below `JIANGHE_SECOND_PASS_VERIFICATION_REPORT_V1_1.md` and `JIANGHE_TRADER_DOSSIER_V1_1.md`; it does not authorize outcome testing or PRIMARY promotion.
+This artifact is the source-by-source prose audit for all 001–099. It is supporting evidence below `JIANGHE_SECOND_PASS_VERIFICATION_REPORT_V1_1.md` and `JIANGHE_TRADER_DOSSIER_V1_1.md`; it does not own current project readiness. Current SOURCE_ONLY / PRIMARY / outcome authorization is read from repository-root `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
