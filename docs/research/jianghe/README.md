@@ -1,28 +1,62 @@
-# 江河交易员正式研究证据包 — Current View V0.9
+# 江河交易员正式研究证据包 — Current View V1.0 Final
 
 ```text
 TRADER_ID=JIANGHE_TRADER
 SOURCE_SCOPE=001..099
-ANALYZED_AVAILABLE=95
-PENDING_SEMANTIC_REVIEW=065,099
-PARTIAL_NO_NATIVE_SRT_REVIEW=048
-BLOCKED_LOCAL_MEDIA=007
+SOURCE_TOTAL=99
+MEDIA_AVAILABLE=98
+SEMANTICALLY_REVIEWED_WITH_RELIABLE_LANGUAGE_OR_BURNED_TEXT=97
+VISUAL_ONLY_NO_RELIABLE_LANGUAGE=065
 BLOCKED_PAID_GATE=022
+CORPUS_MEDIA_RECOVERY=COMPLETE
+FINAL_SOL_REVIEW=COMPLETE
+FINAL_SOURCE_DISTILLATION=COMPLETE
 SOURCE_ONLY_VERIFIED=NO
 PRIMARY_ELIGIBLE=NO
-TOOL_DECISION=USE_EXISTING_FOR_AUDIT / ADD_TOOL_IF_TRUE_NO_SUBTITLE_CONFIRMED
+TOOL_DECISION=USE_EXISTING
 ```
 
-先读 `JIANGHE_CURRENT_VIEW_V0_9.md`。
+先读 `JIANGHE_CURRENT_VIEW_V1_0.md`。
 
-当前累计结构：001–028为V0.1基础evidence；V0.2为Sol review resolution+029–033；V0.3为034–043；V0.4为044–053；V0.5为054–063；V0.6为064–073；V0.7为074–083；V0.8为084–093；V0.9加入094–098，并把099明确置为待本地语料审计/语义复核。
+## V1.0 authority
 
-V0.9仍只有四个核心Family A–D。V094/V096/V097主要补风险、纪律和交易者状态；V095/V098继续补宽幅震荡、多周期位置→低周期确认及案例证据，不创建Family E。
+最终来源蒸馏组合：
 
-本轮Sol会话只收到094–098 MP4，未收到099 MP4。Owner说明065和099没有SRT；历史上048也曾无独立SRT且只做过烧录文字有限复核。因此下一步不是直接假定“真的没有字幕”，而是对001–099进行BVID级全量媒体/字幕机械审计，解释历史90 vs 89字幕计数差异。
+- `JIANGHE_TRADER_DOSSIER_V1_0.md`
+- `JIANGHE_SOL_FINAL_REVIEW_RESOLUTION_V1_0.md`
+- `JIANGHE_CLAIM_LEDGER_SUPPLEMENT_FINAL_V1_0.jsonl`
+- `JIANGHE_CASE_LIBRARY_SUPPLEMENT_FINAL_V1_0.md`
+- `JIANGHE_SOURCE_INDEX_SUPPLEMENT_FINAL_V1_0.csv`
+- `JIANGHE_STRATEGY_FAMILIES_V1_0.md`
+- `JIANGHE_SYSTEM_PROCESS_V1_0.md`
+- `JIANGHE_UNKNOWN_REGISTER_V1_0.md`
+- `JIANGHE_CONTRADICTION_REGISTER_V1_0.md`
+- `JIANGHE_EVIDENCE_REVIEW_QUEUE_V1_0.csv`
+- `JIANGHE_ASR_SEMANTIC_QA_RULE_V1_0.md`
 
-审计阶段使用现有工具；只有真实确认`NO_NATIVE_SUBTITLE_CONFIRMED_NEEDS_ASR`后才`ADD_TOOL`，首选本地免费CPU `faster-whisper`单一pilot，不使用OpenAI API或其他付费API。Codex只负责获取/转写/证据打包，不解释交易语义。
+旧V0.1–V0.9证据不删除，继续作为演进历史与底层claim/case来源。
 
-仓库不含完整视频、完整字幕或批量帧。SRT只作导航；图表claim必须回到BVID+timestamp原视频语言+同时间画面。收益、RR、账户结果只属于source case content，不作为validity evidence。
+## Final corpus disposition
 
-`SOURCE_ONLY_VERIFIED=NO`，当前仍为preliminary，不授权outcome testing、validation/final访问或真钱动作。
+- 007：损坏媒体已恢复并由Sol完整补审。
+- 016/017/018：本地ASR经最终语义抽检可用并已补审。
+- 048：所谓恢复远端SRT与视频内容不匹配，已拒绝；只使用视频直接烧录文字。
+- 065：无原生字幕；本地ASR在最终语义QA中被判明显幻觉并拒绝。媒体可看，但不从订单/图表结果倒推口述策略；语义claim=0。
+- 099：所谓恢复远端SRT与视频内容不匹配，已拒绝；视频自身完整烧录字幕可用并已补审。
+- 022：付费门控合法不可达例外，不购买、不绕过。
+
+## Final family state
+
+仍只有：
+- `JH-FAMILY-A` 趋势关键位回调延续
+- `JH-FAMILY-B` 趋势衰弱反转 / 高周期回调
+- `JH-FAMILY-C` 多周期确认突破
+- `JH-FAMILY-D` 震荡边界反转
+
+没有Family E。剥头皮保持非核心执行模式；均线/指标保持辅助角色。
+
+## Research boundary
+
+仓库不保存完整视频、完整字幕或ASR全文。SRT/ASR只作证据导航；图表claim回到原视频同时间画面。收益、RR、账户结果仅属source case content，不作为validity evidence。
+
+`SOURCE_ONLY_VERIFIED=NO`、`PRIMARY_ELIGIBLE=NO`。V1.0是**江河001–099来源蒸馏收口**，不授权outcome testing、validation/final访问、PRIMARY冻结或真钱动作。
