@@ -10,7 +10,7 @@ For every **substantive project reply** after takeover:
 1. fetch the current `main` HEAD;
 2. fetch this file from current `main` **before answering**;
 3. do not rely on chat memory, handoff text, or prior-turn assumptions for mutable project facts;
-4. if `main` HEAD differs from `LAST_SYNCED_MAIN`, or the question concerns current state / architecture / locks / next work / worker prompts / model or tool adoption, also refresh `CURRENT_STATE.md` and the specific authority named there before answering;
+4. if `main` contains material project-state changes newer than `LAST_MATERIAL_STATE_COMMIT`, or the question concerns current state / architecture / locks / next work / worker prompts / model or tool adoption, also refresh `CURRENT_STATE.md` and the specific authority named there before answering;
 5. narrow conceptual or explanatory replies may use this compact pointer plus already-fetched stable authority when no mutable fact is involved.
 
 A fresh project-brain conversation still follows the full read-only takeover process in `00_READ_FIRST.md`. This file is the lightweight **post-takeover refresh surface**, not a shortcut around takeover verification.
@@ -27,12 +27,14 @@ Update it whenever a `main` change materially changes any of:
 - adopted model/tool/provider;
 - candidate outcome / Validation / Final / Shadow / Broker / real-money authority.
 
+`LAST_MATERIAL_STATE_COMMIT` points to the latest substantive code/research/state commit this brief has incorporated. Later documentation-only commits that merely update this brief do not make the marker stale.
+
 Keep this file short. Detailed evidence stays in `CURRENT_STATE.md`, ADRs, protocols, tests, and evidence artifacts.
 
 ## Current live pointer
 
 ```text
-LAST_SYNCED_MAIN=ca7d99beacdaeb3b6bd7d8ef9fc3422f9481bf28
+LAST_MATERIAL_STATE_COMMIT=ca7d99beacdaeb3b6bd7d8ef9fc3422f9481bf28
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
