@@ -106,7 +106,7 @@ class JiangheV11AcceptanceTests(unittest.TestCase):
         for value in required:
             self.assertIn(value, combined)
 
-    def test_audit_is_closed_and_manifest_is_byte-honest(self):
+    def test_audit_is_closed_and_manifest_is_byte_honest(self):
         audit = (JH / "JIANGHE_SECOND_PASS_COVERAGE_AUDIT_V1_1.md").read_text(encoding="utf-8")
         manifest = (SALVAGE / "SECOND_PASS_SALVAGE_MANIFEST_V1_1.md").read_text(encoding="utf-8")
         integrity = (SALVAGE / "JIANGHE_SECOND_PASS_INTEGRITY_CHECK_V1_1.md").read_text(encoding="utf-8")
