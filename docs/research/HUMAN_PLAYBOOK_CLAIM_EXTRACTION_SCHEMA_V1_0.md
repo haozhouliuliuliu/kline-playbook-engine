@@ -8,9 +8,11 @@
 
 ## 1. Boundary
 
-This schema is now authorized for **real source-faithful claim extraction only inside a verified SOURCE_ONLY environment**.
+This schema is authorized for **real source-faithful claim extraction only inside a verified SOURCE_ONLY environment**.
 
 It does not authorize candidate outcome-bearing performance backtests.
+
+Current SOURCE_ONLY / PRIMARY / candidate-outcome / validation readiness is mutable project state and must be read from repository-root `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`; this schema defines requirements, not current gate values.
 
 ## 2. Three-layer separation
 
@@ -223,13 +225,13 @@ try many interpretations
 -> call winner "what the source meant"
 ```
 
-## 14. Active-stage permission
+## 14. Mutable readiness authority
 
-After SOURCE_ONLY technical controls are implemented and verified, the project may apply this schema to real approved source materials.
-
-Until then:
+This schema defines the conditions under which claims may be extracted, interpreted and assigned PRIMARY branches. It intentionally does **not** own current project readiness.
 
 ```text
-REAL_CLAIM_EXTRACTION_READINESS = PENDING_SOURCE_ONLY_IMPLEMENTATION
-CANDIDATE_OUTCOME_BACKTEST = NOT_AUTHORIZED
+SCHEMA_REQUIREMENTS=BINDING
+MUTABLE_READINESS_AUTHORITY=CURRENT_STATE.md + PROJECT_BRAIN_RUNTIME_BRIEF.md
 ```
+
+Any historical readiness statement associated with earlier schema revisions is not a current project fact. Current SOURCE_ONLY, PRIMARY, candidate-outcome, Validation, Final, Shadow, Broker and real-money values must be refreshed from repository-root mutable authority.
