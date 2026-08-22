@@ -26,9 +26,12 @@ REPOSITORY_FULL_NAME=haozhouliuliuliu/kline-playbook-engine
 14. `TOOL_REGISTRY.md` — capability catalog; appearance here does not mean this project adopted the tool.
 15. `docs/research/JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md` — AI Trader version/replay boundary.
 16. `docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md` — current Jianghe source authority and its stated read order.
-17. `PROJECT_HANDOFF_CURRENT.md` — derived continuity snapshot only; read it last, never as a replacement for the authorities above.
+17. `PROJECT_BRAIN_RUNTIME_BRIEF.md` — compact post-takeover live pointer; after takeover it must be refreshed before every substantive project reply.
+18. `PROJECT_HANDOFF_CURRENT.md` — derived continuity snapshot only; read it last, never as a replacement for the authorities above.
 
 `CURRENT_STATE.md` is the authority for mutable project state and the next action. A handoff or chat summary cannot override current Git, current code/tests, frozen protocols, Owner decisions, or accepted evidence.
+
+After takeover acceptance, the project brain must fetch the current `main` HEAD and `PROJECT_BRAIN_RUNTIME_BRIEF.md` before every substantive project reply. If `main` moved or the answer depends on mutable project state, it must also refresh `CURRENT_STATE.md` and the relevant authority instead of relying on chat memory or prior-turn assumptions.
 
 ## Current phase summary
 
@@ -85,7 +88,7 @@ Key integrated evidence (2026-08-21):
 - `docs/evidence/RASCHKE_NR7_INTERPRETATION_STATUS_V0_1.md` + `RASCHKE_NR7_PLAYBOOK_CONTRACT_DRAFT_V0_1.json` / `.md`
 - `docs/reviews/RASCHKE_NR7_SOURCE_SEMANTIC_RESOLUTION_V0_2.md` (+ `.json`；NR7 仍失败闭合，未创建机器实现)
 - `docs/reviews/CHINA_FIRST_PLAYBOOK_PROMOTION_WAVE_V0_1.md` (+ `.json`；三个既有中国期货来源线索顺序审查完成，`SELECTED_SOURCE=NONE`，未创建假 dossier/claim corpus/机器策略)
-- `docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_V0_1.md` (+ `.json`；Failure Test 来源语义完成后失败闭合，未创建机器策略)
+- `docs/reviews/GRIMES_FREE_PUBLIC_PLAYBOOK_PROMOTION_WAVE_V0_1.md` (+ `.json`；Failure Test 来源语义完成后失败闭合，未创建机器策略)
 - `docs/evidence/CANONICAL_CORPUS_REVALIDATION_D01_D02_V0_1.md` (+ `.json`)
 - `docs/evidence/CANONICAL_D01_D02_TARGETED_REPAIR_QUALIFICATION_V0_1.md` (+ `.json`)
 - `docs/reviews/CANONICAL_D01_D02_116_FAILURE_ROOT_CAUSE_REVIEW_V0_1.md` (+ `.json`)
