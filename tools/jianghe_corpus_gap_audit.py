@@ -15,6 +15,7 @@ import re
 import subprocess
 import sys
 import shutil
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from http.cookiejar import CookieJar, MozillaCookieJar
@@ -125,16 +126,41 @@ def ffprobe_media(ffprobe: str, path: Path) -> dict[str, Any]:
     }
 
 
-def download_binary(opener: Any, url: str, output_path: Path) -> None:
-    request = Request(url, headers=HTTP_HEADERS)
-    with opener.open(request, timeout=60) as response, output_path.open("wb") as handle:
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
-                break
-            handle.write(chunk)
-    if output_path.stat().st_size <= 0:
-        raise RuntimeError("媒体流下载为空")
+def download_binary(opener: Any, urls: list[str], output_path: Path, max_attempts: int = 6) -> None:
+    """以有界断点续传下载单一 DASH 流；失败不能产生可替换成品。"""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    expected_size: int | None = None
+    last_error = ""
+    for attempt in range(1, max_attempts + 1):
+        url = urls[(attempt - 1) % len(urls)]
+        existing_size = output_path.stat().st_size if output_path.exists() else 0
+        headers = {**HTTP_HEADERS, "Range": f"bytes={existing_size}-"}
+        try:
+            with opener.open(Request(url, headers=headers), timeout=45) as response:
+                content_range = response.headers.get("Content-Range") or ""
+                match = re.search(r"/(\d+)$", content_range)
+                if match:
+                    expected_size = int(match.group(1))
+                if response.status not in {200, 206}:
+                    raise RuntimeError(f"DASH 返回 HTTP {response.status}")
+                with output_path.open("ab" if existing_size else "wb") as handle:
+                    while True:
+                        chunk = response.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        handle.write(chunk)
+            current_size = output_path.stat().st_size
+            if expected_size is not None and current_size == expected_size:
+                return
+            if expected_size is None and current_size > existing_size:
+                return
+            last_error = f"attempt={attempt}; downloaded={current_size}; expected={expected_size}"
+        except Exception as error:
+            current_size = output_path.stat().st_size if output_path.exists() else 0
+            last_error = f"attempt={attempt}; downloaded={current_size}; error={redact_sensitive_text(str(error))}"
+        if attempt < max_attempts:
+            time.sleep(min(5 * attempt, 20))
+    raise RuntimeError("DASH 断点续传未完成：" + last_error)
 
 
 def best_dash_item(items: Any) -> dict[str, Any] | None:
@@ -180,6 +206,51 @@ def repair_media_from_dash(opener: Any, source: dict[str, Any], root: Path, ffpr
     current_media = local_file_index(root / "media").get(bvid, [])
     if len(current_media) != 1:
         raise RuntimeError("修复替换前本地媒体文件数量异常")
+    old_path = current_media[0]
+    quarantine = root / "quarantine"
+    quarantine.mkdir(parents=True, exist_ok=True)
+    quarantined = quarantine / f"{old_path.stem}.pre-repair{old_path.suffix}"
+    if quarantined.exists():
+        raise RuntimeError("隔离目录已存在同名旧文件，拒绝覆盖")
+    shutil.move(str(old_path), str(quarantined))
+    try:
+        shutil.move(str(candidate), str(old_path))
+    except Exception:
+        shutil.move(str(quarantined), str(old_path))
+        raise
+    return {"bvid": bvid, "cid": cid, "final_media_path": str(old_path), "quarantine_path": str(quarantined), "ffprobe": probe}
+
+
+def repair_media_direct_from_dash(opener: Any, source: dict[str, Any], root: Path, ffprobe: str) -> dict[str, Any]:
+    """WBI 返回的最佳 DASH 视频和音频分开断点续传，再无损 mux。"""
+    bvid = str(source["bvid"])
+    view = wbi_json(opener, "/x/web-interface/wbi/view", {"bvid": bvid})
+    pages = (view.get("data") or {}).get("pages") or []
+    if not pages or not isinstance(pages[0], dict) or not pages[0].get("cid"):
+        raise RuntimeError("直接修复时来源未返回可用 CID")
+    cid = int(pages[0]["cid"])
+    payload = wbi_json(opener, "/x/player/wbi/playurl", {"bvid": bvid, "cid": cid, "qn": 127, "fnver": 0, "fnval": 4048, "fourk": 1})
+    dash = (payload.get("data") or {}).get("dash") or {}
+    video, audio = best_dash_item(dash.get("video")), best_dash_item(dash.get("audio"))
+    if not video or not audio:
+        raise RuntimeError("当前登录态下来源未提供完整视频与音频 DASH 流")
+    repair_dir = root / "repair" / f"{int(source['ordinal']):03}__{bvid}" / "direct_retry"
+    video_path, audio_path, candidate = repair_dir / "source-video.m4s", repair_dir / "source-audio.m4s", repair_dir / "candidate.mp4"
+    if candidate.exists():
+        raise RuntimeError("直接修复目录已有 candidate.mp4，拒绝覆盖")
+    video_urls = [stream_url(video)] + [str(item) for item in video.get("backup_url", video.get("backupUrl", [])) if str(item).startswith("https://")]
+    audio_urls = [stream_url(audio)] + [str(item) for item in audio.get("backup_url", audio.get("backupUrl", [])) if str(item).startswith("https://")]
+    download_binary(opener, video_urls, video_path)
+    download_binary(opener, audio_urls, audio_path)
+    mux = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(video_path), "-i", str(audio_path), "-c", "copy", "-movflags", "+faststart", str(candidate)], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+    if mux.returncode != 0 or mux.stderr.strip():
+        raise RuntimeError("直接 DASH 无损 mux 失败：" + redact_sensitive_text(mux.stderr[-300:]))
+    probe = ffprobe_media(ffprobe, candidate)
+    if not probe.get("ffprobe_ok"):
+        raise RuntimeError("直接 DASH 新媒体 ffprobe 未通过：" + str(probe.get("error") or "缺少音视频流"))
+    current_media = local_file_index(root / "media").get(bvid, [])
+    if len(current_media) != 1:
+        raise RuntimeError("直接修复替换前本地媒体文件数量异常")
     old_path = current_media[0]
     quarantine = root / "quarantine"
     quarantine.mkdir(parents=True, exist_ok=True)
@@ -493,24 +564,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--download-remote-subtitles", action="store_true", help="原样下载远端可用字幕")
     parser.add_argument("--source-access-bvid", action="append", default=[], help="仅验证指定 BVID 当前媒体访问状态")
     parser.add_argument("--repair-bvid", help="从当前登录态无损修复一个已确认损坏的本地媒体")
+    parser.add_argument("--repair-direct-bvid", help="使用 WBI/DASH 断点续传无损修复一个媒体")
     parser.add_argument("--create-sol-package-ordinal", type=int, action="append", default=[], help="为指定来源生成 Sol 工程证据包")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    if (args.remote_check or args.source_access_bvid or args.repair_bvid) and not args.auth_cookie:
+    if (args.remote_check or args.source_access_bvid or args.repair_bvid or args.repair_direct_bvid) and not args.auth_cookie:
         raise RuntimeError("远端复核必须通过 --auth-cookie 显式提供仓库外临时会话文件")
     if args.download_remote_subtitles and not args.remote_check:
         raise RuntimeError("下载远端字幕必须同时启用 --remote-check")
     sources = validate_sources(read_jsonl(Path(args.corpus_root).resolve() / "manifests" / "source_manifest.jsonl"))
     repair_result = None
-    if args.repair_bvid:
-        selected = [source for source in sources if source["bvid"] == args.repair_bvid]
+    repair_bvid = args.repair_bvid or args.repair_direct_bvid
+    if repair_bvid:
+        selected = [source for source in sources if source["bvid"] == repair_bvid]
         if len(selected) != 1:
             raise RuntimeError("修复 BVID 不在唯一 source manifest 中")
         cookie_path = Path(args.auth_cookie).resolve()
-        repair_result = repair_media_from_dash(load_cookie_opener(cookie_path), selected[0], Path(args.corpus_root).resolve(), args.ffprobe, cookie_path)
+        opener = load_cookie_opener(cookie_path)
+        repair_result = repair_media_direct_from_dash(opener, selected[0], Path(args.corpus_root).resolve(), args.ffprobe) if args.repair_direct_bvid else repair_media_from_dash(opener, selected[0], Path(args.corpus_root).resolve(), args.ffprobe, cookie_path)
     records = audit(args)
     access_results: list[dict[str, Any]] = []
     if args.source_access_bvid:
