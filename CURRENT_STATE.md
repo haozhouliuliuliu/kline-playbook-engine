@@ -56,7 +56,10 @@ JIANGHE_PRIMARY_ELIGIBLE=NO
 KNOWLEDGE_PACK_VERSION=JIANGHE_V1_1
 KNOWLEDGE_PACK_IDENTITY=3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5
 JIANGHE_PRIMARY_NEXT_GATE=SOURCE_JUSTIFIED_PRIMARY_BRANCHES_PLUS_REAL_MODEL_FIDELITY_EVIDENCE_WITHOUT_OUTCOMES
+JIANGHE_PRIMARY_SEMANTICS=SOURCE_JUSTIFIED_AI_INTERPRETATION_BRANCH_NOT_FIXED_RULE_MACHINE
 ```
+
+For the Jianghe AI Trader, PRIMARY does **not** mean converting Jianghe into a rigid threshold strategy. It means freezing the source-justified interpretation branch plus the complete versioned AI Trader identity and deterministic hard-risk/execution envelope before any outcome-bearing test. Compatibility authority: `docs/research/JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md`.
 
 Current Jianghe source authority starts at:
 `docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md`.
@@ -71,6 +74,7 @@ JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
+JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
 JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
 JIANGHE_AI_SUB_MINUTE_LIVE_CAPABILITY=NOT_VALIDATED_NOT_EQUIVALENT_TO_1M_REPLAY
 ```
@@ -78,6 +82,8 @@ JIANGHE_AI_SUB_MINUTE_LIVE_CAPABILITY=NOT_VALIDATED_NOT_EQUIVALENT_TO_1M_REPLAY
 Integrated components include causal multi-timeframe observations, rolling market state,
 standardized chart rendering, AI-hypothesis annotations, wake events, persistent working memory,
 forward-only replay, model-latency accounting, fidelity fixtures, and semantic scoring.
+
+Real-model evaluation must not select a trading brain from text-only reasoning. It must separately test Jianghe semantic fidelity, standardized-chart visual observation, matching structured OHLCV interpretation, visual/structured consistency, and governable provider/model callability/latency — all without candidate outcomes.
 
 Authorities:
 - `docs/research/JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md`
@@ -139,8 +145,8 @@ The prospective statistical-design limitation is a future candidate-evidence gat
 
 Two bounded lanes may proceed without candidate outcomes:
 
-1. **Real-model fidelity candidate evaluation** — compare candidate models on the integrated Jianghe non-outcome fidelity fixtures; select by Jianghe fidelity, stability, UNKNOWN honesty, and no-invention behavior, not by PnL.
-2. **Source-justified PRIMARY branch work** — define/freeze the source-justified interpretation branches required by the existing research governance without inspecting candidate performance.
+1. **Real-model fidelity candidate evaluation** — compare candidate models on the integrated Jianghe non-outcome foundation across semantic + visual + structured + dual-input + operational-provider tracks; select by Jianghe fidelity, stability, UNKNOWN honesty, no-invention behavior, governable callability and latency, not by PnL.
+2. **Source-justified PRIMARY branch work** — freeze the source-justified Jianghe interpretation branches and AI-Trader identity semantics required by the existing research governance, without converting Jianghe judgment into an outcome-tuned fixed-rule machine and without inspecting candidate performance.
 
 A model/provider remains `CANDIDATE` until project evidence verifies it. No model is currently `ADOPTED_JIANGHE_DECISION_MODEL`.
 
