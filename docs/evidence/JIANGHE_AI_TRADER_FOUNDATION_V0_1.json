@@ -1,0 +1,93 @@
+{
+  "artifact": "JIANGHE_AI_TRADER_FOUNDATION_V0_1",
+  "candidate_outcome_backtest": "NOT_AUTHORIZED",
+  "document_hashes": [
+    {
+      "content_sha256": "0329d7907b65e22af3a76e008d2704e62261a765b7492c01572f4ff2a8926d42",
+      "logical_document_id": "CASE_LIBRARY_DELTA"
+    },
+    {
+      "content_sha256": "6b49092f390c901dec13d2d89a1d8f3224ba49ef040792a5a5608a63facbbde2",
+      "logical_document_id": "CLAIM_DELTA_PART_00"
+    },
+    {
+      "content_sha256": "68db5dd7cc61dad7d30c836b6c0be1fa5530571c018f4d77213ab36873ed7ba2",
+      "logical_document_id": "CLAIM_DELTA_PART_01"
+    },
+    {
+      "content_sha256": "4a2833d3ca0a042329d1f9e4089644a0f9d57e1b28957fbfde132f79c04e8843",
+      "logical_document_id": "CLAIM_DELTA_PART_02"
+    },
+    {
+      "content_sha256": "2005e0972b76257551801a4644ae84de0cc0f21ad4d203df7c73c6c5c59d7f38",
+      "logical_document_id": "CLAIM_DELTA_PART_03"
+    },
+    {
+      "content_sha256": "ae43efbfe2253629c693dde380abce0e98feb3f04d7bfbb911b939976488cbc9",
+      "logical_document_id": "CLAIM_LEDGER_BASE"
+    },
+    {
+      "content_sha256": "f9ecae1e704a0d250265e4f0e03fa49bbea080f0677791bbb5454e7fe9bcfb99",
+      "logical_document_id": "CLAIM_SALVAGE_MANIFEST"
+    },
+    {
+      "content_sha256": "a4a8bfe48671f5fa51a26ff0650b067a147d6581a36f816a829f6c5bda53711c",
+      "logical_document_id": "CONTRADICTION_REGISTER"
+    },
+    {
+      "content_sha256": "1796a527aa6c8bc0e03c14604d114a51158fb625f04923e958188dcd561e6b28",
+      "logical_document_id": "CURRENT_VIEW"
+    },
+    {
+      "content_sha256": "cb43d643a096d674b48d07101f2e211aa6e939c1c3a5e72282041c54836fdad0",
+      "logical_document_id": "DOSSIER"
+    },
+    {
+      "content_sha256": "052c59b2e33ce86fcd63aa4fa3d1dd768fcf8c39175e305962d1ef09696152a6",
+      "logical_document_id": "SECOND_PASS_RECONCILIATION"
+    },
+    {
+      "content_sha256": "e0564918fa0b30b4b382816537f686bdfc1ca0c0c36890378f27de8b659fcf5c",
+      "logical_document_id": "SECOND_PASS_VERIFICATION_REPORT"
+    },
+    {
+      "content_sha256": "ea94953910b805bfef1e2bc87bba401658307c3eeba268b42ccfbe58c84cf9ed",
+      "logical_document_id": "SOURCE_FINDINGS_MANIFEST"
+    },
+    {
+      "content_sha256": "c57d511e287887eb6b22f070df30ae1988c6880d4cf2b4fd1158ba78f9cfdb17",
+      "logical_document_id": "SOURCE_FINDINGS_PART_00"
+    },
+    {
+      "content_sha256": "4c3ab1c49701116d9a28ffa74610660ad4d95226f18dc9e8c5ad9a7be4dde117",
+      "logical_document_id": "SOURCE_FINDINGS_PART_01"
+    },
+    {
+      "content_sha256": "14852040f7ed3f26c73697f9f0f7c788c64b6a3b65f96147f3c716223e3cfda0",
+      "logical_document_id": "SOURCE_FINDINGS_PART_02"
+    },
+    {
+      "content_sha256": "6ec7b91544b05813e46e33b7b0ce49c7b89766667dff7a6aa475bbe4c10267a3",
+      "logical_document_id": "SOURCE_FINDINGS_PART_03"
+    },
+    {
+      "content_sha256": "de7eb390fd0f91be39c93f51df6805cbbc89d7a8b9f34de29fa1b356c6dea894",
+      "logical_document_id": "SOURCE_FINDINGS_PART_04"
+    },
+    {
+      "content_sha256": "a4abb23c7defe75730e8ab6d5d3b93d0df1438a27fe91dc7d08e9a9fa7258943",
+      "logical_document_id": "STRATEGY_FAMILIES"
+    },
+    {
+      "content_sha256": "cbaf10396ad54a4cc2cf5000ae4dc74d9e0201c73ea39101bdf72e4cb35c1e79",
+      "logical_document_id": "UNKNOWN_REGISTER"
+    }
+  ],
+  "identity_semantics": "CONTENT_AND_LOGICAL_DOCUMENT_ID_ONLY__NO_GIT_PATH_CWD_OR_MTIME",
+  "knowledge_pack_identity": "7170f0d5e7d6cd5fc2de8faf27e50262e2ec65ce716527d24022531561b3fd43",
+  "knowledge_pack_version": "JIANGHE_V1_1",
+  "primary_eligible": "NO",
+  "real_model_provider": "NOT_IMPLEMENTED",
+  "replay_fixture_scope": "SYNTHETIC_NON_OUTCOME_ONLY",
+  "source_only_verified": "NO"
+}

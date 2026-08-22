@@ -148,28 +148,31 @@ It specializes the previously intentionally-open Research Loop / Strategy Catalo
 - Backtest & Validation / Selection Firewall remain the examination system that determines
   whether a playbook survives evidence.
 
-The architecture's current live-critical-path boundary also remains binding:
-**no discretionary LLM buy/sell decision in the live trading critical path is authorized by
-this research-direction decision.**
+The original live-critical-path boundary is historical Skeleton v1.0 context. It is now
+amended by the Owner decision recorded in
+`docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`: the Jianghe AI Trader may
+propose a versioned, constrained trade intent from a causal observation. Deterministic RiskGate,
+OMS, TradingState, broker reconciliation and Safety retain all execution and hard-risk truth.
 
-## 8. Live market-reading brain is intentionally unresolved
+## 8. Jianghe AI market-reading boundary
 
 The long-term product concept includes machine assistance for recognizing which accepted
 playbook/market scene best matches the current market, faster and more consistently than a
 human trader.
 
-However the exact live implementation mode is **not frozen here**.
+The product decision-layer direction is now frozen, but real external operation is not authorized.
 
 ```text
-LIVE_AI_SCENE_RECOGNITION_MODE=UNDECIDED
-LIVE_DISCRETIONARY_LLM_CRITICAL_PATH=NOT_AUTHORIZED
-OWNER_GATE_REQUIRED_FOR_LIVE_AI_SEMANTICS=YES
+JIANGHE_AI_DECISION_LAYER=ADOPTED_ARCHITECTURE_V0_1
+AI_OUTPUT=CONSTRAINED_TRADE_INTENT_ONLY
+DETERMINISTIC_RISK_EXECUTION_SAFETY=RETAINED
+REAL_SHADOW_BROKER_REAL_MONEY=NOT_AUTHORIZED
+MODEL_PROVIDER=ALL_CANDIDATE_UNTIL_FIDELITY_EVIDENCE
 ```
 
-Possible future implementations may differ materially (for example deterministic features,
-a frozen classifier/model, or a more flexible AI component). Any design that changes the
-current Skeleton v1.0 live-critical-path boundary requires a separate architecture/research
-review and Owner approval before activation.
+The current implementation provides only synthetic, non-outcome replay foundation. Any real
+model provider, sub-minute capability, Shadow, broker or real-money activation remains a
+separate future gate and cannot be inferred from this architecture amendment.
 
 ## 9. Relationship to the now-frozen Research Protocol
 

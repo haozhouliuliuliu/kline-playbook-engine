@@ -7,6 +7,23 @@ Purpose: Initial architecture baseline for a clean-room China commodity futures 
 
 This architecture does not define concrete K-line strategies, books, indicators, social-media sources, or final trading playbooks.
 
+## Current adopted architecture amendment
+
+Skeleton v1.0 remains accepted historical baseline. The Owner-approved current architecture is additionally governed by `docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
+
+```text
+CURRENT_ADOPTED_ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
+JIANGHE_AI_MAY_PROPOSE_CONSTRAINED_TRADE_INTENT=YES
+DETERMINISTIC_RISK_AND_EXECUTION_OWNERSHIP=UNCHANGED
+```
+
+The amendment deliberately preserves Data Substrate, ResearchFirewall, RiskGate, OMS, STOP/OCO, TradingState, PaperBroker, Safety, reconciliation and Ledger. It changes only the product decision layer: a versioned Jianghe AI Trader may interpret point-in-time market observations and propose a constrained intent; it never owns capital, positions, broker facts, risk hard limits, order lifecycle or safety overrides.
+
+## Historical Skeleton v1.0 content
+
+The following original Skeleton v1.0 sections are preserved verbatim for history. Where they
+conflict with the adopted amendment above, the ADR is the current authority.
+
 ## Core principles
 - AI operates mainly in the offline research layer.
 - The live trading critical path does not rely on discretionary LLM decisions.

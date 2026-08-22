@@ -11,19 +11,22 @@ REPOSITORY_FULL_NAME=haozhouliuliuliu/kline-playbook-engine
 ## Read current authority in this order
 
 1. `OWNER_COLLABORATION_CONTRACT.md` — stable Owner collaboration preferences.
-2. `ARCHITECTURE_BASELINE.md` — Skeleton v1.0, ACCEPTED.
-3. `CURRENT_STATE.md` — current status, locks, next action, current prerequisites.
-4. `RESEARCH_DIRECTION.md` — Owner-approved Human Playbook First research route and anti-regression guard.
-5. `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md` — FROZEN / BINDING.
-6. `docs/research/HUMAN_PLAYBOOK_CHRONOLOGICAL_SPLIT_V1_0.md` — FROZEN 12/6/6 chronology.
-7. `docs/research/HUMAN_PLAYBOOK_SELECTION_FIREWALL_REQUIREMENTS_V1_0.md`.
-8. `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`.
-9. `docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md` — final disposition of the original 62 second-pass findings.
-10. `docs/reviews/SECOND_PASS_REPAIR_FINAL_CLOSURE_RECORD_2026-08-20.md` — formal repair-node closure record.
-11. `KNOWN_LIMITATIONS_AND_TECH_DEBT.md` — active/deferred prerequisites that must survive handoff.
-12. `CROSS_PROJECT_OPERATING_CONTRACT.md` — adopted Version 3.1 governance constitution.
-13. `TOOL_REGISTRY.md` — capability catalog; appearance here does not mean this project adopted the tool.
-14. `PROJECT_HANDOFF_CURRENT.md` — derived continuity snapshot only; read it last, never as a replacement for the authorities above.
+2. `ARCHITECTURE_BASELINE.md` — Skeleton v1.0 plus current adopted amendment.
+3. `docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md` — current Jianghe AI decision-layer boundary.
+4. `CURRENT_STATE.md` — current status, locks, next action, current prerequisites.
+5. `RESEARCH_DIRECTION.md` — Owner-approved Human Playbook First research route and anti-regression guard.
+6. `docs/research/HUMAN_PLAYBOOK_RESEARCH_PROTOCOL_V1_0.md` — FROZEN / BINDING.
+7. `docs/research/HUMAN_PLAYBOOK_CHRONOLOGICAL_SPLIT_V1_0.md` — FROZEN 12/6/6 chronology.
+8. `docs/research/HUMAN_PLAYBOOK_SELECTION_FIREWALL_REQUIREMENTS_V1_0.md`.
+9. `docs/research/HUMAN_PLAYBOOK_CLAIM_EXTRACTION_SCHEMA_V1_0.md`.
+10. `docs/reviews/FULL_PROJECT_SECOND_PASS_REPAIR_CLOSURE_AUDIT_2026-08-20.md` — final disposition of the original 62 second-pass findings.
+11. `docs/reviews/SECOND_PASS_REPAIR_FINAL_CLOSURE_RECORD_2026-08-20.md` — formal repair-node closure record.
+12. `KNOWN_LIMITATIONS_AND_TECH_DEBT.md` — active/deferred prerequisites that must survive handoff.
+13. `CROSS_PROJECT_OPERATING_CONTRACT.md` — adopted Version 3.1 governance constitution.
+14. `TOOL_REGISTRY.md` — capability catalog; appearance here does not mean this project adopted the tool.
+15. `docs/research/JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md` — AI Trader version/replay boundary.
+16. `docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md` — current Jianghe source authority and its stated read order.
+17. `PROJECT_HANDOFF_CURRENT.md` — derived continuity snapshot only; read it last, never as a replacement for the authorities above.
 
 `CURRENT_STATE.md` is the authority for mutable project state and the next action. A handoff or chat summary cannot override current Git, current code/tests, frozen protocols, Owner decisions, or accepted evidence.
 
@@ -55,7 +58,13 @@ CANONICAL_ELIGIBLE_PARTITIONS=32768
 CANONICAL_ELIGIBLE_D01_D02=32768_PASS_0_FAIL
 PRE_CANDIDATE_CANONICAL_REVALIDATION_REQUIRED=SATISFIED_BY_QUALIFIED_ELIGIBILITY_VIEW_V1
 CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
-NEXT_NORMAL_PHASE=WAIT_FOR_NEW_GOVERNED_PROCESS_ASSUMPTION_OR_FUTURE_DATE_SPECIFIC_AUTHORITY
+NEXT_NORMAL_PHASE=JIANGHE_AI_FIDELITY_AND_SOURCE_ONLY_EVIDENCE_WITHOUT_CANDIDATE_OUTCOMES
+STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
+JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
+JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
+JIANGHE_SOURCE_ONLY_VERIFIED=NO
+JIANGHE_PRIMARY_ELIGIBLE=NO
+JIANGHE_AI_REPLAY_SCOPE=SYNTHETIC_NON_OUTCOME_ONLY
 PERFORMANCE_RESEARCH_STARTED=NO
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY

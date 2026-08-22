@@ -363,21 +363,25 @@ upgrade these boundaries in future status language without a new threat-model pa
 
 ---
 
-## DECISION-001 — Live AI market-reading implementation remains unresolved
+## DECISION-001 — Jianghe AI decision layer is adopted; external operation remains gated
 
 ```text
-STATUS=DEFERRED_OWNER_GATE
+STATUS=RESOLVED_ARCHITECTURE_BOUNDARY
 CURRENT_BLOCKER=NO
-AUTHORITY=RESEARCH_DIRECTION.md
+AUTHORITY=docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md
 ```
 
-The Human Playbook First direction includes the long-term concept of a machine market-reading
-brain, but does not authorize a discretionary LLM in the live trading critical path.
+The Owner has adopted a Jianghe AI decision layer. It can interpret causal multi-timeframe
+observations and propose a constrained trade intent. Deterministic RiskGate, OMS, TradingState,
+Safety, reconciliation and Ledger remain the execution/risk truth owners.
 
-The exact live scene-recognition implementation is a future architecture/research decision
-and must not be silently chosen by an implementation agent.
+This does not authorize a real model provider, candidate outcome, Validation, Final, real
+Shadow, Broker or real money. The implemented replay scope remains synthetic/non-outcome only;
+sub-minute live capability and every real provider require their own versioned evidence.
 
-See `RESEARCH_DIRECTION.md` for the binding boundary.
+Jianghe V1.1 still has `SOURCE_ONLY_VERIFIED=NO` and `PRIMARY_ELIGIBLE=NO`; source coverage
+cannot be promoted without a material-bound verified SOURCE_ONLY session and later governed
+claim/PRIMARY work.
 
 ---
 
