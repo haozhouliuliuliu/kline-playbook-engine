@@ -1,0 +1,6 @@
+source_ordinal,bvid,title,semantic_review_status,subtitle_basis,notes
+094,BV1Fb326FEtq,做交易上头了如何解决？,ANALYZED,BURNED_SUBTITLE_ONLY_IN_SOL_SESSION,"独立SRT未在本轮上传；烧录字幕可读"
+095,BV1LCG36dEsR,全职交易员交易思路大拆解,ANALYZED,BURNED_SUBTITLE_ONLY_IN_SOL_SESSION,"图表+烧录字幕完成保守语义复核"
+096,BV1TmMy6tEui,怎么样才算是合格的交易员？,ANALYZED,BURNED_SUBTITLE_ONLY_IN_SOL_SESSION,"三维模型正式命名仍建议用本地SRT/ASR复核"
+097,BV183uo6eE5W,交易员必须知道的交换公式,ANALYZED,BURNED_SUBTITLE_ONLY_IN_SOL_SESSION,"风险哲学/交易成本框架"
+098,BV1rpgP6gE8T,日内订单交易逻辑大拆解,ANALYZED_CONSERVATIVE,BURNED_SUBTITLE+CHART,"具体订单方向/触发细节可在本地字幕审计后继续精确化"
