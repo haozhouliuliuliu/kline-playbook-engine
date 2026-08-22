@@ -11,6 +11,8 @@ After takeover acceptance, before every **substantive project reply**:
 3. do not use chat memory as the authority for mutable project facts;
 4. if the question concerns state / architecture / locks / next work / worker prompts / model or tool adoption, or if material state moved beyond `LAST_MATERIAL_STATE_COMMIT`, refresh `CURRENT_STATE.md` and the authority it names.
 
+`LAST_MATERIAL_STATE_COMMIT` tracks the latest substantive code/research-state change incorporated by this brief. Later documentation-only hygiene/consolidation commits do not make the marker stale.
+
 Fresh conversations still follow the full read-only takeover in `00_READ_FIRST.md`.
 
 ## Current live pointer
@@ -43,6 +45,7 @@ REAL_MONEY=NOT_AUTHORIZED
 ```text
 AI_ROLE=JIANGHE_STYLE_MARKET_READING_AND_TRADE_DECISION
 MECHANICAL_ROLE=HARD_RISK_ORDER_EXECUTION_RECONCILIATION_SAFETY
+JIANGHE_KNOWLEDGE_AUTHORITY=REPOSITORY_V1_1_PACK_NOT_CHAT_SUMMARY
 UNKNOWN_OR_UNFAMILIAR=WAIT_OR_NO_TRADE
 INITIAL_MODEL_SELECTION_TARGET=JIANGHE_FIDELITY_NOT_PROFIT
 HISTORICAL_REPLAY_BASELINE=COMPLETED_1_MINUTE_BAR
