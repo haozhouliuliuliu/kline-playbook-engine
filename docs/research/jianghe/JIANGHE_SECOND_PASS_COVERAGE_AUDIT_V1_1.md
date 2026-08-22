@@ -6,9 +6,9 @@
 
 ## Closure note — 2026-08-23
 
-本文件保留 V1.0 完成结论被撤回时的**原始审计理由、风险和验收标准**。这些历史内容不应被机器或后续研究对话误读为当前仍 `OPEN`。
+本文件保留 V1.0 完成结论被撤回时的**原始审计理由、风险和验收标准**。这些历史内容不应被机器或后续研究对话误读为当前仍 `OPEN`，也不应被用于恢复当前 SOURCE_ONLY / PRIMARY / outcome readiness。
 
-当前权威完成状态由以下文件给出：
+当前权威来源蒸馏完成状态由以下文件给出：
 
 - `JIANGHE_CURRENT_VIEW_V1_1.md`
 - `JIANGHE_SECOND_PASS_VERIFICATION_REPORT_V1_1.md`
@@ -16,21 +16,19 @@
 - `JIANGHE_SECOND_PASS_RECONCILIATION_V1_1.md`
 - `second_pass_salvage/SECOND_PASS_SALVAGE_MANIFEST_V1_1.md`
 
-当前状态：
+当前**来源覆盖**状态：
 
 ```text
 SECOND_PASS_SOURCE_COVERAGE_AUDIT=COMPLETE
 FINAL_SOURCE_DISTILLATION=COMPLETE_V1_1_AFTER_CORRECTIVE_SECOND_PASS
 FULL_TIMELINE_REVIEWED_AVAILABLE_MEDIA=98
 UNACCOUNTED_TIMELINE_GAP=0
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+MUTABLE_READINESS_AUTHORITY=CURRENT_STATE.md + PROJECT_BRAIN_RUNTIME_BRIEF.md
 ```
 
 原审计要求中的远端字幕污染工程根因**尚不作为 V1.1 来源语义完成的阻断项**，因为 048/099 已拒绝、009/014 已 fail-closed 不使用，且 V1.1 没有依赖这些未验证轨道。该工程根因转为**该远端自动字幕获取链路再次被当作可信语言来源之前的阻断项**；在修复和重新验证之前，不得把该链路自动视为语义可信。
 
-以下为审计打开时的历史正文，保留用于说明为什么 V1.0 被撤回及 V1.1 必须满足什么标准。
+以下为审计打开时的历史正文，保留用于说明为什么 V1.0 被撤回及 V1.1 必须满足什么标准。所有带 `HISTORICAL_AT_AUDIT_OPEN_*` 的状态只描述当时快照，不是当前项目状态。
 
 ---
 
@@ -45,11 +43,11 @@ V1.0 的“FINAL_SOURCE_DISTILLATION=COMPLETE”结论被撤回。
 因此审计打开时必须 fail closed：
 
 ```text
-FINAL_SOURCE_DISTILLATION=REVOKED_PENDING_EXHAUSTIVE_SECOND_PASS
-SECOND_PASS_SOURCE_COVERAGE_AUDIT=OPEN
-SOURCE_ONLY_VERIFIED=NO
-PRIMARY_ELIGIBLE=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+HISTORICAL_AT_AUDIT_OPEN_FINAL_SOURCE_DISTILLATION=REVOKED_PENDING_EXHAUSTIVE_SECOND_PASS
+HISTORICAL_AT_AUDIT_OPEN_SECOND_PASS_SOURCE_COVERAGE_AUDIT=OPEN
+HISTORICAL_AT_AUDIT_OPEN_SOURCE_ONLY_VERIFIED=NO
+HISTORICAL_AT_AUDIT_OPEN_PRIMARY_ELIGIBLE=NO
+HISTORICAL_AT_AUDIT_OPEN_CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 ```
 
 ## 已确认的结构性风险
@@ -170,10 +168,10 @@ UNRESOLVED_RECOVERED_SUBTITLE_IDENTITY=0
 - 022: `SOURCE_UNAVAILABLE_PAID_GATED` — 不购买、不绕过。
 - 065: 媒体可用但现有 local ASR 已因语义幻觉被拒绝。若没有新的可靠语言证据，保持 `VISUAL_ONLY_NO_RELIABLE_LANGUAGE`，不得根据订单结果倒推口述逻辑。
 
-## 工具判断
+## 工具判断（历史：审计打开时）
 
 ```text
-TOOL_DECISION=USE_EXISTING
+HISTORICAL_AT_AUDIT_OPEN_TOOL_DECISION=USE_EXISTING
 ```
 
-不新增语义模型。Codex只可做机械分段、字幕/ASR运输、时间轴覆盖清单、字幕身份QA辅助和证据打包；最终语义判定继续由 GPT-5.6 Sol 完成。
+当时不新增语义模型。Codex只可做机械分段、字幕/ASR运输、时间轴覆盖清单、字幕身份QA辅助和证据打包；最终语义判定继续由 GPT-5.6 Sol 完成。当前工具状态不由本历史审计文件决定。
