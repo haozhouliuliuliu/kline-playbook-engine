@@ -1,0 +1,11 @@
+source_ordinal,bvid,title,upload_date,duration_seconds,subtitle_status,source_status,research_status,semantic_review_status,claim_count,case_count,family_links,notes
+074,BV1KjLz6fEav,实战交易-讲清剥头皮与波段,20260519,431.404,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,3,1,JH-FAMILY-A,"明确本人主做日内波段/微波段；剥头皮更多用于内容展示，不升级核心Family"
+075,BV1ghLb6zEWo,突破交易 vs 回调交易：为什么你一追涨杀跌就被套？,20260521,350.203,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,3,0,JH-FAMILY-A|JH-FAMILY-C,"强趋势更适合突破、弱趋势更适合回调；强调市场节奏适配"
+076,BV18gVP6FEvE,一个视频讲清技术分析,20260526,172.710,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,2,0,JH-FAMILY-A,"形态是结果不是原因；技术分析用于压缩市场信息"
+077,BV14vGQ6WEFF,裸k交易实战教学-如何实战应对多种行情,20260528,539.284,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,4,3,JH-FAMILY-A|JH-FAMILY-B|JH-FAMILY-D,"包含1H→5m与5m→1m多周期案例、新信号重进和移动止损"
+078,BV1BpVa69Ehd,k线交易技术-从0开始学交易,20260529,3044.305,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,10,0,JH-FAMILY-A|JH-FAMILY-B|JH-FAMILY-C|JH-FAMILY-D,"50分钟课程；正式定义趋势/非趋势K、平衡/失衡、强弱转换、对抗态、发力点，并明确均线仅辅助"
+079,BV1W37165EEZ,k线交易技术-从0开始学交易2,20260605,1018.195,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,6,2,JH-FAMILY-A|JH-FAMILY-B|JH-FAMILY-C,"给出以损定仓公式；2%/1%为教学示例。止损课件出现“收盘价”与图示/案例冲突，已入review queue"
+080,BV1eMEE6sEZM,如何解决持仓问题？如何解决卖飞问题？,20260609,171.712,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,2,0,,"退出是否正确按进场前订单类型/预期评价；来源建议大量回测建立系统信心，但不构成项目outcome-test授权"
+081,BV1WvER6kEeZ,裸k短线交易,20260610,406.465,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,4,2,JH-FAMILY-A,"弱空只高空不追空；10手计划拆5+5属于分仓进入，不是新增风险式加仓"
+082,BV1ewjw6qEnA,交易盈利的万能钥匙-10天赚16 万美金的能力如何获取？,20260618,337.201,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,3,0,,"学习层级和完整交易执行链；开头收益自述仅为source content，不是validity evidence"
+083,BV1QajU6YE1U,一个交易新手是靠什么赚到一百万的？,20260623,382.805,NATIVE,AVAILABLE,ANALYZED,SOL_ANALYZED,3,0,,"无止损/重仓梭哈暴赚被作为不可复制hard negative；70/30为来源修辞比例，不机器化"
