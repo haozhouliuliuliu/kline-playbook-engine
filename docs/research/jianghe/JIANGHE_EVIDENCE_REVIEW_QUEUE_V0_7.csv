@@ -1,0 +1,6 @@
+review_id,claim_or_case_id,source_ordinal,bvid,candidate_start,candidate_end,reason,requested_sol_action,status
+JH-REV-008,JH-CLM-030-001|JH-CON-007,030,BV1yCrTBhE82,00:03:12.860,00:03:34.240,"同一来源先说高于3分才开、低于3分不交易，随后又给出3分=3000美元仓位示例；3分本身是否允许开仓无法唯一确定。",PIN_NUMERIC_BOUNDARY,SOL_REVIEW_REQUIRED
+JH-REV-009,JH-UNK-035,065,BV1GSozBrE9e,00:00:00.000,00:03:11.774,"MP4可读，但无SRT，抽样画面没有稳定可读取的烧录语义字幕。纯视觉只能确认行情/订单画面，不能安全推断其语言解释与交易理由。",VERIFY_LANGUAGE,SOL_REVIEW_REQUIRED_AFTER_LOCAL_ASR_OR_DIRECT_AUDIO_REVIEW
+JH-REV-010,JH-CON-016,069,BV1kSduBKE47,00:01:13.869,00:02:13.479,"V069明确称本周期内部结构只用于确认外部结构，不提供交易机会，也不能当成小周期外部结构；需与早期材料中‘内部N/内部结构’作为管理或触发参考的术语范围统一。",RESOLVE_CONTRADICTION,SOL_REVIEW_REQUIRED
+JH-REV-011,JH-CLM-079-006|JH-CON-019,079,BV1W37165EEZ,00:05:18.000,00:05:42.000,"V079课件/口语先说止损常放近期高低点，又写若当前进场K就是近期高低点可将止损放该K收盘价；但同页图示及随后实际案例仍把止损画在K线极值之外，文本与视觉/案例无法唯一统一。",RESOLVE_CONTRADICTION,SOL_REVIEW_REQUIRED
+JH-REV-012,JH-UNK-036,078,BV1BpVa69Ehd,00:28:48.000,00:29:18.000,"V078分别用实体占整根K线50%以上定义趋势型K、影线占50%以上定义非趋势型K；恰好50/50时文字边界重叠，不能自行选择严格大于或大于等于。",PIN_NUMERIC_BOUNDARY,SOL_REVIEW_REQUIRED
