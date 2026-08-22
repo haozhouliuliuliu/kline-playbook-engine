@@ -1,6 +1,6 @@
 # Jianghe Second-Pass Integrity Check V1.1
 
-> Status: PASS
+> Status: PASS WITH NEWLINE-NORMALIZATION QUALIFICATION
 > Scope: mechanical integrity of the rescued exhaustive second-pass artifacts. This check does not independently validate trading performance.
 
 ## Coverage record
@@ -19,7 +19,7 @@ all_98_accessible_timeline_coverage = FULL_TIMELINE_REVIEWED_0_TO_END
 nonzero_unaccounted_timeline_gaps = NONE
 ```
 
-Canonical reconstructed artifact:
+Historical canonical local artifact:
 
 ```text
 filename = JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.csv
@@ -28,7 +28,24 @@ newline_count = 100
 sha256 = 1133f089caec2906668241c901a0034e8c5d0d0fa6efcefa9ba61f3994f65877
 ```
 
-The four committed coverage parts were locally concatenated byte-for-byte and matched this canonical artifact exactly.
+The four coverage fragments were byte-equal to that canonical artifact when concatenated in the original local rescue runtime. After GitHub text-content writes, the repository copies are LF-normalized while the original local CSV used CRLF. GitHub therefore preserves the 99-row text content but **raw remote bytes must not be claimed identical to the historical local SHA-256**.
+
+Remote GitHub fragment sizes are:
+
+```text
+part00 = 9121
+part01 = 8769
+part02 = 8435
+part03 = 8717
+remote_total = 35042
+```
+
+This is 100 bytes below the 35142-byte local canonical artifact, matching the 100 newline delimiters and the expected CRLF→LF normalization. Exact original-byte reconstitution is not re-claimed here; the canonical local SHA remains provenance metadata. Coverage acceptance is based on the semantic/mechanical 99-row checks above.
+
+```text
+REMOTE_GITHUB_RAW_BYTE_IDENTITY_TO_LOCAL = NOT_CLAIMED
+REMOTE_GITHUB_TEXT_ROW_CONTENT = PRESERVED_WITH_LF_NORMALIZATION
+```
 
 ## Recovered claim delta
 
@@ -51,7 +68,7 @@ jsonl_records = 64
 sha256 = 5330d703a16ccebf86ae9e984658d95a0423ad96736ed4ed0f0441a910d312a1
 ```
 
-The four committed claim parts were locally concatenated byte-for-byte and matched this canonical artifact exactly.
+The four committed claim parts retain the recorded byte sizes and locally verified exact concatenation identity.
 
 ## Dossier/reconciliation hashes
 
@@ -62,6 +79,8 @@ sha256 = cb43d643a096d674b48d07101f2e211aa6e939c1c3a5e72282041c54836fdad0
 JIANGHE_SECOND_PASS_RECONCILIATION_V1_1.md
 sha256 = 052c59b2e33ce86fcd63aa4fa3d1dd768fcf8c39175e305962d1ef09696152a6
 ```
+
+These hashes identify the original local rescue artifacts. GitHub content presence and semantic equivalence are independently evidenced by the committed files; exact-byte identity should only be asserted where directly rechecked.
 
 ## Provenance/fail-closed checks
 
@@ -81,11 +100,12 @@ No source outcome/R/P&L value is promoted to strategy-validity evidence by this 
 ## Result
 
 ```text
-SECOND_PASS_ARTIFACT_INTEGRITY = PASS
+SECOND_PASS_ARTIFACT_INTEGRITY = PASS_WITH_NEWLINE_NORMALIZATION_QUALIFICATION
 SECOND_PASS_TIMELINE_COVERAGE_RECORD = COMPLETE_FOR_98_ACCESSIBLE_SOURCES
 UNACCOUNTED_TIMELINE_GAP = 0
 CLAIM_DELTA_PARSE = PASS
 CLAIM_ID_UNIQUENESS = PASS
+REMOTE_COVERAGE_RAW_BYTE_IDENTITY_TO_LOCAL = NOT_CLAIMED
 ```
 
 Research boundary remains:
