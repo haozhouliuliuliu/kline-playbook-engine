@@ -13,9 +13,9 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=NONE_ACTIVE
-NEXT_NORMAL_PHASE=CLAIM_LEVEL_PRIMARY_MAPPING_PLUS_REAL_MODEL_FIDELITY_CANDIDATE_EVALUATION_WITHOUT_CANDIDATE_OUTCOMES
-OWNER_ACTION=NONE_FOR_ORDINARY_PRE_OUTCOME_ENGINEERING
+CURRENT_WORK_PACKAGE=JIANGHE_ACTIVE_IDENTITY_REBIND_AFTER_AUTHORITY_HYGIENE
+NEXT_NORMAL_PHASE=REBIND_CURRENT_JIANGHE_IDENTITY_THEN_CLAIM_LEVEL_PRIMARY_MAPPING_PLUS_REAL_MODEL_FIDELITY_WITHOUT_CANDIDATE_OUTCOMES
+OWNER_ACTION=NONE_FOR_ORDINARY_REBIND_ENGINEERING
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -51,35 +51,37 @@ Authority: `docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
 
 ```text
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
-JIANGHE_SOURCE_ONLY_VERIFIED=YES
+JIANGHE_SOURCE_SEMANTICS_CHANGED_BY_HYGIENE=NO
+HISTORICAL_PRE_HYGIENE_SOURCE_ONLY_VERIFICATION=PASS
+JIANGHE_SOURCE_ONLY_VERIFIED_CURRENT_ACTIVE_BUNDLE=REVERIFY_REQUIRED
 JIANGHE_PRIMARY_ELIGIBLE=NO
 KNOWLEDGE_PACK_VERSION=JIANGHE_V1_1
-KNOWLEDGE_PACK_IDENTITY=3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5
-JIANGHE_PRIMARY_PREPARATION_SCHEMA_V0_1=INTEGRATED_PRE_FREEZE_NON_OUTCOME
+HISTORICAL_PRE_HYGIENE_KNOWLEDGE_PACK_IDENTITY=3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5
+CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=REBIND_REQUIRED
+JIANGHE_PRIMARY_PREPARATION_SCHEMA_V0_1=INTEGRATED_PRE_FREEZE_NON_OUTCOME__CURRENT_IDENTITY_BINDING_PENDING_REBIND
 JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=60d4a1f9069a6dc33d04a82ce544d7525cd4bf2805c5b6e8dd9502d85bf39940
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
 JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
+JIANGHE_PRIMARY_FINAL_BRANCH_IDENTITIES=BLOCKED_ON_CURRENT_IDENTITY_REBIND
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-JIANGHE_PRIMARY_NEXT_GATE=COMPLETE_352_CLAIM_LEVEL_SOURCE_JUSTIFIED_PRIMARY_MAPPING_PLUS_REAL_MODEL_FIDELITY_EVIDENCE_WITHOUT_OUTCOMES
+JIANGHE_PRIMARY_NEXT_GATE=REBIND_CURRENT_IDENTITY_THEN_COMPLETE_352_CLAIM_LEVEL_SOURCE_JUSTIFIED_MAPPING_PLUS_REAL_MODEL_FIDELITY_WITHOUT_OUTCOMES
 JIANGHE_PRIMARY_SEMANTICS=SOURCE_JUSTIFIED_AI_INTERPRETATION_BRANCH_NOT_FIXED_RULE_MACHINE
 ```
 
-For the Jianghe AI Trader, PRIMARY does **not** mean converting Jianghe into a rigid threshold strategy. It means freezing the source-justified interpretation branch plus the complete versioned AI Trader identity and deterministic hard-risk/execution envelope before any outcome-bearing test. The integrated preparation contract uses one versioned PRIMARY branch object per claim so cross-cutting risk, management, multi-timeframe, no-trade, process and UNKNOWN semantics are not collapsed into four family summaries. Final semantic freeze remains Owner-gated.
+The V1.1 source semantics remain complete. The current active byte identity is temporarily unbound because authority-hygiene edits changed documents that the existing knowledge-pack/SOURCE_ONLY builders hash as raw content. The old `3f2ddbf9...` identity and SOURCE_ONLY PASS remain valid **historical pre-hygiene evidence**, not current active-bundle identity. Under existing identity semantics the builders must be deterministically re-run and dependent evidence synchronized before current active SOURCE_ONLY can return to YES.
 
-Current Jianghe source authority starts at:
-`docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md`.
+For the Jianghe AI Trader, PRIMARY does **not** mean converting Jianghe into a rigid threshold strategy. The integrated pre-freeze preparation still uses one source-justified branch object per claim, but final branch identities must bind the rebuilt current knowledge-pack identity. Final semantic freeze remains Owner-gated.
 
-PRIMARY preparation authorities:
-- `docs/research/jianghe/JIANGHE_PRIMARY_BRANCH_PREPARATION_V0_1.md`
-- `docs/research/jianghe/JIANGHE_PRIMARY_BRANCH_PREPARATION_SCHEMA_V0_1.json`
-
-SOURCE_ONLY verification authority:
-`docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` + `.json`.
+Authorities:
+- source view: `docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md`
+- identity-rebind review: `docs/reviews/JIANGHE_AUTHORITY_HYGIENE_IDENTITY_REBIND_REVIEW_V0_1.md`
+- PRIMARY preparation: `docs/research/jianghe/JIANGHE_PRIMARY_BRANCH_PREPARATION_V0_1.md` + schema JSON
+- historical pre-hygiene SOURCE_ONLY evidence: `docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` + `.json`
 
 ## Jianghe AI engineering status
 
 ```text
-JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME
+JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__IDENTITY_METADATA_REBIND_REQUIRED
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
@@ -88,17 +90,7 @@ JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
 JIANGHE_AI_SUB_MINUTE_LIVE_CAPABILITY=NOT_VALIDATED_NOT_EQUIVALENT_TO_1M_REPLAY
 ```
 
-Integrated components include causal multi-timeframe observations, rolling market state,
-standardized chart rendering, AI-hypothesis annotations, wake events, persistent working memory,
-forward-only replay, model-latency accounting, fidelity fixtures, and semantic scoring.
-
-Real-model evaluation must not select a trading brain from text-only reasoning. It must separately test Jianghe semantic fidelity, standardized-chart visual observation, matching structured OHLCV interpretation, visual/structured consistency, and governable provider/model callability/latency — all without candidate outcomes.
-
-Authorities:
-- `docs/research/JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md`
-- `docs/research/jianghe/JIANGHE_AI_FIDELITY_BENCHMARK_V0_1.md`
-- `docs/evidence/JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1.md`
-- `docs/reviews/JIANGHE_AI_FIDELITY_AND_REPLAY_INTEGRATION_REVIEW_V0_1.md`
+The fidelity fixtures/replay semantics remain non-outcome and intact; fixture metadata that binds `3f2ddbf9...` as the current pack identity must be synchronized after the deterministic rebind before real-model evaluation starts.
 
 ## Data authority relevant to the next phase
 
@@ -133,37 +125,39 @@ No project-recorded real candidate outcome exposure has been established.
 
 ## Active future gates / limitations
 
-Only currently relevant unresolved items are indexed in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
-The important ones are:
+Current highest-priority blocker is `LIMIT-013` in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`:
 
 ```text
+CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=REBIND_REQUIRED
+CURRENT_ACTIVE_SOURCE_ONLY_VERIFICATION=REVERIFY_REQUIRED
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
-E06_CONTINUOUS_HISTORICAL_EXCHANGE_FEE_MARGIN_SCHEDULE=INSUFFICIENT_EVIDENCE
-HISTORICAL_PRICE_LIMIT_OPERATIVE_METADATA=INCOMPLETE_FOR_FULL_CONFIRMATORY_REALISM
-PROSPECTIVE_SHADOW_STATISTICAL_PROFILE=NOT_LOCKABLE_UNDER_CURRENT_ASSUMPTION_AUTHORITY
-PORTFOLIO_CANDIDATE_OUTCOME_AUTHORITY=NOT_IMPLEMENTED
-SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
-LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
 ```
 
-The prospective statistical-design limitation is a future candidate-evidence gate. It does not block the current non-outcome real-model fidelity / PRIMARY preparation phase.
+Historical fee/margin, price-limit realism, future Shadow statistical profile, portfolio candidate authority, OS sandboxing and local tamper resistance remain deferred limitations as indexed there.
 
 ## Next normal work
 
-Two bounded lanes may proceed without candidate outcomes:
+The immediate bounded package is **identity/evidence rebind under existing semantics**:
 
-1. **Claim-level PRIMARY mapping** — review all 352 source-bound claims under `JIANGHE_PRIMARY_BRANCH_PREPARATION_V0_1`, choose exactly one source-justified interpretation branch per claim or an explicit fail-closed STOP disposition, preserve UNKNOWN/conflicts, predeclare alternatives, bind deterministic identities, and use no outcome information. No PRIMARY freeze/promotion occurs merely because the draft mapping is complete.
-2. **Real-model fidelity candidate evaluation** — compare candidate models on the integrated Jianghe non-outcome foundation across semantic + visual + structured + dual-input + operational-provider tracks; select by Jianghe fidelity, stability, UNKNOWN honesty, no-invention behavior, governable callability and latency, not by PnL.
+1. deterministically rebuild the current V1.1 knowledge-pack artifact from current `main` using the existing builder;
+2. rebuild the SOURCE_ONLY verification evidence on the same tree;
+3. synchronize all active dependencies that currently reference `3f2ddbf9...` as the current identity, including fidelity fixture metadata and PRIMARY-preparation bindings;
+4. run targeted tests and the canonical full suite;
+5. restore `JIANGHE_SOURCE_ONLY_VERIFIED_CURRENT_ACTIVE_BUNDLE=YES` only if the rebuilt evidence exactly matches current bytes and all technical-denial checks pass.
 
-A model/provider remains `CANDIDATE` until project evidence verifies it. No model is currently `ADOPTED_JIANGHE_DECISION_MODEL`.
+After that, two non-outcome lanes resume:
+- **352 claim-level PRIMARY mapping** — one source-justified branch or explicit STOP per claim; no outcome use; no automatic semantic freeze.
+- **Real-model fidelity candidate evaluation** — semantic + visual + structured + dual-input + operational-provider, selected by Jianghe fidelity rather than PnL.
+
+No model/provider is currently adopted.
 
 ## Authority hygiene
 
-- `PROJECT_BRAIN_RUNTIME_BRIEF.md` is the compact live refresh surface for the project brain.
+- `PROJECT_BRAIN_RUNTIME_BRIEF.md` is the compact live refresh surface.
 - `00_READ_FIRST.md` owns takeover/read order.
-- `PROJECT_HANDOFF_CURRENT.md` is a pointer-only derived handoff and never overrides this file.
-- Jianghe V1.1 source-distillation documents own source semantics/completeness only; mutable SOURCE_ONLY / PRIMARY / authorization state is centralized here and in the runtime brief.
-- Historical playbooks, old repair programs, negative source screens, prior integration logs and superseded estimates remain preserved in Git/evidence but are intentionally excluded from this current-state file.
+- `PROJECT_HANDOFF_CURRENT.md` is derived only.
+- Jianghe V1.1 source-distillation documents own source semantics/completeness only; mutable readiness is centralized here and in the runtime brief.
+- Historical pre-hygiene identities/evidence must be labeled historical and must not be silently reused as current active identities.
