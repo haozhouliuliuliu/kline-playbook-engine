@@ -20,8 +20,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Apply exact frozen-finding patch
-        run: python tools/_apply_prespend_repair_v01.py
+      - name: Apply exact frozen-finding patches
+        run: |
+          python tools/_apply_prespend_repair_v01.py
+          python tools/_apply_provider_prespend_v01.py
       - name: Compile changed Python
         run: python -m py_compile src/jianghe_prespend_runtime.py src/intent.py src/shadow_runtime.py src/jianghe_response_normalizer.py tests/test_jianghe_prespend_repair.py tests/test_jianghe_response_normalizer.py
       - name: Focused and adversarial regression
@@ -31,6 +33,7 @@ jobs:
       - name: Materialize only green repair
         run: |
           rm tools/_apply_prespend_repair_v01.py
+          rm tools/_apply_provider_prespend_v01.py
           rm -f .github/workflows/prespend-repair.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
