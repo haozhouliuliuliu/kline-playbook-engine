@@ -1,5 +1,6 @@
 name: main-baseline-test-debt-v01
 
+# Triggered after deterministic E07 identity re-pin.
 on:
   push:
     branches:
