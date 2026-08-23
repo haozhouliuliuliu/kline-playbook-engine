@@ -426,11 +426,65 @@ class CurrentPricingAuthorityTests(unittest.TestCase):
         self.assertEqual(card.fixed_input_tokens_per_image, 1024)
         self.assertIsNotNone(card.repository_authority_identity)
 
-    def test_unresolved_provider_image_billing_fails_closed_before_network(self):
-        for spec in (DEEPSEEK_VISION_SPEC, MINIMAX_M3_SPEC):
+    def test_deepseek_flash_inherited_peak_rate_is_spend_guard_ready(self):
+        card = load_current_repository_rate_card(DEEPSEEK_VISION_SPEC, now=NOW)
+        self.assertEqual(card.currency, "CNY")
+        self.assertEqual(card.input_per_million, Decimal("3.00"))
+        self.assertEqual(card.output_per_million, Decimal("9.00"))
+        self.assertEqual(card.image_billing_mode, "FIXED_INPUT_TOKENS_PER_IMAGE")
+        self.assertEqual(card.fixed_input_tokens_per_image, 384)
+        self.assertIsNotNone(card.repository_authority_identity)
+
+    def test_minimax_high_tier_input_token_rate_is_spend_guard_ready(self):
+        card = load_current_repository_rate_card(MINIMAX_M3_SPEC, now=NOW)
+        self.assertEqual(card.currency, "CNY")
+        self.assertEqual(card.input_per_million, Decimal("4.20"))
+        self.assertEqual(card.output_per_million, Decimal("16.80"))
+        self.assertEqual(card.image_billing_mode, "INPUT_TOKENS")
+        self.assertIsNone(card.fixed_input_tokens_per_image)
+        self.assertIsNotNone(card.repository_authority_identity)
+
+    def test_minimax_uses_current_completion_token_field(self):
+        payload = DomesticProviderTransport(MINIMAX_M3_SPEC).build_payload(_request())
+        self.assertEqual(payload["max_completion_tokens"], 200)
+        self.assertNotIn("max_tokens", payload)
+
+    def test_deepseek_and_minimax_pass_pricing_and_bounds_before_missing_credential(self):
+        cases = (
+            (DEEPSEEK_VISION_SPEC, "DEEPSEEK_API_KEY", 384),
+            (MINIMAX_M3_SPEC, "MINIMAX_API_KEY", 0),
+        )
+        for spec, env_name, expected_image_tokens in cases:
             with self.subTest(provider=spec.provider_id):
-                with self.assertRaises(BudgetGuardError):
-                    load_current_repository_rate_card(spec, now=NOW)
+                previous = os.environ.pop(env_name, None)
+                calls = []
+                try:
+                    request = _request()
+                    transport = DomesticProviderTransport(
+                        spec, http_post=lambda *args: calls.append(args)  # type: ignore[arg-type]
+                    )
+                    auth = _synthetic_auth(spec)
+                    ledger = CnyBudgetLedger()
+                    bounds = InvocationBounds(
+                        transport.conservative_text_input_token_bound(request),
+                        expected_image_tokens,
+                        request.max_output_tokens,
+                    )
+                    with patch(
+                        "src.jianghe_prespend_runtime.load_owner_paid_call_authorization",
+                        return_value=auth,
+                    ):
+                        with self.assertRaises(ProviderTransportError):
+                            transport.invoke(
+                                request, authorization=auth, budget=ledger, bounds=bounds,
+                                fx=None, now=NOW,
+                            )
+                    self.assertEqual(calls, [])
+                    self.assertEqual(ledger.spent_cny, Decimal("0"))
+                    self.assertEqual(ledger.remaining_cny, HARD_PROJECT_CAP_CNY)
+                finally:
+                    if previous is not None:
+                        os.environ[env_name] = previous
 
     def test_current_endpoints_are_bound(self):
         self.assertEqual(KIMI_K3_SPEC.endpoint, "https://api.moonshot.cn/v1/chat/completions")

@@ -920,7 +920,11 @@ def load_current_repository_rate_card(spec: ProviderSpec, *, now: datetime) -> R
     if len(matches) != 1:
         raise BudgetGuardError("provider/model has no unique pricing authority")
     entry = matches[0]
-    if entry.get("status") != "VERIFIED_CURRENT_FOR_SPEND_GUARD":
+    allowed_statuses = {
+        "VERIFIED_CURRENT_FOR_SPEND_GUARD",
+        "OWNER_APPROVED_CONSERVATIVE_FAMILY_INHERITANCE_FOR_SPEND_GUARD",
+    }
+    if entry.get("status") not in allowed_statuses:
         raise BudgetGuardError(f"provider pricing is not spend-eligible: {entry.get('status')}")
     if entry.get("endpoint") != spec.endpoint:
         raise BudgetGuardError("pricing authority endpoint differs from provider transport")
@@ -932,7 +936,9 @@ def load_current_repository_rate_card(spec: ProviderSpec, *, now: datetime) -> R
     try:
         effective_at = datetime.fromisoformat(str(entry["effective_at"]))
         expires_at = datetime.fromisoformat(str(entry["expires_at"]))
-        fixed_tokens = int(entry["fixed_input_tokens_per_image"])
+        image_billing_mode = str(entry["image_billing_mode"])
+        raw_fixed_tokens = entry.get("fixed_input_tokens_per_image")
+        fixed_tokens = None if raw_fixed_tokens is None else int(raw_fixed_tokens)
     except (KeyError, TypeError, ValueError) as error:
         raise BudgetGuardError("pricing authority entry is incomplete") from error
     card = RateCard(
@@ -945,7 +951,7 @@ def load_current_repository_rate_card(spec: ProviderSpec, *, now: datetime) -> R
         authority_uri=str(authorities[0]),
         effective_at=effective_at,
         expires_at=expires_at,
-        image_billing_mode=str(entry.get("image_billing_mode")),
+        image_billing_mode=image_billing_mode,
         fixed_input_tokens_per_image=fixed_tokens,
         repository_authority_identity=authority_identity,
     )
@@ -1418,7 +1424,7 @@ class DomesticProviderTransport:
                     {"role": "system", "content": request.system_prompt},
                     {"role": "user", "content": multimodal_content},
                 ],
-                "max_tokens": request.max_output_tokens,
+                "max_completion_tokens": request.max_output_tokens,
                 "stream": False,
                 "tools": [],
             }
@@ -1499,9 +1505,17 @@ class DomesticProviderTransport:
             raise BudgetGuardError(
                 "text-input reservation must exactly match the canonical payload bound policy"
             )
-        if rate_card.image_billing_mode != "FIXED_INPUT_TOKENS_PER_IMAGE":
-            raise BudgetGuardError("dynamic/ambiguous image billing has no deterministic pre-call bound")
-        expected_image_tokens = len(request.visuals) * int(rate_card.fixed_input_tokens_per_image or 0)
+        if rate_card.image_billing_mode == "FIXED_INPUT_TOKENS_PER_IMAGE":
+            expected_image_tokens = (
+                len(request.visuals) * int(rate_card.fixed_input_tokens_per_image or 0)
+            )
+        elif rate_card.image_billing_mode == "INPUT_TOKENS":
+            # The exact serialized multimodal payload already contains the image data URL.
+            # The X2-bytes+8192 policy therefore supplies a deterministic pre-network
+            # upper bound without inventing a provider-specific fixed image conversion.
+            expected_image_tokens = 0
+        else:
+            raise BudgetGuardError("unknown image billing mode fails closed before network")
         if bounds.max_image_tokens != expected_image_tokens:
             raise BudgetGuardError(
                 "image-token reservation must exactly match the repository billing authority"
