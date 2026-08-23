@@ -11,14 +11,14 @@ After takeover acceptance, before every **substantive project reply**:
 3. do not use chat memory as authority for mutable project facts;
 4. if the question concerns state / architecture / locks / next work / worker prompts / model or tool adoption, or if material state moved beyond `LAST_MATERIAL_STATE_COMMIT`, refresh `CURRENT_STATE.md` and the authority it names.
 
-`LAST_MATERIAL_STATE_COMMIT` tracks the latest substantive code/research-state change incorporated by this brief. Later documentation-only hygiene commits do not make the marker stale.
+`LAST_MATERIAL_STATE_COMMIT` tracks the latest substantive code/research-state change incorporated by this brief. Later documentation-only state/hygiene commits do not make the marker stale.
 
 Fresh conversations still follow the read-only takeover in `00_READ_FIRST.md`.
 
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=e5a52f52b781930ab9ad724be474d5a83692262e
+LAST_MATERIAL_STATE_COMMIT=5ee3e99f7f292ba52c51a607c17c3bb3246ee68b
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -26,24 +26,29 @@ STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
 JIANGHE_SOURCE_SEMANTICS_CHANGED_BY_HYGIENE=NO
-HISTORICAL_PRE_HYGIENE_SOURCE_ONLY_VERIFICATION=PASS
 JIANGHE_SOURCE_ONLY_VERIFIED_CURRENT_ACTIVE_BUNDLE=YES
-HISTORICAL_PRE_HYGIENE_KNOWLEDGE_PACK_IDENTITY=3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
-JIANGHE_PRIMARY_ELIGIBLE=NO
-JIANGHE_PRIMARY_PREPARATION_SCHEMA_V0_1=INTEGRATED_PRE_FREEZE_NON_OUTCOME__CURRENT_IDENTITY_BINDING_AVAILABLE__MAPPING_SEMANTIC_AUDIT_PENDING_INTEGRATION
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
-JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
-JIANGHE_PRIMARY_FINAL_BRANCH_IDENTITIES=NOT_ASSERTED_PENDING_CLAIM_LEVEL_SEMANTIC_MAPPING
+JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=COMPLETE_PRE_FREEZE_IDENTITY_BOUND
+JIANGHE_PRIMARY_READY_FOR_FREEZE_COUNT=340
+JIANGHE_PRIMARY_STOP_SOURCE_AMBIGUOUS_COUNT=2
+JIANGHE_PRIMARY_STOP_SOURCE_CONFLICT_COUNT=5
+JIANGHE_PRIMARY_STOP_OBSERVABILITY_GAP_COUNT=5
+JIANGHE_PRIMARY_STOP_IDENTITY_INCOMPLETE_COUNT=0
+JIANGHE_PRIMARY_BRANCH_IDENTITIES_DETERMINISTIC=YES
+JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-JIANGHE_PRIMARY_SEMANTICS=SOURCE_JUSTIFIED_AI_INTERPRETATION_BRANCH_NOT_FIXED_RULE_MACHINE
-JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND__REAL_MODEL_EVALUATION_NOT_STARTED
+JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
+JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
+JIANGHE_AI_VISUAL_RENDERER=IN_PREPARATION_NOT_INTEGRATED
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
-CURRENT_WORK_PACKAGE=JIANGHE_PRIMARY_MAPPING_AND_REAL_MODEL_FIDELITY_PREOUTCOME
-NEXT_NORMAL_PHASE=integrate claim-level semantic mapping + real-model Jianghe fidelity without candidate outcomes
+CURRENT_WORK_PACKAGE=JIANGHE_REAL_MODEL_FIDELITY_PREP_AND_PRIMARY_FREEZE_READINESS
+NEXT_NORMAL_PHASE=complete_visual_renderer_plus_provider_contract_then_owner_authorized_live_fidelity_probe
+LIVE_MODEL_PROVIDER_PROBE=OWNER_GATE_NOT_YET_REQUESTED
+PAID_MODEL_SPEND=NOT_AUTHORIZED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
@@ -67,23 +72,20 @@ NORMAL_SCAN_OUTPUT=COMPACT
 FULL_RATIONALE=MEANINGFUL_STATE_TRANSITION_OR_TRADE_MANAGEMENT
 ```
 
-## Current repair state (rebind complete)
+## Current gates
 
-The active-bundle identity rebind is complete. The canonical builders deterministically rebuilt the current V1.1 knowledge-pack and SOURCE_ONLY evidence from current `main`; current active-bundle SOURCE_ONLY=YES is restored on exact evidence with all technical denials PASS. The old `3f2ddbf9...` identity and pre-hygiene SOURCE_ONLY PASS are historical pre-hygiene evidence, preserved in the hygiene review and the rebind execution evidence.
+The 352-claim identity-bound pre-freeze registry is integrated; 340 claims are ready for freeze and 12 remain explicit fail-closed STOP records. This is not the Owner-gated PRIMARY semantic freeze.
 
-Repair authority:
-- `docs/reviews/JIANGHE_AUTHORITY_HYGIENE_IDENTITY_REBIND_REVIEW_V0_1.md`
-- `docs/evidence/JIANGHE_AUTHORITY_HYGIENE_IDENTITY_REBIND_EXECUTION_V0_1.md`
+The offline provider-neutral fidelity evaluation harness is integrated. Current normal work is parallel visual-renderer preparation plus governed provider-contract preparation. No real provider/model call is authorized yet.
+
+After those preparations integrate and tests remain green, request Owner approval for one bounded real-provider fidelity probe covering credentials/data egress/paid spend. That approval does **not** unlock candidate outcomes. After real-model fidelity evidence supports a model/provider, final PRIMARY semantic freeze remains a separate Owner decision before outcome-bearing candidate research.
 
 ## Local worker relay facts / Owner workflow
 
 ```text
 WORKBUDDY=LOCAL_ONLY_NO_GITHUB_IN_CURRENT_SETUP
-PRIMARY_LOCAL_REPO_LAST_REPORTED=C:\Users\H\Documents\ChatGPT\Kline-Playbook-engine
 VERIFY_LOCAL_FOLDER_BEFORE_ASSIGNMENT=YES
-WORKBUDDY_DEFAULT_OPEN_TARGET=DEDICATED_KLINE_PLAYBOOK_ENGINE_REPO_OR_WORKTREE_ROOT
 WORKBUDDY_PUSH_MAIN=NO
-WORKBUDDY_MODEL_MENU_LAST_REPORTED=Hy3,GLM-5.3,GLM-5.2,GLM-5.1,GLM-5v-Turbo,MiniMax-M3,Kimi-K3
 WORKBUDDY_MODEL_MENU_IS_VOLATILE=YES
 WORKBUDDY_MODEL_ACCESS_DOES_NOT_PROVE_PROGRAMMATIC_TRADING_PROVIDER_ACCESS=YES
 LOCAL_MODEL_SELECTION=TASK_SPECIFIC_NOT_PERMANENTLY_ADOPTED
@@ -97,8 +99,6 @@ Before every WorkBuddy prompt, tell the Owner:
 - exact local folder/worktree to open;
 - exact currently recommended model;
 - then one complete copy-paste prompt.
-
-The model-menu snapshot above is only the last Owner-reported UI availability. Reconfirm when model availability materially affects a task. WorkBuddy output remains local until a GitHub-capable lane reviews/protects/commits it.
 
 ## Update rule
 
