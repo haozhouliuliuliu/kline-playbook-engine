@@ -9,6 +9,21 @@ permissions:
   contents: write
 
 jobs:
+  base-control:
+    if: github.head_ref == 'repair/prespend-batched-domestic-v01'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Canonical full suite on unmodified main
+        continue-on-error: true
+        run: python -m unittest discover -s tests -v
+
   repair-test-and-materialize:
     if: github.actor != 'github-actions[bot]' && github.head_ref == 'repair/prespend-batched-domestic-v01'
     runs-on: ubuntu-latest
