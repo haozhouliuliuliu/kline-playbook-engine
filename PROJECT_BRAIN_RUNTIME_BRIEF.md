@@ -18,7 +18,7 @@ Fresh conversations still follow the read-only takeover in `00_READ_FIRST.md`.
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=63e2e4afe125d3efefe464df659f69676434b362
+LAST_MATERIAL_STATE_COMMIT=141c8e445c20d240a1414c9d6e79c56899ae9fe6
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -29,13 +29,14 @@ JIANGHE_SOURCE_SEMANTICS_CHANGED_BY_HYGIENE=NO
 JIANGHE_SOURCE_ONLY_VERIFIED_CURRENT_ACTIVE_BUNDLE=YES
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
-JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=INTEGRATED_PRE_FREEZE_IDENTITY_BOUND__CURATED_QUALITY_REPAIR_REQUIRED
+JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=INTEGRATED_PRE_FREEZE_IDENTITY_BOUND__FIXED_RUBRIC_REAUDIT_PASS
+JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_5=INTEGRATED_PRE_FREEZE_NON_FINAL_FIXED_RUBRIC_REAUDIT_PASS
 JIANGHE_PRIMARY_REGISTRY_DECLARED_READY_COUNT=340
 JIANGHE_PRIMARY_REGISTRY_STOP_COUNT=12
-JIANGHE_PRIMARY_PROJECT_BRAIN_ACCEPTED_READY_COUNT=NOT_ESTABLISHED_PENDING_CURATED_QUALITY_REPAIR
-JIANGHE_PRIMARY_CURATED_QUALITY_AUDIT=FAIL_CLOSED_MATERIAL_FINDINGS
-JIANGHE_PRIMARY_CURATED_Q01_SOL_REVIEW_READY_CONFLICT_COUNT=5
-JIANGHE_PRIMARY_CURATED_Q02_TEMPLATE_EVIDENCE_PROBLEM=CONFIRMED
+JIANGHE_PRIMARY_PROJECT_BRAIN_ACCEPTED_READY_COUNT=340
+PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
+JIANGHE_PRIMARY_CURATED_Q01_SOL_REVIEW_READY_CONFLICT_COUNT=0_RESOLVED_BY_V0_5
+JIANGHE_PRIMARY_CURATED_Q02_TEMPLATE_EVIDENCE_PROBLEM=RESOLVED_BY_V0_5_FIXED_RUBRIC_REAUDIT
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
@@ -44,15 +45,15 @@ JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION
 JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
 JIANGHE_AI_RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
 JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED
-JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED
+JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__PRIMARY_SCOPE_REBOUND_TO_V0_5
 JIANGHE_AI_REAL_MODEL_PROVIDER=LIVE_TRANSPORT_NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
-CURRENT_WORK_PACKAGE=JIANGHE_PRIMARY_CURATED_QUALITY_REPAIR_PRE_FREEZE
-NEXT_NORMAL_PHASE=re_review_352_claims_and_rebuild_primary_registry_then_independent_pre_live_gate_reaudit
-PRE_LIVE_FIDELITY_GATE_AUDIT=NOT_READY_REPAIR_REQUIRED
-OWNER_ACTION=NONE_UNTIL_PRIMARY_QUALITY_REPAIR_AND_PRELIVE_REAUDIT_PASS
-LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_PRIMARY_CURATED_QUALITY_REPAIR
+CURRENT_WORK_PACKAGE=JIANGHE_BOUNDED_LIVE_MODEL_FIDELITY_PROBE_APPROVAL_PREPARATION
+NEXT_NORMAL_PHASE=owner_approval_then_bounded_real_model_fidelity_probe
+PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
+OWNER_ACTION=BOUNDED_LIVE_MODEL_FIDELITY_PROBE_APPROVAL_REQUIRED
+LIVE_MODEL_PROVIDER_PROBE=AWAITING_OWNER_BOUNDED_PROBE_APPROVAL
 PAID_MODEL_SPEND=NOT_AUTHORIZED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
@@ -80,11 +81,11 @@ FULL_RATIONALE=MEANINGFUL_STATE_TRANSITION_OR_TRADE_MANAGEMENT
 
 ## Current gates
 
-The offline pre-live engineering evidence chain is now integrated on one main lineage: strict evaluator evidence handling, deterministic/adversarially repaired visual rendering, content-addressed observation/replay binding, governed AI research-object identity, strict runtime normalizer, provider evidence contract, and a candidate non-outcome prompt package. No real provider/model call has occurred.
+The offline pre-live engineering evidence chain is integrated on one main lineage: strict evaluator evidence handling, deterministic/adversarially repaired visual rendering, content-addressed observation/replay binding, governed AI research-object identity, strict runtime normalizer, provider evidence contract, and a candidate non-outcome prompt package. No real provider/model call has occurred.
 
-The pre-live gate remains `NOT_READY_REPAIR_REQUIRED` because the independent PRIMARY curated-quality audit found material findings. The current registry mechanically declares 340 READY and 12 STOP, but project brain does **not** accept 340 as the freeze-ready population pending a substantive 352-claim re-review. The repair may change READY/STOP counts; no target count is to be preserved.
+The PRIMARY V0.5 curated-quality repair has passed the independent fixed R1–R8 re-audit (`PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS`), and the full original pre-live gate re-audit has closed all 27 findings (`PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS`). `340 READY` is project-brain accepted as the re-audited non-final population; `PRIMARY_ELIGIBLE=NO` remains.
 
-Current normal work is the PRIMARY curated-quality repair, followed by an independent re-audit of the repaired registry and then the full pre-live gate re-audit. Only a PASS may advance to an Owner request for one bounded real-provider fidelity probe covering credentials/data egress/paid spend. That approval does **not** unlock candidate outcomes. Final PRIMARY semantic freeze remains a separate Owner decision after real-model fidelity evidence.
+Current normal work is Owner-gated preparation for one bounded real-provider fidelity probe covering credentials/data egress/paid spend. `LIVE_MODEL_PROVIDER_PROBE=AWAITING_OWNER_BOUNDED_PROBE_APPROVAL`. That approval does **not** unlock candidate outcomes. Final PRIMARY semantic freeze remains a separate Owner decision after real-model fidelity evidence.
 
 ## Local worker relay facts / Owner workflow
 

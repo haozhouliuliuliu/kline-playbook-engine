@@ -79,53 +79,55 @@ RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
 
 The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. The offline evidence chain is integrated, but no real provider/model has been called or verified. A future live probe remains Owner-gated for credentials, data egress and paid spend.
 
-## LIMIT-013 — Pre-live fidelity gate audit remains NOT_READY
+## LIMIT-013 — Pre-live fidelity gate audit blocker (RESOLVED)
 
 ```text
-STATUS=ACTIVE
-PRIORITY=HIGHEST_CURRENT_GATE
-CURRENT_BLOCKER=YES_FOR_LIVE_MODEL_PROVIDER_PROBE_AND_PRIMARY_PROMOTION
-PRE_LIVE_FIDELITY_GATE_AUDIT=NOT_READY_REPAIR_REQUIRED
-LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_PRIMARY_CURATED_QUALITY_REPAIR
+STATUS=RESOLVED_BY_INTEGRATION_2026-08-23
+CURRENT_BLOCKER=NO
+PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
+LIVE_MODEL_PROVIDER_PROBE=AWAITING_OWNER_BOUNDED_PROBE_APPROVAL
 OUTCOME_ACCESS=NO
-AUTHORITY=docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_V0_1.md
+RESOLUTION=docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_REAUDIT_V0_1.md
+CLOSING_EVIDENCE=all 27 original findings (G-01..G-03, H-01..H-13, O-01..O-03, N-01..N-04, P-01..P-04) CLOSED with concrete code/artifact/test evidence; full suite 1195 tests 0 failures 0 errors; firewalls pass.
 ```
 
-The original engineering evidence-chain findings have been repaired and integrated: evaluator evidence completeness, deterministic/adversarially repaired visual rendering, observation/replay identity binding, AI research-object identity, strict runtime normalizer, provider evidence contract and candidate prompt package are all on the current main lineage. LIMIT-013 remains active because the gate must not flip to PASS until LIMIT-014 is repaired and the same full gate audit is independently re-run.
+Pre-live audit blocker is closed only because Gate C passed in full. Real-model fidelity itself remains the later `LIMIT-012`.
 
-## LIMIT-014 — PRIMARY curated review quality is not accepted
+## LIMIT-014 — PRIMARY curated review quality (RESOLVED)
 
 ```text
-STATUS=ACTIVE
-PRIORITY=HIGHEST_CURRENT
-CURRENT_BLOCKER=YES_FOR_PRELIVE_GATE_AND_PRIMARY_FREEZE_READINESS
-AUDIT_STATUS=FAIL_CLOSED_MATERIAL_FINDINGS
-AUTHORITY=docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_AUDIT_V0_1.md
+STATUS=RESOLVED_BY_V0_5_FIXED_RUBRIC_INDEPENDENT_REAUDIT_2026-08-23
+CURRENT_BLOCKER=NO
+AUDIT_STATUS=PASS
+PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
+RESOLUTION=docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT_V0_1.md
+CANDIDATE_COMMIT=08dc196e1a889c9d17070a767a24a41aab2f17d6
 TOTAL_RECORDS=352
 REGISTRY_DECLARED_READY_COUNT=340
 REGISTRY_STOP_COUNT=12
-PROJECT_BRAIN_ACCEPTED_READY_COUNT=NOT_ESTABLISHED_PENDING_CURATED_QUALITY_REPAIR
-Q01_SOL_REVIEW_READY_CONFLICT_COUNT=5
-Q02_TEMPLATE_EVIDENCE_PROBLEM=CONFIRMED
+PROJECT_BRAIN_ACCEPTED_READY_COUNT=340
+Q01_SOL_REVIEW_READY_CONFLICT_COUNT=0_RESOLVED_BY_V0_5
+Q02_TEMPLATE_EVIDENCE_PROBLEM=RESOLVED_BY_V0_5_FIXED_RUBRIC_REAUDIT
 PRIMARY_FREEZE=NO
 OUTCOME_ACCESS=NO
 ```
 
-The current identity-bound registry is mechanically complete and deterministic, but its semantic-review evidence is not sufficient for freeze readiness. Five records simultaneously declare `SOL_REVIEW_REQUIRED` and `READY_FOR_PRIMARY_FREEZE`. More broadly, the existing review artifact can be generated from templated rationale/interpolation patterns and therefore does not establish that 352 substantive claim-specific reviews occurred. This does **not** prove all 340 READY semantics are wrong; it means the project may not treat them as accepted freeze-ready semantics without a real per-claim re-review. The repair may change READY/STOP counts; no target count is to be preserved.
+The V0.5 curated-quality repair (exact candidate commit above) passed the independent fixed R1–R8 re-audit (`AUDITOR_ROLE=INDEPENDENT_LOCAL_WORKBUDDY_READ_ONLY`). `PRIMARY_ELIGIBLE=NO` remains; this resolution does not create PRIMARY eligibility, freeze, outcome access, or model/provider adoption.
 
 ## Current PRIMARY prerequisite
 
 ```text
 JIANGHE_PRIMARY_ELIGIBLE=NO
-JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=INTEGRATED_PRE_FREEZE_IDENTITY_BOUND__CURATED_QUALITY_REPAIR_REQUIRED
+JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=INTEGRATED_PRE_FREEZE_IDENTITY_BOUND__FIXED_RUBRIC_REAUDIT_PASS
+JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_5=INTEGRATED_PRE_FREEZE_NON_FINAL_FIXED_RUBRIC_REAUDIT_PASS
 JIANGHE_PRIMARY_REGISTRY_DECLARED_READY_COUNT=340
 JIANGHE_PRIMARY_REGISTRY_STOP_COUNT=12
-JIANGHE_PRIMARY_PROJECT_BRAIN_ACCEPTED_READY_COUNT=NOT_ESTABLISHED_PENDING_CURATED_QUALITY_REPAIR
+JIANGHE_PRIMARY_PROJECT_BRAIN_ACCEPTED_READY_COUNT=340
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-NEXT_GATE=CURATED_QUALITY_REPAIR_THEN_PRELIVE_GATE_REAUDIT
+NEXT_GATE=OWNER_FREEZE_DECISION_AFTER_REAL_MODEL_FIDELITY_EVIDENCE
 ```
 
-Current active-bundle SOURCE_ONLY verification is `YES`, but neither source verification nor a mechanically complete registry creates PRIMARY eligibility. The next accepted artifact must be built from substantive claim-specific review and independently re-audited.
+Current active-bundle SOURCE_ONLY verification is `YES`, and the V0.5 registry passed the independent fixed-rubric re-audit. Neither creates PRIMARY eligibility. Final PRIMARY semantic freeze remains an Owner decision after real-model fidelity evidence.
 
 ## Maintenance rule
 
