@@ -1,0 +1,104 @@
+name: prespend-batched-domestic-v02
+
+on:
+  push:
+    branches:
+      - repair/prespend-batched-domestic-v02
+
+permissions:
+  contents: write
+
+jobs:
+  repair-test-materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: repair/prespend-batched-domestic-v02
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply, test, materialize only on true green
+        shell: bash
+        run: |
+          set +e
+          DIAG=docs/reviews/PRESPEND_BATCHED_DOMESTIC_V02_CI_DIAGNOSTIC.tmp.md
+
+          persist_diag() {
+            STAGE="$1"
+            LOGFILE="$2"
+            mkdir -p docs/reviews
+            {
+              echo "# Temporary prespend v02 CI diagnostic"
+              echo
+              echo "STAGE=$STAGE"
+              echo "BRANCH=repair/prespend-batched-domestic-v02"
+              echo "PAID_CALLS=0"
+              echo "OUTCOME_ACCESS=NO"
+              echo
+              echo '```text'
+              tail -n 260 "$LOGFILE" 2>/dev/null || true
+              echo '```'
+            } > "$DIAG"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "$DIAG"
+            git commit -m "ci: record prespend v02 diagnostic" || true
+            git push origin HEAD:repair/prespend-batched-domestic-v02 || true
+          }
+
+          python tools/_apply_prespend_batched_domestic_v02.py > /tmp/apply.log 2>&1
+          APPLY=$?
+          cat /tmp/apply.log
+          if [ "$APPLY" -ne 0 ]; then
+            persist_diag APPLY /tmp/apply.log
+            exit 0
+          fi
+
+          python -m py_compile \
+            src/jianghe_prespend_runtime.py \
+            src/jianghe_response_normalizer.py \
+            src/intent.py \
+            src/shadow_runtime.py \
+            tests/test_jianghe_prespend_repair.py \
+            tests/test_jianghe_response_normalizer.py > /tmp/compile.log 2>&1
+          COMPILE=$?
+          cat /tmp/compile.log
+          if [ "$COMPILE" -ne 0 ]; then
+            persist_diag COMPILE /tmp/compile.log
+            exit 0
+          fi
+
+          python -m unittest \
+            tests.test_jianghe_prespend_repair \
+            tests.test_jianghe_response_normalizer \
+            tests.test_jianghe_fidelity_evaluation -v > /tmp/focused.log 2>&1
+          FOCUSED=$?
+          tail -n 160 /tmp/focused.log
+          if [ "$FOCUSED" -ne 0 ]; then
+            persist_diag FOCUSED /tmp/focused.log
+            exit 0
+          fi
+
+          python -m unittest discover -s tests -v > /tmp/full.log 2>&1
+          FULL=$?
+          tail -n 140 /tmp/full.log
+          if [ "$FULL" -ne 0 ]; then
+            persist_diag FULL_SUITE /tmp/full.log
+            exit 0
+          fi
+
+          rm -f "$DIAG"
+          rm tools/_apply_prespend_batched_domestic_v02.py
+          rm .github/workflows/prespend-batched-domestic-v02.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "repair: harden domestic prespend runtime v02"
+          git push origin HEAD:repair/prespend-batched-domestic-v02
