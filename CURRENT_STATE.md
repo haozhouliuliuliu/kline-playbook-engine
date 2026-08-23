@@ -14,7 +14,7 @@ RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 CURRENT_WORK_PACKAGE=JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_REPAIR
-NEXT_NORMAL_PHASE=repair_pre_live_identity_fidelity_provider_normalizer_and_visual_findings_then_rerun_gate_audit
+NEXT_NORMAL_PHASE=integrate_identity_provider_normalizer_repair_then_rerun_gate_audit
 OWNER_ACTION=NONE_UNTIL_REAUDIT_PASSES_AND_LIVE_PROBE_APPROVAL_IS_REQUESTED
 TOOL_DECISION=USE_EXISTING
 ```
@@ -101,9 +101,9 @@ Authorities:
 
 ```text
 JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
-JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL
+JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__PRELIVE_EVIDENCE_REPAIRED
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
-JIANGHE_AI_VISUAL_RENDERER=IN_PREPARATION_NOT_INTEGRATED
+JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
@@ -111,7 +111,9 @@ JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
 JIANGHE_AI_SUB_MINUTE_LIVE_CAPABILITY=NOT_VALIDATED_NOT_EQUIVALENT_TO_1M_REPLAY
 ```
 
-The provider-neutral offline fidelity harness is integrated and reuses the existing Jianghe fidelity scorer. It makes no model/network calls and does not select or adopt a provider. Real-model fidelity remains blocked on a governed provider seam plus standardized visual input, followed by an Owner-authorized live probe because provider access may involve credentials, data egress and paid spend.
+The provider-neutral offline fidelity harness is integrated with fail-closed evidence handling: strict response schema, exact corpus binding, failed-call non-scoreable behavior, typed track provenance, deterministic report identity, and separate processing/completeness/eligibility states. The standardized visual renderer is also integrated after independent adversarial review; the three discovered renderer defects were repaired and their reproducer suite passes 80/80. No live model/network call or provider adoption occurred.
+
+Real-model fidelity remains blocked on the remaining governed identity/provider/normalizer repair plus a clean combined-tree re-audit, followed by an Owner-authorized live probe because provider access may involve credentials, data egress and paid spend.
 
 ## Data authority relevant to the next phase
 
@@ -149,7 +151,9 @@ No project-recorded real candidate outcome exposure has been established.
 
 ## Active future gates / limitations
 
-Current highest-priority blocker remains `LIMIT-012` in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`:
+Current highest-priority blocker is `LIMIT-013` in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`: the pre-live fidelity gate remains `NOT_READY_REPAIR_REQUIRED` until all identity/provider/normalizer and combined-evidence gaps are closed and the same gate is re-audited.
+
+`LIMIT-012` remains the longer-horizon Jianghe PRIMARY / real-model fidelity gate:
 
 ```text
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
@@ -164,27 +168,19 @@ Historical fee/margin, price-limit realism, future Shadow statistical profile, p
 
 ## Next normal work
 
-Current package is the pre-live fidelity gate audit repair, which must stay fail-closed and offline:
+Current package is still the pre-live fidelity gate audit repair and remains fail-closed/offline.
 
-- **fidelity evaluator evidence completeness** — outcome contamination fail-closed
-  (PROCESSING_STATUS=ERROR / EVIDENCE_ELIGIBLE=NO), strict response schema,
-  exact corpus binding, failed-call non-scoreable, strict types, typed input
-  provenance per track, metadata allowlist + recursive contamination scan,
-  deterministic report identity, and separation of processing_status /
-  evidence_completeness / evidence_eligibility;
-- **visual renderer import + independent review** — port WorkBuddy visual renderer
-  by file/hash (no branch-ancestry merge), then review for pure stdlib, no network,
-  no system font/clock/random, deterministic artifact identities, no PnL/outcome,
-  provider-neutral;
-- **real-model firewall tests** — prove the new paths reject unknown outcome fields,
-  contamination, corpus mismatch, missing provenance, etc., without any real model call.
+Completed and integrated in the current main lineage:
+- fidelity evaluator evidence-completeness repair;
+- standardized visual renderer import and independent review;
+- three visual adversarial defects repaired with reproducer coverage;
+- real-model firewall tests for the integrated evaluator/visual path.
 
-No provider/model call or candidate outcome access occurs in this package. After the
-repair and a re-run of the gate audit confirm no remaining evidence gaps, the next
-Owner gate is a bounded real-provider fidelity probe (credentials/data egress/paid
-spend). That approval does **not** unlock candidate outcomes. After real-model
-fidelity evidence supports a model/provider, the final PRIMARY semantic freeze
-remains a separate Owner decision before any outcome-bearing candidate research.
+Remaining before gate re-audit:
+- integrate and cross-test the governed observation/replay identity, AI research-object identity, runtime normalizer, provider evidence contract, and candidate prompt package on the latest main lineage;
+- run a combined latest-main full suite and re-run the same pre-live gate audit.
+
+No provider/model call or candidate outcome access occurs in this package. Only after the re-audit passes may the project request Owner approval for a bounded real-provider fidelity probe covering credentials/data egress/paid spend. That approval does **not** unlock candidate outcomes. After real-model fidelity evidence supports a model/provider, the final PRIMARY semantic freeze remains a separate Owner decision before outcome-bearing candidate research.
 
 No model/provider is currently VERIFIED or ADOPTED.
 
