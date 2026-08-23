@@ -77,6 +77,44 @@ class JianghePromptPackageTests(unittest.TestCase):
         self.assertEqual(package["context_selection"]["fixture_answer_access"], "DENIED")
         self.assertEqual(package["context_selection"]["future_data_access"], "DENIED")
 
+    def test_primary_scope_rebound_to_v0_5_not_v0_3(self):
+        """V0.5 mechanical rebind: old V0.3 scope/identity is no longer the
+        current candidate prompt context authority."""
+        package = json.loads(PACKAGE_PATH.read_text(encoding="utf-8"))
+        identities = package["identities"]
+        # V0.3 旧 scope 字符串不得再作为 current candidate prompt context authority。
+        self.assertEqual(
+            package["context_selection"]["knowledge_scope"],
+            "CURRENT_ACTIVE_JIANGHE_V1_1_PLUS_PRIMARY_REGISTRY_V0_5",
+        )
+        self.assertNotEqual(
+            package["context_selection"]["knowledge_scope"],
+            "CURRENT_ACTIVE_JIANGHE_V1_1_PLUS_PRIMARY_REGISTRY_V0_3",
+        )
+        # V0.3 旧 identity 不得继续作为 current candidate prompt context authority。
+        self.assertNotEqual(
+            identities["context_selection_identity"],
+            "646f8f96335227a08d7560a8e0cc30ec3ad64b18eea390ce9d19957fe025c912",
+        )
+        self.assertNotEqual(
+            identities["prompt_package_identity"],
+            "beedb7e8189d0c649b39683d57fec6e8e937c0ac8f3a1b793cf4929df2e88b3b",
+        )
+        # 受 V0.3 -> V0.5 身份变化影响的身份集合之外的语义内容身份不得漂移。
+        self.assertEqual(
+            identities["system_prompt_identity"],
+            "cc43823730723f2089267f55cd87594ce4a026ded82b8298a913d11aed9e826a",
+        )
+        self.assertEqual(
+            identities["decision_prompt_identity"],
+            "95bba6d4d9e3d7152fd234a19501efca0d5bc8439b3a0bb557fb5929b41049d9",
+        )
+        self.assertEqual(identities["response_schema_identity"], RESPONSE_SCHEMA_IDENTITY)
+        self.assertEqual(identities["normalizer_identity"], NORMALIZER_IDENTITY)
+        self.assertEqual(
+            identities["evaluation_extractor_identity"], EVALUATION_EXTRACTOR_IDENTITY
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
