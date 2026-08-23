@@ -18,13 +18,16 @@ Fresh conversations follow the read-only takeover in `00_READ_FIRST.md`.
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=b856110e1f9f94ca1fac4dfe15486b0051f0f5a7
+LAST_MATERIAL_STATE_COMMIT=ef6862cadb495f543d4d6fcc659701c7ccea7dd0
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
+JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
+SOURCE_ONLY_REPOSITORY_BYTE_AUTHORITY=EXACT_COMMITTED_GIT_BLOB_BYTES
+JIANGHE_PRIMARY_V0_5_IDENTITY_REBIND=COMPLETE__SEMANTIC_CHANGE_COUNT_0
 JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_5=INTEGRATED_PRE_FREEZE_NON_FINAL_FIXED_RUBRIC_REAUDIT_PASS
 JIANGHE_PRIMARY_PROJECT_BRAIN_ACCEPTED_READY_COUNT=340
 JIANGHE_PRIMARY_REGISTRY_STOP_COUNT=12
@@ -32,6 +35,7 @@ PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
+MAIN_BASELINE_PORTABLE_CI=PASS_AFTER_REPAIR
 PRE_SPEND_DOUBLE_AUDIT=COMPLETE_FAIL_REPAIR_REQUIRED
 PRE_SPEND_CONSOLIDATED_FINDINGS=FROZEN
 PRE_SPEND_FINDING_CURRENT_MAIN_VERIFICATION=COMPLETE_ALL_7_CONFIRMED_OPEN
@@ -40,6 +44,8 @@ PRE_SPEND_REPAIR_RECOMMENDED=2
 SPEND_GATE=CLOSED
 PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
 DOMESTIC_PROVIDER_SCOPE_AUTHORITY=docs/reviews/DOMESTIC_PROVIDER_SCOPE_AND_PRESPEND_SEQUENCE_V0_1.md
+SOURCE_ONLY_GIT_BLOB_CORRECTION_AUTHORITY=docs/reviews/JIANGHE_SOURCE_ONLY_GIT_BLOB_IDENTITY_CORRECTION_V0_1.md
+MAIN_BASELINE_REPAIR_AUTHORITY=docs/reviews/MAIN_BASELINE_TEST_DEBT_AND_GIT_BLOB_IDENTITY_REPAIR_V0_1.md
 CURRENT_WORK_PACKAGE=DOMESTIC_PROVIDER_HARD_ELIGIBILITY_THEN_PRESPEND_BATCHED_REPAIR
 NEXT_NORMAL_PHASE=owner_confirm_domestic_implementation_target_set_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
 OWNER_ACTION=CONFIRM_IMPLEMENTATION_TARGET_SET_ONLY__PAID_CALL_AUTHORIZATION_REMAINS_SEPARATE_LATER_GATE
@@ -70,6 +76,8 @@ TOOL_DECISION=USE_EXISTING
 
 The frozen pre-spend set remains unchanged and reverified: BSP-001..005 are open spend blockers; RSP-001..002 remain recommended runtime repairs. Full frozen evidence and acceptance invariants live in `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`. Do not reopen a broad audit.
 
+The clean-main baseline repair and SOURCE_ONLY Git-blob identity correction are integrated. They do **not** close any BSP/RSP finding by themselves. The corrected claim-manifest identity is `f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36`; all 352 claim semantics and current PRIMARY V0.5 curated semantics were unchanged.
+
 ## Current domestic provider scope
 
 Owner payment/access makes OpenAI and xAI impractical for the current paid probe. Current domestic pool considered: Kimi K3, DeepSeek V4 Flash Vision Exp, MiniMax M3, and GLM-5.3 at `reasoning_effort=max`.
@@ -90,7 +98,7 @@ No provider/model is project-VERIFIED or ADOPTED.
 
 1. complete zero-cost hard eligibility only; no provider calls and no spend;
 2. Owner confirms the provider implementation target set — this selects which BSP-004 transports and BSP-005 rate cards to implement, not paid-call authorization;
-3. execute one batched repair for BSP-001..005 + RSP-001..002;
+3. execute one batched repair for BSP-001..005 + RSP-001..002 on the now-clean main baseline;
 4. run finding-specific focused/adversarial regression, canonical full suite `python -m unittest discover -s tests -v`, and finding-specific re-audit only;
 5. write formal CLOSED/PASS evidence and refresh state;
 6. only after all five BSP blockers close may the project separately ask Owner for bounded paid-call authorization;
