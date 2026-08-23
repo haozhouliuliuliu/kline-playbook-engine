@@ -1,0 +1,83 @@
+name: main-baseline-test-debt-v01
+
+on:
+  push:
+    branches:
+      - repair/main-baseline-test-debt-v01
+
+permissions:
+  contents: write
+
+jobs:
+  repair-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: repair/main-baseline-test-debt-v01
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply repair, test, and materialize only on true green
+        shell: bash
+        run: |
+          set +e
+          python tools/_repair_main_baseline_test_debt_v01.py > /tmp/apply.log 2>&1
+          APPLY=$?
+          cat /tmp/apply.log
+          if [ "$APPLY" -ne 0 ]; then
+            echo "BASELINE_REPAIR_APPLY_STATUS=FAIL"
+            exit 0
+          fi
+          echo "BASELINE_REPAIR_APPLY_STATUS=PASS"
+
+          python -m py_compile tests/test_bilibili_corpus_acquisition.py tests/test_canonical_qualified_eligibility_view.py tests/test_holy_grail_identity_determinism.py
+          COMPILE=$?
+          if [ "$COMPILE" -ne 0 ]; then
+            echo "BASELINE_REPAIR_COMPILE_STATUS=FAIL"
+            exit 0
+          fi
+          echo "BASELINE_REPAIR_COMPILE_STATUS=PASS"
+
+          python -m unittest \
+            tests.test_bilibili_corpus_acquisition \
+            tests.test_canonical_qualified_eligibility_view \
+            tests.test_e07_tqsdk_mapping_schedule \
+            tests.test_holy_grail_identity_determinism \
+            tests.test_holy_grail_primary_freeze \
+            tests.test_jianghe_source_only_verification \
+            tests.test_pre_shadow_runtime_completion \
+            tests.test_raschke_holy_grail_v04_machine_ready -v > /tmp/targeted.log 2>&1
+          TARGETED=$?
+          cat /tmp/targeted.log
+          if [ "$TARGETED" -ne 0 ]; then
+            echo "BASELINE_REPAIR_TARGETED_STATUS=FAIL"
+            exit 0
+          fi
+          echo "BASELINE_REPAIR_TARGETED_STATUS=PASS"
+
+          python -m unittest discover -s tests -v > /tmp/full.log 2>&1
+          FULL=$?
+          tail -n 80 /tmp/full.log
+          if [ "$FULL" -ne 0 ]; then
+            echo "BASELINE_REPAIR_FULL_SUITE_STATUS=FAIL"
+            grep -E '^(FAIL|ERROR):|^FAILED|^Ran ' /tmp/full.log || true
+            exit 0
+          fi
+          echo "BASELINE_REPAIR_FULL_SUITE_STATUS=PASS"
+          grep -E '^Ran |^OK' /tmp/full.log | tail -n 5 || true
+
+          rm tools/_repair_main_baseline_test_debt_v01.py
+          rm .github/workflows/main-baseline-test-debt-v01.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "BASELINE_REPAIR_MATERIALIZE_STATUS=NO_CHANGES"
+            exit 0
+          fi
+          git commit -m "test: repair pre-existing main baseline drift"
+          git push origin HEAD:repair/main-baseline-test-debt-v01
+          echo "BASELINE_REPAIR_MATERIALIZE_STATUS=PASS"
