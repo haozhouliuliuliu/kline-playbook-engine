@@ -1,0 +1,45 @@
+name: Provider pricing fallback repair v01
+
+on:
+  push:
+    branches:
+      - repair/provider-pricing-fallback-and-eligibility-v01
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply deterministic patch
+        run: python tools/apply_provider_pricing_fallback_v01.py
+      - name: Compile affected runtime and tests
+        run: python -m py_compile src/jianghe_prespend_runtime.py tests/test_jianghe_prespend_repair.py
+      - name: Focused provider pricing and prespend tests
+        run: python -m unittest tests.test_jianghe_prespend_repair -v
+      - name: Canonical full suite
+        run: python -m unittest discover -s tests -v
+      - name: Diff hygiene
+        run: git diff --check
+      - name: Materialize verified repair
+        if: success()
+        run: |
+          rm tools/apply_provider_pricing_fallback_v01.py
+          rm .github/workflows/provider-pricing-repair-v01.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No materialized changes to commit"
+            exit 0
+          fi
+          git commit -m "repair: enable conservative three-provider pricing guard"
+          git push origin HEAD:repair/provider-pricing-fallback-and-eligibility-v01
