@@ -4,75 +4,75 @@
   "case_manifest": {
     "binding_status": "EXACT_REPOSITORY_ARTIFACT_BYTES_BOUND",
     "case_identity_completeness": "PASS",
-    "case_manifest_identity": "06dc398086ada39da0214230dcff015561592ea55f041b31fdf0f58258638ac1",
+    "case_manifest_identity": "a985e3bec039ea04e6fa417b336d48c9a8a89164214d7c7864b13d6758c3cd1f",
     "case_record_count": 80,
     "manifest_id": "JIANGHE_V1_1_CASE_MANIFEST",
-    "manifest_identity": "06dc398086ada39da0214230dcff015561592ea55f041b31fdf0f58258638ac1",
+    "manifest_identity": "a985e3bec039ea04e6fa417b336d48c9a8a89164214d7c7864b13d6758c3cd1f",
     "material_count": 11,
     "materials": [
       {
-        "byte_size": 5245,
-        "content_sha256": "0b686d83aa8bed191a48b2c30de54bae173de0bd04a909014af9322acc151783",
+        "byte_size": 5141,
+        "content_sha256": "fa5c999c32566f60924988060490ed799c9389ea4b6e5c8f68e0c0424d0fdc90",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:001",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_DELTA_029_033_V0_2.md"
       },
       {
-        "byte_size": 9094,
-        "content_sha256": "3ad702707b3ffaa7caf2633538ecbefb87ff994b17f935e16ccfb22ed7b9e186",
+        "byte_size": 8915,
+        "content_sha256": "93a3eee122af9385cfe92744a78c6b07beb69e21df7afe3dbfbdda5b19e7e69e",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:002",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_DELTA_034_043_V0_3.md"
       },
       {
-        "byte_size": 5525,
-        "content_sha256": "8016637feeb40fb2c25777fc0fa623e91e95ad2bef5fd1f28d900aa306e0057c",
+        "byte_size": 5437,
+        "content_sha256": "8da5731b555911e8572bf7f2afed06c93122f1e1665a0bdd843d5627675b9435",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:003",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_DELTA_044_053_V0_4.md"
       },
       {
-        "byte_size": 8191,
-        "content_sha256": "bb8b8161701c07af1056bd20a5d1c29f8a1d1136a0b8a2dd6ca4b50122b4156e",
+        "byte_size": 8038,
+        "content_sha256": "86b3a8dbefe3d7e0f456b353296ba253e9dd413bc746553e0b8eb2eb64812f6d",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:004",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_DELTA_054_063_V0_5.md"
       },
       {
-        "byte_size": 4752,
-        "content_sha256": "4e81eb81acb47a0d487c1265276c25d13c1dcbc9710a4e8c48bbde5d23bd8bc5",
+        "byte_size": 4670,
+        "content_sha256": "b251615c75e7251fa2c4cb9336635ca1f706b194e38bac637df55c5478747264",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:005",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_DELTA_064_073_V0_6.md"
       },
       {
-        "byte_size": 6222,
-        "content_sha256": "84a52680abccbed8f543eab81b3c072b02bc47d2c81da744be7c0c9eeeeca362",
+        "byte_size": 6088,
+        "content_sha256": "ae8391b3a79ffc5e066f453fd6c574a5d42af351bd7f981f8231d82382074074",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:006",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_DELTA_074_083_V0_7.md"
       },
       {
-        "byte_size": 5892,
-        "content_sha256": "484283e99a1ab6a21dd953f05c929a1b3a971feedc221b9869c5884ab4d1a98d",
+        "byte_size": 5771,
+        "content_sha256": "a11745c68c45cd0556e0e2379617c3edc0f210427566105abb63efc7b72f709d",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:007",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_DELTA_084_093_V0_8.md"
       },
       {
-        "byte_size": 3325,
-        "content_sha256": "8814b0145a14d5948a9c531a6a5871c1616466b3fa8412892377bc03fc23013d",
+        "byte_size": 3254,
+        "content_sha256": "852f429af3a32b276f4cb62f771d6d6b5b8521ae5d7805b0ab8567381b57f80b",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:008",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_DELTA_094_098_V0_9.md"
       },
       {
-        "byte_size": 2987,
-        "content_sha256": "17fed45f9c10330302c8e1ec4e19d992b0f31084c14e3af3af7b4a2dbbdfb2f0",
+        "byte_size": 2929,
+        "content_sha256": "8545ec993a6eb1aabb29ac8e54ff8e6f16689b7c7b456cc8c5285bc9f7a1c2a0",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:009",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_SUPPLEMENT_FINAL_V1_0.md"
       },
       {
-        "byte_size": 6633,
-        "content_sha256": "b42e2b2cfc19f56c47fc283be2fc7fa8f0373c7627b61fb6835164ba324e3530",
+        "byte_size": 6502,
+        "content_sha256": "e62092cfb10bbfe55c6b1b05584d1399639247fb22a23e05617da845ffcf8152",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:010",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CASE_LIBRARY_V0_1.md"
       },
       {
-        "byte_size": 4703,
-        "content_sha256": "9da68884ae762bfa454609f02a56de27c1f03f918f63f9ed53b82be91c349976",
+        "byte_size": 4620,
+        "content_sha256": "0329d7907b65e22af3a76e008d2704e62261a765b7492c01572f4ff2a8926d42",
         "logical_material_id": "JIANGHE_V1_1_CASE_MANIFEST:011",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SECOND_PASS_CASE_LIBRARY_DELTA_V1_1.md"
       }
@@ -82,7 +82,7 @@
   "claim_manifest": {
     "binding_status": "EXACT_REPOSITORY_ARTIFACT_BYTES_BOUND",
     "claim_identity_completeness": "PASS",
-    "claim_manifest_identity": "60d4a1f9069a6dc33d04a82ce544d7525cd4bf2805c5b6e8dd9502d85bf39940",
+    "claim_manifest_identity": "f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36",
     "claim_record_count": 352,
     "claim_statuses": [
       "EXPLICIT",
@@ -90,102 +90,102 @@
       "UNKNOWN"
     ],
     "manifest_id": "JIANGHE_V1_1_CLAIM_MANIFEST",
-    "manifest_identity": "60d4a1f9069a6dc33d04a82ce544d7525cd4bf2805c5b6e8dd9502d85bf39940",
+    "manifest_identity": "f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36",
     "material_count": 16,
     "materials": [
       {
-        "byte_size": 25759,
-        "content_sha256": "6415d7d90d612f2d33edd17e93a2c7b59ffe712ad8a1d38de1b80fd9e563763a",
+        "byte_size": 25741,
+        "content_sha256": "250f125ff85618bdb9e3ae01b69de374575632f12e664859a50562efa5d30c18",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:001",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_029_033_V0_2.jsonl"
       },
       {
-        "byte_size": 23257,
-        "content_sha256": "7fc42a1fb5fa4f1af72726ad329ab51cbd435f7a97a99997486b467806707f75",
+        "byte_size": 23241,
+        "content_sha256": "e4e61d8ce65de604d5edb9a7f603a7c9be250e6f7e8da3fa829dfec9c92e841a",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:002",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_034_039_V0_3.jsonl"
       },
       {
-        "byte_size": 19261,
-        "content_sha256": "9a7b368ef90bf57c9381767f85e5ac538786903e67b21c141b9db9901a54fec4",
+        "byte_size": 19248,
+        "content_sha256": "944f301cfe14a45592a85dc7c4b5fa1a5a57e113624035783a06ffa61be48d93",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:003",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_040_043_V0_3.jsonl"
       },
       {
-        "byte_size": 50886,
-        "content_sha256": "c1eb53d8a341df079e048d3773a7f955775da9ad50b008023c8cf2a1a61ef253",
+        "byte_size": 50849,
+        "content_sha256": "aaf148be473848acb3f1acc27dac05f76b9a19a72cf1de0c0f62ebcffe1d009c",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:004",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_044_053_V0_4.jsonl"
       },
       {
-        "byte_size": 52481,
-        "content_sha256": "486111f5a74e049bfced6a191147c0b21840b3397ba8d2d794d577db9d71adc8",
+        "byte_size": 52442,
+        "content_sha256": "b472571d8d4bc3053aac59523ab9d385d52ce8fb0de21b3b71e9d108041a8cfa",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:005",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_054_063_V0_5.jsonl"
       },
       {
-        "byte_size": 32191,
-        "content_sha256": "bc8434788105e0973adc391335faa0c09b4e29f019ba734dabcf8c20e10902d7",
+        "byte_size": 32169,
+        "content_sha256": "a80eafefc9a9b0115913cd23fa543ec5568bbc7e78a703a0732e2011733d47c5",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:006",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_064_073_V0_6.jsonl"
       },
       {
-        "byte_size": 58288,
-        "content_sha256": "4a038a1216f8e5fd4368fc41abd50a7728b7da5a24d117d257515a948f96399b",
+        "byte_size": 58248,
+        "content_sha256": "bcf6ede20030c9a4ca04726dab72024dcf841a9459123e3ddc8dcc2b499583c8",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:007",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_074_083_V0_7.jsonl"
       },
       {
-        "byte_size": 59297,
-        "content_sha256": "02c6aca5b87f7cf1fc7ac1c9454174a0fc7768341df5548eb26c6286c7cbb67b",
+        "byte_size": 59256,
+        "content_sha256": "8c61d5ef27a629f855c42af135199687003d5bcf9f4ed87f404bc80e2cd84ee8",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:008",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_084_093_V0_8.jsonl"
       },
       {
-        "byte_size": 20267,
-        "content_sha256": "1609b6afd7b7741b354500c144d86bc4414f791cf9ca5fd8b868c32c5dcb2fc5",
+        "byte_size": 20250,
+        "content_sha256": "c7db9720a01f43ff7283f66740a7195664d240fba785a58b478c0d0006ce1b7c",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:009",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_094_098_V0_9.jsonl"
       },
       {
-        "byte_size": 16964,
-        "content_sha256": "9a06682ba0e39379373cf2120ff9dcec5369173e6e8a503d87c2cb02bb4fd960",
+        "byte_size": 16945,
+        "content_sha256": "ae43efbfe2253629c693dde380abce0e98feb3f04d7bfbb911b939976488cbc9",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:010",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_SUPPLEMENT_FINAL_V1_0.jsonl"
       },
       {
-        "byte_size": 4246,
-        "content_sha256": "58fe8f1d9348fbe849fd41035af0be2e320ab70b95dae2cb8e3dd31f7cc9ba0a",
+        "byte_size": 4243,
+        "content_sha256": "eb34050b0fd47ff71a655c481fbabebff254ab51f124e612e4c98e045bb05d6c",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:011",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_SUPPLEMENT_RESOLVED_V0_2.jsonl"
       },
       {
-        "byte_size": 25575,
-        "content_sha256": "63d158a921843fa752876fcff6cbf4137b71dcdc989af58f2835b32c13af0664",
+        "byte_size": 25555,
+        "content_sha256": "1a57c8b4b56dcb4996cd91f21b31e94ef7061786ebf018ae183030aefa84d848",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:012",
         "repository_artifact": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_V0_1.jsonl"
       },
       {
-        "byte_size": 15859,
-        "content_sha256": "ce2c5701bf0ff2650f5a2291b85c892a351d4a7817428d5d0b35203df225a682",
+        "byte_size": 15843,
+        "content_sha256": "6b49092f390c901dec13d2d89a1d8f3224ba49ef040792a5a5608a63facbbde2",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:013",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_CLAIM_LEDGER_DELTA_V1_1.part00.jsonl"
       },
       {
-        "byte_size": 15489,
-        "content_sha256": "f66274fcc54bd7675861e50b00b610faef28380383b491a068f962047a75f04c",
+        "byte_size": 15473,
+        "content_sha256": "68db5dd7cc61dad7d30c836b6c0be1fa5530571c018f4d77213ab36873ed7ba2",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:014",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_CLAIM_LEDGER_DELTA_V1_1.part01.jsonl"
       },
       {
-        "byte_size": 16211,
-        "content_sha256": "3a2eefbe284814e0b5dcfeb91cbb2aa6447834c36a12283c0dc2aa8f6370d7de",
+        "byte_size": 16195,
+        "content_sha256": "4a2833d3ca0a042329d1f9e4089644a0f9d57e1b28957fbfde132f79c04e8843",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:015",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_CLAIM_LEDGER_DELTA_V1_1.part02.jsonl"
       },
       {
-        "byte_size": 16446,
-        "content_sha256": "068df7362fa278a3ff0fe34ee679b0424f3426aa44037669925dba467753e2b6",
+        "byte_size": 16430,
+        "content_sha256": "2005e0972b76257551801a4644ae84de0cc0f21ad4d203df7c73c6c5c59d7f38",
         "logical_material_id": "JIANGHE_V1_1_CLAIM_MANIFEST:016",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_CLAIM_LEDGER_DELTA_V1_1.part03.jsonl"
       }
@@ -219,19 +219,19 @@
     "verification_mode": "MANIFEST_AND_EXISTING_V1_1_SEMANTIC_PRESERVATION__NO_REDISTILLATION"
   },
   "session": {
-    "case_manifest_identity": "06dc398086ada39da0214230dcff015561592ea55f041b31fdf0f58258638ac1",
-    "claim_manifest_identity": "60d4a1f9069a6dc33d04a82ce544d7525cd4bf2805c5b6e8dd9502d85bf39940",
+    "case_manifest_identity": "a985e3bec039ea04e6fa417b336d48c9a8a89164214d7c7864b13d6758c3cd1f",
+    "claim_manifest_identity": "f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36",
     "is_project_issued_verified": true,
     "knowledge_pack_identity": "e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2",
     "model_identity": "CODEX_GPT_5_DESKTOP_AGENT__MODEL_VERSION_NOT_EXPOSED",
     "prompt_spec_version": "JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_GATE_V0_1",
     "protected_market_access_mode": "TECHNICALLY_DENIED",
     "session_id": "JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_GATE_V0_1_20260823",
-    "session_identity": "da7c00ffa0b90035e9bec10ad829e180f085c29cfbd05875797ad2db3b589552",
-    "source_bundle_hash": "87983a6f8376baa8419ca92118d325c5f5a224165bbe056fe82337fa7eef6037",
-    "source_bundle_identity": "1619b05272aaaad4a25ce9f35fdde764506ed70a9118e33b9bd42b16bbfa1e3b",
+    "session_identity": "c9492e4375ef748c6f616aa32bd2a1052a765aa62b52b98a1d6fa58a6a01f698",
+    "source_bundle_hash": "4efdbf3ba7b3cc31745c46a1e3d6ad7d5762dffcd6a41cfaa4daca45ab764f0d",
+    "source_bundle_identity": "5fb266ce517b9f4e1dad47af5b5d715d3f1944fbcd71f87dc63e920efaa99dec",
     "tool_retrieval_mode": "REPOSITORY_BOUND_JIANGHE_SOURCE_MANIFESTS_ONLY__NO_MARKET_OR_OUTCOME_TOOLS",
-    "verification_evidence": "b4526ff90fccd6f2bb25ab8dfbe2d0daf9f1f6acbaae3267f21cfe693b74058c"
+    "verification_evidence": "399f0409a97c39624044c51bcb6fd22a98a83f66a8826584f7c20df04e3cfeb3"
   },
   "source_coverage": {
     "accessible_source_count": 98,
@@ -244,138 +244,138 @@
   "source_material_manifest": {
     "binding_status": "EXACT_REPOSITORY_ARTIFACT_BYTES_BOUND",
     "manifest_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST",
-    "manifest_identity": "b883fe2aaeda1aedb1317b5ac39840ab18425016293515931d3ed64d8a206e6c",
+    "manifest_identity": "8124b0ef9f9063e775d4f924c28b031321fd47b0f85b4cf9b4a6646b77b5b1ff",
     "material_count": 22,
     "materials": [
       {
-        "byte_size": 9146,
-        "content_sha256": "7f73443bd9234c367cacd18a50e2e2bcaf9e810d60a0537a6ca0eb25060ca976",
+        "byte_size": 9121,
+        "content_sha256": "6ebf49e80e81be2b0265735cce25e8e8489e60ef012929e386ee25f06109ae02",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:001",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.part00.csv"
       },
       {
-        "byte_size": 8794,
-        "content_sha256": "072435183d0167eb34e56a4ba241b5090b9bbd8a8a81bfa5c597aad8d0cc4172",
+        "byte_size": 8769,
+        "content_sha256": "a08eee56c670d7d0448f0735e2e8ab05bb3c94442b8f42cfb6aa5734d51a2773",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:002",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.part01.csv"
       },
       {
-        "byte_size": 8460,
-        "content_sha256": "2315215e5fafe7bf4bd655fadaf0a1f4ec7a44ddabe1d67c6b71f9973825812b",
+        "byte_size": 8435,
+        "content_sha256": "a143780f942cf241b448638e9c7faea89a71644c2448345afc8aed07168e2d97",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:003",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.part02.csv"
       },
       {
-        "byte_size": 8742,
-        "content_sha256": "d651c96d6ef3ab313097b9c9c8991ec8fa535f6aa7b49047c02e5fdacbe098ce",
+        "byte_size": 8717,
+        "content_sha256": "03740cf0d800fc6cefe33a37bdc0bfb9f769dfdf85f76ebc78313d507772dba1",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:004",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.part03.csv"
       },
       {
-        "byte_size": 11655,
-        "content_sha256": "c4b8bd28523ad7ee45a34d76dc8e874e875d2567bef7d8ec46fd8fcad9cb1d45",
+        "byte_size": 11575,
+        "content_sha256": "c57d511e287887eb6b22f070df30ae1988c6880d4cf2b4fd1158ba78f9cfdb17",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:005",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.part00.md"
       },
       {
-        "byte_size": 7444,
-        "content_sha256": "c31ea0da6c45565224e8282861d1340a8ca6cc8ab86c7986181039e8a8ac0a03",
+        "byte_size": 7364,
+        "content_sha256": "4c3ab1c49701116d9a28ffa74610660ad4d95226f18dc9e8c5ad9a7be4dde117",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:006",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.part01.md"
       },
       {
-        "byte_size": 7519,
-        "content_sha256": "f0972e1ec39261438d89a5123abccc54c3301e6830afae2bf76adb1e202ef9fa",
+        "byte_size": 7439,
+        "content_sha256": "14852040f7ed3f26c73697f9f0f7c788c64b6a3b65f96147f3c716223e3cfda0",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:007",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.part02.md"
       },
       {
-        "byte_size": 7337,
-        "content_sha256": "02f268be3bcdc805a3bd187e8d86ebdc36828ecf006c56184f98f5a4f6036946",
+        "byte_size": 7257,
+        "content_sha256": "6ec7b91544b05813e46e33b7b0ce49c7b89766667dff7a6aa475bbe4c10267a3",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:008",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.part03.md"
       },
       {
-        "byte_size": 164,
-        "content_sha256": "f4e43adcd0de016b04ba95d37fa8048a128c0d8dde2facc1276fc6a9fe4ddd70",
+        "byte_size": 163,
+        "content_sha256": "9cc18f319fb2e5e1f58441c6cd80de00c0223df25c510196fb2a7c5e0eb54b0e",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:009",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_FINDINGS_V1_1.part04.md"
       },
       {
-        "byte_size": 4164,
-        "content_sha256": "743b20778f78a0b4d4fe17ba698a4ba94600a57e58a2eda013bb66d5cb336f46",
+        "byte_size": 4135,
+        "content_sha256": "cffcaf670ec40e5bb862bbbf08298d35dc5c1aaf99f97080e2d022414a161dab",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:010",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_V0_1.csv"
       },
       {
-        "byte_size": 1018,
-        "content_sha256": "4539870e87232cbbb19f1d1c6c0b3e96735a7d0186d3c572325725737c3171be",
+        "byte_size": 1012,
+        "content_sha256": "e5dcef9eb6c18df6c9203448fedf4d59ff9f6a4174fab7da60e8b4477abc6d53",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:011",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_DELTA_029_033_V0_2.csv"
       },
       {
-        "byte_size": 1721,
-        "content_sha256": "c591bd9501b76ce8093c93467faff464a45f2b386d3ec1a10b8341b332b1b295",
+        "byte_size": 1710,
+        "content_sha256": "bea86e84b253102094f9df210b3a84e42450794c40d74fdda8496be8c3f753e5",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:012",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_DELTA_034_043_V0_3.csv"
       },
       {
-        "byte_size": 2068,
-        "content_sha256": "df96e53171ef0ed70d7224ab2928553487c826efb119d55da46434beb43edd82",
+        "byte_size": 2057,
+        "content_sha256": "b9c74ae37c697666efcddf7902e75860e5aefc7cbcea8a6012deb0e21bcec9c1",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:013",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_DELTA_044_053_V0_4.csv"
       },
       {
-        "byte_size": 1700,
-        "content_sha256": "cbb96e18da5308d781a343902e60626671c42025a415a8dbd27ff92a35cfb56e",
+        "byte_size": 1689,
+        "content_sha256": "7c080309d5a42e09005e2a0330e41e051fdcdd3c89a13039465888295aca5f76",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:014",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_DELTA_054_063_V0_5.csv"
       },
       {
-        "byte_size": 1847,
-        "content_sha256": "a9619c9334cf1161de99c7ecddeb20f82826de67972caadab343de8e91a8551e",
+        "byte_size": 1836,
+        "content_sha256": "363cd2c1622ea8627b1ab6ab77f2bc998091d853b331f1502d9b1efab7c22a86",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:015",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_DELTA_064_073_V0_6.csv"
       },
       {
-        "byte_size": 2638,
-        "content_sha256": "75079a00f09f332dc6686a6bc919d48cd481ef140278fab035f6d3f16ac3d43d",
+        "byte_size": 2627,
+        "content_sha256": "f84fb09a4c295088b28934d163bb966c391a21998ac2e0a1ee2cdd98ba0f1a0b",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:016",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_DELTA_074_083_V0_7.csv"
       },
       {
-        "byte_size": 1370,
-        "content_sha256": "81d9b7e0d3676c6dc6d14f359ffd23adbf550c67ac6ef39ab2619d166d5ed71c",
+        "byte_size": 1359,
+        "content_sha256": "abaede741f9af4920cc925558097902c0fed708d8261a6fa8127f935969fe7a5",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:017",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_DELTA_084_093_V0_8.csv"
       },
       {
-        "byte_size": 832,
-        "content_sha256": "dcbf7c02fc352862b9d34c896d3576d89800a4aa016a3dfe90021701873fca29",
+        "byte_size": 826,
+        "content_sha256": "b1bab5e98494ceae412d651c1b25412a8a5aee64f8abe4e6808b6d3350673675",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:018",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_DELTA_094_098_V0_9.csv"
       },
       {
-        "byte_size": 1713,
-        "content_sha256": "e0521bc6249b1b19992d544bf7194d86455063bf1be19cb32b0c1485b430fed8",
+        "byte_size": 1704,
+        "content_sha256": "988dd4868446e2a8f838ccccafdf86729a820923257b4a039437502f38ed7a48",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:019",
         "repository_artifact": "docs/research/jianghe/JIANGHE_SOURCE_INDEX_SUPPLEMENT_FINAL_V1_0.csv"
       },
       {
-        "byte_size": 7188,
-        "content_sha256": "2540c5853e2b14c8abb290b3e71b7e2653d38aa9121cc166baaaeb4aa6b08f1a",
+        "byte_size": 7052,
+        "content_sha256": "58d4934f3bb360a95d6b2c5a5744e9db14a82854b7eb9475fe0994147b93da93",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:020",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/SECOND_PASS_SALVAGE_MANIFEST_V1_1.md"
       },
       {
-        "byte_size": 2548,
-        "content_sha256": "a251e083f6763f835e57876f5478171609c32330cd2220c62264009bc4b40129",
+        "byte_size": 2513,
+        "content_sha256": "898ce5cdd0b1e113182c4aecb24bd10040b1e20126013c074451bef7a2c35f2e",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:021",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_SOURCE_FINDINGS_MANIFEST_V1_1.md"
       },
       {
-        "byte_size": 4459,
-        "content_sha256": "e5028fad7df74f0fcfef5c423c4bf83a07b76d9f57d50768b4c23a8603431b50",
+        "byte_size": 4341,
+        "content_sha256": "de2c327f8ea637ceeab7ec1291f0edf5396439f6b2ffb25cce0616ffbf9bf440",
         "logical_material_id": "JIANGHE_V1_1_SOURCE_MATERIAL_MANIFEST:022",
         "repository_artifact": "docs/research/jianghe/second_pass_salvage/JIANGHE_SECOND_PASS_INTEGRITY_CHECK_V1_1.md"
       }

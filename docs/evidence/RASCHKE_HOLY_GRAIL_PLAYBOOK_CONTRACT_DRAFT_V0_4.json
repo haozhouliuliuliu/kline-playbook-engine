@@ -3,7 +3,7 @@
   "ambiguity_status": "NONE",
   "artifact": "RASCHKE_HOLY_GRAIL_PLAYBOOK_CONTRACT_DRAFT_V0_4",
   "contract_id": "PC-RASCHKE-HOLY-GRAIL-PULLBACK-DRAFT-V0-4",
-  "contract_identity": "be8872baf56983385636a4480889ba2e006578912c565bf824694aafb861c67b",
+  "contract_identity": "549e730b4c3b78b7367b253fc665f651d7486f053fab6dde101ca9d73a4b2a61",
   "contract_version": "0.4.0",
   "family_id": "RASCHKE_HOLY_GRAIL_PULLBACK",
   "final_decision": {
@@ -301,9 +301,9 @@
     }
   ],
   "machine_operationalization": {
-    "code_hash": "250034797efecdbc5a7b110bafc56b45baadccdc3ae91961bb174880547d95a0",
+    "code_hash": "ec5cd8cb3946cd7a63b275a8b848ed93ac33d33c770d381c7d97b4e8ccedf6dd",
     "environment_hash": "9b4f42956693644f7118866715f3574f39cfb8083266b85c266689f32c81778b",
-    "machine_identity": "14fbde5279f43e8dfa96241f35ca84c806f6b4e434a1784bafe6f66d1f8c1fce",
+    "machine_identity": "22886cfa770ba7dd1f266133f950e99ec6770ca0332eca40657d57943155b6c9",
     "operationalization_reference": "src/holy_grail_machine.py",
     "parameter_identities": [
       "20a88072edf984f9348eb98b60d4e09c1cc7a84192b85865ac1d4761948c5fdb",
@@ -324,7 +324,7 @@
       "ff004543e4abba709b1a4d8b2aac70f68e20b9a0bba057f86a18aedb3565a533"
     ],
     "required_feature_versions": [
-      "333ca10c58adabe6c5348cd95d3ef5d19b2450fdf0ff51b0339993129f69b6b4",
+      "3c3dfff55831482b6ee44e746d9976b8b5a3a7a7b986c21b9f799868761b0309",
       "holy-grail-machine-v0.4"
     ]
   },

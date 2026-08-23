@@ -40,22 +40,38 @@ from tools.build_canonical_qualified_eligibility_view import (
 
 
 class CanonicalQualifiedEligibilityViewTests(unittest.TestCase):
+    LOCAL_CORPUS_REQUIRED = {
+        *(f"test_{index:02d}_" for index in range(1, 14)),
+        "test_20_",
+        "test_21_",
+    }
+
     @classmethod
     def setUpClass(cls) -> None:
         root = Path(__file__).resolve().parents[1]
         cls.root = root
-        cls.manifest = _load_object(DEFAULT_PARENT_DATA_ROOT / "canonical" / "manifest.json")
         cls.universe = _load_object(root / "docs" / "evidence" / "CANONICAL_CONTRACT_UNIVERSE.json")
         cls.revalidation = _load_object(root / "docs" / "evidence" / "CANONICAL_CORPUS_REVALIDATION_D01_D02_V0_1.json")
-        cls.view, cls.certificate = build_view(
-            manifest=cls.manifest,
-            universe=cls.universe,
-            revalidation=cls.revalidation,
-            adoption=_adoption_payload(),
-            raw_root=DEFAULT_PARENT_DATA_ROOT / "raw" / "historical",
-            implementation_identity=_implementation_identity(),
-            contract_universe_source_artifact_sha256=sha256((root / "docs" / "evidence" / "CANONICAL_CONTRACT_UNIVERSE.json").read_bytes()).hexdigest(),
-        )
+        cls.manifest = None
+        cls.view = None
+        cls.certificate = None
+        manifest_path = DEFAULT_PARENT_DATA_ROOT / "canonical" / "manifest.json"
+        if manifest_path.is_file():
+            cls.manifest = _load_object(manifest_path)
+            cls.view, cls.certificate = build_view(
+                manifest=cls.manifest,
+                universe=cls.universe,
+                revalidation=cls.revalidation,
+                adoption=_adoption_payload(),
+                raw_root=DEFAULT_PARENT_DATA_ROOT / "raw" / "historical",
+                implementation_identity=_implementation_identity(),
+                contract_universe_source_artifact_sha256=sha256((root / "docs" / "evidence" / "CANONICAL_CONTRACT_UNIVERSE.json").read_bytes()).hexdigest(),
+            )
+
+    def setUp(self) -> None:
+        if any(self._testMethodName.startswith(prefix) for prefix in self.LOCAL_CORPUS_REQUIRED):
+            if self.view is None:
+                self.skipTest("requires governed local canonical corpus; unavailable in portable CI")
 
     def test_01_uniform_exclusion_has_exact_partition_count(self) -> None:
         self.assertEqual(EXPECTED_EXCLUDED_PARTITIONS, self.view.excluded_partition_count)
