@@ -233,15 +233,25 @@ class ObservationBar:
         if self.available_at < self.close_time:
             state = "已收盘" if self.is_closed else "部分"
             raise ValueError(f"{state} K线的 available_at 不能早于当前可见内容的 close_time")
-        # 这里只校验 observation 的运输形状并保留原始字符串表示。数值有限性、
-        # OHLC 关系与 volume 下界由 integrated visual renderer 的输入契约统一审计；
-        # 提前归一会吞掉 "100" 与 "100.0" 这类可审计输入差异。
+        # 保留调用方原始 Decimal 文本用于身份审计，但 canonical observation 自身必须
+        # 先证明数值域与 OHLCV 关系合法。否则 STRUCTURED-only 路径可绕过视觉 renderer。
+        numeric: dict[str, Decimal] = {}
         for field_name in (
             "open_price", "high_price", "low_price", "close_price", "volume",
         ):
-            value = getattr(self, field_name)
-            if not isinstance(value, str) or not value or value != value.strip():
-                raise ValueError(f"{field_name} 必须是无首尾空白的非空字符串")
+            numeric[field_name] = _strict_decimal(getattr(self, field_name), field_name)
+        if any(numeric[name] <= 0 for name in ("open_price", "high_price", "low_price", "close_price")):
+            raise ValueError("OHLC 价格必须是正有限数")
+        if numeric["volume"] < 0:
+            raise ValueError("volume 必须是非负有限数")
+        if (
+            numeric["low_price"] > numeric["high_price"]
+            or numeric["low_price"] > numeric["open_price"]
+            or numeric["low_price"] > numeric["close_price"]
+            or numeric["high_price"] < numeric["open_price"]
+            or numeric["high_price"] < numeric["close_price"]
+        ):
+            raise ValueError("OHLC 价格关系不一致")
 
 
 @dataclass(frozen=True)
@@ -692,10 +702,18 @@ class UnavailableAITraderProvider:
 
 
 def validate_transition(current: AttentionMode, decision: JiangheDecision) -> AttentionMode:
-    """校验注意力状态转移，禁止把任何状态强迫成多空二选一。"""
+    """校验注意力状态转移，禁止被动动作绕过显式 ENTER/MANAGE/EXIT 生命周期。"""
     if decision.action in (DecisionAction.NO_TRADE, DecisionAction.WAIT):
-        if current is AttentionMode.CANDIDATE and decision.attention_mode not in (AttentionMode.WATCH, AttentionMode.SCAN):
-            raise ValueError("CANDIDATE 的等待必须降回 WATCH 或 SCAN")
+        passive_allowed = {
+            AttentionMode.SCAN: {AttentionMode.SCAN},
+            AttentionMode.WATCH: {AttentionMode.WATCH, AttentionMode.SCAN},
+            AttentionMode.CANDIDATE: {AttentionMode.WATCH, AttentionMode.SCAN},
+            AttentionMode.IN_POSITION: {AttentionMode.IN_POSITION},
+            AttentionMode.COOLDOWN: {AttentionMode.COOLDOWN, AttentionMode.SCAN},
+            AttentionMode.SUSPENDED: {AttentionMode.SUSPENDED},
+        }
+        if decision.attention_mode not in passive_allowed[current]:
+            raise ValueError("WAIT/NO_TRADE 不得绕过显式交易生命周期状态转移")
         return decision.attention_mode
     expected = {
         DecisionAction.WATCH: AttentionMode.WATCH,
@@ -753,7 +771,8 @@ class JiangheMarketReplay:
         self.clock.advance_to(observation.identity.decision_time)
         self.accepted_observation_identity = observation.identity.identity
 
-    def record_decision(self, record: DecisionAuditRecord) -> None:
+    def record_decision(self, record: DecisionAuditRecord) -> tuple[MemoryMutation, ...]:
+        """原子校验、记录并应用一次决策；调用方不得提前改写 attention/memory。"""
         if self.accepted_observation_identity is None:
             raise ValueError("回放尚未接受当前决策所依据的 observation")
         if record.observation_identity != self.accepted_observation_identity:
@@ -761,10 +780,28 @@ class JiangheMarketReplay:
         if record.observation_available_at < self.clock.current_time:
             raise ValueError("回放不能在当前时钟之前生成决策")
         validate_transition(self.memory.attention_mode, record.normalized_decision)
+        memory = self.memory
+        before = len(memory.mutation_history)
+
+        def apply(field_name: str, new_value: object, reason: str) -> None:
+            nonlocal memory
+            if getattr(memory, field_name) != new_value:
+                memory = memory.mutate(
+                    field_name=field_name,
+                    new_value=new_value,
+                    reason=reason,
+                    timestamp=record.intent_available_at,
+                    observation_identity=record.observation_identity,
+                    ai_trader_identity=record.ai_trader_identity,
+                )
+
+        decision = record.normalized_decision
+        apply("attention_mode", decision.attention_mode, f"DECISION_{decision.action.value}")
+        apply("watch_regions", decision.watch_regions, "DECISION_WATCH_REGIONS")
+        apply("last_meaningful_decision", decision.action.value, "DECISION_ACTION")
+        apply("transition_reason", decision.rationale, "DECISION_RATIONALE")
         self.clock.advance_to(record.intent_available_at)
         self.audit_ledger.append(record)
         self.accepted_observation_identity = None
-        self.memory = replace(self.memory, attention_mode=record.normalized_decision.attention_mode,
-                              last_meaningful_decision=record.normalized_decision.action.value,
-                              watch_regions=record.normalized_decision.watch_regions,
-                              transition_reason=record.normalized_decision.rationale)
+        self.memory = memory
+        return memory.mutation_history[before:]
