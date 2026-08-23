@@ -2,7 +2,7 @@
 
 > Status: `COMPLETE__PROVIDER_FACT_CORRECTED`
 > Date: 2026-08-24
-> Scope: correct only the time-sensitive DeepSeek provider/model fact in the 2026-08-24 provider refresh. This does not reopen the frozen pre-spend findings, start repair work, select a provider, or authorize paid calls.
+> Scope: correct only the time-sensitive DeepSeek provider/model fact in the 2026-08-24 provider refresh. This does not reopen the frozen pre-spend findings, select a provider, authorize paid calls, or claim project fidelity verification.
 
 ## Executive correction
 
@@ -22,21 +22,13 @@ ADOPTED=NO
 PAID_CALL_AUTHORIZATION=NO
 ```
 
-The Owner was correct that this model had only just been released. The earlier provider refresh relied on a stale crawled `/models` page that pre-dated the August 21 launch and therefore incorrectly treated the model as not first-party-verifiable.
+The earlier provider refresh relied on stale crawled documentation that pre-dated the August 21 launch. It must not be used to downgrade the current Vision Exp candidate or to infer that the current direct image-capable model is text-only.
 
 ## First-party evidence
 
 ### 1. DeepSeek official Harness repository
 
-DeepSeek's official repository `deepseek-ai/deepseek-harness` is current at commit:
-
-```text
-b150a551b8d465e31e418e1b2eaf5e79bbb7d28e
-release: dsh@0.1.1-rc.2
-2026-08-21T12:03:37Z
-```
-
-Its official `packages/llm/llm-deepseek/README.md` states that the default model catalog includes:
+DeepSeek's official repository `deepseek-ai/deepseek-harness` at the launch-era release records the model catalog entry:
 
 ```yaml
 - id: deepseek-v4-flash-vision-exp
@@ -44,20 +36,20 @@ Its official `packages/llm/llm-deepseek/README.md` states that the default model
   inputModalities: [text, image]
 ```
 
-and explicitly says omission of the custom model list advertises `deepseek-v4-flash`, `deepseek-v4-pro`, and the image-capable `deepseek-v4-flash-vision-exp`, with a 1,000,000-token context-window default.
+The launch-era model catalog therefore establishes the direct image-capable experimental candidate independently from older text-only route prose.
 
 First-party repository:
 - https://github.com/deepseek-ai/deepseek-harness
-- https://github.com/deepseek-ai/deepseek-harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/packages/llm/llm-deepseek/README.md
+- launch-era release evidence previously captured by this project
 
 ### 2. DeepSeek API vision documentation / launch material
 
-Current launch-day material points to DeepSeek's first-party vision guide:
+Current launch material points to DeepSeek's first-party vision guide:
 
 - https://api-docs.deepseek.com/guides/vision
 - https://api-docs.deepseek.com/quick_start/pricing/
 
-The current documented model behavior is:
+The documented candidate behavior captured by the project is:
 
 ```text
 MODEL_ID=deepseek-v4-flash-vision-exp
@@ -65,17 +57,32 @@ MODALITY=text+image -> text
 API_SURFACES=Chat Completions, Responses API, Anthropic-compatible Messages
 IMAGE_INPUT_PATHS=base64, public URL, Files API file_id
 IMAGE_BILLING=ordinary input tokens
-IMAGE_TOKEN_CEILING=up to 384 tokens per image after provider resizing
+IMAGE_TOKEN_CEILING=up to approximately 384 tokens per image after provider resizing
 FILES_API=AVAILABLE
 CONTEXT≈1,000,000 tokens
 MAX_OUTPUT≈384,000 tokens
 ```
 
-The launch is explicitly experimental. That affects drift/deprecation governance, but experimental status is not itself a reason to exclude the model from a bounded fidelity comparison.
+The launch is experimental. Experimental status is a drift/deprecation risk to preserve in evidence, not a reason to exclude the candidate from a bounded Jianghe-fidelity comparison.
 
-## Pricing correction
+## Owner reconfirmation — 2026-08-24
 
-Launch-day material reports that Vision Exp uses the same rate card as V4 Flash. The currently reported direct CNY schedule is:
+The Owner rechecked the current DeepSeek release and reconfirmed all of the following for the implementation/probe scope:
+
+```text
+DIRECT_IMAGE_INPUT=YES
+PRICE_RELATION_TO_V4_FLASH=SAME
+BASE_PERFORMANCE_RELATION_TO_V4_FLASH=SAME
+ADDED_CAPABILITY=MULTIMODAL
+```
+
+This reconfirmation supersedes the later stale-harness detour that incorrectly treated DeepSeek's current direct route as text-only.
+
+For project governance, these are provider/Owner-level product facts. The performance statement is **not** a project Jianghe-fidelity `VERIFIED` result and does not make the model `ADOPTED`. Those statuses still require the separately authorized real-model fidelity probe.
+
+## Pricing correction and spend-guard rule
+
+Vision Exp uses the V4 Flash rate card. The captured schedule is:
 
 ```text
 OFF_PEAK_CACHE_HIT_CNY_PER_MTOK=0.05
@@ -86,32 +93,42 @@ OFF_PEAK_OUTPUT_CNY_PER_MTOK=4.50
 PEAK_OUTPUT_CNY_PER_MTOK=9.00
 ```
 
-Images are tokenized and billed as input, with a published ceiling around 384 image tokens per image. This makes the candidate materially cheaper than the other retained visual providers for image-heavy probe traffic.
+Images are tokenized and billed as input, with the captured visual-token ceiling around 384 tokens per image.
 
-These are time-sensitive prices and must still be fetched from the live first-party rate authority again when implementing BSP-005 and immediately before any separately authorized paid call.
+For the executable CNY100 hard-cap guard, the project deliberately uses the conservative expensive side:
+
+```text
+BUDGET_INPUT_RATE_CNY_PER_MTOK=3.00
+BUDGET_OUTPUT_RATE_CNY_PER_MTOK=9.00
+BUDGET_IMAGE_INPUT_TOKENS_PER_IMAGE=384
+CACHE_DISCOUNT_CREDITED=NO
+OFF_PEAK_DISCOUNT_CREDITED=NO
+```
+
+This inheritance is governed by `docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md`. It prevents a missing separately indexed experimental-model price page from blocking work when the same-family price relation is established, while still reserving against the more expensive applicable rate.
 
 ## Capability implications for this project
 
-The model now satisfies the project's hard minimum of **direct visual K-line input**. It therefore must not be excluded merely because standard V4 Flash/Pro are text-only.
+The model satisfies the project's hard minimum of direct visual K-line input. It must not be excluded merely because older standard-route documentation or standard V4 Flash/Pro material is text-only.
 
 Two candidate-specific caveats remain relevant to the later fidelity probe:
 
-1. **Experimental identity/drift:** the `-exp` model may change or be superseded. The provider transport must preserve requested and provider-resolved model identity rather than treating the slug as an immutable research snapshot.
-2. **Visual compression:** DeepSeek documents aggressive image-token bounding, approximately up to 384 visual tokens per image after resizing. Fine K-line labels or dense chart detail may be degraded. This is a reason to test actual Jianghe visual fidelity, not a reason to exclude the candidate before testing.
+1. **Experimental identity/drift:** the `-exp` model may change or be superseded. Transport evidence must preserve requested and provider-resolved model identity.
+2. **Visual compression:** the approximately 384-token visual bound may degrade fine K-line labels, wick detail or dense chart structure. This is a reason to test Jianghe visual fidelity, not to exclude the candidate before testing.
 
-Provider-side JSON Output / tool support is documented, but a first-party strict JSON-Schema guarantee equivalent to the strongest OpenAI/xAI/Kimi surfaces is not established by this correction. The existing strict project runtime normalizer remains the authoritative output boundary regardless of provider.
+Provider-side JSON Output / tool support exists, but a first-party strict JSON-Schema guarantee equivalent to the strongest Kimi surface is not assumed. The project strict normalizer remains the authoritative output boundary.
 
 ## Corrected candidate status
 
 ```text
-OPENAI_GPT_5_6_SOL=CANDIDATE
-XAI_GROK_4_6=CANDIDATE
 KIMI_K3=CANDIDATE
-DEEPSEEK_V4_FLASH_VISION_EXP=CANDIDATE__EXPERIMENTAL__FIRST_PARTY_DOCUMENTED_VISUAL_API
-
+DEEPSEEK_V4_FLASH_VISION_EXP=CANDIDATE__EXPERIMENTAL__DIRECT_VISUAL_API
+MINIMAX_M3=CANDIDATE
 FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
 NO_PROVIDER_VERIFIED_BY_PROJECT_LIVE_CALL=YES
 NO_PROVIDER_ADOPTED=YES
+LIVE_CALLS=0
+PAID_SPEND=0
 ```
 
-This correction invalidates only the earlier DeepSeek exclusion. It does not alter BSP-001..005 / RSP-001..002, does not authorize implementation work beyond ordinary state correction, and does not authorize external spend.
+This correction does not authorize external spend, outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access, or real money.
