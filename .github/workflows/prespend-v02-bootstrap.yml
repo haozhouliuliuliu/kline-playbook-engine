@@ -30,6 +30,9 @@ jobs:
           if [ -f tools/_apply_prespend_final_fixes_v04.py ]; then
             python tools/_apply_prespend_final_fixes_v04.py
           fi
+          if [ -f tools/_apply_prespend_final_fixes_v05.py ]; then
+            python tools/_apply_prespend_final_fixes_v05.py
+          fi
       - name: Compile repaired surfaces
         run: |
           python -m py_compile \
@@ -60,11 +63,12 @@ jobs:
       - name: Materialize verified repair on PR branch
         run: |
           set -euo pipefail
-          if [ ! -f tools/_apply_prespend_final_fixes_v04.py ]; then
+          if [ ! -f tools/_apply_prespend_final_fixes_v05.py ]; then
             exit 0
           fi
           rm -f tools/_apply_prespend_missing_fixes_v03.py
           rm -f tools/_apply_prespend_final_fixes_v04.py
+          rm -f tools/_apply_prespend_final_fixes_v05.py
           rm -f .github/workflows/prespend-batched-domestic-v02.yml
           rm -f docs/reviews/PRESPEND_BATCHED_DOMESTIC_V02_CI_DIAGNOSTIC.tmp.md
           rm -f docs/reviews/PRESPEND_V02_TRIGGER.tmp
