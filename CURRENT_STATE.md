@@ -14,8 +14,8 @@ RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 CURRENT_WORK_PACKAGE=OWNER_PROVIDER_SELECTION_REQUIRED_BEFORE_PRESPEND_BATCHED_REPAIR
-NEXT_NORMAL_PHASE=owner_select_provider_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
-OWNER_ACTION=FINAL_PROVIDER_SELECTION_AND_BOUNDED_PROBE_SCOPE
+NEXT_NORMAL_PHASE=reassess_provider_recommendation_with_deepseek_restored_then_owner_select_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
+OWNER_ACTION=NONE_UNTIL_CORRECTED_PROVIDER_COMPARISON_IS_PRESENTED
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -41,6 +41,7 @@ OUTCOME_ACCESS=NO
 Current authorities:
 - consolidated frozen pre-spend findings: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`
 - fresh finding verification + provider refresh: `docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md`
+- DeepSeek V4 Flash Vision Exp first-party correction: `docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`
 - Owner-requested two-review plan: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_PLAN_V0_1.md`
 - Owner live-probe scope: `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md`
 - pre-live re-audit: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_REAUDIT_V0_1.md`
@@ -65,35 +66,39 @@ RSP-002=REPAIR_RECOMMENDED__SAME_INTENT_ID_DIFFERENT_CONTENT_CAN_SILENTLY_COLLAP
 Full frozen evidence, acceptance invariants, non-findings and closure rules live in:
 `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`.
 
-Fresh-current-main adjudication and dated provider reconnaissance live in:
+Fresh-current-main finding adjudication and the original dated provider reconnaissance live in:
 `docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md`.
+
+The later first-party correction that restores DeepSeek's experimental visual model as a current candidate lives in:
+`docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`.
 
 The finding set and non-negotiable acceptance invariants remain frozen. Exact implementation design remains deliberately open. Do not restart open-ended review cycles without new concrete correctness/evidence/security/cost evidence.
 
 ## Owner provider / cost scope
 
 ```text
-PROVIDER_FIRST_PARTY_REFRESH_2026_08_24=COMPLETE
+PROVIDER_FIRST_PARTY_REFRESH_2026_08_24=COMPLETE_WITH_DEEPSEEK_CORRECTION
 ANTHROPIC_CLAUDE=EXCLUDED_BY_OWNER
 GOOGLE_GEMINI=EXCLUDED_BY_OWNER
-OPENAI_GPT_5_6_SOL=CANDIDATE_RETAINED__PROJECT_BRAIN_RECOMMENDED
-XAI_GROK_4_6=CANDIDATE_UNDER_OWNER_CONSIDERATION__PROJECT_BRAIN_RECOMMENDED
-KIMI_K3=CANDIDATE_UNDER_OWNER_CONSIDERATION__PROJECT_BRAIN_RECOMMENDED
-DEEPSEEK_V4_FLASH_VISION_EXP=NOT_FIRST_PARTY_VERIFIABLE_AS_CURRENT_VISUAL_API_MODEL__NOT_RECOMMENDED_FOR_CURRENT_VISUAL_PROBE
-PROJECT_BRAIN_RECOMMENDED_PROVIDER_SET=OPENAI_GPT_5_6_SOL,XAI_GROK_4_6,KIMI_K3
-PROJECT_BRAIN_LEAN_FALLBACK_PROVIDER_SET=OPENAI_GPT_5_6_SOL,XAI_GROK_4_6
+OPENAI_GPT_5_6_SOL=CANDIDATE_RETAINED
+XAI_GROK_4_6=CANDIDATE_UNDER_OWNER_CONSIDERATION
+KIMI_K3=CANDIDATE_UNDER_OWNER_CONSIDERATION
+DEEPSEEK_V4_FLASH_VISION_EXP=CANDIDATE_UNDER_OWNER_CONSIDERATION__EXPERIMENTAL__FIRST_PARTY_DOCUMENTED_VISUAL_API
+PROJECT_BRAIN_PROVIDER_RECOMMENDATION=REASSESS_REQUIRED_WITH_DEEPSEEK_RESTORED
 FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
-NO_MODEL_OR_PROVIDER_VERIFIED=YES
+NO_MODEL_OR_PROVIDER_VERIFIED_BY_PROJECT_LIVE_CALL=YES
 NO_MODEL_OR_PROVIDER_ADOPTED=YES
 ```
 
 The Owner's binding budget ceiling is **RMB 100 total**, with no automatic extension. This is a future ceiling only; paid calls remain unauthorized.
 
-The 2026-08-24 first-party refresh found that OpenAI GPT-5.6 Sol, xAI Grok 4.6 and Kimi K3 each have a current direct API path with image input and structured-output support suitable for implementing the required visual/structured fidelity tracks. The current official DeepSeek V4 API surface exposes text-only V4 models rather than the repository's prior experimental `deepseek-v4-flash-vision-exp` candidate, so DeepSeek is not recommended for the current mandatory visual K-line probe.
+The initial 2026-08-24 provider refresh incorrectly excluded `deepseek-v4-flash-vision-exp` because the fetched standard `/models` documentation snapshot pre-dated the model's 2026-08-21 launch. Subsequent first-party verification against DeepSeek's official `deepseek-ai/deepseek-harness` repository confirmed that the current default DeepSeek catalog includes `deepseek-v4-flash-vision-exp` with `inputModalities: [text, image]`. Launch material identifies it as an experimental direct API model supporting mixed text/image input. The prior DeepSeek exclusion is therefore superseded.
+
+DeepSeek Vision Exp is not project-VERIFIED or ADOPTED: no project live call has occurred. Its experimental identity and provider image downscaling/token ceiling must be treated as candidate-specific fidelity risks to test, not as pre-test disqualifiers.
 
 OpenAI first-party public surfaces were not fully synchronized on the temporary Sol API price reduction. Until a canonical billing/rate authority is resolved at implementation time, BSP-005 must fail closed or use the higher current published bound for conservative pre-call reservation; the lower promotional number must not be silently hard-coded.
 
-Final provider/model selection and bounded probe scope are now the next Owner decision. Selecting the implementation target does **not** authorize any paid external call.
+A corrected four-candidate comparison must be presented before asking the Owner for final provider/model selection and bounded probe scope. Selecting the implementation target does **not** authorize any paid external call.
 
 ## Product / strategy boundary
 
@@ -165,11 +170,12 @@ OUTCOME_ACCESS=NO
 
 ## Next normal work
 
-1. Owner selects the final provider/model set and bounded probe scope from the current first-party-refreshed recommendation. This is the current major Owner decision.
-2. After selection, execute **one batched repair package** covering every still-valid BSP/RSP finding, including selected-provider transport and code-level hard budget enforcement. Ordinary engineering choices inside the package do not require repeated Owner approval.
-3. Run finding-specific focused/adversarial regression for every finding, canonical full suite `python -m unittest discover -s tests -v`, and the finding-specific re-audit. Do not restart broad rolling review/fix cycles.
-4. Update formal finding/state authority with CLOSED/PASS evidence.
-5. Only after all five BSP blockers are CLOSED can a separate explicit Owner authorization enable bounded paid provider calls under the RMB 100 total hard ceiling.
-6. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
+1. Reassess the provider recommendation with `deepseek-v4-flash-vision-exp` restored as an experimental first-party visual API candidate; do not enter repair yet.
+2. Present the corrected four-candidate capability/cost comparison. Owner then selects the final provider/model set and bounded probe scope. This is the next major Owner decision.
+3. After selection, execute **one batched repair package** covering every still-valid BSP/RSP finding, including selected-provider transport and code-level hard budget enforcement. Ordinary engineering choices inside the package do not require repeated Owner approval.
+4. Run finding-specific focused/adversarial regression for every finding, canonical full suite `python -m unittest discover -s tests -v`, and the finding-specific re-audit. Do not restart broad rolling review/fix cycles.
+5. Update formal finding/state authority with CLOSED/PASS evidence.
+6. Only after all five BSP blockers are CLOSED can a separate explicit Owner authorization enable bounded paid provider calls under the RMB 100 total hard ceiling.
+7. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
 
-No provider/model is currently VERIFIED or ADOPTED. No paid provider/model call has occurred.
+No provider/model is currently VERIFIED by a project live call or ADOPTED. No paid provider/model call has occurred.
