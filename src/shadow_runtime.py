@@ -519,8 +519,10 @@ class ShadowRuntime:
         """Drain pending broker events and apply them to TradingState + OMS."""
         results: list[EventApplicationResult] = []
         for event in self._broker.drain_events():
-            self._oms.apply_broker_event(event)
-            results.append(self._state.apply_broker_event(event))
+            result = self._state.apply_broker_event(event)
+            results.append(result)
+            if result.applied:
+                self._oms.apply_broker_event(event)
         return tuple(results)
 
     def reconcile(self, at: datetime) -> ReconciliationReport:

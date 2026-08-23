@@ -49,6 +49,19 @@ CURRENT_PRIMARY_MANIFEST_IDENTITY = (
 PRICING_AUTHORITY_PATH = (
     REPOSITORY_ROOT / "docs" / "evidence" / "JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json"
 )
+FIDELITY_CORPUS_PATH = (
+    REPOSITORY_ROOT / "docs" / "evidence" / "JIANGHE_AI_FIDELITY_FIXTURES_V0_1.json"
+)
+PRIMARY_REGISTRY_RELATIVE_PATH = (
+    "docs/research/jianghe/primary_mapping_draft_v0_1/"
+    "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_5.jsonl"
+)
+PRIMARY_REGISTRY_PATH = REPOSITORY_ROOT / PRIMARY_REGISTRY_RELATIVE_PATH
+PAID_CALL_AUTHORITY_PATH = (
+    REPOSITORY_ROOT / "docs" / "evidence" / "JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json"
+)
+EXPECTED_FIDELITY_CORPUS_ID = "JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1"
+TEXT_INPUT_BOUND_POLICY_VERSION = "UTF8_PAYLOAD_BYTES_X2_PLUS_8192_V0_1"
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _ALLOWED_CONTEXT_PATHS = frozenset(
@@ -113,7 +126,7 @@ def current_context_selection_policy_identity() -> str:
             "allowed_repository_paths": tuple(sorted(_ALLOWED_CONTEXT_PATHS)),
             "repository_byte_authority": "EXACT_COMMITTED_GIT_BLOB_BYTES",
             "outcome_future_fixture_authority": "FORBIDDEN",
-            "selection_semantics": "EXACT_UTF8_SUBSTRING_ONLY",
+            "selection_semantics": "FIXTURE_SOURCE_ANCHORS_TO_PRIMARY_V0_5_EXACT_JSONL_RECORDS",
         }
     )
 
@@ -236,16 +249,133 @@ class SelectedContextDocument:
         }
 
 
+def _fixture_context_material(fixture_id: str) -> dict[str, object]:
+    """Resolve only fixture source-claim anchors into exact committed PRIMARY records.
+
+    The fixture is used only as a selector. No visible_information, expected answer,
+    rubric, hidden-future section, case outcome, or fixture prose is transmitted.
+    """
+    _require_text(fixture_id, "fixture_id")
+    corpus_blob = _repository_blob_bytes(FIDELITY_CORPUS_PATH)
+    try:
+        corpus = json.loads(corpus_blob.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("fidelity corpus authority is malformed") from error
+    if not isinstance(corpus, Mapping) or corpus.get("corpus_id") != EXPECTED_FIDELITY_CORPUS_ID:
+        raise ValueError("unexpected fidelity corpus authority")
+    if corpus.get("knowledge_pack_identity") != CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY:
+        raise ValueError("fidelity corpus is not bound to the current Jianghe knowledge pack")
+    fixtures = corpus.get("fixtures")
+    if not isinstance(fixtures, list):
+        raise ValueError("fidelity corpus fixtures are malformed")
+    matches = [
+        item for item in fixtures
+        if isinstance(item, Mapping) and item.get("fixture_id") == fixture_id
+    ]
+    if len(matches) != 1:
+        raise ValueError("fixture_id must resolve to exactly one governed fixture")
+    fixture = matches[0]
+    anchors = fixture.get("source_anchors")
+    if not isinstance(anchors, Mapping):
+        raise ValueError("fixture source anchors are missing")
+    raw_claim_ids = anchors.get("claims")
+    if (
+        not isinstance(raw_claim_ids, list)
+        or not raw_claim_ids
+        or any(not isinstance(value, str) or not value for value in raw_claim_ids)
+    ):
+        raise ValueError("fixture must declare non-empty source claim anchors")
+    claim_ids = tuple(sorted(set(raw_claim_ids)))
+    if len(claim_ids) != len(raw_claim_ids):
+        raise ValueError("fixture source claim anchors must be unique")
+
+    registry_blob = _repository_blob_bytes(PRIMARY_REGISTRY_PATH)
+    try:
+        registry_text = registry_blob.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ValueError("PRIMARY registry must be UTF-8") from error
+    selected_lines: dict[str, str] = {}
+    for line in registry_text.splitlines():
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise ValueError("PRIMARY registry JSONL is malformed") from error
+        if not isinstance(record, Mapping):
+            raise ValueError("PRIMARY registry record must be an object")
+        claim_id = record.get("claim_id")
+        if claim_id not in claim_ids:
+            continue
+        if claim_id in selected_lines:
+            raise ValueError("PRIMARY registry contains duplicate selected claim_id")
+        if record.get("claim_manifest_identity") != CURRENT_PRIMARY_MANIFEST_IDENTITY:
+            raise ValueError("selected PRIMARY record has stale claim-manifest identity")
+        if record.get("knowledge_pack_identity") != CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY:
+            raise ValueError("selected PRIMARY record has stale knowledge-pack identity")
+        if record.get("branch_registry_version") != "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_5":
+            raise ValueError("selected PRIMARY record has unexpected registry version")
+        selected_lines[str(claim_id)] = line
+    missing = tuple(sorted(set(claim_ids) - set(selected_lines)))
+    if missing:
+        raise ValueError(f"fixture source claims missing from current PRIMARY registry: {missing}")
+
+    documents = tuple(
+        SelectedContextDocument.from_repository_authority(
+            PRIMARY_REGISTRY_RELATIVE_PATH, selected_lines[claim_id]
+        )
+        for claim_id in claim_ids
+    )
+    fixture_identity = _hash(fixture)
+    corpus_content_sha256 = sha256(corpus_blob).hexdigest()
+    registry_content_sha256 = sha256(registry_blob).hexdigest()
+    selection_basis_identity = _hash(
+        {
+            "policy_identity": current_context_selection_policy_identity(),
+            "corpus_id": EXPECTED_FIDELITY_CORPUS_ID,
+            "corpus_content_sha256": corpus_content_sha256,
+            "fixture_id": fixture_id,
+            "fixture_identity": fixture_identity,
+            "primary_registry_content_sha256": registry_content_sha256,
+            "source_claim_ids": claim_ids,
+            "selected_document_identities": tuple(item.identity for item in documents),
+        }
+    )
+    return {
+        "documents": documents,
+        "fixture_identity": fixture_identity,
+        "corpus_content_sha256": corpus_content_sha256,
+        "registry_content_sha256": registry_content_sha256,
+        "source_claim_ids": claim_ids,
+        "selection_basis_identity": selection_basis_identity,
+    }
+
+
 @dataclass(frozen=True)
 class SelectedJiangheContextArtifact:
-    """Actual Jianghe material sent to the model, fully content addressed."""
+    """Exact governed Jianghe material sent to a spend-eligible model request."""
 
     context_selection_policy_identity: str
     documents: tuple[SelectedContextDocument, ...]
     knowledge_pack_identity: str = CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY
     primary_manifest_identity: str = CURRENT_PRIMARY_MANIFEST_IDENTITY
     primary_registry_version: str = "JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_5"
+    fixture_id: str | None = None
+    fixture_identity: str | None = field(init=False, default=None)
+    fixture_corpus_content_sha256: str | None = field(init=False, default=None)
+    primary_registry_content_sha256: str | None = field(init=False, default=None)
+    source_claim_ids: tuple[str, ...] = field(init=False, default=())
+    selection_basis_identity: str | None = field(init=False, default=None)
     identity: str = field(init=False)
+
+    @classmethod
+    def from_fixture_id(cls, fixture_id: str) -> "SelectedJiangheContextArtifact":
+        material = _fixture_context_material(fixture_id)
+        return cls(
+            current_context_selection_policy_identity(),
+            material["documents"],
+            fixture_id=fixture_id,
+        )
 
     def __post_init__(self) -> None:
         _require_sha256(self.context_selection_policy_identity, "context_selection_policy_identity")
@@ -255,13 +385,27 @@ class SelectedJiangheContextArtifact:
             raise ValueError("selected context is not bound to the current knowledge pack")
         if self.primary_manifest_identity != CURRENT_PRIMARY_MANIFEST_IDENTITY:
             raise ValueError("selected context is not bound to the current PRIMARY manifest")
-        _require_text(self.primary_registry_version, "primary_registry_version")
+        if self.primary_registry_version != "JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_5":
+            raise ValueError("selected context is not bound to PRIMARY registry V0.5")
         if not self.documents:
             raise ValueError("selected Jianghe context must contain actual material")
         ordered = tuple(sorted(self.documents, key=lambda item: (item.repository_path, item.identity)))
         if len({item.identity for item in ordered}) != len(ordered):
             raise ValueError("selected Jianghe context documents must be unique")
         object.__setattr__(self, "documents", ordered)
+
+        if self.fixture_id is not None:
+            material = _fixture_context_material(self.fixture_id)
+            expected = tuple(
+                sorted(material["documents"], key=lambda item: (item.repository_path, item.identity))
+            )
+            if tuple(item.identity for item in ordered) != tuple(item.identity for item in expected):
+                raise ValueError("selected context differs from deterministic fixture source selection")
+            object.__setattr__(self, "fixture_identity", material["fixture_identity"])
+            object.__setattr__(self, "fixture_corpus_content_sha256", material["corpus_content_sha256"])
+            object.__setattr__(self, "primary_registry_content_sha256", material["registry_content_sha256"])
+            object.__setattr__(self, "source_claim_ids", material["source_claim_ids"])
+            object.__setattr__(self, "selection_basis_identity", material["selection_basis_identity"])
         object.__setattr__(self, "identity", _hash(self.to_payload(include_identity=False)))
 
     def to_payload(self, *, include_identity: bool = True) -> dict[str, object]:
@@ -271,6 +415,12 @@ class SelectedJiangheContextArtifact:
             "primary_manifest_identity": self.primary_manifest_identity,
             "primary_registry_version": self.primary_registry_version,
             "context_selection_policy_identity": self.context_selection_policy_identity,
+            "fixture_id": self.fixture_id,
+            "fixture_identity": self.fixture_identity,
+            "fixture_corpus_content_sha256": self.fixture_corpus_content_sha256,
+            "primary_registry_content_sha256": self.primary_registry_content_sha256,
+            "source_claim_ids": list(self.source_claim_ids),
+            "selection_basis_identity": self.selection_basis_identity,
             "documents": [item.to_payload() for item in self.documents],
         }
         if include_identity:
@@ -278,9 +428,9 @@ class SelectedJiangheContextArtifact:
         return payload
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class CanonicalStructuredObservationArtifact:
-    """Closed-world canonical serializer for a JiangheObservation."""
+    """Closed-world artifact that can only be constructed from JiangheObservation."""
 
     source_observation_identity: str
     serialized_json: str
@@ -293,6 +443,8 @@ class CanonicalStructuredObservationArtifact:
     ) -> "CanonicalStructuredObservationArtifact":
         if not isinstance(observation, JiangheObservation):
             raise TypeError("structured artifact must be generated from JiangheObservation")
+        if observation.schema_version != "JIANGHE_OBSERVATION_V0_1":
+            raise ValueError("spend-eligible observation schema version is not canonical V0.1")
         ident = observation.identity
         visible = dict(observation.visible_metadata)
         if set(visible) - set(_ALLOWED_VISIBLE_METADATA):
@@ -354,24 +506,27 @@ class CanonicalStructuredObservationArtifact:
         schema_identity = _hash(
             {
                 "schema_version": STRUCTURED_SCHEMA_VERSION,
+                "source_observation_schema_version": "JIANGHE_OBSERVATION_V0_1",
                 "closed_world_fields": {
                     "top": tuple(sorted(payload)),
                     "observation": tuple(sorted(payload["observation"])),
                     "bar": tuple(sorted(payload["bars"][0])) if payload["bars"] else (),
                     "position": (
                         tuple(sorted(payload["positions"][0])) if payload["positions"] else (
-                            "active_order_ids", "direction",
-                            "protective_orders", "quantity",
+                            "active_order_ids", "direction", "protective_orders", "quantity"
                         )
                     ),
                 },
             }
         )
-        return cls(
-            source_observation_identity=ident.identity,
-            serialized_json=serialized,
-            schema_identity=schema_identity,
-            identity=_hash(
+        artifact = object.__new__(cls)
+        object.__setattr__(artifact, "source_observation_identity", ident.identity)
+        object.__setattr__(artifact, "serialized_json", serialized)
+        object.__setattr__(artifact, "schema_identity", schema_identity)
+        object.__setattr__(
+            artifact,
+            "identity",
+            _hash(
                 {
                     "schema_identity": schema_identity,
                     "source_observation_identity": ident.identity,
@@ -379,6 +534,7 @@ class CanonicalStructuredObservationArtifact:
                 }
             ),
         )
+        return artifact
 
     def payload(self) -> dict[str, object]:
         return json.loads(self.serialized_json)
@@ -439,6 +595,8 @@ class SpendEligibleJiangheRequest:
         _scan_forbidden(self.response_schema, "response_schema")
         if not isinstance(self.context, SelectedJiangheContextArtifact):
             raise TypeError("context must be SelectedJiangheContextArtifact")
+        if self.context.fixture_id is None or self.context.selection_basis_identity is None:
+            raise ValueError("spend-eligible context must come from deterministic fixture source anchors")
         if not isinstance(self.structured_observation, CanonicalStructuredObservationArtifact):
             raise TypeError("structured_observation must be canonical")
         if not isinstance(self.max_output_tokens, int) or isinstance(self.max_output_tokens, bool) or self.max_output_tokens <= 0:
@@ -842,6 +1000,14 @@ class CnyBudgetLedger:
         self._history.append(("RECONCILED", reservation_id))
         return actual_cny
 
+    def cancel_before_network(self, reservation_id: str, *, reason: str) -> None:
+        reservation = self._outstanding
+        if reservation is None or reservation.reservation_id != reservation_id:
+            raise BudgetGuardError("reservation is missing or mismatched")
+        _require_text(reason, "reason")
+        self._outstanding = None
+        self._history.append((f"CANCELLED_BEFORE_NETWORK:{reason}", reservation_id))
+
     def consume_full_reservation_on_unknown_usage(self, reservation_id: str) -> None:
         reservation = self._outstanding
         if reservation is None or reservation.reservation_id != reservation_id:
@@ -858,6 +1024,10 @@ class PaidCallAuthorization:
     provider_models: tuple[tuple[str, str], ...]
     hard_cap_cny: Decimal
     paid_calls_enabled: bool = False
+    repository_authority_identity: str | None = None
+    effective_at: datetime | None = None
+    expires_at: datetime | None = None
+    identity: str = field(init=False)
 
     def __post_init__(self) -> None:
         _require_text(self.authorization_id, "authorization_id")
@@ -870,11 +1040,96 @@ class PaidCallAuthorization:
         ordered = tuple(sorted(self.provider_models))
         if not ordered or len(set(ordered)) != len(ordered):
             raise ValueError("authorization provider_models must be unique and non-empty")
+        for provider_id, model_id in ordered:
+            _require_text(provider_id, "provider_id")
+            _require_text(model_id, "model_id")
+        if self.repository_authority_identity is not None:
+            _require_sha256(self.repository_authority_identity, "repository_authority_identity")
+            if self.effective_at is None or self.expires_at is None:
+                raise ValueError("repository authorization requires bounded validity")
+            _require_aware(self.effective_at, "effective_at")
+            _require_aware(self.expires_at, "expires_at")
+            if self.expires_at <= self.effective_at:
+                raise ValueError("authorization validity window is invalid")
         object.__setattr__(self, "provider_models", ordered)
         object.__setattr__(self, "hard_cap_cny", cap)
+        object.__setattr__(
+            self,
+            "identity",
+            _hash(
+                {
+                    "authorization_id": self.authorization_id,
+                    "authorization_evidence_sha256": self.authorization_evidence_sha256,
+                    "provider_models": ordered,
+                    "hard_cap_cny": str(cap),
+                    "paid_calls_enabled": self.paid_calls_enabled,
+                    "repository_authority_identity": self.repository_authority_identity,
+                    "effective_at": None if self.effective_at is None else _utc(self.effective_at),
+                    "expires_at": None if self.expires_at is None else _utc(self.expires_at),
+                }
+            ),
+        )
 
     def permits(self, spec: ProviderSpec) -> bool:
         return self.paid_calls_enabled and (spec.provider_id, spec.model_id) in self.provider_models
+
+
+def load_owner_paid_call_authorization(*, now: datetime) -> PaidCallAuthorization:
+    """Load the only production authorization from an exact committed Git blob.
+
+    The authority file is intentionally absent while PAID_MODEL_SPEND=NOT_AUTHORIZED.
+    A caller-created PaidCallAuthorization can never substitute for this loader.
+    """
+    _require_aware(now, "now")
+    try:
+        blob = _repository_blob_bytes(PAID_CALL_AUTHORITY_PATH)
+    except ValueError as error:
+        raise PaidCallNotAuthorizedError("repository Owner paid-call authorization is absent") from error
+    authority_identity = sha256(blob).hexdigest()
+    try:
+        payload = json.loads(blob.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise PaidCallNotAuthorizedError("Owner paid-call authorization is malformed") from error
+    required = {
+        "artifact_schema_version", "authorization_id", "owner_decision_evidence_sha256",
+        "paid_calls_enabled", "hard_cap_cny", "provider_models", "effective_at", "expires_at",
+    }
+    if not isinstance(payload, Mapping) or set(payload) != required:
+        raise PaidCallNotAuthorizedError("Owner paid-call authorization schema is not closed-world")
+    if payload.get("artifact_schema_version") != "JIANGHE_PAID_CALL_AUTHORIZATION_SCHEMA_V0_1":
+        raise PaidCallNotAuthorizedError("Owner paid-call authorization schema version is unknown")
+    if payload.get("paid_calls_enabled") is not True or payload.get("hard_cap_cny") != "100.00":
+        raise PaidCallNotAuthorizedError("Owner paid-call authorization is disabled or cap differs")
+    raw_models = payload.get("provider_models")
+    if not isinstance(raw_models, list) or not raw_models:
+        raise PaidCallNotAuthorizedError("Owner paid-call authorization has no provider models")
+    provider_models: list[tuple[str, str]] = []
+    for item in raw_models:
+        if not isinstance(item, Mapping) or set(item) != {"provider_id", "model_id"}:
+            raise PaidCallNotAuthorizedError("Owner provider authorization entry is malformed")
+        provider_models.append(
+            (_require_text(item.get("provider_id"), "provider_id"), _require_text(item.get("model_id"), "model_id"))
+        )
+    try:
+        effective_at = datetime.fromisoformat(str(payload["effective_at"]))
+        expires_at = datetime.fromisoformat(str(payload["expires_at"]))
+    except (KeyError, ValueError) as error:
+        raise PaidCallNotAuthorizedError("Owner authorization validity is malformed") from error
+    auth = PaidCallAuthorization(
+        authorization_id=_require_text(payload.get("authorization_id"), "authorization_id"),
+        authorization_evidence_sha256=_require_sha256(
+            payload.get("owner_decision_evidence_sha256"), "owner_decision_evidence_sha256"
+        ),
+        provider_models=tuple(provider_models),
+        hard_cap_cny=Decimal("100.00"),
+        paid_calls_enabled=True,
+        repository_authority_identity=authority_identity,
+        effective_at=effective_at,
+        expires_at=expires_at,
+    )
+    if not (effective_at <= now < expires_at):
+        raise PaidCallNotAuthorizedError("Owner paid-call authorization is stale or not yet effective")
+    return auth
 
 
 @dataclass(frozen=True)
@@ -908,10 +1163,18 @@ class ProviderUsage:
 @dataclass(frozen=True)
 class ProviderInvocationEvidence:
     request_identity: str
+    source_observation_identity: str
+    selected_context_identity: str
+    context_selection_policy_identity: str
+    knowledge_pack_identity: str
+    primary_manifest_identity: str
+    structured_observation_identity: str
+    visual_identities: tuple[str, ...]
     provider_spec_identity: str
     requested_model_id: str
     resolved_model_id: str
     provider_request_id: str
+    raw_provider_response_body: str
     raw_response_text: str
     usage: ProviderUsage
     latency_ms: int
@@ -921,25 +1184,56 @@ class ProviderInvocationEvidence:
     identity: str = field(init=False)
 
     def __post_init__(self) -> None:
-        for name in ("request_identity", "provider_spec_identity", "requested_model_id",
-                     "resolved_model_id", "provider_request_id", "raw_response_text",
-                     "rate_card_identity", "budget_reservation_id"):
+        for name in (
+            "request_identity", "source_observation_identity", "selected_context_identity",
+            "context_selection_policy_identity", "knowledge_pack_identity", "primary_manifest_identity",
+            "structured_observation_identity", "provider_spec_identity", "requested_model_id",
+            "resolved_model_id", "provider_request_id", "raw_provider_response_body",
+            "raw_response_text", "rate_card_identity", "budget_reservation_id",
+        ):
             _require_text(getattr(self, name), name)
+        for name in (
+            "request_identity", "source_observation_identity", "selected_context_identity",
+            "context_selection_policy_identity", "knowledge_pack_identity", "primary_manifest_identity",
+            "structured_observation_identity", "provider_spec_identity", "rate_card_identity",
+        ):
+            _require_sha256(getattr(self, name), name)
+        if not self.visual_identities or any(not _SHA256.fullmatch(value) for value in self.visual_identities):
+            raise ValueError("visual identities must be non-empty sha256 values")
         if not isinstance(self.latency_ms, int) or self.latency_ms < 0:
             raise ValueError("latency_ms must be non-negative integer")
         object.__setattr__(
-            self, "identity",
-            _hash({"request_identity": self.request_identity,
-                   "provider_spec_identity": self.provider_spec_identity,
-                   "requested_model_id": self.requested_model_id,
-                   "resolved_model_id": self.resolved_model_id,
-                   "provider_request_id": self.provider_request_id,
-                   "raw_response_sha256": sha256(self.raw_response_text.encode("utf-8")).hexdigest(),
-                   "usage": {"text_input_tokens": self.usage.text_input_tokens,
-                             "image_tokens": self.usage.image_tokens,
-                             "output_tokens": self.usage.output_tokens},
-                   "latency_ms": self.latency_ms, "rate_card_identity": self.rate_card_identity,
-                   "fx_identity": self.fx_identity, "budget_reservation_id": self.budget_reservation_id})
+            self,
+            "identity",
+            _hash(
+                {
+                    "request_identity": self.request_identity,
+                    "source_observation_identity": self.source_observation_identity,
+                    "selected_context_identity": self.selected_context_identity,
+                    "context_selection_policy_identity": self.context_selection_policy_identity,
+                    "knowledge_pack_identity": self.knowledge_pack_identity,
+                    "primary_manifest_identity": self.primary_manifest_identity,
+                    "structured_observation_identity": self.structured_observation_identity,
+                    "visual_identities": self.visual_identities,
+                    "provider_spec_identity": self.provider_spec_identity,
+                    "requested_model_id": self.requested_model_id,
+                    "resolved_model_id": self.resolved_model_id,
+                    "provider_request_id": self.provider_request_id,
+                    "raw_provider_response_sha256": sha256(
+                        self.raw_provider_response_body.encode("utf-8")
+                    ).hexdigest(),
+                    "raw_response_text_sha256": sha256(self.raw_response_text.encode("utf-8")).hexdigest(),
+                    "usage": {
+                        "text_input_tokens": self.usage.text_input_tokens,
+                        "image_tokens": self.usage.image_tokens,
+                        "output_tokens": self.usage.output_tokens,
+                    },
+                    "latency_ms": self.latency_ms,
+                    "rate_card_identity": self.rate_card_identity,
+                    "fx_identity": self.fx_identity,
+                    "budget_reservation_id": self.budget_reservation_id,
+                }
+            ),
         )
 
 
@@ -948,7 +1242,7 @@ class DomesticProviderTransport:
 
     def __init__(self, spec: ProviderSpec, *, http_post: HttpPost | None = None) -> None:
         if spec not in IMPLEMENTATION_TARGET_SPECS:
-            raise ValueError("provider is outside the Owner-confirmed implementation target set")
+            raise ValueError("provider is outside the current implementation target set")
         self.spec = spec
         self._http_post = http_post or _default_http_post
 
@@ -960,26 +1254,56 @@ class DomesticProviderTransport:
             for visual in request.visuals
         )
         if self.spec.payload_style == "KIMI_OPENAI":
-            return {"model": self.spec.model_id,
-                    "messages": [{"role": "system", "content": request.system_prompt},
-                                 {"role": "user", "content": multimodal_content}],
-                    "reasoning_effort": "max",
-                    "max_completion_tokens": request.max_output_tokens,
-                    "response_format": {"type": "json_schema", "json_schema": {
-                        "name": "jianghe_runtime_response", "strict": True,
-                        "schema": dict(request.response_schema)}}}
+            return {
+                "model": self.spec.model_id,
+                "messages": [
+                    {"role": "system", "content": request.system_prompt},
+                    {"role": "user", "content": multimodal_content},
+                ],
+                "reasoning_effort": "max",
+                "max_completion_tokens": request.max_output_tokens,
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "jianghe_runtime_response",
+                        "strict": True,
+                        "schema": dict(request.response_schema),
+                    },
+                },
+                "tools": [],
+            }
         if self.spec.payload_style == "DEEPSEEK_OPENAI":
-            return {"model": self.spec.model_id,
-                    "messages": [{"role": "system", "content": request.system_prompt},
-                                 {"role": "user", "content": multimodal_content}],
-                    "max_tokens": request.max_output_tokens,
-                    "response_format": {"type": "json_object"}, "tools": []}
+            return {
+                "model": self.spec.model_id,
+                "messages": [
+                    {"role": "system", "content": request.system_prompt},
+                    {"role": "user", "content": multimodal_content},
+                ],
+                "max_tokens": request.max_output_tokens,
+                "response_format": {"type": "json_object"},
+                "tools": [],
+            }
         if self.spec.payload_style == "MINIMAX_V2":
-            return {"model": self.spec.model_id,
-                    "messages": [{"role": "system", "content": request.system_prompt},
-                                 {"role": "user", "content": multimodal_content}],
-                    "max_tokens": request.max_output_tokens, "stream": False, "tools": []}
+            return {
+                "model": self.spec.model_id,
+                "messages": [
+                    {"role": "system", "content": request.system_prompt},
+                    {"role": "user", "content": multimodal_content},
+                ],
+                "max_tokens": request.max_output_tokens,
+                "stream": False,
+                "tools": [],
+            }
         raise AssertionError("unreachable payload style")
+
+    def payload_bytes(self, request: SpendEligibleJiangheRequest) -> bytes:
+        return _canonical_json(self.build_payload(request)).encode("utf-8")
+
+    def conservative_text_input_token_bound(self, request: SpendEligibleJiangheRequest) -> int:
+        # Conservative provider-agnostic guard: two token slots per exact UTF-8 payload
+        # byte plus fixed protocol overhead. Provider-reported usage above this still
+        # trips the post-call full-reservation guard.
+        return len(self.payload_bytes(request)) * 2 + 8192
 
     @staticmethod
     def _extract_text(payload: Mapping[str, object]) -> str:
@@ -1012,28 +1336,54 @@ class DomesticProviderTransport:
             raise ProviderResponseError("image token usage is malformed")
         return ProviderUsage(prompt, image, completion)
 
-    def invoke(self, request: SpendEligibleJiangheRequest, *, authorization: PaidCallAuthorization | None,
-               budget: CnyBudgetLedger, bounds: InvocationBounds,
-               fx: FxAuthority | None, now: datetime, timeout_seconds: float = 60.0) -> ProviderInvocationEvidence:
-        if authorization is None or not authorization.permits(self.spec):
+    def invoke(
+        self,
+        request: SpendEligibleJiangheRequest,
+        *,
+        authorization: PaidCallAuthorization | None,
+        budget: CnyBudgetLedger,
+        bounds: InvocationBounds,
+        fx: FxAuthority | None,
+        now: datetime,
+        timeout_seconds: float = 60.0,
+    ) -> ProviderInvocationEvidence:
+        if authorization is None:
             raise PaidCallNotAuthorizedError("paid provider call lacks explicit Owner authorization")
+        repository_authorization = load_owner_paid_call_authorization(now=now)
+        if authorization.identity != repository_authorization.identity:
+            raise PaidCallNotAuthorizedError("caller authorization differs from committed Owner authority")
+        if not authorization.permits(self.spec):
+            raise PaidCallNotAuthorizedError("provider/model is outside committed Owner authorization")
         if authorization.hard_cap_cny != budget.cap_cny:
             raise PaidCallNotAuthorizedError("authorization cap and shared ledger cap differ")
         if bounds.max_output_tokens != request.max_output_tokens:
             raise BudgetGuardError("request output cap must equal reserved output cap")
+
         rate_card = load_current_repository_rate_card(self.spec, now=now)
-        if rate_card.image_billing_mode == "FIXED_INPUT_TOKENS_PER_IMAGE":
-            expected_image_tokens = len(request.visuals) * int(rate_card.fixed_input_tokens_per_image or 0)
-            if bounds.max_image_tokens != expected_image_tokens:
-                raise BudgetGuardError("image-token reservation must exactly match the repository billing authority")
-        else:
-            expected_image_tokens = bounds.max_image_tokens
-        reservation = budget.reserve(self.spec, rate_card, bounds, fx=fx, now=now)
+        if rate_card.currency != "CNY":
+            raise BudgetGuardError("non-CNY production calls require a repository-bound FX authority")
+        if fx is not None:
+            raise BudgetGuardError("caller-supplied FX authority is not spend-eligible")
+
+        payload_bytes = self.payload_bytes(request)
+        required_text_bound = len(payload_bytes) * 2 + 8192
+        if bounds.max_text_input_tokens != required_text_bound:
+            raise BudgetGuardError(
+                "text-input reservation must exactly match the canonical payload bound policy"
+            )
+        if rate_card.image_billing_mode != "FIXED_INPUT_TOKENS_PER_IMAGE":
+            raise BudgetGuardError("dynamic/ambiguous image billing has no deterministic pre-call bound")
+        expected_image_tokens = len(request.visuals) * int(rate_card.fixed_input_tokens_per_image or 0)
+        if bounds.max_image_tokens != expected_image_tokens:
+            raise BudgetGuardError(
+                "image-token reservation must exactly match the repository billing authority"
+            )
+
+        reservation = budget.reserve(self.spec, rate_card, bounds, fx=None, now=now)
         api_key = os.environ.get(self.spec.api_key_env)
         if not api_key:
-            budget.consume_full_reservation_on_unknown_usage(reservation.reservation_id)
+            budget.cancel_before_network(reservation.reservation_id, reason="MISSING_CREDENTIAL")
             raise ProviderTransportError("provider credential is unavailable")
-        payload_bytes = _canonical_json(self.build_payload(request)).encode("utf-8")
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         started = time.monotonic()
         try:
@@ -1046,7 +1396,8 @@ class DomesticProviderTransport:
             budget.consume_full_reservation_on_unknown_usage(reservation.reservation_id)
             raise ProviderTransportError(f"provider returned HTTP {response.status_code}")
         try:
-            decoded = json.loads(response.body.decode("utf-8"))
+            raw_provider_response_body = response.body.decode("utf-8")
+            decoded = json.loads(raw_provider_response_body)
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
             budget.consume_full_reservation_on_unknown_usage(reservation.reservation_id)
             raise ProviderResponseError("provider returned malformed JSON") from error
@@ -1065,14 +1416,34 @@ class DomesticProviderTransport:
             raise
         conservative_image_tokens = max(usage.image_tokens, expected_image_tokens)
         budget.reconcile(
-            reservation.reservation_id, text_input_tokens=usage.text_input_tokens,
-            image_tokens=conservative_image_tokens, output_tokens=usage.output_tokens,
-            rate_card=rate_card, fx=fx, now=now,
+            reservation.reservation_id,
+            text_input_tokens=usage.text_input_tokens,
+            image_tokens=conservative_image_tokens,
+            output_tokens=usage.output_tokens,
+            rate_card=rate_card,
+            fx=None,
+            now=now,
         )
         return ProviderInvocationEvidence(
-            request.identity, self.spec.identity, self.spec.model_id, resolved_model,
-            provider_request_id, raw_text, usage, latency_ms, rate_card.identity,
-            None if fx is None else fx.identity, reservation.reservation_id,
+            request_identity=request.identity,
+            source_observation_identity=request.structured_observation.source_observation_identity,
+            selected_context_identity=request.context.identity,
+            context_selection_policy_identity=request.context.context_selection_policy_identity,
+            knowledge_pack_identity=request.context.knowledge_pack_identity,
+            primary_manifest_identity=request.context.primary_manifest_identity,
+            structured_observation_identity=request.structured_observation.identity,
+            visual_identities=tuple(item.identity for item in request.visuals),
+            provider_spec_identity=self.spec.identity,
+            requested_model_id=self.spec.model_id,
+            resolved_model_id=resolved_model,
+            provider_request_id=provider_request_id,
+            raw_provider_response_body=raw_provider_response_body,
+            raw_response_text=raw_text,
+            usage=usage,
+            latency_ms=latency_ms,
+            rate_card_identity=rate_card.identity,
+            fx_identity=None,
+            budget_reservation_id=reservation.reservation_id,
         )
 
 
@@ -1081,9 +1452,10 @@ __all__ = [
     "CnyBudgetLedger", "CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY", "CURRENT_PRIMARY_MANIFEST_IDENTITY",
     "DEEPSEEK_VISION_SPEC", "DomesticProviderTransport", "FxAuthority", "HARD_PROJECT_CAP_CNY",
     "current_context_selection_policy_identity", "load_current_repository_rate_card",
-    "HttpResponse", "IMPLEMENTATION_TARGET_SPECS", "InvocationBounds", "KIMI_K3_SPEC",
-    "MINIMAX_M3_SPEC", "PaidCallAuthorization", "PaidCallNotAuthorizedError",
-    "ProviderInvocationEvidence", "ProviderResponseError", "ProviderSpec", "ProviderTransportError",
-    "ProviderUsage", "RateCard", "SelectedContextDocument", "SelectedJiangheContextArtifact",
-    "SpendEligibleJiangheRequest", "VisualInputArtifact",
+    "load_owner_paid_call_authorization", "HttpResponse", "IMPLEMENTATION_TARGET_SPECS",
+    "InvocationBounds", "KIMI_K3_SPEC", "MINIMAX_M3_SPEC", "PaidCallAuthorization",
+    "PaidCallNotAuthorizedError", "ProviderInvocationEvidence", "ProviderResponseError",
+    "ProviderSpec", "ProviderTransportError", "ProviderUsage", "RateCard",
+    "SelectedContextDocument", "SelectedJiangheContextArtifact", "SpendEligibleJiangheRequest",
+    "TEXT_INPUT_BOUND_POLICY_VERSION", "VisualInputArtifact",
 ]
