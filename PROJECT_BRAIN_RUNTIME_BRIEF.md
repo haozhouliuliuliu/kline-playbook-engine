@@ -18,7 +18,7 @@ Fresh conversations still follow the read-only takeover in `00_READ_FIRST.md`.
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=5ee3e99f7f292ba52c51a607c17c3bb3246ee68b
+LAST_MATERIAL_STATE_COMMIT=940d5ac91d311794694aceec54d2f66a353ff6c0
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -39,14 +39,14 @@ JIANGHE_PRIMARY_BRANCH_IDENTITIES_DETERMINISTIC=YES
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
-JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL
+JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__PRELIVE_EVIDENCE_REPAIRED
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
-JIANGHE_AI_VISUAL_RENDERER=IN_PREPARATION_NOT_INTEGRATED
+JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
 CURRENT_WORK_PACKAGE=JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_REPAIR
-NEXT_NORMAL_PHASE=repair_pre_live_identity_fidelity_provider_normalizer_and_visual_findings_then_rerun_gate_audit
+NEXT_NORMAL_PHASE=integrate_identity_provider_normalizer_repair_then_rerun_gate_audit
 PRE_LIVE_FIDELITY_GATE_AUDIT=NOT_READY_REPAIR_REQUIRED
 OWNER_ACTION=NONE_UNTIL_REAUDIT_PASSES_AND_LIVE_PROBE_APPROVAL_IS_REQUESTED
 LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_AUDIT_REPAIR
@@ -79,19 +79,9 @@ FULL_RATIONALE=MEANINGFUL_STATE_TRANSITION_OR_TRADE_MANAGEMENT
 
 The 352-claim identity-bound pre-freeze registry is integrated; 340 claims are ready for freeze and 12 remain explicit fail-closed STOP records. This is not the Owner-gated PRIMARY semantic freeze.
 
-The pre-live fidelity gate audit found evidence-chain gaps and is locked
-`NOT_READY_REPAIR_REQUIRED` (authority: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_V0_1.md`).
-Live provider probe is `BLOCKED_PENDING_AUDIT_REPAIR`. Current package is the audit
-repair: fidelity-evaluator evidence completeness, visual renderer import + independent
-review, and real-model firewall tests — all offline and fail-closed. No real
-provider/model call is authorized yet.
+The pre-live fidelity gate audit remains `NOT_READY_REPAIR_REQUIRED` (authority: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_V0_1.md`). The fidelity evaluator evidence-completeness repair and deterministic visual renderer are now integrated; the renderer passed the imported adversarial suite after three discovered defects were repaired. No real provider/model call is authorized yet.
 
-After the repair and a re-run of the gate audit confirm no remaining evidence gaps,
-request Owner approval for one bounded real-provider fidelity probe covering
-credentials/data egress/paid spend. That approval does **not** unlock candidate
-outcomes. After real-model fidelity evidence supports a model/provider, final PRIMARY
-semantic freeze remains a separate Owner decision before outcome-bearing candidate
-research.
+The remaining normal work is to integrate and cross-test the governed observation/replay identity, AI research-object identity, runtime normalizer, provider evidence contract and candidate prompt package on the latest main lineage, then re-run the same pre-live gate audit. Only a PASS re-audit may advance to an Owner request for one bounded real-provider fidelity probe covering credentials/data egress/paid spend. That approval does **not** unlock candidate outcomes. After real-model fidelity evidence supports a model/provider, final PRIMARY semantic freeze remains a separate Owner decision before outcome-bearing candidate research.
 
 ## Local worker relay facts / Owner workflow
 
