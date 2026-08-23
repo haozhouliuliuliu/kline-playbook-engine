@@ -88,7 +88,7 @@ new_setup = '''class CanonicalQualifiedEligibilityViewTests(unittest.TestCase):
 replace_exact(eligibility_test, old_setup, new_setup)
 
 # 3) Rebuild deterministic checked-in evidence from the current authoritative builders.
-from tools.build_e07_tqsdk_mapping_schedule import main as build_e07
+from tools.build_e07_tqsdk_mapping_schedule import build_payload as e07_payload, main as build_e07
 from tools.build_raschke_holy_grail_playbook_contract_draft_v0_4 import (
     build_payload as holy_grail_contract_payload,
     main as build_holy_grail_contract,
@@ -112,6 +112,15 @@ source_only_out.write_text(
     json.dumps(build_verification_payload(), ensure_ascii=False, indent=2, sort_keys=True) + "\n",
     encoding="utf-8",
 )
+
+# Re-pin the E07 anti-regression value to the deterministic current builder output.
+e07 = e07_payload()
+e07_test = ROOT / "tests" / "test_e07_tqsdk_mapping_schedule.py"
+e07_text = e07_test.read_text(encoding="utf-8")
+old_e07_identity = "331ba31e2a03695160aff28f7c7c58888dcc9bc091515e176c8d5c6b66edcb5c"
+if e07_text.count(old_e07_identity) != 1:
+    raise SystemExit("E07 old pinned identity not found exactly once")
+e07_test.write_text(e07_text.replace(old_e07_identity, str(e07["schedule_identity"])), encoding="utf-8")
 
 # 4) Re-pin the Holy Grail anti-regression identity set to the deterministic current
 # builder output. The resulting checked-in constants remain fixed; they are not computed
@@ -139,5 +148,6 @@ new_block = "\n".join([
 identity_test.write_text(text[:start] + new_block + text[end:], encoding="utf-8")
 
 print("BASELINE_REPAIR_APPLIED=YES")
+print(f"E07_SCHEDULE_IDENTITY={e07['schedule_identity']}")
 print(f"HOLY_GRAIL_CONTRACT_IDENTITY={contract['contract_identity']}")
 print(f"HOLY_GRAIL_STRATEGY_IDENTITY={freeze['strategy_identity']}")
