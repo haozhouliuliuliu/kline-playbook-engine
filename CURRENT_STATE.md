@@ -13,9 +13,9 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=DOMESTIC_PROVIDER_HARD_ELIGIBILITY_THEN_PRESPEND_BATCHED_REPAIR
-NEXT_NORMAL_PHASE=owner_confirm_domestic_implementation_target_set_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
-OWNER_ACTION=CONFIRM_IMPLEMENTATION_TARGET_SET_ONLY__PAID_CALL_AUTHORIZATION_REMAINS_SEPARATE_LATER_GATE
+CURRENT_WORK_PACKAGE=PRESPEND_REPAIR_CLOSED__PROVIDER_SPECIFIC_PRICING_REFRESH_BEFORE_PAID_AUTHORIZATION
+NEXT_NORMAL_PHASE=zero_cost_refresh_deepseek_minimax_exact_image_billing_then_prepare_rmb100_funnel_and_request_separate_owner_paid_call_authorization
+OWNER_ACTION=NONE_NOW__PAID_CALL_AUTHORIZATION_IS_A_SEPARATE_LATER_GATE
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -26,13 +26,13 @@ PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
 PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
 MAIN_BASELINE_PORTABLE_CI=PASS_AFTER_REPAIR
 SOURCE_ONLY_GIT_BLOB_IDENTITY_CORRECTION=PASS
-PRE_SPEND_DOUBLE_AUDIT=COMPLETE_FAIL_REPAIR_REQUIRED
 PRE_SPEND_CONSOLIDATED_FINDINGS=FROZEN
-PRE_SPEND_FINDING_CURRENT_MAIN_VERIFICATION=COMPLETE_ALL_7_CONFIRMED_OPEN
-PRE_SPEND_BLOCKER_BEFORE_SPEND_COUNT=5
-PRE_SPEND_REPAIR_RECOMMENDED_COUNT=2
-SPEND_GATE=CLOSED
-LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_PRESPEND_REPAIR_REAUDIT_FINAL_PROVIDER_SELECTION_AND_SEPARATE_PAID_CALL_AUTHORIZATION
+PRE_SPEND_REPAIR_REAUDIT=PASS
+PRE_SPEND_BLOCKER_BEFORE_SPEND_COUNT=0
+PRE_SPEND_REPAIR_RECOMMENDED_OPEN_COUNT=0
+LIMIT_015=RESOLVED_BY_PRESPEND_BATCHED_REPAIR_CLOSURE_V0_1
+SPEND_GATE=CLOSED_PENDING_OWNER_EXPLICIT_PAID_CALL_AUTHORIZATION_AND_PROVIDER_SPECIFIC_SPEND_ELIGIBILITY
+LIVE_MODEL_PROVIDER_PROBE=NOT_AUTHORIZED
 PAID_MODEL_SPEND=NOT_AUTHORIZED
 TOTAL_HARD_SPEND_CAP_CNY_IF_LATER_APPROVED=100.00
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
@@ -42,53 +42,67 @@ OUTCOME_ACCESS=NO
 
 Current authorities:
 - frozen findings: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`
-- current-main finding verification/original provider refresh: `docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md`
+- repair closure: `docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md`
+- domestic provider/payment scope: `docs/reviews/DOMESTIC_PROVIDER_SCOPE_AND_PRESPEND_SEQUENCE_V0_1.md`
 - DeepSeek Vision Exp correction: `docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`
-- domestic provider/payment scope + correct pre-spend sequence: `docs/reviews/DOMESTIC_PROVIDER_SCOPE_AND_PRESPEND_SEQUENCE_V0_1.md`
 - pre-live re-audit: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_REAUDIT_V0_1.md`
 - PRIMARY fixed-rubric re-audit: `docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT_V0_1.md`
 - SOURCE_ONLY Git-blob identity correction: `docs/reviews/JIANGHE_SOURCE_ONLY_GIT_BLOB_IDENTITY_CORRECTION_V0_1.md`
-- clean main baseline repair evidence: `docs/reviews/MAIN_BASELINE_TEST_DEBT_AND_GIT_BLOB_IDENTITY_REPAIR_V0_1.md`
+- clean main baseline repair: `docs/reviews/MAIN_BASELINE_TEST_DEBT_AND_GIT_BLOB_IDENTITY_REPAIR_V0_1.md`
 
-## Frozen current pre-spend findings
+## Frozen pre-spend finding status
 
 ```text
-BSP-001=BLOCKER__MISSING_CONTENT_ADDRESSED_JIANGHE_CONTEXT_IN_SPEND_ELIGIBLE_REQUEST__CONFIRMED_OPEN
-BSP-002=BLOCKER__STRUCTURED_INPUT_NOT_STRICT_CLOSED_WORLD_CANONICAL_OBSERVATION_ARTIFACT__CONFIRMED_OPEN
-BSP-003=BLOCKER__MODEL_DECLARED_PRINCIPLE_REFERENCES_CAN_BECOME_POSITIVE_SCORING_EVIDENCE__CONFIRMED_OPEN
-BSP-004=BLOCKER__REAL_PROVIDER_TRANSPORT_NOT_IMPLEMENTED__CONFIRMED_OPEN
-BSP-005=BLOCKER__RMB100_HARD_CAP_NOT_CODE_ENFORCED__CONFIRMED_OPEN
-RSP-001=REPAIR_RECOMMENDED__OMS_SIDE_EFFECTS_PRECEDE_AUTHORITATIVE_TRADINGSTATE_EVENT_ADMISSION__CONFIRMED_OPEN
-RSP-002=REPAIR_RECOMMENDED__SAME_INTENT_ID_DIFFERENT_CONTENT_CAN_SILENTLY_COLLAPSE__CONFIRMED_OPEN
+BSP-001=CLOSED__CONTENT_ADDRESSED_SAFE_JIANGHE_CONTEXT_BOUND_AND_SENT
+BSP-002=CLOSED__STRICT_CLOSED_WORLD_CANONICAL_STRUCTURED_OBSERVATION
+BSP-003=CLOSED__MODEL_SELF_DECLARED_PRINCIPLES_NOT_SCORING_AUTHORITY
+BSP-004=CLOSED__AUDITED_SELECTED_PROVIDER_TRANSPORTS_IMPLEMENTED_AND_DISABLED_BY_DEFAULT
+BSP-005=CLOSED__SHARED_EXECUTABLE_CNY100_HARD_BUDGET_GUARD
+RSP-001=CLOSED__TRADINGSTATE_ADMISSION_PRECEDES_OMS_EVENT_MUTATION
+RSP-002=CLOSED__SAME_INTENT_ID_DIFFERENT_CANONICAL_CONTENT_FAILS_CLOSED
 ```
 
-The finding set and non-negotiable acceptance invariants remain frozen. Exact repair design remains open. Do not restart open-ended review cycles without new concrete correctness/evidence/security/cost evidence.
+Closure scope is engineering/evidence only. It does not verify or adopt any provider/model and does not authorize spend, outcome access, PRIMARY freeze, broker access, or real money.
+
+Verification evidence:
+
+```text
+REPAIR_PR=21
+INTEGRATED_REPAIR_COMMIT=63428d4270a690e9fc660272c8220cb156b0fe52
+FINAL_REPAIR_WORKFLOW_RUN=32673455814
+FINAL_REPAIR_JOB=97277715870
+FOCUSED_ADVERSARIAL=PASS__162_TESTS
+CANONICAL_FULL_SUITE=PASS__1226_TESTS__27_SKIPPED
+DIFF_HYGIENE=PASS
+LIVE_CALLS=0
+PAID_SPEND=0
+```
 
 ## Owner provider / cost scope
 
-The Owner reports that direct recharge/payment is unavailable for OpenAI/ChatGPT and xAI/Grok for this project. They are therefore not practical candidates for the current RMB 100 paid probe.
+Owner-confirmed implementation target set:
 
 ```text
-OPENAI_GPT_5_6_SOL=TECHNICALLY_CAPABLE__NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
-XAI_GROK_4_6=TECHNICALLY_CAPABLE__NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
-KIMI_K3=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API
-DEEPSEEK_V4_FLASH_VISION_EXP=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API__EXPERIMENTAL
-MINIMAX_M3=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API__STRUCTURED_OUTPUT_CONTRACT_VERIFY_DURING_TRANSPORT_IMPLEMENTATION
-GLM_5_3_MAX=NOT_A_SEPARATE_MODEL_ID
-GLM_5_3_MODEL_ID=glm-5.3
-GLM_5_3_REASONING_EFFORT=max
+OWNER_CONFIRMED_PROVIDER_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
+OPENAI_GPT_5_6_SOL=NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
+XAI_GROK_4_6=NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
 GLM_5_3_CURRENT_DIRECT_VISUAL_ELIGIBILITY=NO_ON_AVAILABLE_FIRST_PARTY_EVIDENCE
-LIKELY_DOMESTIC_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
 FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
 NO_MODEL_OR_PROVIDER_VERIFIED_BY_PROJECT_LIVE_CALL=YES
 NO_MODEL_OR_PROVIDER_ADOPTED=YES
 ```
 
-The current research requirement remains `REAL_MODEL_SELECTION_MUST_INCLUDE_VISUAL_KLINE_EYES=YES`. The candidate decision model itself must receive canonical K-line image input. A separate Vision MCP/sidecar feeding a text-only model is not equivalent under the current protocol and would require an Owner-approved research-design change.
+Provider implementation / spend-guard state:
 
-Kimi K3 first-party docs confirm native vision, direct API, strict JSON Schema and 1M context. DeepSeek Vision Exp is first-party documented as experimental direct text+image API. MiniMax M3 first-party material confirms native multimodal direct API and up to 1M context. Z.ai first-party material identifies `glm-5.3` as the model and `max` as a reasoning-effort level; current model-family evidence does not establish native image input for GLM-5.3.
+```text
+KIMI_K3=TRANSPORT_IMPLEMENTED__REPOSITORY_RATE_GUARD_CURRENT__NOT_LIVE_VERIFIED__NOT_ADOPTED
+DEEPSEEK_V4_FLASH_VISION_EXP=TRANSPORT_IMPLEMENTED__EXPERIMENTAL__EXACT_VISION_IMAGE_BILLING_AUTHORITY_UNRESOLVED__SPEND_FAIL_CLOSED__NOT_LIVE_VERIFIED__NOT_ADOPTED
+MINIMAX_M3=TRANSPORT_IMPLEMENTED__EXACT_M3_IMAGE_BILLING_AUTHORITY_UNRESOLVED__SPEND_FAIL_CLOSED__NOT_LIVE_VERIFIED__NOT_ADOPTED
+```
 
-The Owner's binding future paid-probe ceiling remains **RMB 100 total**, with no automatic extension. Paid calls remain unauthorized.
+`BSP-005=CLOSED` means the shared hard-cap enforcement framework is complete; it does not mean every provider currently has a spend-eligible rate card. DeepSeek Vision Exp and MiniMax M3 remain blocked before network until exact current image-billing authority is established.
+
+The Owner's binding future paid-probe ceiling remains **RMB 100 total**, with no automatic extension. No paid call is currently authorized. Production invocation also requires a committed Owner paid-call authorization artifact, which is intentionally absent.
 
 ## Product / strategy boundary
 
@@ -124,14 +138,11 @@ JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 ## Jianghe AI engineering
 
 ```text
-JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
-JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__BSP003_REPAIR_REQUIRED_BEFORE_SPEND
-JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION_IDENTITY_BOUND
-JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
+JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME
+JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_PROVIDER_NEUTRAL__BSP003_REPAIRED
+JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL
 JIANGHE_AI_RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
-JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED__PRESPEND_REPAIR_REQUIRED
-JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__BSP001_CONTEXT_MATERIAL_BINDING_REQUIRED
-JIANGHE_AI_REAL_MODEL_PROVIDER=LIVE_TRANSPORT_NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
+JIANGHE_AI_PRESPEND_RUNTIME=INTEGRATED__SAFE_CONTEXT__CLOSED_WORLD_STRUCTURED_INPUT__PROVIDER_TRANSPORT__SHARED_BUDGET_GUARD
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
 JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
@@ -157,17 +168,13 @@ PAID_SPEND=0
 OUTCOME_ACCESS=NO
 ```
 
-`LIMIT-012` remains active because no real-model Jianghe fidelity evaluation has occurred. `LIMIT-015` remains the highest current pre-spend blocker and points to the frozen consolidated findings.
+`LIMIT-012` remains active because no real-model Jianghe fidelity evaluation has occurred.
 
 ## Next normal work
 
-1. Finish zero-cost hard eligibility only; no provider calls and no spend. Current evidence leaves Kimi K3, DeepSeek V4 Flash Vision Exp and MiniMax M3 as likely direct-visual implementation targets. GLM-5.3(max) is not currently like-for-like visual eligible.
-2. Owner confirms the provider implementation target set. This only defines which BSP-004 transports and BSP-005 rate cards are implemented; it does **not** authorize paid calls.
-3. Execute **one batched repair package** for all still-valid findings: BSP-001..005 and RSP-001..002.
-4. Run finding-specific focused/adversarial regression, canonical full suite `python -m unittest discover -s tests -v`, and finding-specific re-audit only.
-5. Write formal CLOSED/PASS evidence and refresh state.
-6. Only after all five BSP blockers are CLOSED may the project separately ask Owner authorization for bounded paid provider calls.
-7. If later authorized, use an RMB 100 **funnel**: tiny qualification spend per eligible candidate (smoke + small SEMANTIC/VISUAL/DUAL_INPUT + schema/identity/usage/latency), immediately stop clearly weak candidates, then spend the remainder only on top 1–2 stability repeats.
-8. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
-
-No provider/model is currently VERIFIED or ADOPTED. No paid provider/model call has occurred.
+1. Zero-cost refresh current first-party pricing/image-billing authority for DeepSeek V4 Flash Vision Exp and MiniMax M3. Unknown/ambiguous billing remains fail-closed.
+2. Reconfirm Kimi K3 rate authority remains current when the future probe is actually prepared.
+3. Build the bounded RMB 100 funnel plan (tiny qualification spend per spend-eligible candidate, immediate elimination of obvious failures, remainder only for top 1–2 stability repeats). No outcome/PnL.
+4. Present the exact provider-specific eligible set, worst-case budget bounds, and funnel allocation to Owner for a **separate explicit paid-call authorization**.
+5. Only after Owner authorization is recorded in committed authority may any real provider request occur.
+6. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
