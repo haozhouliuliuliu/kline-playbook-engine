@@ -27,7 +27,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from decimal import Decimal, InvalidOperation, ROUND_FLOOR, ROUND_HALF_UP
+from decimal import (
+    Context,
+    Decimal,
+    DivisionByZero,
+    InvalidOperation,
+    MAX_EMAX,
+    MIN_EMIN,
+    Overflow,
+    ROUND_FLOOR,
+    ROUND_HALF_EVEN,
+    ROUND_HALF_UP,
+    localcontext,
+)
 from hashlib import sha256
 import json
 import struct
@@ -44,6 +56,26 @@ GLYPH_POLICY = "EMBEDDED_5X7_ASCII_BITMAP_V1"
 PNG_MIME = "image/png"
 
 MAX_PANELS = 4
+
+# Decimal 治理（F-ADV-01 / F-ADV-03）：
+# - 所有渲染内的 Decimal 运算都在固定 context 中执行，与调用进程的全局
+#   decimal.getcontext() 无关（决定论 / 环境无关）。
+# - 数值字段的 adjusted 指数有受控上限，极端指数（如 1E-3000）fail closed，
+#   防止 label 无界字符串展开（潜在 MemoryError / 长时间阻塞）。
+_DECIMAL_PRECISION = 28
+_MAX_DECIMAL_ADJUSTED_EXPONENT = 100
+_MAX_DECIMAL_FORMAT_LENGTH = 256
+
+
+def _fixed_decimal_context() -> Context:
+    """返回一个完全确定、与进程全局 context 无关的 Decimal context。"""
+    return Context(
+        prec=_DECIMAL_PRECISION,
+        rounding=ROUND_HALF_EVEN,
+        Emin=MIN_EMIN,
+        Emax=MAX_EMAX,
+        traps=[InvalidOperation, DivisionByZero, Overflow],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -484,6 +516,7 @@ def _require_aware(value: datetime, field_name: str) -> None:
 
 
 def _decimal(value: str, field_name: str) -> Decimal:
+    """解析并校验数字字符串；fail closed on 非有限 / 极端指数。"""
     if not isinstance(value, str) or not value:
         raise ValueError(f"{field_name} 必须是非空数字字符串")
     try:
@@ -492,11 +525,22 @@ def _decimal(value: str, field_name: str) -> Decimal:
         raise ValueError(f"{field_name} 不是有效数字字符串: {value!r}") from None
     if not result.is_finite():
         raise ValueError(f"{field_name} 必须是有限数字: {value!r}")
+    if abs(result.adjusted()) > _MAX_DECIMAL_ADJUSTED_EXPONENT:
+        raise ValueError(
+            f"{field_name} 的十进制指数超出受控范围: adjusted={result.adjusted()} "
+            f"(允许 |adjusted| <= {_MAX_DECIMAL_ADJUSTED_EXPONENT})"
+        )
     return result
 
 
 def _format_decimal(value: Decimal) -> str:
-    return format(value.normalize(), "f")
+    """把 tick label 格式化为十进制字符串；超长即 fail closed。"""
+    text = format(value.normalize(), "f")
+    if len(text) > _MAX_DECIMAL_FORMAT_LENGTH:
+        raise ValueError(
+            f"价格标签超出受控长度（{len(text)} 字符 > {_MAX_DECIMAL_FORMAT_LENGTH}）"
+        )
+    return text
 
 
 # ---------------------------------------------------------------------------
@@ -849,6 +893,12 @@ class JiangheVisualRenderer:
     # ---------------- 主入口 ----------------
 
     def render(self, spec: VisualObservationSpec) -> RenderedVisualArtifact:
+        """渲染入口：所有 Decimal 运算在固定 context 中执行，与进程全局
+        decimal context 无关（F-ADV-01 决定论治理）。"""
+        with localcontext(_fixed_decimal_context()):
+            return self._render_impl(spec)
+
+    def _render_impl(self, spec: VisualObservationSpec) -> RenderedVisualArtifact:
         self._validate_spec(spec)
         config = self.config
         width, height = config.canvas_width, config.canvas_height

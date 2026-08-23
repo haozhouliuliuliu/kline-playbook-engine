@@ -5,6 +5,11 @@
 纯本地、离线：不发起任何网络请求，不调用任何模型/provider，不读取系统时钟
 （as_of 一律来自输入 JSON），不写任何机器相关元数据。
 
+输出原子性（F-ADV-02）：PNG 与 manifest 作为逻辑 artifact pair 原子落盘。
+任一步失败（含 manifest / PNG 写失败、覆盖既有文件中途失败）都不会留下
+貌似成功的裸 PNG / 裸 manifest / 新旧混合 pair；失败时清理本次临时文件，
+且不删除调用前已存在的合法文件（除非已进入已验证的 replacement transaction）。
+
 输入 JSON（字段名遵循 canonical ObservationBar）：
 
 ```json
@@ -40,8 +45,10 @@ from __future__ import annotations
 import argparse
 from datetime import datetime
 import json
+import os
 from pathlib import Path
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -120,6 +127,94 @@ def load_spec(payload: object) -> VisualObservationSpec:
     )
 
 
+def _temp_sibling(target: Path) -> Path:
+    """在与 target 同目录创建唯一临时文件（OS temp primitive；名字不进产物 identity）。"""
+    fd, name = tempfile.mkstemp(prefix=f".{target.name}.partial-", dir=str(target.parent))
+    os.close(fd)
+    return Path(name)
+
+
+def _quiet_remove(path: Path) -> None:
+    try:
+        path.unlink()
+    except OSError:
+        pass
+
+
+def _atomic_pair_write(
+    png_path: Path,
+    png_bytes: bytes,
+    manifest_path: Path,
+    manifest_text: str,
+) -> None:
+    """把 (PNG, manifest) 作为逻辑 artifact pair 原子落盘（F-ADV-02）。
+
+    策略：
+    1. 先在与 target 同目录写两个完整临时文件（flush + fsync + close）；
+    2. 备份既有 target（进入已验证的 replacement transaction）；
+    3. 用 os.replace 安装新 pair（同卷原子替换，Windows-safe）；
+    4. 任一步失败：回滚已安装的新产物、恢复既有备份、清理本次临时文件；
+       不遗留貌似成功的裸 PNG / 裸 manifest / 新旧混合 pair；
+    5. 不删除调用前就存在的合法文件（除非已进入上述 transaction）；
+    6. 临时文件名不进入 PNG / manifest identity。
+    """
+    for target in (png_path, manifest_path):
+        if target.is_dir():
+            raise IsADirectoryError(f"输出路径是目录，拒绝覆盖: {target}")
+
+    png_tmp: Path | None = None
+    manifest_tmp: Path | None = None
+    installed: list[Path] = []
+    backups: list[tuple[Path, Path | None]] = []
+    try:
+        png_tmp = _temp_sibling(png_path)
+        manifest_tmp = _temp_sibling(manifest_path)
+
+        with open(png_tmp, "wb") as fh:
+            fh.write(png_bytes)
+            fh.flush()
+            os.fsync(fh.fileno())
+        with open(manifest_tmp, "wb") as fh:
+            fh.write(manifest_text.encode("utf-8"))
+            fh.flush()
+            os.fsync(fh.fileno())
+
+        for target in (png_path, manifest_path):
+            if target.exists() or target.is_symlink():
+                backup = _temp_sibling(target)
+                os.replace(target, backup)
+                backups.append((target, backup))
+            else:
+                backups.append((target, None))
+
+        os.replace(png_tmp, png_path)
+        installed.append(png_path)
+        os.replace(manifest_tmp, manifest_path)
+        installed.append(manifest_path)
+    except BaseException:
+        for target in installed:
+            _quiet_remove(target)
+        for target, backup in backups:
+            if backup is not None:
+                try:
+                    os.replace(backup, target)
+                except OSError:
+                    pass
+        if png_tmp is not None:
+            _quiet_remove(png_tmp)
+        if manifest_tmp is not None:
+            _quiet_remove(manifest_tmp)
+        raise
+    else:
+        for _, backup in backups:
+            if backup is not None:
+                _quiet_remove(backup)
+        if png_tmp is not None:
+            _quiet_remove(png_tmp)
+        if manifest_tmp is not None:
+            _quiet_remove(manifest_tmp)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="离线渲染江河 VISUAL 观察 V0.1（PNG + manifest；无网络、无模型调用）"
@@ -135,8 +230,12 @@ def main(argv: list[str] | None = None) -> int:
         artifact = JiangheVisualRenderer().render(spec)
         png_path = Path(args.png_out)
         manifest_path = Path(args.manifest_out)
-        png_path.write_bytes(artifact.png_bytes)
-        manifest_path.write_text(artifact.manifest_json() + "\n", encoding="utf-8")
+        _atomic_pair_write(
+            png_path,
+            artifact.png_bytes,
+            manifest_path,
+            artifact.manifest_json() + "\n",
+        )
     except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

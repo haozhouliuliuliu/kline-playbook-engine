@@ -318,8 +318,8 @@ class ProviderNeutralAndEnvironmentTests(unittest.TestCase):
 
     def test_only_stdlib_imports(self):
         allowed_roots = {"__future__", "argparse", "dataclasses", "datetime", "decimal",
-                         "hashlib", "json", "pathlib", "struct", "sys", "typing", "zlib",
-                         "src"}
+                         "hashlib", "json", "os", "pathlib", "struct", "sys",
+                         "tempfile", "typing", "zlib", "src"}
         import ast
         for path in (Path(inspect.getsourcefile(visual_module)), CLI):
             tree = ast.parse(path.read_text(encoding="utf-8"))
