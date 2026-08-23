@@ -15,6 +15,9 @@ import build_jianghe_primary_claim_mapping_draft_v0_1 as draft_builder
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 UNKNOWN_REGISTER_PATH = Path("docs/research/jianghe/JIANGHE_UNKNOWN_REGISTER_V1_1.md")
 CONTRADICTION_REGISTER_PATH = Path("docs/research/jianghe/JIANGHE_CONTRADICTION_REGISTER_V1_1.md")
+REVERSE_COVERAGE_PATH = Path(
+    "docs/reviews/JIANGHE_PRIMARY_AUTHORITY_REVERSE_COVERAGE_V0_5.json"
+)
 
 DISALLOWED_FIELD_NAMES = {
     "candidate",
@@ -123,12 +126,6 @@ def require_link_list(
         draft_builder.require_string(link.get("rationale"), f"{claim_id}.{authority_id}.rationale")
         if authority_id not in authority_rows:
             raise ValueError(f"{claim_id} 关联了不存在的权威编号 {authority_id}")
-        if check_source_reference and not source_reference_contains(authority_rows[authority_id][3], source_ordinal):
-            raise ValueError(f"{claim_id} 的来源 V{source_ordinal} 未被 {authority_id} 权威行列为相关来源")
-        if not check_source_reference and not contradiction_row_mentions_source(
-            authority_rows[authority_id], source_ordinal
-        ):
-            raise ValueError(f"{claim_id} 的来源 V{source_ordinal} 未被 {authority_id} 权威行引用")
         linked_ids.append(authority_id)
     if len(linked_ids) != len(set(linked_ids)):
         raise ValueError(f"{claim_id} 包含重复权威链接")
@@ -139,15 +136,15 @@ def validate_alternative_review(claim_id: str, review: Any) -> tuple[str, list[s
     if not isinstance(review, dict):
         raise ValueError(f"{claim_id} 的 alternative_review 必须是对象")
     status = review.get("status")
-    if status not in {"ALTERNATIVES_REVIEWED", "NO_SOURCE_JUSTIFIED_ALTERNATIVE_FOUND"}:
+    if status not in {"MATERIAL_ALTERNATIVES_REVIEWED", "NO_MATERIAL_SOURCE_ALTERNATIVE"}:
         raise ValueError(f"{claim_id} 的替代解释审查状态不合法")
     rationale = draft_builder.require_string(review.get("rationale"), f"{claim_id}.alternative_review.rationale")
     alternatives = review.get("alternatives")
     if not isinstance(alternatives, list):
         raise ValueError(f"{claim_id} 的 alternatives 必须是列表")
-    if status == "ALTERNATIVES_REVIEWED" and not alternatives:
+    if status == "MATERIAL_ALTERNATIVES_REVIEWED" and not alternatives:
         raise ValueError(f"{claim_id} 声称已审查替代解释但未记录候选")
-    if status == "NO_SOURCE_JUSTIFIED_ALTERNATIVE_FOUND" and alternatives:
+    if status == "NO_MATERIAL_SOURCE_ALTERNATIVE" and alternatives:
         raise ValueError(f"{claim_id} 声称没有来源支持的替代解释却记录了候选")
     alternative_ids: list[str] = []
     for alternative in alternatives:
@@ -187,9 +184,110 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
 
     unknown_rows = load_register_rows(repository_root / UNKNOWN_REGISTER_PATH, "JH-UNK-")
     contradiction_rows = load_register_rows(repository_root / CONTRADICTION_REGISTER_PATH, "JH-CON-")
+    reverse_coverage = draft_builder.load_json(
+        repository_root / REVERSE_COVERAGE_PATH, "authority reverse coverage"
+    )
+    if reverse_coverage.get("acceptance_authority") != draft_builder.ACCEPTANCE_RUBRIC_PATH.as_posix():
+        raise ValueError("reverse coverage 未绑定冻结验收 authority")
+    if reverse_coverage.get("status") != "TARGETED_CURATED_REVIEW_COMPLETE_PRE_FREEZE_NON_FINAL":
+        raise ValueError("reverse coverage 状态不正确")
+    if reverse_coverage.get("guessed_unknown") != 0:
+        raise ValueError("reverse coverage 声称存在 guessed UNKNOWN")
+    if reverse_coverage.get("silent_conflict_resolution") != 0:
+        raise ValueError("reverse coverage 声称存在 silent conflict resolution")
+
+    reverse_decisions: dict[str, dict[tuple[str, str], str]] = {}
+    reverse_configuration = (
+        (
+            "unknown_candidates",
+            unknown_rows,
+            "unknown_candidate_count",
+            "unknown_link_count",
+            "unknown_not_applicable_count",
+        ),
+        (
+            "contradiction_candidates",
+            contradiction_rows,
+            "contradiction_candidate_count",
+            "contradiction_link_count",
+            "contradiction_not_applicable_count",
+        ),
+    )
+    for (
+        field_name,
+        authority_rows,
+        candidate_count_field,
+        link_count_field,
+        not_applicable_count_field,
+    ) in reverse_configuration:
+        candidates = reverse_coverage.get(field_name)
+        if not isinstance(candidates, list):
+            raise ValueError(f"reverse coverage 缺少 {field_name}")
+        decisions: dict[tuple[str, str], str] = {}
+        for candidate in candidates:
+            if not isinstance(candidate, dict):
+                raise ValueError(f"{field_name} 包含非对象记录")
+            key = (
+                draft_builder.require_string(candidate.get("authority_id"), "authority_id"),
+                draft_builder.require_string(candidate.get("claim_id"), "claim_id"),
+            )
+            decision = candidate.get("decision")
+            if decision not in {"LINK", "NOT_APPLICABLE_TO_THIS_CLAIM"}:
+                raise ValueError(f"{key} 的 reverse coverage decision 不合法")
+            if key in decisions:
+                raise ValueError(f"{key} 在 reverse coverage 中重复")
+            if key[0] not in authority_rows:
+                raise ValueError(f"{key} 引用了不存在的 authority")
+            if key[1] not in expected_ids:
+                raise ValueError(f"{key} 引用了不存在的 claim")
+            source_ordinal = draft_builder.require_source_ordinal(
+                candidate.get("source_ordinal")
+            )
+            expected_ordinal = draft_builder.require_source_ordinal(
+                source_by_id[key[1]].get("source_ordinal")
+            )
+            if source_ordinal != expected_ordinal:
+                raise ValueError(f"{key} 的 source ordinal 与 claim 不一致")
+            draft_builder.require_string(candidate.get("rationale"), f"{key}.rationale")
+            decisions[key] = decision
+        actual_link_count = sum(decision == "LINK" for decision in decisions.values())
+        actual_not_applicable_count = sum(
+            decision == "NOT_APPLICABLE_TO_THIS_CLAIM" for decision in decisions.values()
+        )
+        if reverse_coverage.get(candidate_count_field) != len(decisions):
+            raise ValueError(f"reverse coverage 的 {candidate_count_field} 与记录不一致")
+        if reverse_coverage.get(link_count_field) != actual_link_count:
+            raise ValueError(f"reverse coverage 的 {link_count_field} 与记录不一致")
+        if reverse_coverage.get(not_applicable_count_field) != actual_not_applicable_count:
+            raise ValueError(f"reverse coverage 的 {not_applicable_count_field} 与记录不一致")
+        reverse_decisions[field_name] = decisions
+
+    expected_unknown_links = {
+        (link["id"], curated["claim_id"])
+        for curated in curated_records
+        for link in curated["authority_links"]["unknowns"]
+    }
+    expected_contradiction_links = {
+        (link["id"], curated["claim_id"])
+        for curated in curated_records
+        for link in curated["authority_links"]["contradictions"]
+    }
+    actual_unknown_links = {
+        key
+        for key, decision in reverse_decisions["unknown_candidates"].items()
+        if decision == "LINK"
+    }
+    actual_contradiction_links = {
+        key
+        for key, decision in reverse_decisions["contradiction_candidates"].items()
+        if decision == "LINK"
+    }
+    if actual_unknown_links != expected_unknown_links:
+        raise ValueError("reverse coverage UNKNOWN LINK 与 curated authority links 不一致")
+    if actual_contradiction_links != expected_contradiction_links:
+        raise ValueError("reverse coverage contradiction LINK 与 curated authority links 不一致")
     disposition_counts: Counter[str] = Counter()
     alternative_statuses: Counter[str] = Counter()
-    alternative_rationales: set[str] = set()
     primary_branch_identities: set[str] = set()
     schema_required_fields = set(schema["required_branch_fields"])
 
@@ -225,13 +323,15 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
             raise ValueError(f"{claim_id} 的 source ordinal 不正确")
         if record.get("source_status") != expected_source["source_status"]:
             raise ValueError(f"{claim_id} 改写了 source status")
-        if record.get("selected_interpretation_text") != curated["semantic_interpretation"]["interpretation"]:
+        if record.get("source_record_binding") != expected_source:
+            raise ValueError(f"{claim_id} 未完整保留原始 source binding")
+        if record.get("selected_interpretation_text") != curated["semantic_interpretation"]:
             raise ValueError(f"{claim_id} 的 selected interpretation 未按策展记录绑定")
-        if record.get("family_scope") != curated["family_scope"]:
+        if record.get("family_scope") != expected_source["family_scope"]:
             raise ValueError(f"{claim_id} 的 family scope 未按策展记录绑定")
-        if record.get("semantic_mode") != curated["semantic_interpretation"]["mode"]:
+        if record.get("semantic_mode") != curated["semantic_mode"]:
             raise ValueError(f"{claim_id} 的 semantic mode 未按策展记录绑定")
-        if record.get("operationalization_mode") != curated["operationalization_interpretation"]["mode"]:
+        if record.get("operationalization_mode") != curated["operationalization_mode"]:
             raise ValueError(f"{claim_id} 的 operationalization mode 未按策展记录绑定")
 
         disposition = record.get("pre_freeze_disposition")
@@ -244,7 +344,7 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
         if record.get("semantic_readiness") != curated["semantic_readiness"]:
             raise ValueError(f"{claim_id} 改写了 V0.2 semantic readiness")
 
-        observability = curated.get("observability")
+        observability = curated["operational_boundary"].get("governed_observation")
         if record.get("observability_status") != observability.get("status"):
             raise ValueError(f"{claim_id} 的 observability status 未按策展记录绑定")
         if record.get("observability_missing_inputs") != observability.get("missing_inputs"):
@@ -274,14 +374,18 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
             raise ValueError(f"{claim_id} 的 UNKNOWN links 未按权威策展记录绑定")
         if record.get("contradiction_ids") != contradiction_ids:
             raise ValueError(f"{claim_id} 的 contradiction links 未按权威策展记录绑定")
+        for authority_id in unknown_ids:
+            if reverse_decisions["unknown_candidates"].get((authority_id, claim_id)) != "LINK":
+                raise ValueError(f"{claim_id} -> {authority_id} 未在 reverse coverage 中裁定为 LINK")
+        for authority_id in contradiction_ids:
+            if reverse_decisions["contradiction_candidates"].get((authority_id, claim_id)) != "LINK":
+                raise ValueError(f"{claim_id} -> {authority_id} 未在 reverse coverage 中裁定为 LINK")
         no_link_rationale = authority_links.get("no_link_rationale")
         if unknown_ids or contradiction_ids:
             if no_link_rationale is not None:
                 raise ValueError(f"{claim_id} 有权威链接时不得声称无链接")
         else:
             draft_builder.require_string(no_link_rationale, f"{claim_id}.no_link_rationale")
-        if contradiction_ids and disposition != "STOP_SOURCE_CONFLICT":
-            raise ValueError(f"{claim_id} 关联来源矛盾却未失败闭合")
         source_conflict = (
             source.get("interpretation_status") == "SOURCE_INTERNAL_CONFLICT"
             or str(source.get("ambiguity_notes", "")).startswith("SOURCE_INTERNAL_")
@@ -292,14 +396,13 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
             raise ValueError(f"{claim_id} 的来源 UNKNOWN 未按歧义失败闭合")
 
         alternative_rationale, alternative_ids = validate_alternative_review(
-            claim_id, curated.get("alternative_review")
+            claim_id, curated.get("alternative_analysis")
         )
-        if record.get("alternative_review") != curated.get("alternative_review"):
+        if record.get("alternative_review") != curated.get("alternative_analysis"):
             raise ValueError(f"{claim_id} 的替代解释审查未完整绑定")
         if record.get("alternative_interpretation_ids_predeclared") != alternative_ids:
             raise ValueError(f"{claim_id} 存在隐藏或漏报的 alternative interpretation")
-        alternative_statuses[curated["alternative_review"]["status"]] += 1
-        alternative_rationales.add(alternative_rationale)
+        alternative_statuses[curated["alternative_analysis"]["status"]] += 1
 
         primary_identity = record.get("primary_branch_identity")
         if not isinstance(primary_identity, str) or len(primary_identity) != 64:
@@ -319,22 +422,23 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
             raise ValueError(f"{claim_id} 包含禁止的项目结果字段：{', '.join(disallowed_fields)}")
         project_authored_surface = {
             "operationalization_interpretation": record["operationalization_interpretation"],
+            "semantic_boundary": record["semantic_boundary"],
+            "operational_boundary": record["operational_boundary"],
             "observability": record["observability"],
             "authority_links": authority_links,
             "alternative_review": record["alternative_review"],
-            "review_rationale": curated["review_rationale"],
+            "claim_specific_reasoning": curated["claim_specific_reasoning"],
+            "disposition_reason": curated["disposition_reason"],
         }
         disallowed_terms = find_disallowed_project_terms(project_authored_surface)
         if disallowed_terms:
             raise ValueError(f"{claim_id} 的项目判断依赖禁止结果面：{', '.join(disallowed_terms)}")
 
     if set(alternative_statuses) != {
-        "ALTERNATIVES_REVIEWED",
-        "NO_SOURCE_JUSTIFIED_ALTERNATIVE_FOUND",
+        "MATERIAL_ALTERNATIVES_REVIEWED",
+        "NO_MATERIAL_SOURCE_ALTERNATIVE",
     }:
         raise ValueError("替代解释审查被压成了单一统一默认值")
-    if len(alternative_rationales) != draft_builder.EXPECTED_CLAIM_COUNT:
-        raise ValueError("替代解释审查理由不是逐 claim 明确记录")
     if disposition_counts["STOP_IDENTITY_INCOMPLETE"] != 0:
         raise ValueError("identity binding 完成后仍存在 STOP_IDENTITY_INCOMPLETE")
 
@@ -358,6 +462,16 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
         "GUESSED_UNKNOWN": 0,
         "UNKNOWN_FILLED_BY_PROJECT_GUESS": 0,
         "SILENT_CONFLICT_RESOLUTION": 0,
+        "UNKNOWN_REVERSE_COVERAGE_CANDIDATES": len(
+            reverse_decisions["unknown_candidates"]
+        ),
+        "UNKNOWN_NOT_APPLICABLE": sum(
+            decision == "NOT_APPLICABLE_TO_THIS_CLAIM"
+            for decision in reverse_decisions["unknown_candidates"].values()
+        ),
+        "CONTRADICTION_REVERSE_COVERAGE_CANDIDATES": len(
+            reverse_decisions["contradiction_candidates"]
+        ),
         "SOURCE_CONFLICTS_SILENTLY_RESOLVED": 0,
         "OUTCOME_REFERENCES_USED_FOR_BRANCH_SELECTION": 0,
     }

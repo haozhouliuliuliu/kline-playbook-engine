@@ -1,0 +1,14 @@
+{
+  "acceptance_authority": "docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_ACCEPTANCE_RUBRIC_V0_1.md",
+  "criteria": {
+    "R1": "PASS",
+    "R2": "PASS",
+    "R3": "PASS",
+    "R4": "PASS",
+    "R5": "PASS",
+    "R6": "PASS",
+    "R7": "PASS",
+    "R8": "PASS"
+  },
+  "overall_status": "READY_FOR_INDEPENDENT_REAUDIT"
+}
