@@ -18,7 +18,7 @@ Fresh conversations follow the read-only takeover in `00_READ_FIRST.md`.
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=89b0b3e98ed4d52ec54079427ba2183c260e8419
+LAST_MATERIAL_STATE_COMMIT=b856110e1f9f94ca1fac4dfe15486b0051f0f5a7
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -39,28 +39,19 @@ PRE_SPEND_BLOCKERS=5
 PRE_SPEND_REPAIR_RECOMMENDED=2
 SPEND_GATE=CLOSED
 PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
-PRE_SPEND_VERIFICATION_PROVIDER_REFRESH_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md
-DEEPSEEK_PROVIDER_CORRECTION_AUTHORITY=docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md
-PROVIDER_FIRST_PARTY_REFRESH_2026_08_24=COMPLETE_WITH_DEEPSEEK_CORRECTION
-JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__BSP003_REPAIR_REQUIRED_BEFORE_SPEND
-JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION_IDENTITY_BOUND
-JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
-JIANGHE_AI_RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
-JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED__PRESPEND_REPAIR_REQUIRED
-JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__BSP001_CONTEXT_MATERIAL_BINDING_REQUIRED
-JIANGHE_AI_REAL_MODEL_PROVIDER=LIVE_TRANSPORT_NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
-JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
-CURRENT_WORK_PACKAGE=OWNER_PROVIDER_SELECTION_REQUIRED_BEFORE_PRESPEND_BATCHED_REPAIR
-NEXT_NORMAL_PHASE=reassess_provider_recommendation_with_deepseek_restored_then_owner_select_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
-OWNER_ACTION=NONE_UNTIL_CORRECTED_PROVIDER_COMPARISON_IS_PRESENTED
-LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_PRESPEND_REPAIR_REAUDIT_FINAL_PROVIDER_SELECTION_AND_SEPARATE_PAID_CALL_AUTHORIZATION
-ANTHROPIC_CLAUDE=EXCLUDED_BY_OWNER
-GOOGLE_GEMINI=EXCLUDED_BY_OWNER
-OPENAI_GPT_5_6_SOL=CANDIDATE_RETAINED
-XAI_GROK_4_6=CANDIDATE_UNDER_OWNER_CONSIDERATION
-KIMI_K3=CANDIDATE_UNDER_OWNER_CONSIDERATION
-DEEPSEEK_V4_FLASH_VISION_EXP=CANDIDATE_UNDER_OWNER_CONSIDERATION__EXPERIMENTAL__FIRST_PARTY_DOCUMENTED_VISUAL_API
-PROJECT_BRAIN_PROVIDER_RECOMMENDATION=REASSESS_REQUIRED_WITH_DEEPSEEK_RESTORED
+DOMESTIC_PROVIDER_SCOPE_AUTHORITY=docs/reviews/DOMESTIC_PROVIDER_SCOPE_AND_PRESPEND_SEQUENCE_V0_1.md
+CURRENT_WORK_PACKAGE=DOMESTIC_PROVIDER_HARD_ELIGIBILITY_THEN_PRESPEND_BATCHED_REPAIR
+NEXT_NORMAL_PHASE=owner_confirm_domestic_implementation_target_set_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
+OWNER_ACTION=CONFIRM_IMPLEMENTATION_TARGET_SET_ONLY__PAID_CALL_AUTHORIZATION_REMAINS_SEPARATE_LATER_GATE
+OPENAI_GPT_5_6_SOL=NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
+XAI_GROK_4_6=NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
+KIMI_K3=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API
+DEEPSEEK_V4_FLASH_VISION_EXP=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API__EXPERIMENTAL
+MINIMAX_M3=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API__STRUCTURED_OUTPUT_CONTRACT_VERIFY_DURING_TRANSPORT_IMPLEMENTATION
+GLM_5_3_MODEL_ID=glm-5.3
+GLM_5_3_REASONING_EFFORT=max
+GLM_5_3_CURRENT_DIRECT_VISUAL_ELIGIBILITY=NO_ON_AVAILABLE_FIRST_PARTY_EVIDENCE
+LIKELY_DOMESTIC_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
 FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
 TOTAL_HARD_SPEND_CAP_CNY_IF_LATER_APPROVED=100.00
 PAID_MODEL_SPEND=NOT_AUTHORIZED
@@ -77,64 +68,33 @@ TOOL_DECISION=USE_EXISTING
 
 ## Current blocker set
 
-The original PRIMARY curated-quality and 27-item pre-live gates remain PASS. The later Owner-requested pre-spend assurance review found five concrete spend blockers and two repair-recommended runtime defects. A fresh verification against current `main` on 2026-08-24 confirmed all seven remain open; none was overturned and no new blocker was added.
+The frozen pre-spend set remains unchanged and reverified: BSP-001..005 are open spend blockers; RSP-001..002 remain recommended runtime repairs. Full frozen evidence and acceptance invariants live in `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`. Do not reopen a broad audit.
 
-The five spend blockers remain:
+## Current domestic provider scope
 
-1. spend-eligible request does not yet materially bind/send content-addressed Jianghe selected context;
-2. structured input is not yet a strict closed-world canonical observation artifact;
-3. model-declared `principle_references` can currently become positive scoring evidence;
-4. real provider transport is not implemented;
-5. the RMB 100 total hard cap is not yet code-enforced before/cumulatively across calls.
+Owner payment/access makes OpenAI and xAI impractical for the current paid probe. Current domestic pool considered: Kimi K3, DeepSeek V4 Flash Vision Exp, MiniMax M3, and GLM-5.3 at `reasoning_effort=max`.
 
-The two additional repairs remain: authoritative broker-event admission before OMS side effects, and fail-closed handling of same intent ID with different content.
+`GLM-5.3 Max` is not a separate model ID. Current first-party evidence does not establish native image input for `glm-5.3`. The Jianghe protocol requires the candidate decision model itself to receive canonical K-line images; a separate Vision MCP/sidecar would be a new research design rather than a like-for-like candidate.
 
-Frozen evidence/invariants/non-findings:
-`docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`.
-
-Fresh finding verification/original provider reconnaissance:
-`docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md`.
-
-DeepSeek provider correction:
-`docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`.
-
-The finding set and acceptance invariants remain frozen; exact repair design remains open. Do not restart an open-ended audit without new concrete evidence.
-
-## Current provider correction / Owner gate
-
-The initial 2026-08-24 provider refresh incorrectly excluded `deepseek-v4-flash-vision-exp` because the standard DeepSeek `/models` page available to the research tool was a stale pre-launch crawl. Fresh first-party evidence from DeepSeek's official `deepseek-ai/deepseek-harness` repository at its 2026-08-21 release confirms the default catalog includes:
+Current likely direct-visual implementation target set:
 
 ```text
-MODEL_ID=deepseek-v4-flash-vision-exp
-MODEL_STATUS=EXPERIMENTAL
-INPUT_MODALITIES=text,image
-DIRECT_DEEPSEEK_API=YES
-CONTEXT≈1,000,000
-```
-
-Launch material identifies mixed text/image input across the DeepSeek API surfaces, image billing at V4-Flash rates, and an approximately 384-token per-image ceiling after provider resizing. Experimental status and aggressive visual compression are fidelity risks to test, not reasons to exclude the candidate before testing.
-
-Therefore the prior three-provider recommendation is no longer current authority. The project brain must first present a corrected comparison of:
-
-```text
-OPENAI_GPT_5_6_SOL
-XAI_GROK_4_6
 KIMI_K3
 DEEPSEEK_V4_FLASH_VISION_EXP
+MINIMAX_M3
 ```
 
-No provider/model is project-VERIFIED by a live call or ADOPTED. Owner selection of the provider set authorizes only the implementation target for the repair package; it does not authorize a paid call.
-
-OpenAI's public first-party surfaces were not fully synchronized on the temporary Sol API price reduction. Until implementation resolves a canonical billing/rate authority, the budget guard must fail closed or use the higher current published bound; it may not silently hard-code the lower promotional rate.
+No provider/model is project-VERIFIED or ADOPTED.
 
 ## Current gates / next work
 
-1. Reassess provider capability/cost with DeepSeek Vision Exp restored; do not enter repair yet.
-2. Present the corrected four-candidate comparison; Owner then selects the final provider/model set and bounded probe scope.
-3. Execute one batched repair package for every still-valid BSP/RSP finding, including selected-provider transport and executable RMB 100 cumulative budget enforcement.
-4. Run finding-specific focused/adversarial regression, canonical full suite `python -m unittest discover -s tests -v`, and finding-specific re-audit only.
-5. Write formal CLOSED/PASS evidence and refresh state.
-6. Only after all five BSP blockers close may the project separately ask Owner authorization for bounded paid calls.
+1. complete zero-cost hard eligibility only; no provider calls and no spend;
+2. Owner confirms the provider implementation target set — this selects which BSP-004 transports and BSP-005 rate cards to implement, not paid-call authorization;
+3. execute one batched repair for BSP-001..005 + RSP-001..002;
+4. run finding-specific focused/adversarial regression, canonical full suite `python -m unittest discover -s tests -v`, and finding-specific re-audit only;
+5. write formal CLOSED/PASS evidence and refresh state;
+6. only after all five BSP blockers close may the project separately ask Owner for bounded paid-call authorization;
+7. if authorized, spend RMB 100 as a funnel: tiny qualification spend per eligible candidate, eliminate obvious failures immediately, then use remaining budget only on the top 1–2 for stability repeats.
 
 Outcome access, PRIMARY semantic freeze, Validation, historical Final, prospective Shadow/Forward, broker access and real money remain separately locked.
 
@@ -162,7 +122,3 @@ MAIN_INTEGRATION_LANE=ONE_ONLY
 ```
 
 Before every WorkBuddy prompt, tell the Owner the exact local folder/worktree and currently recommended model, then provide one complete copy-paste prompt.
-
-## Update rule
-
-The integration lane updates this brief whenever current phase, locks, next work, or adopted model/tool/provider changes. Keep detail in `CURRENT_STATE.md`, ADRs, protocols and evidence.
