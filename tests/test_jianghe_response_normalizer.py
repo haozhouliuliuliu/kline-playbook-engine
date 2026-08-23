@@ -1,0 +1,119 @@
+"""江河 runtime response normalizer 的纯离线合同测试。"""
+
+from __future__ import annotations
+
+import json
+import unittest
+
+from src.jianghe_ai_trader import AttentionMode, DecisionAction, Direction, StrategyFamily
+from src.jianghe_response_normalizer import (
+    EVALUATION_EXTRACTOR_IDENTITY,
+    EvaluatorSideJudgment,
+    NORMALIZER_IDENTITY,
+    RESPONSE_SCHEMA_IDENTITY,
+    JiangheResponseNormalizer,
+    build_neutral_fidelity_adapter_payload,
+    build_fidelity_response_payload,
+    extract_runtime_fidelity_evidence,
+)
+
+
+def valid_payload() -> dict[str, object]:
+    return {
+        "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+        "family": "NONE",
+        "action": "WAIT",
+        "direction": "NONE",
+        "attention_mode": "SCAN",
+        "decision_state": "TRIGGER_NOT_READY",
+        "rationale": "位置存在，但没有看到来源支持的触发。",
+        "declared_unknown": ["低周期主动性不足"],
+        "principle_references": ["JH-PRINC-002"],
+        "source_references": ["JH-CLAIM-001"],
+        "numeric_claims": [
+            {"claim": "观察价", "value": "100.5", "unit": "PRICE", "source_reference": None}
+        ],
+    }
+
+
+class JiangheResponseNormalizerTests(unittest.TestCase):
+    def test_normalizes_only_objective_model_output_with_stable_identity(self):
+        raw = json.dumps(valid_payload(), ensure_ascii=False)
+        first = JiangheResponseNormalizer().normalize(raw)
+        second = JiangheResponseNormalizer().normalize(raw)
+        self.assertEqual(first.family, StrategyFamily.NONE)
+        self.assertEqual(first.action, DecisionAction.WAIT)
+        self.assertEqual(first.direction, Direction.NONE)
+        self.assertEqual(first.attention_mode, AttentionMode.SCAN)
+        self.assertEqual(first.normalizer_identity, NORMALIZER_IDENTITY)
+        self.assertEqual(first.response_schema_identity, RESPONSE_SCHEMA_IDENTITY)
+        self.assertEqual(first.identity, second.identity)
+
+    def test_rejects_unknown_self_evaluation_and_outcome_fields_recursively(self):
+        for field_name, value in (
+            ("unexpected", "x"),
+            ("violated_principles", []),
+            ("invented_thresholds", []),
+            ("metadata", {"pnl": "forbidden"}),
+        ):
+            payload = valid_payload()
+            payload[field_name] = value
+            with self.subTest(field_name=field_name):
+                with self.assertRaises(ValueError):
+                    JiangheResponseNormalizer().normalize(json.dumps(payload, ensure_ascii=False))
+
+    def test_rejects_bool_string_and_number_coercion(self):
+        for field_name, value in (
+            ("family", True),
+            ("declared_unknown", "UNKNOWN"),
+            ("numeric_claims", [{"claim": "价", "value": 100.5, "unit": None, "source_reference": None}]),
+        ):
+            payload = valid_payload()
+            payload[field_name] = value
+            with self.subTest(field_name=field_name):
+                with self.assertRaises(ValueError):
+                    JiangheResponseNormalizer().normalize(json.dumps(payload, ensure_ascii=False))
+
+    def test_model_self_report_cannot_supply_fidelity_judgment(self):
+        decision = JiangheResponseNormalizer().normalize(
+            json.dumps(valid_payload(), ensure_ascii=False)
+        )
+        evidence = extract_runtime_fidelity_evidence(decision)
+        self.assertTrue(evidence.evaluator_judgment_required)
+        self.assertFalse(hasattr(evidence, "violated_principles"))
+        self.assertFalse(hasattr(evidence, "invented_thresholds"))
+        judgment = EvaluatorSideJudgment(decision.identity, (), ("100.5",))
+        adapted = build_neutral_fidelity_adapter_payload(evidence, judgment)
+        self.assertEqual(adapted["judgment_source"], "EVALUATOR_SIDE_FIXTURE_CONSTRAINTS")
+        self.assertEqual(adapted["invented_thresholds"], ["100.5"])
+
+        scorer_payload = build_fidelity_response_payload(evidence, judgment)
+        self.assertEqual(scorer_payload["acknowledged_principles"], ["JH-PRINC-002"])
+        self.assertEqual(scorer_payload["violated_principles"], [])
+        self.assertEqual(scorer_payload["invented_thresholds"], ["100.5"])
+        self.assertFalse(scorer_payload["outcome_reference"])
+        self.assertNotIn("numeric_claims", scorer_payload)
+        self.assertEqual(judgment.evaluation_extractor_identity, EVALUATION_EXTRACTOR_IDENTITY)
+
+    def test_fidelity_response_payload_requires_evaluator_side_identity_match(self):
+        decision = JiangheResponseNormalizer().normalize(
+            json.dumps(valid_payload(), ensure_ascii=False)
+        )
+        evidence = extract_runtime_fidelity_evidence(decision)
+        with self.assertRaises(ValueError):
+            build_fidelity_response_payload(
+                evidence,
+                EvaluatorSideJudgment("other-normalized-decision", (), ()),
+            )
+
+    def test_normalized_identity_changes_with_objective_decision_content(self):
+        first_payload = valid_payload()
+        changed_payload = valid_payload()
+        changed_payload["action"] = "NO_TRADE"
+        first = JiangheResponseNormalizer().normalize(json.dumps(first_payload, ensure_ascii=False))
+        changed = JiangheResponseNormalizer().normalize(json.dumps(changed_payload, ensure_ascii=False))
+        self.assertNotEqual(first.identity, changed.identity)
+
+
+if __name__ == "__main__":
+    unittest.main()

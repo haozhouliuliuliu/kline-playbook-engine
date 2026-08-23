@@ -7,7 +7,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from enum import Enum
 from hashlib import sha256
 import json
@@ -23,6 +24,34 @@ def _canonical_hash(value: object) -> str:
 def _require_aware(value: datetime, field_name: str) -> None:
     if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
         raise ValueError(f"{field_name} 必须是带时区的时间")
+
+
+def _canonical_datetime(value: datetime) -> str:
+    """把同一时刻统一成 UTC 微秒表示，避免机器时区影响身份。"""
+    return value.astimezone(timezone.utc).isoformat(timespec="microseconds")
+
+
+def _strict_decimal(value: object, field_name: str) -> Decimal:
+    """校验 Decimal 字符串，不经 float，且保留调用方的原始文本。"""
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise ValueError(f"{field_name} 必须是无首尾空白的非空 Decimal 字符串")
+    try:
+        decimal_value = Decimal(value)
+    except InvalidOperation:
+        raise ValueError(f"{field_name} 不是有效 Decimal 字符串") from None
+    if not decimal_value.is_finite():
+        raise ValueError(f"{field_name} 必须是有限数，不能是 NaN 或 Infinity")
+    return decimal_value
+
+
+def _canonical_decimal_text(value: Decimal) -> str:
+    """把等值 Decimal 统一成不使用指数、无多余尾零的文本。"""
+    if value == 0:
+        return "0"
+    text = format(value, "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return text
 
 
 class AttentionMode(str, Enum):
@@ -96,6 +125,8 @@ class JiangheAITraderIdentity:
     """影响输出的 AI 交易员配置身份；所有模型厂商仍只是候选。"""
 
     knowledge_pack_identity: str
+    primary_branch_registry_identity: str
+    interpretation_set_identity: str
     model_provider: str
     model_id_version: str
     system_prompt_identity: str
@@ -106,6 +137,8 @@ class JiangheAITraderIdentity:
     observation_schema_version: str
     wake_policy_version: str
     decision_schema_version: str
+    runtime_normalizer_identity: str
+    hard_execution_envelope_identity: str
     inference_configuration: tuple[tuple[str, str], ...]
     tool_capability_set: tuple[str, ...]
     source_family_scope: tuple[str, ...]
@@ -113,22 +146,47 @@ class JiangheAITraderIdentity:
 
     def __post_init__(self) -> None:
         required = (
-            self.knowledge_pack_identity, self.model_provider, self.model_id_version,
+            self.knowledge_pack_identity, self.primary_branch_registry_identity,
+            self.interpretation_set_identity, self.model_provider, self.model_id_version,
             self.system_prompt_identity, self.decision_prompt_identity,
             self.context_selection_policy_identity, self.memory_policy_identity,
             self.chart_renderer_identity, self.observation_schema_version,
             self.wake_policy_version, self.decision_schema_version,
+            self.runtime_normalizer_identity, self.hard_execution_envelope_identity,
         )
-        if not all(required):
+        if any(not isinstance(value, str) or not value for value in required):
             raise ValueError("AI 交易员身份字段不能为空")
-        if set(self.source_family_scope) - {"A", "B", "C", "D"}:
-            raise ValueError("来源家族范围只能是 A/B/C/D")
-        if tuple(sorted(set(self.tool_capability_set))) != self.tool_capability_set:
+        if (
+            not self.source_family_scope
+            or any(not isinstance(value, str) for value in self.source_family_scope)
+            or tuple(sorted(set(self.source_family_scope))) != self.source_family_scope
+            or set(self.source_family_scope) - {"A", "B", "C", "D"}
+        ):
+            raise ValueError("来源家族范围必须是非空、去重排序的 A/B/C/D 子集")
+        if (
+            any(not isinstance(value, str) or not value for value in self.tool_capability_set)
+            or tuple(sorted(set(self.tool_capability_set))) != self.tool_capability_set
+        ):
             raise ValueError("工具能力必须排序且不重复")
-        if tuple(sorted(set(self.inference_configuration))) != self.inference_configuration:
+        if any(
+            not isinstance(item, tuple)
+            or len(item) != 2
+            or not isinstance(item[0], str)
+            or not item[0]
+            or not isinstance(item[1], str)
+            for item in self.inference_configuration
+        ):
+            raise ValueError("推理配置必须由非空字符串名称和值组成")
+        if (
+            tuple(sorted(self.inference_configuration)) != self.inference_configuration
+            or len({name for name, _ in self.inference_configuration})
+            != len(self.inference_configuration)
+        ):
             raise ValueError("推理配置必须排序且不重复")
         object.__setattr__(self, "identity", _canonical_hash({
             "knowledge_pack_identity": self.knowledge_pack_identity,
+            "primary_branch_registry_identity": self.primary_branch_registry_identity,
+            "interpretation_set_identity": self.interpretation_set_identity,
             "model_provider": self.model_provider,
             "model_id_version": self.model_id_version,
             "system_prompt_identity": self.system_prompt_identity,
@@ -139,6 +197,8 @@ class JiangheAITraderIdentity:
             "observation_schema_version": self.observation_schema_version,
             "wake_policy_version": self.wake_policy_version,
             "decision_schema_version": self.decision_schema_version,
+            "runtime_normalizer_identity": self.runtime_normalizer_identity,
+            "hard_execution_envelope_identity": self.hard_execution_envelope_identity,
             "inference_configuration": self.inference_configuration,
             "tool_capability_set": self.tool_capability_set,
             "source_family_scope": self.source_family_scope,
@@ -161,14 +221,27 @@ class ObservationBar:
     def __post_init__(self) -> None:
         for field_name in ("open_time", "close_time", "available_at"):
             _require_aware(getattr(self, field_name), field_name)
-        if not self.timeframe or self.close_time <= self.open_time:
+        if (
+            not isinstance(self.timeframe, str)
+            or not self.timeframe
+            or self.timeframe != self.timeframe.strip()
+            or self.close_time <= self.open_time
+        ):
             raise ValueError("K线周期或时间范围无效")
+        if type(self.is_closed) is not bool:
+            raise ValueError("is_closed 必须是严格布尔值")
         if self.available_at < self.close_time:
-            raise ValueError("K线 available_at 不能早于收盘时间")
-        if not all(isinstance(value, str) and value for value in (
-            self.open_price, self.high_price, self.low_price, self.close_price, self.volume
-        )):
-            raise ValueError("OHLCV 必须以非空字符串明确提供")
+            state = "已收盘" if self.is_closed else "部分"
+            raise ValueError(f"{state} K线的 available_at 不能早于当前可见内容的 close_time")
+        # 这里只校验 observation 的运输形状并保留原始字符串表示。数值有限性、
+        # OHLC 关系与 volume 下界由 integrated visual renderer 的输入契约统一审计；
+        # 提前归一会吞掉 "100" 与 "100.0" 这类可审计输入差异。
+        for field_name in (
+            "open_price", "high_price", "low_price", "close_price", "volume",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value or value != value.strip():
+                raise ValueError(f"{field_name} 必须是无首尾空白的非空字符串")
 
 
 @dataclass(frozen=True)
@@ -180,13 +253,47 @@ class PositionFact:
     active_order_ids: tuple[str, ...]
 
     def __post_init__(self) -> None:
-        if self.direction is Direction.NONE or not self.quantity:
+        if not isinstance(self.direction, Direction) or self.direction is Direction.NONE:
             raise ValueError("持仓必须有方向和数量")
+        quantity = _strict_decimal(self.quantity, "quantity")
+        if quantity <= 0:
+            raise ValueError("持仓数量必须大于零")
+        object.__setattr__(self, "quantity", _canonical_decimal_text(quantity))
+        if any(
+            not isinstance(item, tuple)
+            or len(item) != 2
+            or not isinstance(item[0], str)
+            or not item[0]
+            or not isinstance(item[1], str)
+            for item in self.entry_facts
+        ):
+            raise ValueError("入场事实必须是非空字符串键值对")
+        entry_facts = tuple(sorted(self.entry_facts))
+        if len({name for name, _ in entry_facts}) != len(entry_facts) or any(
+            not isinstance(name, str) or not name or not isinstance(value, str)
+            for name, value in entry_facts
+        ):
+            raise ValueError("入场事实必须是去重后的非空字符串键值对")
+        for raw_values, field_name in (
+            (self.protective_orders, "protective_orders"),
+            (self.active_order_ids, "active_order_ids"),
+        ):
+            if any(not isinstance(value, str) or not value for value in raw_values):
+                raise ValueError(f"{field_name} 必须是去重后的非空字符串")
+        protective_orders = tuple(sorted(self.protective_orders))
+        active_order_ids = tuple(sorted(self.active_order_ids))
+        if len(set(protective_orders)) != len(protective_orders):
+            raise ValueError("protective_orders 必须是去重后的非空字符串")
+        if len(set(active_order_ids)) != len(active_order_ids):
+            raise ValueError("active_order_ids 必须是去重后的非空字符串")
+        object.__setattr__(self, "entry_facts", entry_facts)
+        object.__setattr__(self, "protective_orders", protective_orders)
+        object.__setattr__(self, "active_order_ids", active_order_ids)
 
 
 @dataclass(frozen=True)
 class ChartRender:
-    """标准化图表元数据；图表事实与 AI 标注在不同字段中保存。"""
+    """从 canonical observation 派生的视觉 artifact provenance bridge。"""
 
     renderer_identity: str
     timeframe: str
@@ -195,14 +302,83 @@ class ChartRender:
     render_content_hash: str
     partial_bar_marked: bool
     annotations: tuple[tuple[str, str], ...] = ()
+    source_observation_identity: str | None = None
+    renderer_config_identity: str | None = None
+    visual_artifact_identity: str | None = None
+    artifact_kind: str = "JIANGHE_LEGACY_CHART_BRIDGE_V0_1"
+    mime_type: str = "text/plain"
 
     def __post_init__(self) -> None:
         _require_aware(self.current_time, "current_time")
         if not all((self.renderer_identity, self.timeframe, self.window_definition, self.render_content_hash)):
             raise ValueError("图表渲染元数据不能为空")
+        if type(self.partial_bar_marked) is not bool:
+            raise ValueError("partial_bar_marked 必须是严格布尔值")
         allowed = {"AI_HYPOTHESIS_KEY_ZONE", "AI_WATCH_REGION", "AI_DEFENSE_INTERPRETATION"}
         if any(kind not in allowed for kind, _ in self.annotations):
             raise ValueError("图表标注必须是受支持的 AI 假设类型")
+        if not self.artifact_kind or not self.mime_type:
+            raise ValueError("视觉 artifact kind 与 MIME 不能为空")
+        if self.source_observation_identity is None:
+            if self.visual_artifact_identity is not None:
+                raise ValueError("未绑定 source observation 时不得声明 visual artifact identity")
+            return
+        if not self.source_observation_identity:
+            raise ValueError("source_observation_identity 不能为空")
+        config_identity = self.renderer_config_identity or self.renderer_identity
+        computed = canonical_visual_artifact_identity(
+            artifact_kind=self.artifact_kind,
+            renderer_identity=self.renderer_identity,
+            renderer_config_identity=config_identity,
+            source_observation_identity=self.source_observation_identity,
+            content_sha256=self.render_content_hash,
+            mime_type=self.mime_type,
+        )
+        if self.visual_artifact_identity is not None and self.visual_artifact_identity != computed:
+            raise ValueError("visual_artifact_identity 与 canonical provenance 不一致")
+        object.__setattr__(self, "renderer_config_identity", config_identity)
+        object.__setattr__(self, "visual_artifact_identity", computed)
+
+    def bind_to_observation(self, observation_identity: str) -> "ChartRender":
+        if not isinstance(observation_identity, str) or not observation_identity:
+            raise ValueError("observation_identity 不能为空")
+        if self.source_observation_identity not in (None, observation_identity):
+            raise ValueError("图表绑定了其他 observation identity")
+        return replace(
+            self,
+            source_observation_identity=observation_identity,
+            renderer_config_identity=self.renderer_config_identity or self.renderer_identity,
+        )
+
+
+def canonical_visual_artifact_identity(
+    *,
+    artifact_kind: str,
+    renderer_identity: str,
+    renderer_config_identity: str,
+    source_observation_identity: str,
+    content_sha256: str,
+    mime_type: str,
+) -> str:
+    """统一旧 ChartRender 与新 PNG renderer 的 visual provenance identity。"""
+    if mime_type == "image/png":
+        payload = {
+            "artifact": artifact_kind,
+            "renderer_version": renderer_identity,
+            "renderer_config_identity": renderer_config_identity,
+            "input_observation_identity": source_observation_identity,
+            "png_sha256": content_sha256,
+        }
+    else:
+        payload = {
+            "artifact": artifact_kind,
+            "renderer_identity": renderer_identity,
+            "renderer_config_identity": renderer_config_identity,
+            "input_observation_identity": source_observation_identity,
+            "content_sha256": content_sha256,
+            "mime_type": mime_type,
+        }
+    return _canonical_hash(payload)
 
 
 @dataclass(frozen=True)
@@ -213,6 +389,7 @@ class ObservationIdentity:
     concrete_contract: str
     mapping_identity: str
     session_identity: str
+    content_identity: str | None = None
     identity: str = field(init=False)
 
     def __post_init__(self) -> None:
@@ -223,10 +400,56 @@ class ObservationIdentity:
         if not all((self.product, self.concrete_contract, self.mapping_identity, self.session_identity)):
             raise ValueError("观察身份字段不能为空")
         object.__setattr__(self, "identity", _canonical_hash({
-            "decision_time": self.decision_time.isoformat(), "exchange_time": self.exchange_time.isoformat(),
+            "decision_time": _canonical_datetime(self.decision_time),
+            "exchange_time": _canonical_datetime(self.exchange_time),
             "product": self.product, "concrete_contract": self.concrete_contract,
             "mapping_identity": self.mapping_identity, "session_identity": self.session_identity,
+            "content_identity": self.content_identity,
         }))
+
+    def bind_content(
+        self,
+        *,
+        bars: Sequence[ObservationBar],
+        positions: Sequence[PositionFact],
+        active_order_ids: Sequence[str],
+        schema_version: str,
+        visible_metadata: Sequence[tuple[str, str]],
+    ) -> "ObservationIdentity":
+        """绑定模型在该时间点能看见、会影响决策的 canonical 内容。"""
+        bar_payload = [
+            {
+                "timeframe": bar.timeframe,
+                "open_time": _canonical_datetime(bar.open_time),
+                "close_time": _canonical_datetime(bar.close_time),
+                "available_at": _canonical_datetime(bar.available_at),
+                "open_price": bar.open_price,
+                "high_price": bar.high_price,
+                "low_price": bar.low_price,
+                "close_price": bar.close_price,
+                "volume": bar.volume,
+                "is_closed": bar.is_closed,
+            }
+            for bar in bars
+        ]
+        position_payload = [
+            {
+                "direction": position.direction.value,
+                "quantity": position.quantity,
+                "entry_facts": position.entry_facts,
+                "protective_orders": position.protective_orders,
+                "active_order_ids": position.active_order_ids,
+            }
+            for position in positions
+        ]
+        content = {
+            "schema_version": schema_version,
+            "bars": bar_payload,
+            "positions": position_payload,
+            "active_order_ids": tuple(active_order_ids),
+            "visible_metadata": tuple(visible_metadata),
+        }
+        return replace(self, content_identity=_canonical_hash(content))
 
 
 @dataclass(frozen=True)
@@ -236,12 +459,47 @@ class JiangheObservation:
     positions: tuple[PositionFact, ...] = ()
     active_order_ids: tuple[str, ...] = ()
     charts: tuple[ChartRender, ...] = ()
+    visible_metadata: tuple[tuple[str, str], ...] = ()
     schema_version: str = "JIANGHE_OBSERVATION_V0_1"
 
     def __post_init__(self) -> None:
         if not self.bars:
             raise ValueError("观察至少需要一根 K 线")
-        for bar in self.bars:
+        bars = tuple(sorted(self.bars, key=lambda bar: (
+            bar.timeframe, bar.open_time, bar.close_time, bar.available_at,
+            bar.open_price, bar.high_price, bar.low_price, bar.close_price,
+            bar.volume, bar.is_closed,
+        )))
+        if len({(bar.timeframe, bar.open_time) for bar in bars}) != len(bars):
+            raise ValueError("同一周期与开盘时间只能有一根 canonical K 线")
+        positions = tuple(sorted(self.positions, key=lambda position: (
+            position.direction.value, position.quantity, position.entry_facts,
+            position.protective_orders, position.active_order_ids,
+        )))
+        if any(not isinstance(order_id, str) or not order_id for order_id in self.active_order_ids):
+            raise ValueError("活动订单身份必须是去重后的非空字符串")
+        active_order_ids = tuple(sorted(self.active_order_ids))
+        if len(set(active_order_ids)) != len(active_order_ids):
+            raise ValueError("活动订单身份必须是去重后的非空字符串")
+        if any(
+            not isinstance(item, tuple)
+            or len(item) != 2
+            or not isinstance(item[0], str)
+            or not item[0]
+            or not isinstance(item[1], str)
+            for item in self.visible_metadata
+        ):
+            raise ValueError("可见元数据必须是去重后的非空字符串键值对")
+        visible_metadata = tuple(sorted(self.visible_metadata))
+        if len({name for name, _ in visible_metadata}) != len(visible_metadata):
+            raise ValueError("可见元数据键必须唯一")
+        if not isinstance(self.schema_version, str) or not self.schema_version:
+            raise ValueError("观察 schema_version 不能为空")
+        object.__setattr__(self, "bars", bars)
+        object.__setattr__(self, "positions", positions)
+        object.__setattr__(self, "active_order_ids", active_order_ids)
+        object.__setattr__(self, "visible_metadata", visible_metadata)
+        for bar in bars:
             if bar.available_at > self.identity.decision_time:
                 raise ValueError("观察中包含当时不可用的未来 K 线")
             if bar.close_time > self.identity.exchange_time:
@@ -249,6 +507,17 @@ class JiangheObservation:
         for chart in self.charts:
             if chart.current_time > self.identity.exchange_time:
                 raise ValueError("图表不得显示未来时间")
+        bound_identity = self.identity.bind_content(
+            bars=bars,
+            positions=positions,
+            active_order_ids=active_order_ids,
+            schema_version=self.schema_version,
+            visible_metadata=visible_metadata,
+        )
+        object.__setattr__(self, "identity", bound_identity)
+        object.__setattr__(self, "charts", tuple(
+            chart.bind_to_observation(bound_identity.identity) for chart in self.charts
+        ))
         # 金额盈亏故意不属于该类型；AI 只得到持仓和订单事实。
 
     @property
@@ -474,6 +743,7 @@ class JiangheMarketReplay:
     clock: ReplayClock
     memory: JiangheWorkingMemory = field(default_factory=JiangheWorkingMemory)
     audit_ledger: list[DecisionAuditRecord] = field(default_factory=list)
+    accepted_observation_identity: str | None = None
 
     def accept_observation(self, observation: JiangheObservation) -> None:
         if any(not bar.is_closed for bar in observation.bars):
@@ -481,13 +751,19 @@ class JiangheMarketReplay:
         if observation.identity.decision_time < self.clock.current_time:
             raise ValueError("回放不能接受过去的观察")
         self.clock.advance_to(observation.identity.decision_time)
+        self.accepted_observation_identity = observation.identity.identity
 
     def record_decision(self, record: DecisionAuditRecord) -> None:
+        if self.accepted_observation_identity is None:
+            raise ValueError("回放尚未接受当前决策所依据的 observation")
+        if record.observation_identity != self.accepted_observation_identity:
+            raise ValueError("决策必须绑定当前 replay step 已接受的 observation identity")
         if record.observation_available_at < self.clock.current_time:
             raise ValueError("回放不能在当前时钟之前生成决策")
         validate_transition(self.memory.attention_mode, record.normalized_decision)
         self.clock.advance_to(record.intent_available_at)
         self.audit_ledger.append(record)
+        self.accepted_observation_identity = None
         self.memory = replace(self.memory, attention_mode=record.normalized_decision.attention_mode,
                               last_meaningful_decision=record.normalized_decision.action.value,
                               watch_regions=record.normalized_decision.watch_regions,

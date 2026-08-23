@@ -489,6 +489,7 @@ class JiangheMarketReplayV0_2(JiangheMarketReplay):
         if observation.identity.decision_time < self.clock.current_time:
             raise ValueError("回放不能接受过去的观察")
         self.clock.advance_to(observation.identity.decision_time)
+        self.accepted_observation_identity = observation.identity.identity
 
 
 @dataclass(frozen=True)

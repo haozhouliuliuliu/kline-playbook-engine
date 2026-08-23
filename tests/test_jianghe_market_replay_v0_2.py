@@ -74,6 +74,8 @@ def make_ai_identity() -> JiangheAITraderIdentity:
     knowledge = KnowledgePackIdentity.from_documents("V1_1", {"dossier": "江河", "unknown": "UNKNOWN"})
     return JiangheAITraderIdentity(
         knowledge_pack_identity=knowledge.identity,
+        primary_branch_registry_identity="primary-registry-v0-3",
+        interpretation_set_identity="interpretation-set-v0-3",
         model_provider="CANDIDATE_PROVIDER",
         model_id_version="candidate-v1",
         system_prompt_identity="system-v1",
@@ -84,6 +86,8 @@ def make_ai_identity() -> JiangheAITraderIdentity:
         observation_schema_version="V0_1",
         wake_policy_version="V0_1",
         decision_schema_version="V0_1",
+        runtime_normalizer_identity="normalizer-v0-1",
+        hard_execution_envelope_identity="risk-oms-safety-v1",
         inference_configuration=(("temperature", "0"),),
         tool_capability_set=("STRUCTURED_OBSERVATION",),
         source_family_scope=("A", "B", "C", "D"),
