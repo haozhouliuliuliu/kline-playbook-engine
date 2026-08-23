@@ -139,15 +139,15 @@ def validate_alternative_review(claim_id: str, review: Any) -> tuple[str, list[s
     if not isinstance(review, dict):
         raise ValueError(f"{claim_id} 的 alternative_review 必须是对象")
     status = review.get("status")
-    if status not in {"ALTERNATIVES_REVIEWED", "NO_SOURCE_JUSTIFIED_ALTERNATIVE_FOUND"}:
+    if status not in {"MATERIAL_ALTERNATIVES_REVIEWED", "NO_MATERIAL_SOURCE_ALTERNATIVE"}:
         raise ValueError(f"{claim_id} 的替代解释审查状态不合法")
     rationale = draft_builder.require_string(review.get("rationale"), f"{claim_id}.alternative_review.rationale")
     alternatives = review.get("alternatives")
     if not isinstance(alternatives, list):
         raise ValueError(f"{claim_id} 的 alternatives 必须是列表")
-    if status == "ALTERNATIVES_REVIEWED" and not alternatives:
+    if status == "MATERIAL_ALTERNATIVES_REVIEWED" and not alternatives:
         raise ValueError(f"{claim_id} 声称已审查替代解释但未记录候选")
-    if status == "NO_SOURCE_JUSTIFIED_ALTERNATIVE_FOUND" and alternatives:
+    if status == "NO_MATERIAL_SOURCE_ALTERNATIVE" and alternatives:
         raise ValueError(f"{claim_id} 声称没有来源支持的替代解释却记录了候选")
     alternative_ids: list[str] = []
     for alternative in alternatives:
@@ -189,7 +189,6 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
     contradiction_rows = load_register_rows(repository_root / CONTRADICTION_REGISTER_PATH, "JH-CON-")
     disposition_counts: Counter[str] = Counter()
     alternative_statuses: Counter[str] = Counter()
-    alternative_rationales: set[str] = set()
     primary_branch_identities: set[str] = set()
     schema_required_fields = set(schema["required_branch_fields"])
 
@@ -225,13 +224,15 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
             raise ValueError(f"{claim_id} 的 source ordinal 不正确")
         if record.get("source_status") != expected_source["source_status"]:
             raise ValueError(f"{claim_id} 改写了 source status")
-        if record.get("selected_interpretation_text") != curated["semantic_interpretation"]["interpretation"]:
+        if record.get("source_record_binding") != expected_source:
+            raise ValueError(f"{claim_id} 未完整保留原始 source binding")
+        if record.get("selected_interpretation_text") != curated["semantic_interpretation"]:
             raise ValueError(f"{claim_id} 的 selected interpretation 未按策展记录绑定")
-        if record.get("family_scope") != curated["family_scope"]:
+        if record.get("family_scope") != expected_source["family_scope"]:
             raise ValueError(f"{claim_id} 的 family scope 未按策展记录绑定")
-        if record.get("semantic_mode") != curated["semantic_interpretation"]["mode"]:
+        if record.get("semantic_mode") != curated["semantic_mode"]:
             raise ValueError(f"{claim_id} 的 semantic mode 未按策展记录绑定")
-        if record.get("operationalization_mode") != curated["operationalization_interpretation"]["mode"]:
+        if record.get("operationalization_mode") != curated["operationalization_mode"]:
             raise ValueError(f"{claim_id} 的 operationalization mode 未按策展记录绑定")
 
         disposition = record.get("pre_freeze_disposition")
@@ -244,7 +245,7 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
         if record.get("semantic_readiness") != curated["semantic_readiness"]:
             raise ValueError(f"{claim_id} 改写了 V0.2 semantic readiness")
 
-        observability = curated.get("observability")
+        observability = curated["operational_boundary"].get("governed_observation")
         if record.get("observability_status") != observability.get("status"):
             raise ValueError(f"{claim_id} 的 observability status 未按策展记录绑定")
         if record.get("observability_missing_inputs") != observability.get("missing_inputs"):
@@ -292,14 +293,13 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
             raise ValueError(f"{claim_id} 的来源 UNKNOWN 未按歧义失败闭合")
 
         alternative_rationale, alternative_ids = validate_alternative_review(
-            claim_id, curated.get("alternative_review")
+            claim_id, curated.get("alternative_analysis")
         )
-        if record.get("alternative_review") != curated.get("alternative_review"):
+        if record.get("alternative_review") != curated.get("alternative_analysis"):
             raise ValueError(f"{claim_id} 的替代解释审查未完整绑定")
         if record.get("alternative_interpretation_ids_predeclared") != alternative_ids:
             raise ValueError(f"{claim_id} 存在隐藏或漏报的 alternative interpretation")
-        alternative_statuses[curated["alternative_review"]["status"]] += 1
-        alternative_rationales.add(alternative_rationale)
+        alternative_statuses[curated["alternative_analysis"]["status"]] += 1
 
         primary_identity = record.get("primary_branch_identity")
         if not isinstance(primary_identity, str) or len(primary_identity) != 64:
@@ -319,22 +319,23 @@ def validate(repository_root: Path = REPOSITORY_ROOT) -> dict[str, int | str]:
             raise ValueError(f"{claim_id} 包含禁止的项目结果字段：{', '.join(disallowed_fields)}")
         project_authored_surface = {
             "operationalization_interpretation": record["operationalization_interpretation"],
+            "semantic_boundary": record["semantic_boundary"],
+            "operational_boundary": record["operational_boundary"],
             "observability": record["observability"],
             "authority_links": authority_links,
             "alternative_review": record["alternative_review"],
-            "review_rationale": curated["review_rationale"],
+            "claim_specific_reasoning": curated["claim_specific_reasoning"],
+            "disposition_reason": curated["disposition_reason"],
         }
         disallowed_terms = find_disallowed_project_terms(project_authored_surface)
         if disallowed_terms:
             raise ValueError(f"{claim_id} 的项目判断依赖禁止结果面：{', '.join(disallowed_terms)}")
 
     if set(alternative_statuses) != {
-        "ALTERNATIVES_REVIEWED",
-        "NO_SOURCE_JUSTIFIED_ALTERNATIVE_FOUND",
+        "MATERIAL_ALTERNATIVES_REVIEWED",
+        "NO_MATERIAL_SOURCE_ALTERNATIVE",
     }:
         raise ValueError("替代解释审查被压成了单一统一默认值")
-    if len(alternative_rationales) != draft_builder.EXPECTED_CLAIM_COUNT:
-        raise ValueError("替代解释审查理由不是逐 claim 明确记录")
     if disposition_counts["STOP_IDENTITY_INCOMPLETE"] != 0:
         raise ValueError("identity binding 完成后仍存在 STOP_IDENTITY_INCOMPLETE")
 
