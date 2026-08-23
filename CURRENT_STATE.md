@@ -40,10 +40,9 @@ OUTCOME_ACCESS=NO
 Current authorities:
 - consolidated pre-spend findings: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`
 - Owner-requested two-review plan: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_PLAN_V0_1.md`
-- Owner live-probe scope revision: `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md`
+- Owner live-probe scope: `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md`
 - pre-live re-audit: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_REAUDIT_V0_1.md`
 - PRIMARY fixed-rubric re-audit: `docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT_V0_1.md`
-- superseded historical approval proposal: `docs/reviews/JIANGHE_BOUNDED_LIVE_MODEL_FIDELITY_PROBE_APPROVAL_PACKAGE_V0_1.md`
 
 The original 27-item pre-live audit and PRIMARY V0.5 fixed R1–R8 re-audit remain PASS. The later Owner-requested pre-spend assurance review is now complete and found concrete blockers. This is not a reopening of PRIMARY prose/template standards.
 
@@ -80,7 +79,7 @@ NO_MODEL_OR_PROVIDER_VERIFIED=YES
 NO_MODEL_OR_PROVIDER_ADOPTED=YES
 ```
 
-The previous USD 100 / OpenAI+Anthropic+Gemini proposal is superseded for execution. The Owner's binding budget ceiling is **RMB 100 total**, with no automatic extension.
+The Owner's binding budget ceiling is **RMB 100 total**, with no automatic extension.
 
 Before recommending the final provider set, the next project brain must recheck current first-party provider/model capability and direct pricing because those facts are time-sensitive. Final provider/model selection and any paid external call remain Owner decisions.
 
