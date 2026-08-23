@@ -60,6 +60,31 @@ def identity(seed: str) -> str:
     return sha256(seed.encode("utf-8")).hexdigest()
 
 
+def grounded_judgment(decision_identity: str, fixture_id: str = "JH-FIX-A-001") -> EvaluatorSideJudgment:
+    corpus = load_corpus()
+    fixture = next(item for item in corpus["fixtures"] if item["fixture_id"] == fixture_id)
+    required: set[str] = set()
+    for section in ("pass_paths", "fail_conditions"):
+        for entry in fixture["rubric"][section]:
+            for constraint in entry["constraints"]:
+                if constraint["type"] in {"principle_acknowledged", "principle_violated"}:
+                    required.update(constraint["values"])
+    adjudications = {
+        principle: {
+            "status": "NOT_EVIDENCED",
+            "evidence": "TEST_ONLY: normalized decision reviewed against fixture principle constraint",
+        }
+        for principle in sorted(required)
+    }
+    return EvaluatorSideJudgment.from_fixture(
+        decision_identity,
+        corpus=corpus,
+        fixture=fixture,
+        principle_adjudications=adjudications,
+        evaluator_evidence=("TEST_ONLY_SYNTHETIC_GROUNDED_REVIEW",),
+    )
+
+
 @lru_cache(maxsize=1)
 def observation() -> JiangheObservation:
     return JiangheObservation(
@@ -483,7 +508,7 @@ class JiangheModelProviderTests(unittest.TestCase):
         model_request = request()
         adapter = CandidateProviderAdapter(model_request.capability_declaration)
         decision = JiangheResponseNormalizer().normalize(output_text())
-        judgment = EvaluatorSideJudgment(decision.identity, (), ())
+        judgment = grounded_judgment(decision.identity)
         result = adapter.build_mocked_evaluation_record(
             request=model_request,
             raw_provider_payload=response_payload(),

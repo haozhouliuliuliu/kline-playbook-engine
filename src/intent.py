@@ -185,12 +185,18 @@ class ConflictResolver:
             # A no-op cycle (no intents) is legitimate; resolve to an empty batch.
             empty_identity = _canonical_hash({"resolutions": []})
             return ConflictResolution(resolutions=(), resolution_identity=empty_identity)
-        seen: set[str] = set()
+        seen: dict[str, str] = {}
         unique: list[StrategyIntent] = []
         for intent in ordered:
-            if intent.intent_id not in seen:
+            prior_identity = seen.get(intent.intent_id)
+            if prior_identity is None:
                 unique.append(intent)
-                seen.add(intent.intent_id)
+                seen[intent.intent_id] = intent.identity_id
+                continue
+            if prior_identity != intent.identity_id:
+                raise ValueError(
+                    "same intent_id with different canonical content is not idempotent"
+                )
 
         # Group distinct non-HOLD intents by (strategy, concrete contract).
         groups: dict[tuple[str, str], list[StrategyIntent]] = {}

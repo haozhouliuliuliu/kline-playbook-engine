@@ -36,6 +36,24 @@ def valid_payload() -> dict[str, object]:
     }
 
 
+def grounding_corpus() -> tuple[dict[str, object], dict[str, object]]:
+    fixture = {
+        "fixture_id": "TEST-FIXTURE-BSP003",
+        "rubric": {
+            "pass_paths": [
+                {
+                    "name": "grounded-principle",
+                    "constraints": [
+                        {"type": "principle_acknowledged", "values": ["JH-PRINC-002"]}
+                    ],
+                }
+            ],
+            "fail_conditions": [],
+        },
+    }
+    return {"corpus_id": "TEST-CORPUS-BSP003", "fixtures": [fixture]}, fixture
+
+
 class JiangheResponseNormalizerTests(unittest.TestCase):
     def test_normalizes_only_objective_model_output_with_stable_identity(self):
         raw = json.dumps(valid_payload(), ensure_ascii=False)
@@ -82,29 +100,51 @@ class JiangheResponseNormalizerTests(unittest.TestCase):
         self.assertTrue(evidence.evaluator_judgment_required)
         self.assertFalse(hasattr(evidence, "violated_principles"))
         self.assertFalse(hasattr(evidence, "invented_thresholds"))
-        judgment = EvaluatorSideJudgment(decision.identity, (), ("100.5",))
+        corpus, fixture = grounding_corpus()
+        judgment = EvaluatorSideJudgment.from_fixture(
+            decision.identity,
+            corpus=corpus,
+            fixture=fixture,
+            principle_adjudications={
+                "JH-PRINC-002": {
+                    "status": "NOT_EVIDENCED",
+                    "evidence": "the rationale does not demonstrate the principle",
+                }
+            },
+            invented_thresholds=("100.5",),
+            evaluator_evidence=("normalized rationale and fixture rubric reviewed",),
+        )
         adapted = build_neutral_fidelity_adapter_payload(evidence, judgment)
         self.assertEqual(adapted["judgment_source"], "EVALUATOR_SIDE_FIXTURE_CONSTRAINTS")
         self.assertEqual(adapted["invented_thresholds"], ["100.5"])
+        self.assertEqual(adapted["principle_references"], ["JH-PRINC-002"])
 
         scorer_payload = build_fidelity_response_payload(evidence, judgment)
-        self.assertEqual(scorer_payload["acknowledged_principles"], ["JH-PRINC-002"])
+        self.assertEqual(scorer_payload["acknowledged_principles"], [])
         self.assertEqual(scorer_payload["violated_principles"], [])
         self.assertEqual(scorer_payload["invented_thresholds"], ["100.5"])
         self.assertFalse(scorer_payload["outcome_reference"])
         self.assertNotIn("numeric_claims", scorer_payload)
         self.assertEqual(judgment.evaluation_extractor_identity, EVALUATION_EXTRACTOR_IDENTITY)
+        self.assertTrue(judgment.grounded)
 
     def test_fidelity_response_payload_requires_evaluator_side_identity_match(self):
         decision = JiangheResponseNormalizer().normalize(
             json.dumps(valid_payload(), ensure_ascii=False)
         )
         evidence = extract_runtime_fidelity_evidence(decision)
+        corpus, fixture = grounding_corpus()
+        judgment = EvaluatorSideJudgment.from_fixture(
+            "other-normalized-decision",
+            corpus=corpus,
+            fixture=fixture,
+            principle_adjudications={
+                "JH-PRINC-002": {"status": "NOT_EVIDENCED", "evidence": "not evidenced"}
+            },
+            evaluator_evidence=("fixture reviewed",),
+        )
         with self.assertRaises(ValueError):
-            build_fidelity_response_payload(
-                evidence,
-                EvaluatorSideJudgment("other-normalized-decision", (), ()),
-            )
+            build_fidelity_response_payload(evidence, judgment)
 
     def test_normalized_identity_changes_with_objective_decision_content(self):
         first_payload = valid_payload()

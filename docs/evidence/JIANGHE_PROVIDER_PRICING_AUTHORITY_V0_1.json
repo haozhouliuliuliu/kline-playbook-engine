@@ -1,0 +1,54 @@
+{
+  "artifact": "JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1",
+  "artifact_schema_version": "JIANGHE_PROVIDER_PRICING_AUTHORITY_SCHEMA_V0_1",
+  "checked_at": "2026-08-24T03:30:00+08:00",
+  "purpose": "PRE_SPEND_WORST_CASE_BUDGET_GUARD_ONLY",
+  "hard_project_cap_cny": "100.00",
+  "entries": [
+    {
+      "provider_id": "KIMI",
+      "model_id": "kimi-k3",
+      "status": "VERIFIED_CURRENT_FOR_SPEND_GUARD",
+      "currency": "CNY",
+      "input_per_million": "20.00",
+      "output_per_million": "100.00",
+      "image_billing_mode": "FIXED_INPUT_TOKENS_PER_IMAGE",
+      "fixed_input_tokens_per_image": 1024,
+      "endpoint": "https://api.moonshot.cn/v1/chat/completions",
+      "effective_at": "2026-08-24T00:00:00+08:00",
+      "expires_at": "2026-08-31T00:00:00+08:00",
+      "authorities": [
+        "https://platform.kimi.com/",
+        "https://www.kimi.ai/help/kimi-api/api-model-selection",
+        "https://www.kimi.ai/zh-hans/help/kimi-code/cli-getting-started"
+      ],
+      "conservative_rule": "USE_STANDARD_CACHE_MISS_INPUT_RATE;DO_NOT_CREDIT_CACHE_DISCOUNT;COUNT_EACH_IMAGE_AS_1024_INPUT_TOKENS"
+    },
+    {
+      "provider_id": "DEEPSEEK",
+      "model_id": "deepseek-v4-flash-vision-exp",
+      "status": "BLOCKED_PENDING_EXACT_VISION_PRICE_AND_IMAGE_BILLING_AUTHORITY",
+      "endpoint": "https://api.deepseek.com/chat/completions",
+      "authorities": [
+        "https://api-docs.deepseek.com/quick_start/pricing/",
+        "https://api-docs.deepseek.com/"
+      ],
+      "reason": "Current first-party general V4 Flash pricing does not itself establish exact Vision-Exp image billing semantics. Do not infer the paid rate from the text-only/base model."
+    },
+    {
+      "provider_id": "MINIMAX",
+      "model_id": "MiniMax-M3",
+      "status": "BLOCKED_PENDING_EXACT_M3_IMAGE_BILLING_AUTHORITY",
+      "endpoint": "https://api.minimaxi.com/v1/chat/completions",
+      "authorities": [
+        "https://platform.minimaxi.com/docs/api-reference/text-chat-openai",
+        "https://platform.minimaxi.com/docs/guides/pricing-paygo",
+        "https://platform.minimaxi.com/docs/guides/models-intro"
+      ],
+      "reason": "Native multimodal capability and current language-token pricing are documented, but an exact first-party M3 image billing contract was not established for this gate."
+    }
+  ],
+  "unknown_or_stale_price_policy": "FAIL_CLOSED_BEFORE_NETWORK",
+  "automatic_semantic_retry": "FORBIDDEN",
+  "provider_local_budget_bypass": "FORBIDDEN"
+}

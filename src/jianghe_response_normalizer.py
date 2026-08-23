@@ -292,18 +292,120 @@ def extract_runtime_fidelity_evidence(
 
 @dataclass(frozen=True)
 class EvaluatorSideJudgment:
-    """由 evaluator + fixture 约束产生，绝不从模型 self-report 复制。"""
+    """Fixture/corpus-bound evaluator adjudication; model self-report is never grading authority."""
 
     normalized_decision_identity: str
     violated_principles: tuple[str, ...]
     invented_thresholds: tuple[str, ...]
     evaluation_extractor_identity: str = EVALUATION_EXTRACTOR_IDENTITY
+    acknowledged_principles: tuple[str, ...] = ()
+    corpus_id: str | None = None
+    corpus_identity: str | None = None
+    fixture_id: str | None = None
+    fixture_identity: str | None = None
+    principle_adjudications: tuple[tuple[str, str, str], ...] = ()
+    evaluator_evidence: tuple[str, ...] = ()
+    identity: str = field(init=False)
+
+    @classmethod
+    def from_fixture(
+        cls,
+        normalized_decision_identity: str,
+        *,
+        corpus: Mapping[str, object],
+        fixture: Mapping[str, object],
+        principle_adjudications: Mapping[str, Mapping[str, str]],
+        invented_thresholds: Sequence[str] = (),
+        evaluator_evidence: Sequence[str] = (),
+    ) -> "EvaluatorSideJudgment":
+        if not isinstance(corpus, Mapping) or not isinstance(fixture, Mapping):
+            raise TypeError("corpus and fixture must be mappings")
+        corpus_id = _require_text(corpus.get("corpus_id"), "corpus.corpus_id")
+        fixture_id = _require_text(fixture.get("fixture_id"), "fixture.fixture_id")
+        fixtures = corpus.get("fixtures")
+        fixture_identity = _hash(fixture)
+        if not isinstance(fixtures, list) or not any(
+            isinstance(item, Mapping) and _hash(item) == fixture_identity for item in fixtures
+        ):
+            raise ValueError("fixture is not a member of the bound corpus")
+
+        rubric = fixture.get("rubric")
+        if not isinstance(rubric, Mapping):
+            raise ValueError("fixture rubric must be a mapping")
+        required_principles: set[str] = set()
+        for section in ("pass_paths", "fail_conditions"):
+            entries = rubric.get(section)
+            if not isinstance(entries, list):
+                raise ValueError("fixture rubric sections must be lists")
+            for entry in entries:
+                if not isinstance(entry, Mapping):
+                    raise ValueError("fixture rubric entry must be a mapping")
+                constraints = entry.get("constraints")
+                if not isinstance(constraints, list):
+                    raise ValueError("fixture constraints must be a list")
+                for constraint in constraints:
+                    if not isinstance(constraint, Mapping):
+                        raise ValueError("fixture constraint must be a mapping")
+                    if constraint.get("type") not in {
+                        "principle_acknowledged", "principle_violated"
+                    }:
+                        continue
+                    values = constraint.get("values")
+                    if not isinstance(values, list) or any(
+                        not isinstance(value, str) or not value for value in values
+                    ):
+                        raise ValueError("fixture principle constraint values must be strings")
+                    required_principles.update(values)
+
+        if set(principle_adjudications) != required_principles:
+            raise ValueError(
+                "evaluator must explicitly adjudicate every fixture principle and no others"
+            )
+        normalized_adjudications: list[tuple[str, str, str]] = []
+        acknowledged: list[str] = []
+        violated: list[str] = []
+        for principle in sorted(required_principles):
+            raw = principle_adjudications[principle]
+            if not isinstance(raw, Mapping) or set(raw) != {"status", "evidence"}:
+                raise ValueError("principle adjudication requires status and evidence")
+            status = raw["status"]
+            evidence = raw["evidence"]
+            if status not in {"ACKNOWLEDGED", "VIOLATED", "NOT_EVIDENCED"}:
+                raise ValueError("unknown principle adjudication status")
+            _require_text(evidence, "principle_adjudication.evidence")
+            normalized_adjudications.append((principle, status, evidence))
+            if status == "ACKNOWLEDGED":
+                acknowledged.append(principle)
+            elif status == "VIOLATED":
+                violated.append(principle)
+
+        evidence_items = tuple(sorted(set(evaluator_evidence)))
+        if not evidence_items or any(
+            not isinstance(value, str) or not value.strip() for value in evidence_items
+        ):
+            raise ValueError("grounded evaluator judgment requires explicit evidence")
+        invented = tuple(sorted(set(invented_thresholds)))
+        if any(not isinstance(value, str) or not value for value in invented):
+            raise ValueError("invented_thresholds must contain non-empty strings")
+        return cls(
+            normalized_decision_identity=normalized_decision_identity,
+            violated_principles=tuple(violated),
+            invented_thresholds=invented,
+            acknowledged_principles=tuple(acknowledged),
+            corpus_id=corpus_id,
+            corpus_identity=_hash(corpus),
+            fixture_id=fixture_id,
+            fixture_identity=fixture_identity,
+            principle_adjudications=tuple(normalized_adjudications),
+            evaluator_evidence=evidence_items,
+        )
 
     def __post_init__(self) -> None:
         _require_text(self.normalized_decision_identity, "normalized_decision_identity")
         if self.evaluation_extractor_identity != EVALUATION_EXTRACTOR_IDENTITY:
             raise ValueError("evaluation_extractor_identity 与当前 evaluator-side extractor 不一致")
         for values, name in (
+            (self.acknowledged_principles, "acknowledged_principles"),
             (self.violated_principles, "violated_principles"),
             (self.invented_thresholds, "invented_thresholds"),
         ):
@@ -311,6 +413,87 @@ class EvaluatorSideJudgment:
                 raise ValueError(f"{name} 必须去重排序并包含非空字符串")
             if tuple(sorted(set(values))) != values:
                 raise ValueError(f"{name} 必须去重排序并包含非空字符串")
+        if set(self.acknowledged_principles) & set(self.violated_principles):
+            raise ValueError("a principle cannot be both acknowledged and violated")
+
+        grounding = (
+            self.corpus_id,
+            self.corpus_identity,
+            self.fixture_id,
+            self.fixture_identity,
+        )
+        any_grounding = any(value is not None for value in grounding)
+        all_grounding = all(value is not None for value in grounding)
+        if any_grounding and not all_grounding:
+            raise ValueError("evaluator judgment grounding must be complete")
+        if not all_grounding:
+            if self.acknowledged_principles or self.principle_adjudications or self.evaluator_evidence:
+                raise ValueError("positive/evidentiary judgment requires fixture/corpus grounding")
+        else:
+            assert self.corpus_id is not None
+            assert self.corpus_identity is not None
+            assert self.fixture_id is not None
+            assert self.fixture_identity is not None
+            _require_text(self.corpus_id, "corpus_id")
+            _require_text(self.fixture_id, "fixture_id")
+            for value, name in (
+                (self.corpus_identity, "corpus_identity"),
+                (self.fixture_identity, "fixture_identity"),
+            ):
+                if len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value):
+                    raise ValueError(f"{name} must be lowercase sha256")
+            if not self.evaluator_evidence:
+                raise ValueError("grounded evaluator judgment requires evidence")
+            if tuple(sorted(set(self.evaluator_evidence))) != self.evaluator_evidence:
+                raise ValueError("evaluator_evidence must be sorted and unique")
+            if any(not isinstance(value, str) or not value.strip() for value in self.evaluator_evidence):
+                raise ValueError("evaluator_evidence must contain non-empty strings")
+            if tuple(sorted(self.principle_adjudications)) != self.principle_adjudications:
+                raise ValueError("principle_adjudications must be sorted")
+            if len({item[0] for item in self.principle_adjudications}) != len(
+                self.principle_adjudications
+            ):
+                raise ValueError("principle_adjudications must be unique by principle")
+            derived_ack = tuple(
+                item[0] for item in self.principle_adjudications if item[1] == "ACKNOWLEDGED"
+            )
+            derived_viol = tuple(
+                item[0] for item in self.principle_adjudications if item[1] == "VIOLATED"
+            )
+            if derived_ack != self.acknowledged_principles or derived_viol != self.violated_principles:
+                raise ValueError("principle verdict sets must be derived from adjudications")
+            for principle, status, evidence in self.principle_adjudications:
+                _require_text(principle, "principle_adjudication.principle")
+                if status not in {"ACKNOWLEDGED", "VIOLATED", "NOT_EVIDENCED"}:
+                    raise ValueError("unknown principle adjudication status")
+                _require_text(evidence, "principle_adjudication.evidence")
+
+        object.__setattr__(
+            self,
+            "identity",
+            _hash(
+                {
+                    "normalized_decision_identity": self.normalized_decision_identity,
+                    "evaluation_extractor_identity": self.evaluation_extractor_identity,
+                    "acknowledged_principles": self.acknowledged_principles,
+                    "violated_principles": self.violated_principles,
+                    "invented_thresholds": self.invented_thresholds,
+                    "corpus_id": self.corpus_id,
+                    "corpus_identity": self.corpus_identity,
+                    "fixture_id": self.fixture_id,
+                    "fixture_identity": self.fixture_identity,
+                    "principle_adjudications": self.principle_adjudications,
+                    "evaluator_evidence": self.evaluator_evidence,
+                }
+            ),
+        )
+
+    @property
+    def grounded(self) -> bool:
+        return all(
+            value is not None
+            for value in (self.corpus_id, self.corpus_identity, self.fixture_id, self.fixture_identity)
+        )
 
 
 def build_neutral_fidelity_adapter_payload(
@@ -329,8 +512,12 @@ def build_neutral_fidelity_adapter_payload(
         "principle_references": list(runtime_evidence.principle_references),
         "source_references": list(runtime_evidence.source_references),
         "numeric_claims": [list(claim) for claim in runtime_evidence.numeric_claims],
+        "acknowledged_principles": list(evaluator_judgment.acknowledged_principles),
         "violated_principles": list(evaluator_judgment.violated_principles),
         "invented_thresholds": list(evaluator_judgment.invented_thresholds),
+        "judgment_identity": evaluator_judgment.identity,
+        "corpus_identity": evaluator_judgment.corpus_identity,
+        "fixture_identity": evaluator_judgment.fixture_identity,
         "judgment_source": "EVALUATOR_SIDE_FIXTURE_CONSTRAINTS",
     }
 
@@ -351,11 +538,13 @@ def build_fidelity_response_payload(
         != evaluator_judgment.evaluation_extractor_identity
     ):
         raise ValueError("runtime evidence 与 evaluator judgment 的 extractor identity 不一致")
+    if not evaluator_judgment.grounded:
+        raise ValueError("scoring requires fixture/corpus-bound evaluator judgment")
     return {
         "family": None if runtime_evidence.family == "NONE" else runtime_evidence.family,
         "action": runtime_evidence.action,
         "direction": None if runtime_evidence.direction == "NONE" else runtime_evidence.direction,
-        "acknowledged_principles": list(runtime_evidence.principle_references),
+        "acknowledged_principles": list(evaluator_judgment.acknowledged_principles),
         "violated_principles": list(evaluator_judgment.violated_principles),
         "declared_unknown": list(runtime_evidence.declared_unknown),
         "invented_thresholds": list(evaluator_judgment.invented_thresholds),
