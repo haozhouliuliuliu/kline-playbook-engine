@@ -13,9 +13,9 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=JIANGHE_PRIMARY_MAPPING_AND_REAL_MODEL_FIDELITY_PREOUTCOME
-NEXT_NORMAL_PHASE=integrate claim-level semantic mapping + real-model Jianghe fidelity without candidate outcomes
-OWNER_ACTION=NONE_FOR_ORDINARY_PREOUTCOME_ENGINEERING
+CURRENT_WORK_PACKAGE=JIANGHE_REAL_MODEL_FIDELITY_PREP_AND_PRIMARY_FREEZE_READINESS
+NEXT_NORMAL_PHASE=complete_visual_renderer_plus_provider_contract_then_owner_authorized_live_fidelity_probe
+OWNER_ACTION=NONE_UNTIL_LIVE_PROVIDER_PROBE_GATE
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -47,42 +47,47 @@ AI_MAY_NOT_CHANGE_HARD_RISK_LIMITS=YES
 
 Authority: `docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
 
-## Jianghe knowledge / research status
+## Jianghe knowledge / PRIMARY status
 
 ```text
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
 JIANGHE_SOURCE_SEMANTICS_CHANGED_BY_HYGIENE=NO
 HISTORICAL_PRE_HYGIENE_SOURCE_ONLY_VERIFICATION=PASS
 JIANGHE_SOURCE_ONLY_VERIFIED_CURRENT_ACTIVE_BUNDLE=YES
-JIANGHE_PRIMARY_ELIGIBLE=NO
 KNOWLEDGE_PACK_VERSION=JIANGHE_V1_1
 HISTORICAL_PRE_HYGIENE_KNOWLEDGE_PACK_IDENTITY=3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
-JIANGHE_PRIMARY_PREPARATION_SCHEMA_V0_1=INTEGRATED_PRE_FREEZE_NON_OUTCOME__CURRENT_IDENTITY_BINDING_AVAILABLE__MAPPING_SEMANTIC_AUDIT_PENDING_INTEGRATION
 JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=60d4a1f9069a6dc33d04a82ce544d7525cd4bf2805c5b6e8dd9502d85bf39940
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
-JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
-JIANGHE_PRIMARY_FINAL_BRANCH_IDENTITIES=NOT_ASSERTED_PENDING_CLAIM_LEVEL_SEMANTIC_MAPPING
+JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=COMPLETE_PRE_FREEZE_IDENTITY_BOUND
+JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_3=INTEGRATED_PRE_FREEZE_NON_FINAL
+JIANGHE_PRIMARY_READY_FOR_FREEZE_COUNT=340
+JIANGHE_PRIMARY_STOP_SOURCE_AMBIGUOUS_COUNT=2
+JIANGHE_PRIMARY_STOP_SOURCE_CONFLICT_COUNT=5
+JIANGHE_PRIMARY_STOP_OBSERVABILITY_GAP_COUNT=5
+JIANGHE_PRIMARY_STOP_IDENTITY_INCOMPLETE_COUNT=0
+JIANGHE_PRIMARY_BRANCH_IDENTITIES_DETERMINISTIC=YES
+JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-JIANGHE_PRIMARY_NEXT_GATE=COMPLETE_352_CLAIM_LEVEL_SOURCE_JUSTIFIED_MAPPING_PLUS_REAL_MODEL_FIDELITY_WITHOUT_OUTCOMES
+JIANGHE_PRIMARY_NEXT_GATE=REAL_MODEL_FIDELITY_EVIDENCE_THEN_OWNER_PRIMARY_FREEZE_DECISION
 JIANGHE_PRIMARY_SEMANTICS=SOURCE_JUSTIFIED_AI_INTERPRETATION_BRANCH_NOT_FIXED_RULE_MACHINE
 ```
 
-The V1.1 source semantics remain complete and unchanged (`JIANGHE_SOURCE_SEMANTICS_CHANGED_BY_HYGIENE=NO`). The current active bundle identity was deterministically rebuilt from current `main` by the canonical builders (`e079c225...`), and current active-bundle SOURCE_ONLY verification is `YES` with all technical denials PASS. The old `3f2ddbf9...` identity and pre-hygiene SOURCE_ONLY PASS remain valid **historical pre-hygiene evidence**, preserved in the hygiene review and execution evidence; they are no longer the current active-bundle identity.
-
-For the Jianghe AI Trader, PRIMARY does **not** mean converting Jianghe into a rigid threshold strategy. The integrated pre-freeze preparation still uses one source-justified branch object per claim, but final branch identities must bind the rebuilt current knowledge-pack identity. Final semantic freeze remains Owner-gated.
+The 352-claim identity-bound pre-freeze registry is integrated. `STOP_*` records remain first-class fail-closed results; no UNKNOWN or contradiction was guessed away. Deterministic branch identities do **not** mean deterministic market decisions, and they do not constitute the Owner-gated PRIMARY semantic freeze.
 
 Authorities:
 - source view: `docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md`
-- identity-rebind review: `docs/reviews/JIANGHE_AUTHORITY_HYGIENE_IDENTITY_REBIND_REVIEW_V0_1.md`
 - PRIMARY preparation: `docs/research/jianghe/JIANGHE_PRIMARY_BRANCH_PREPARATION_V0_1.md` + schema JSON
-- historical pre-hygiene SOURCE_ONLY evidence: `docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` + `.json`
+- identity-bound registry: `docs/research/jianghe/primary_mapping_draft_v0_1/JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_3.md` + JSONL
+- SOURCE_ONLY evidence: `docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.md` + `.json`
 
 ## Jianghe AI engineering status
 
 ```text
-JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND__REAL_MODEL_EVALUATION_NOT_STARTED
+JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
+JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
+JIANGHE_AI_VISUAL_RENDERER=IN_PREPARATION_NOT_INTEGRATED
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
@@ -90,7 +95,7 @@ JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
 JIANGHE_AI_SUB_MINUTE_LIVE_CAPABILITY=NOT_VALIDATED_NOT_EQUIVALENT_TO_1M_REPLAY
 ```
 
-The fidelity fixtures/replay semantics remain non-outcome and intact; fixture metadata is rebound to the current knowledge-pack identity `e079c225...`. Real-model fidelity evaluation has not started.
+The provider-neutral offline fidelity harness is integrated and reuses the existing Jianghe fidelity scorer. It makes no model/network calls and does not select or adopt a provider. Real-model fidelity remains blocked on a governed provider seam plus standardized visual input, followed by an Owner-authorized live probe because provider access may involve credentials, data egress and paid spend.
 
 ## Data authority relevant to the next phase
 
@@ -119,19 +124,21 @@ HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
+LIVE_MODEL_PROVIDER_PROBE=OWNER_GATE_NOT_YET_REQUESTED
+PAID_MODEL_SPEND=NOT_AUTHORIZED
 ```
 
 No project-recorded real candidate outcome exposure has been established.
 
 ## Active future gates / limitations
 
-Current highest-priority blocker is `LIMIT-012` in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`:
+Current highest-priority blocker remains `LIMIT-012` in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`:
 
 ```text
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
 CURRENT_ACTIVE_SOURCE_ONLY_VERIFICATION=YES
-JIANGHE_PRIMARY_ELIGIBLE=NO
-JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
+JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=COMPLETE_PRE_FREEZE_IDENTITY_BOUND
+JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 ```
@@ -140,13 +147,13 @@ Historical fee/margin, price-limit realism, future Shadow statistical profile, p
 
 ## Next normal work
 
-The identity/evidence rebind under existing semantics is complete: the current V1.1 knowledge-pack artifact and SOURCE_ONLY evidence were deterministically rebuilt from current `main`, all active dependencies now bind the current identity `e079c225...`, and current active-bundle SOURCE_ONLY verification is `YES` with all technical denials PASS.
+Two pre-outcome lanes are current and may proceed in parallel:
+- **standardized visual observation renderer/input** — deterministic, causal, point-in-time chart artifacts suitable for the VISUAL and DUAL_INPUT fidelity tracks;
+- **real-model provider contract/preparation** — provider/model/version/timing/raw-response governance with live calls disabled until Owner approval.
 
-Two non-outcome lanes are now current:
-- **352 claim-level PRIMARY mapping** — one source-justified branch or explicit STOP per claim; no outcome use; no automatic semantic freeze. Identity binding is available; the semantic mapping audit awaits integration.
-- **Real-model fidelity candidate evaluation** — semantic + visual + structured + dual-input + operational-provider, selected by Jianghe fidelity rather than PnL; fixture metadata is rebound to the current identity; real-model evaluation has not started.
+After both are integrated and the combined suite is green, the next Owner gate is a bounded real-provider fidelity probe. That gate is for credentials/data egress/paid spend and does not authorize candidate outcomes. After real-model fidelity evidence supports a model/provider, the final PRIMARY semantic freeze remains a separate Owner decision before any outcome-bearing candidate research.
 
-No model/provider is currently adopted.
+No model/provider is currently VERIFIED or ADOPTED.
 
 ## Authority hygiene
 
