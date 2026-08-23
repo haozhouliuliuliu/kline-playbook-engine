@@ -19,6 +19,7 @@ from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 import json
 import os
+from pathlib import Path
 import re
 import time
 from typing import Callable, Mapping
@@ -26,6 +27,10 @@ from urllib import request as urllib_request
 from urllib.error import HTTPError, URLError
 
 from src.jianghe_ai_trader import JiangheObservation
+from src.jianghe_source_only_verification import (
+    ROOT as REPOSITORY_ROOT,
+    _repository_blob_bytes,
+)
 
 
 RUNTIME_VERSION = "JIANGHE_PRESPEND_RUNTIME_V0_1"
@@ -39,7 +44,10 @@ CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY = (
     "e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2"
 )
 CURRENT_PRIMARY_MANIFEST_IDENTITY = (
-    "60d4a1f9069a6dc33d04a82ce544d7525cd4bf2805c5b6e8dd9502d85bf39940"
+    "f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36"
+)
+PRICING_AUTHORITY_PATH = (
+    REPOSITORY_ROOT / "docs" / "evidence" / "JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json"
 )
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -48,10 +56,12 @@ _ALLOWED_CONTEXT_PATHS = frozenset(
         "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md",
         "docs/research/jianghe/JIANGHE_STRATEGY_FAMILIES_V1_1.md",
         "docs/research/jianghe/JIANGHE_UNKNOWN_REGISTER_V1_1.md",
-        "docs/research/jianghe/JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_5.json",
-        "docs/research/jianghe/JIANGHE_PRIMARY_CLAIM_MANIFEST_V0_1.json",
+        "docs/research/jianghe/primary_mapping_draft_v0_1/JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_5.jsonl",
     }
 )
+_CONTEXT_SELECTION_POLICY_VERSION = "JIANGHE_CONTEXT_SELECTION_POLICY_V0_2"
+_ALLOWED_VISIBLE_METADATA = {"session": frozenset({"DAY", "NIGHT", "UNKNOWN"})}
+_AUDIT_IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
 _FORBIDDEN_FIELD_NAMES = frozenset(
     {
         "outcome", "candidate_outcome", "pnl", "profit", "profits", "loss", "losses",
@@ -93,6 +103,19 @@ def _hash(value: object) -> str:
 
 def _hash_bytes(value: bytes) -> str:
     return sha256(value).hexdigest()
+
+
+def current_context_selection_policy_identity() -> str:
+    """Identity of the only spend-eligible Jianghe context selection policy."""
+    return _hash(
+        {
+            "version": _CONTEXT_SELECTION_POLICY_VERSION,
+            "allowed_repository_paths": tuple(sorted(_ALLOWED_CONTEXT_PATHS)),
+            "repository_byte_authority": "EXACT_COMMITTED_GIT_BLOB_BYTES",
+            "outcome_future_fixture_authority": "FORBIDDEN",
+            "selection_semantics": "EXACT_UTF8_SUBSTRING_ONLY",
+        }
+    )
 
 
 def _require_text(value: object, field_name: str) -> str:
@@ -145,7 +168,7 @@ def _scan_forbidden(value: object, path: str = "$") -> None:
 
 @dataclass(frozen=True)
 class SelectedContextDocument:
-    """One exact excerpt proven to originate from an allow-listed repo authority."""
+    """Exact excerpt re-verified against an allow-listed committed Git blob."""
 
     repository_path: str
     repository_content_sha256: str
@@ -154,18 +177,22 @@ class SelectedContextDocument:
     identity: str = field(init=False)
 
     @classmethod
-    def from_repository_document(
-        cls, repository_path: str, repository_content: str, selected_text: str
+    def from_repository_authority(
+        cls, repository_path: str, selected_text: str
     ) -> "SelectedContextDocument":
         if repository_path not in _ALLOWED_CONTEXT_PATHS:
             raise ValueError("context source path is not an authorized Jianghe authority")
-        _require_text(repository_content, "repository_content")
         _require_text(selected_text, "selected_text")
+        blob = _repository_blob_bytes(REPOSITORY_ROOT / repository_path)
+        try:
+            repository_content = blob.decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ValueError("authorized Jianghe context must be UTF-8 text") from error
         if selected_text not in repository_content:
-            raise ValueError("selected context must be an exact substring of repository content")
+            raise ValueError("selected context must be an exact substring of committed repository content")
         return cls(
             repository_path=repository_path,
-            repository_content_sha256=sha256(repository_content.encode("utf-8")).hexdigest(),
+            repository_content_sha256=sha256(blob).hexdigest(),
             selected_text=selected_text,
         )
 
@@ -174,6 +201,16 @@ class SelectedContextDocument:
             raise ValueError("context source path is not authorized")
         _require_sha256(self.repository_content_sha256, "repository_content_sha256")
         _require_text(self.selected_text, "selected_text")
+        blob = _repository_blob_bytes(REPOSITORY_ROOT / self.repository_path)
+        actual_hash = sha256(blob).hexdigest()
+        if self.repository_content_sha256 != actual_hash:
+            raise ValueError("selected context repository hash does not match committed Git blob")
+        try:
+            repository_content = blob.decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ValueError("authorized Jianghe context must be UTF-8 text") from error
+        if self.selected_text not in repository_content:
+            raise ValueError("selected context is not present in committed repository authority")
         selected_hash = sha256(self.selected_text.encode("utf-8")).hexdigest()
         object.__setattr__(self, "selected_text_sha256", selected_hash)
         object.__setattr__(
@@ -183,7 +220,7 @@ class SelectedContextDocument:
                 {
                     "version": SELECTED_CONTEXT_VERSION,
                     "repository_path": self.repository_path,
-                    "repository_content_sha256": self.repository_content_sha256,
+                    "repository_content_sha256": actual_hash,
                     "selected_text_sha256": selected_hash,
                     "selected_text": self.selected_text,
                 }
@@ -212,6 +249,8 @@ class SelectedJiangheContextArtifact:
 
     def __post_init__(self) -> None:
         _require_sha256(self.context_selection_policy_identity, "context_selection_policy_identity")
+        if self.context_selection_policy_identity != current_context_selection_policy_identity():
+            raise ValueError("selected context uses an unauthorized selection policy")
         if self.knowledge_pack_identity != CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY:
             raise ValueError("selected context is not bound to the current knowledge pack")
         if self.primary_manifest_identity != CURRENT_PRIMARY_MANIFEST_IDENTITY:
@@ -255,6 +294,21 @@ class CanonicalStructuredObservationArtifact:
         if not isinstance(observation, JiangheObservation):
             raise TypeError("structured artifact must be generated from JiangheObservation")
         ident = observation.identity
+        visible = dict(observation.visible_metadata)
+        if set(visible) - set(_ALLOWED_VISIBLE_METADATA):
+            raise ValueError("spend-eligible observation contains unknown visible metadata")
+        for key, value in visible.items():
+            if value not in _ALLOWED_VISIBLE_METADATA[key]:
+                raise ValueError("spend-eligible visible metadata value is outside closed-world schema")
+        for position in observation.positions:
+            if position.entry_facts:
+                raise ValueError("free-form position entry_facts are not spend-eligible in schema V0.1")
+            for identifier in (*position.protective_orders, *position.active_order_ids):
+                if not _AUDIT_IDENTIFIER.fullmatch(identifier):
+                    raise ValueError("position order identifiers must satisfy the closed-world audit-id grammar")
+        for identifier in observation.active_order_ids:
+            if not _AUDIT_IDENTIFIER.fullmatch(identifier):
+                raise ValueError("active order identifiers must satisfy the closed-world audit-id grammar")
         payload = {
             "artifact_schema_version": STRUCTURED_SCHEMA_VERSION,
             "source_observation_schema_version": observation.schema_version,
@@ -287,7 +341,6 @@ class CanonicalStructuredObservationArtifact:
                 {
                     "direction": position.direction.value,
                     "quantity": position.quantity,
-                    "entry_facts": [list(item) for item in position.entry_facts],
                     "protective_orders": list(position.protective_orders),
                     "active_order_ids": list(position.active_order_ids),
                 }
@@ -307,7 +360,7 @@ class CanonicalStructuredObservationArtifact:
                     "bar": tuple(sorted(payload["bars"][0])) if payload["bars"] else (),
                     "position": (
                         tuple(sorted(payload["positions"][0])) if payload["positions"] else (
-                            "active_order_ids", "direction", "entry_facts",
+                            "active_order_ids", "direction",
                             "protective_orders", "quantity",
                         )
                     ),
@@ -459,11 +512,12 @@ class ProviderSpec:
 
 KIMI_K3_SPEC = ProviderSpec(
     provider_id="KIMI", model_id="kimi-k3",
-    endpoint="https://api.moonshot.ai/v1/chat/completions",
+    endpoint="https://api.moonshot.cn/v1/chat/completions",
     api_key_env="MOONSHOT_API_KEY", payload_style="KIMI_OPENAI",
     official_authority_urls=(
-        "https://platform.kimi.ai/",
-        "https://platform.kimi.ai/docs/guide/kimi-k3-quickstart",
+        "https://platform.kimi.com/",
+        "https://www.kimi.ai/help/kimi-api/api-model-selection",
+        "https://www.kimi.ai/zh-hans/help/kimi-code/cli-getting-started",
     ),
 )
 DEEPSEEK_VISION_SPEC = ProviderSpec(
@@ -477,7 +531,7 @@ DEEPSEEK_VISION_SPEC = ProviderSpec(
 )
 MINIMAX_M3_SPEC = ProviderSpec(
     provider_id="MINIMAX", model_id="MiniMax-M3",
-    endpoint="https://api.minimaxi.com/v1/text/chatcompletion_v2",
+    endpoint="https://api.minimaxi.com/v1/chat/completions",
     api_key_env="MINIMAX_API_KEY", payload_style="MINIMAX_V2",
     official_authority_urls=(
         "https://www.minimax.cn/models/text/m3",
@@ -498,6 +552,9 @@ class RateCard:
     authority_uri: str
     effective_at: datetime
     expires_at: datetime
+    image_billing_mode: str = "INPUT_TOKENS"
+    fixed_input_tokens_per_image: int | None = None
+    repository_authority_identity: str | None = None
     identity: str = field(init=False)
 
     def __post_init__(self) -> None:
@@ -509,6 +566,19 @@ class RateCard:
         output_price = _decimal(self.output_per_million, "output_per_million", positive=True)
         if type(self.image_tokens_billed_as_input) is not bool or not self.image_tokens_billed_as_input:
             raise ValueError("unknown/different image billing semantics fail closed")
+        if self.image_billing_mode not in {"INPUT_TOKENS", "FIXED_INPUT_TOKENS_PER_IMAGE"}:
+            raise ValueError("unknown image billing mode fails closed")
+        if self.image_billing_mode == "FIXED_INPUT_TOKENS_PER_IMAGE":
+            if (
+                not isinstance(self.fixed_input_tokens_per_image, int)
+                or isinstance(self.fixed_input_tokens_per_image, bool)
+                or self.fixed_input_tokens_per_image <= 0
+            ):
+                raise ValueError("fixed image billing requires positive tokens per image")
+        elif self.fixed_input_tokens_per_image is not None:
+            raise ValueError("fixed image tokens are only valid for fixed image billing")
+        if self.repository_authority_identity is not None:
+            _require_sha256(self.repository_authority_identity, "repository_authority_identity")
         _require_text(self.authority_uri, "authority_uri")
         if not self.authority_uri.startswith("https://"):
             raise ValueError("rate-card authority must be https")
@@ -526,11 +596,76 @@ class RateCard:
                     "provider_id": self.provider_id, "model_id": self.model_id,
                     "currency": self.currency, "input_per_million": str(input_price),
                     "output_per_million": str(output_price),
-                    "image_tokens_billed_as_input": True, "authority_uri": self.authority_uri,
+                    "image_tokens_billed_as_input": True,
+                    "image_billing_mode": self.image_billing_mode,
+                    "fixed_input_tokens_per_image": self.fixed_input_tokens_per_image,
+                    "repository_authority_identity": self.repository_authority_identity,
+                    "authority_uri": self.authority_uri,
                     "effective_at": _utc(self.effective_at), "expires_at": _utc(self.expires_at),
                 }
             ),
         )
+
+
+def load_current_repository_rate_card(spec: ProviderSpec, *, now: datetime) -> RateCard:
+    """Load the only production-eligible rate card from exact committed evidence."""
+    _require_aware(now, "now")
+    blob = _repository_blob_bytes(PRICING_AUTHORITY_PATH)
+    authority_identity = sha256(blob).hexdigest()
+    try:
+        payload = json.loads(blob.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise BudgetGuardError("provider pricing authority is malformed") from error
+    if not isinstance(payload, Mapping):
+        raise BudgetGuardError("provider pricing authority must be an object")
+    if payload.get("artifact_schema_version") != "JIANGHE_PROVIDER_PRICING_AUTHORITY_SCHEMA_V0_1":
+        raise BudgetGuardError("provider pricing authority schema is unknown")
+    if payload.get("hard_project_cap_cny") != "100.00":
+        raise BudgetGuardError("provider pricing authority does not preserve the Owner hard cap")
+    entries = payload.get("entries")
+    if not isinstance(entries, list):
+        raise BudgetGuardError("provider pricing authority has no entries")
+    matches = [
+        item for item in entries
+        if isinstance(item, Mapping)
+        and item.get("provider_id") == spec.provider_id
+        and item.get("model_id") == spec.model_id
+    ]
+    if len(matches) != 1:
+        raise BudgetGuardError("provider/model has no unique pricing authority")
+    entry = matches[0]
+    if entry.get("status") != "VERIFIED_CURRENT_FOR_SPEND_GUARD":
+        raise BudgetGuardError(f"provider pricing is not spend-eligible: {entry.get('status')}")
+    if entry.get("endpoint") != spec.endpoint:
+        raise BudgetGuardError("pricing authority endpoint differs from provider transport")
+    authorities = entry.get("authorities")
+    if not isinstance(authorities, list) or not authorities or not all(
+        isinstance(url, str) and url.startswith("https://") for url in authorities
+    ):
+        raise BudgetGuardError("pricing authority lacks first-party source URLs")
+    try:
+        effective_at = datetime.fromisoformat(str(entry["effective_at"]))
+        expires_at = datetime.fromisoformat(str(entry["expires_at"]))
+        fixed_tokens = int(entry["fixed_input_tokens_per_image"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise BudgetGuardError("pricing authority entry is incomplete") from error
+    card = RateCard(
+        provider_id=spec.provider_id,
+        model_id=spec.model_id,
+        currency=str(entry.get("currency")),
+        input_per_million=Decimal(str(entry.get("input_per_million"))),
+        output_per_million=Decimal(str(entry.get("output_per_million"))),
+        image_tokens_billed_as_input=True,
+        authority_uri=str(authorities[0]),
+        effective_at=effective_at,
+        expires_at=expires_at,
+        image_billing_mode=str(entry.get("image_billing_mode")),
+        fixed_input_tokens_per_image=fixed_tokens,
+        repository_authority_identity=authority_identity,
+    )
+    if not (card.effective_at <= now < card.expires_at):
+        raise BudgetGuardError("repository pricing authority is stale or not yet effective")
+    return card
 
 
 @dataclass(frozen=True)
@@ -828,6 +963,7 @@ class DomesticProviderTransport:
             return {"model": self.spec.model_id,
                     "messages": [{"role": "system", "content": request.system_prompt},
                                  {"role": "user", "content": multimodal_content}],
+                    "reasoning_effort": "max",
                     "max_completion_tokens": request.max_output_tokens,
                     "response_format": {"type": "json_schema", "json_schema": {
                         "name": "jianghe_runtime_response", "strict": True,
@@ -877,7 +1013,7 @@ class DomesticProviderTransport:
         return ProviderUsage(prompt, image, completion)
 
     def invoke(self, request: SpendEligibleJiangheRequest, *, authorization: PaidCallAuthorization | None,
-               budget: CnyBudgetLedger, rate_card: RateCard, bounds: InvocationBounds,
+               budget: CnyBudgetLedger, bounds: InvocationBounds,
                fx: FxAuthority | None, now: datetime, timeout_seconds: float = 60.0) -> ProviderInvocationEvidence:
         if authorization is None or not authorization.permits(self.spec):
             raise PaidCallNotAuthorizedError("paid provider call lacks explicit Owner authorization")
@@ -885,6 +1021,13 @@ class DomesticProviderTransport:
             raise PaidCallNotAuthorizedError("authorization cap and shared ledger cap differ")
         if bounds.max_output_tokens != request.max_output_tokens:
             raise BudgetGuardError("request output cap must equal reserved output cap")
+        rate_card = load_current_repository_rate_card(self.spec, now=now)
+        if rate_card.image_billing_mode == "FIXED_INPUT_TOKENS_PER_IMAGE":
+            expected_image_tokens = len(request.visuals) * int(rate_card.fixed_input_tokens_per_image or 0)
+            if bounds.max_image_tokens != expected_image_tokens:
+                raise BudgetGuardError("image-token reservation must exactly match the repository billing authority")
+        else:
+            expected_image_tokens = bounds.max_image_tokens
         reservation = budget.reserve(self.spec, rate_card, bounds, fx=fx, now=now)
         api_key = os.environ.get(self.spec.api_key_env)
         if not api_key:
@@ -920,9 +1063,10 @@ class DomesticProviderTransport:
         except ProviderResponseError:
             budget.consume_full_reservation_on_unknown_usage(reservation.reservation_id)
             raise
+        conservative_image_tokens = max(usage.image_tokens, expected_image_tokens)
         budget.reconcile(
             reservation.reservation_id, text_input_tokens=usage.text_input_tokens,
-            image_tokens=usage.image_tokens, output_tokens=usage.output_tokens,
+            image_tokens=conservative_image_tokens, output_tokens=usage.output_tokens,
             rate_card=rate_card, fx=fx, now=now,
         )
         return ProviderInvocationEvidence(
@@ -936,6 +1080,7 @@ __all__ = [
     "BUDGET_LEDGER_VERSION", "BudgetGuardError", "CanonicalStructuredObservationArtifact",
     "CnyBudgetLedger", "CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY", "CURRENT_PRIMARY_MANIFEST_IDENTITY",
     "DEEPSEEK_VISION_SPEC", "DomesticProviderTransport", "FxAuthority", "HARD_PROJECT_CAP_CNY",
+    "current_context_selection_policy_identity", "load_current_repository_rate_card",
     "HttpResponse", "IMPLEMENTATION_TARGET_SPECS", "InvocationBounds", "KIMI_K3_SPEC",
     "MINIMAX_M3_SPEC", "PaidCallAuthorization", "PaidCallNotAuthorizedError",
     "ProviderInvocationEvidence", "ProviderResponseError", "ProviderSpec", "ProviderTransportError",

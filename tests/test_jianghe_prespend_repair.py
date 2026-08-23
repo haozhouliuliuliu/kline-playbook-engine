@@ -31,6 +31,8 @@ from src.jianghe_prespend_runtime import (
     PaidCallNotAuthorizedError,
     RateCard,
     SelectedContextDocument,
+    current_context_selection_policy_identity,
+    load_current_repository_rate_card,
     SelectedJiangheContextArtifact,
     SpendEligibleJiangheRequest,
     VisualInputArtifact,
@@ -61,16 +63,14 @@ def _observation() -> JiangheObservation:
     )
 
 
-def _context(selected: str = "位置优先于触发。") -> SelectedJiangheContextArtifact:
-    repo_content = "# current authority\n位置优先于触发。\n没有触发就等待。\n"
-    doc = SelectedContextDocument.from_repository_document(
-        "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md", repo_content, selected
+def _context(selected: str = "UNKNOWN > GUESSING") -> SelectedJiangheContextArtifact:
+    doc = SelectedContextDocument.from_repository_authority(
+        "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md", selected
     )
-    policy = hashlib.sha256(b"context-policy-v1").hexdigest()
-    return SelectedJiangheContextArtifact(policy, (doc,))
+    return SelectedJiangheContextArtifact(current_context_selection_policy_identity(), (doc,))
 
 
-def _request(selected: str = "位置优先于触发。") -> SpendEligibleJiangheRequest:
+def _request(selected: str = "UNKNOWN > GUESSING") -> SpendEligibleJiangheRequest:
     observation = _observation()
     structured = CanonicalStructuredObservationArtifact.from_observation(observation)
     visual = VisualInputArtifact(
@@ -105,18 +105,18 @@ def _rate(spec, *, currency="CNY", input_price="2", output_price="4"):
 class SelectedContextTests(unittest.TestCase):
     def test_selected_material_must_be_exact_repo_substring_and_allowlisted(self):
         with self.assertRaises(ValueError):
-            SelectedContextDocument.from_repository_document("docs/other.md", "abc", "abc")
+            SelectedContextDocument.from_repository_authority("docs/other.md", "abc")
         with self.assertRaises(ValueError):
-            SelectedContextDocument.from_repository_document(
-                "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md", "真实内容", "不存在的片段"
+            SelectedContextDocument.from_repository_authority(
+                "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md", "不存在的片段"
             )
 
     def test_request_identity_changes_when_actual_selected_context_changes(self):
-        first = _request("位置优先于触发。")
-        second = _request("没有触发就等待。")
+        first = _request("UNKNOWN > GUESSING")
+        second = _request("SOURCE CLAIM != PROJECT/AI INTERPRETATION != MACHINE OPERATIONALIZATION")
         self.assertNotEqual(first.context.identity, second.context.identity)
         self.assertNotEqual(first.identity, second.identity)
-        self.assertIn("位置优先于触发。", first.common_model_text())
+        self.assertIn("UNKNOWN > GUESSING", first.common_model_text())
 
 
 class StructuredObservationTests(unittest.TestCase):
@@ -149,7 +149,7 @@ class TransportPayloadTests(unittest.TestCase):
             with self.subTest(provider=spec.provider_id):
                 payload = DomesticProviderTransport(spec).build_payload(req)
                 encoded = json.dumps(payload, ensure_ascii=False)
-                self.assertIn("位置优先于触发。", encoded)
+                self.assertIn("UNKNOWN > GUESSING", encoded)
                 self.assertIn(req.structured_observation.source_observation_identity, encoded)
                 self.assertIn("data:image/png;base64,", encoded)
                 self.assertEqual(payload["model"], spec.model_id)
@@ -163,8 +163,7 @@ class TransportPayloadTests(unittest.TestCase):
         with self.assertRaises(PaidCallNotAuthorizedError):
             transport.invoke(
                 _request(), authorization=None, budget=CnyBudgetLedger(),
-                rate_card=_rate(KIMI_K3_SPEC), bounds=InvocationBounds(1000, 500, 200),
-                fx=None, now=NOW,
+                bounds=InvocationBounds(1000, 1024, 200), fx=None, now=NOW,
             )
         self.assertEqual(calls, [])
 
@@ -191,8 +190,7 @@ class TransportPayloadTests(unittest.TestCase):
             )
             evidence = transport.invoke(
                 _request(), authorization=auth, budget=ledger,
-                rate_card=_rate(KIMI_K3_SPEC), bounds=InvocationBounds(1500, 500, 200),
-                fx=None, now=NOW,
+                bounds=InvocationBounds(1500, 1024, 200), fx=None, now=NOW,
             )
             self.assertEqual(len(seen), 1)
             self.assertEqual(seen[0][1]["Authorization"], "Bearer secret-test-key")
@@ -258,6 +256,70 @@ class SharedBudgetTests(unittest.TestCase):
         ledger.consume_full_reservation_on_unknown_usage(reservation.reservation_id)
         self.assertEqual(ledger.spent_cny, reserved)
         self.assertEqual(ledger.remaining_cny, HARD_PROJECT_CAP_CNY - reserved)
+
+
+class PrespendV02AuthorityTests(unittest.TestCase):
+    def test_direct_context_forgery_under_real_path_is_rejected(self):
+        with self.assertRaises(ValueError):
+            SelectedContextDocument(
+                repository_path="docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md",
+                repository_content_sha256=hashlib.sha256(b"forged").hexdigest(),
+                selected_text="UNKNOWN > GUESSING",
+            )
+
+    def test_arbitrary_context_policy_identity_is_rejected(self):
+        doc = SelectedContextDocument.from_repository_authority(
+            "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md", "UNKNOWN > GUESSING"
+        )
+        with self.assertRaises(ValueError):
+            SelectedJiangheContextArtifact(hashlib.sha256(b"attacker-policy").hexdigest(), (doc,))
+
+    def test_current_context_is_bound_to_corrected_git_blob_manifest(self):
+        context = _context()
+        self.assertEqual(
+            context.primary_manifest_identity,
+            "f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36",
+        )
+
+    def test_spend_structured_schema_rejects_unknown_visible_metadata(self):
+        base = _observation()
+        forged = JiangheObservation(
+            identity=ObservationIdentity(
+                decision_time=base.identity.decision_time,
+                exchange_time=base.identity.exchange_time,
+                product=base.identity.product,
+                concrete_contract=base.identity.concrete_contract,
+                mapping_identity=base.identity.mapping_identity,
+                session_identity=base.identity.session_identity,
+            ),
+            bars=base.bars,
+            visible_metadata=(("note", "future outcome disguised as prose"),),
+        )
+        with self.assertRaises(ValueError):
+            CanonicalStructuredObservationArtifact.from_observation(forged)
+
+    def test_repository_pricing_is_non_forgeable_and_kimi_image_billing_is_fixed(self):
+        card = load_current_repository_rate_card(KIMI_K3_SPEC, now=NOW)
+        self.assertEqual(card.currency, "CNY")
+        self.assertEqual(card.input_per_million, Decimal("20.00"))
+        self.assertEqual(card.output_per_million, Decimal("100.00"))
+        self.assertEqual(card.image_billing_mode, "FIXED_INPUT_TOKENS_PER_IMAGE")
+        self.assertEqual(card.fixed_input_tokens_per_image, 1024)
+        self.assertIsNotNone(card.repository_authority_identity)
+
+    def test_unresolved_provider_image_billing_fails_before_network(self):
+        for spec in (DEEPSEEK_VISION_SPEC, MINIMAX_M3_SPEC):
+            with self.subTest(provider=spec.provider_id):
+                with self.assertRaises(BudgetGuardError):
+                    load_current_repository_rate_card(spec, now=NOW)
+
+    def test_kimi_transport_uses_mainland_open_platform_endpoint_and_explicit_effort(self):
+        self.assertEqual(KIMI_K3_SPEC.endpoint, "https://api.moonshot.cn/v1/chat/completions")
+        payload = DomesticProviderTransport(KIMI_K3_SPEC).build_payload(_request())
+        self.assertEqual(payload["reasoning_effort"], "max")
+
+    def test_minimax_transport_uses_current_openai_compatible_endpoint(self):
+        self.assertEqual(MINIMAX_M3_SPEC.endpoint, "https://api.minimaxi.com/v1/chat/completions")
 
 
 if __name__ == "__main__":
