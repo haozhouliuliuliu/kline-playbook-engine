@@ -1,9 +1,10 @@
 {
   "artifact": "JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1",
   "artifact_schema_version": "JIANGHE_PROVIDER_PRICING_AUTHORITY_SCHEMA_V0_1",
-  "checked_at": "2026-08-24T03:30:00+08:00",
+  "checked_at": "2026-08-24T12:00:00+08:00",
   "purpose": "PRE_SPEND_WORST_CASE_BUDGET_GUARD_ONLY",
   "hard_project_cap_cny": "100.00",
+  "pricing_fallback_policy": "docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md",
   "entries": [
     {
       "provider_id": "KIMI",
@@ -22,33 +23,51 @@
         "https://www.kimi.ai/help/kimi-api/api-model-selection",
         "https://www.kimi.ai/zh-hans/help/kimi-code/cli-getting-started"
       ],
+      "pricing_basis": "EXACT_TARGET_RATE",
       "conservative_rule": "USE_STANDARD_CACHE_MISS_INPUT_RATE;DO_NOT_CREDIT_CACHE_DISCOUNT;COUNT_EACH_IMAGE_AS_1024_INPUT_TOKENS"
     },
     {
       "provider_id": "DEEPSEEK",
       "model_id": "deepseek-v4-flash-vision-exp",
-      "status": "BLOCKED_PENDING_EXACT_VISION_PRICE_AND_IMAGE_BILLING_AUTHORITY",
+      "status": "OWNER_APPROVED_CONSERVATIVE_FAMILY_INHERITANCE_FOR_SPEND_GUARD",
+      "currency": "CNY",
+      "input_per_million": "3.00",
+      "output_per_million": "9.00",
+      "image_billing_mode": "FIXED_INPUT_TOKENS_PER_IMAGE",
+      "fixed_input_tokens_per_image": 384,
       "endpoint": "https://api.deepseek.com/chat/completions",
+      "effective_at": "2026-08-24T00:00:00+08:00",
+      "expires_at": "2026-08-31T00:00:00+08:00",
       "authorities": [
         "https://api-docs.deepseek.com/quick_start/pricing/",
-        "https://api-docs.deepseek.com/"
+        "https://api-docs.deepseek.com/",
+        "https://github.com/deepseek-ai/deepseek-harness"
       ],
-      "reason": "Current first-party general V4 Flash pricing does not itself establish exact Vision-Exp image billing semantics. Do not infer the paid rate from the text-only/base model."
+      "pricing_basis": "VISION_EXP_SAME_AS_V4_FLASH__OWNER_RECONFIRMED__EXISTING_FIRST_PARTY_CORRECTION_AUTHORITY",
+      "conservative_rule": "USE_PEAK_CACHE_MISS_INPUT_3_CNY_PER_MTOK;USE_PEAK_OUTPUT_9_CNY_PER_MTOK;NO_CACHE_OR_OFFPEAK_DISCOUNT;RESERVE_384_INPUT_TOKENS_PER_IMAGE"
     },
     {
       "provider_id": "MINIMAX",
       "model_id": "MiniMax-M3",
-      "status": "BLOCKED_PENDING_EXACT_M3_IMAGE_BILLING_AUTHORITY",
+      "status": "VERIFIED_CURRENT_FOR_SPEND_GUARD",
+      "currency": "CNY",
+      "input_per_million": "4.20",
+      "output_per_million": "16.80",
+      "image_billing_mode": "INPUT_TOKENS",
       "endpoint": "https://api.minimaxi.com/v1/chat/completions",
+      "effective_at": "2026-08-24T00:00:00+08:00",
+      "expires_at": "2026-08-31T00:00:00+08:00",
       "authorities": [
         "https://platform.minimaxi.com/docs/api-reference/text-chat-openai",
         "https://platform.minimaxi.com/docs/guides/pricing-paygo",
-        "https://platform.minimaxi.com/docs/guides/models-intro"
+        "https://platform.minimaxi.com/docs/guides/models-intro",
+        "https://www.minimax.cn/models/text/m3"
       ],
-      "reason": "Native multimodal capability and current language-token pricing are documented, but an exact first-party M3 image billing contract was not established for this gate."
+      "pricing_basis": "EXACT_M3_PAYGO_PRICE__CONSERVATIVE_HIGH_CONTEXT_TIER",
+      "conservative_rule": "USE_MORE_EXPENSIVE_GT_512K_TIER;NO_DISCOUNT;IMAGE_INPUT_IS_COVERED_BY_EXACT_SERIALIZED_MULTIMODAL_PAYLOAD_UPPER_BOUND"
     }
   ],
-  "unknown_or_stale_price_policy": "FAIL_CLOSED_BEFORE_NETWORK",
+  "unknown_or_stale_price_policy": "USE_OWNER_APPROVED_CONSERVATIVE_SAME_VENDOR_FAMILY_OR_SIBLING_TIER_FALLBACK_IF_BILLING_UNIT_IS_BOUNDABLE;OTHERWISE_FAIL_CLOSED_BEFORE_NETWORK",
   "automatic_semantic_retry": "FORBIDDEN",
   "provider_local_budget_bypass": "FORBIDDEN"
 }
