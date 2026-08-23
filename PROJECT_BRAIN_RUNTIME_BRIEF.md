@@ -13,12 +13,12 @@ After takeover acceptance, before every **substantive project reply**:
 
 `LAST_MATERIAL_STATE_COMMIT` tracks the latest substantive code/research-state change. Later documentation/state commits do not make it stale.
 
-Fresh conversations still follow the read-only takeover in `00_READ_FIRST.md`.
+Fresh conversations follow the read-only takeover in `00_READ_FIRST.md`.
 
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=141c8e445c20d240a1414c9d6e79c56899ae9fe6
+LAST_MATERIAL_STATE_COMMIT=e74fc9fcdcf0091311f49395b71bfcb5e887b664
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -32,18 +32,24 @@ PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
-JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__PRELIVE_EVIDENCE_REPAIRED
+PRE_SPEND_DOUBLE_AUDIT=COMPLETE_FAIL_REPAIR_REQUIRED
+PRE_SPEND_CONSOLIDATED_FINDINGS=FROZEN
+PRE_SPEND_BLOCKERS=5
+PRE_SPEND_REPAIR_RECOMMENDED=2
+SPEND_GATE=CLOSED
+PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
+JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__BSP003_REPAIR_REQUIRED_BEFORE_SPEND
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION_IDENTITY_BOUND
 JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
 JIANGHE_AI_RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
-JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED
-JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__PRIMARY_SCOPE_REBOUND_TO_V0_5
+JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED__PRESPEND_REPAIR_REQUIRED
+JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__BSP001_CONTEXT_MATERIAL_BINDING_REQUIRED
 JIANGHE_AI_REAL_MODEL_PROVIDER=LIVE_TRANSPORT_NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
-CURRENT_WORK_PACKAGE=JIANGHE_OWNER_REQUESTED_DOUBLE_PRE_SPEND_AUDIT_AND_PROVIDER_COST_SELECTION
-NEXT_NORMAL_PHASE=complete_two_read_only_audits_then_owner_select_final_provider_set_and_probe_scope
-OWNER_ACTION=NONE_UNTIL_DOUBLE_AUDIT_RESULTS_AND_FINAL_COST_RECOMMENDATION
-LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_OWNER_REQUESTED_DOUBLE_AUDIT_AND_FINAL_PROVIDER_SELECTION
+CURRENT_WORK_PACKAGE=JIANGHE_PRE_SPEND_CONSOLIDATED_REPAIR_REQUIRED
+NEXT_NORMAL_PHASE=fresh_project_brain_takeover_then_verify_frozen_findings_refresh_provider_costs_owner_select_provider_then_one_batched_repair
+OWNER_ACTION=NONE_FOR_ORDINARY_REPAIR__FINAL_PROVIDER_SELECTION_AND_ANY_PAID_CALL_REMAIN_OWNER_GATED
+LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_PRESPEND_REPAIR_REAUDIT_AND_FINAL_PROVIDER_SELECTION
 ANTHROPIC_CLAUDE=EXCLUDED_BY_OWNER
 GOOGLE_GEMINI=EXCLUDED_BY_OWNER
 OPENAI_GPT_5_6_SOL=CANDIDATE_RETAINED
@@ -64,24 +70,38 @@ OUTCOME_ACCESS=NO
 TOOL_DECISION=USE_EXISTING
 ```
 
-## Current gates
+## Current blocker set
 
-The original PRIMARY curated-quality and 27-item pre-live gates remain PASS. They are not reopened by prose/style criteria.
+The original PRIMARY curated-quality and 27-item pre-live gates remain PASS. A later Owner-requested pre-spend assurance review found five concrete spend blockers:
 
-The Owner has added a stricter **pre-spend assurance gate** before any real API request:
+1. spend-eligible request does not yet materially bind/send content-addressed Jianghe selected context;
+2. structured input is not yet a strict closed-world canonical observation artifact;
+3. model-declared `principle_references` can currently become positive scoring evidence;
+4. real provider transport is not implemented;
+5. the RMB 100 total hard cap is not yet code-enforced before/cumulatively across calls.
 
-1. one read-only whole-system architecture/redundancy audit;
-2. one independent read-only fine-grained regression/dead-code/authority-hygiene/cost-path audit;
-3. project-brain consolidation before any repair;
-4. final Owner provider selection under a hard total cap of RMB 100.
+Two additional concrete runtime repairs are recommended: authoritative broker-event admission before OMS side effects, and fail-closed handling of same intent ID with different content.
 
-Binding new authorities:
-- `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md`
-- `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_PLAN_V0_1.md`
+Full evidence/invariants/non-findings:
+`docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`.
 
-The previous V0.1 proposal containing Anthropic/Gemini and a USD 100 envelope is historical/superseded and is not executable.
+The finding set and acceptance invariants are frozen; exact repair design is intentionally open for the next fresh project brain to independently verify against current `main`.
 
-No provider/model is currently VERIFIED or ADOPTED. No real provider/model call or paid spend has occurred.
+## Current gates / next work
+
+Fresh conversation first performs the `00_READ_FIRST.md` read-only takeover and waits for Owner acceptance.
+
+After takeover acceptance:
+
+1. verify the frozen finding evidence against current `main` without restarting an open-ended audit;
+2. refresh current first-party provider capability/pricing;
+3. present final provider/model recommendation under the binding RMB 100 ceiling;
+4. Owner selects final provider/model set and bounded probe scope;
+5. execute one batched repair package for every still-valid finding;
+6. focused/adversarial regression + canonical full suite + finding-specific re-audit;
+7. only after all five spend blockers close may the project separately ask Owner authorization for paid calls.
+
+No provider/model is VERIFIED or ADOPTED. No real provider/model call or paid spend has occurred.
 
 ## Product behavior that must survive handoff
 
