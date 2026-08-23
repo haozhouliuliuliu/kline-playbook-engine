@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -42,6 +43,8 @@ replace_exact(
     "        cls.manifest = _load_object(manifest_path)\n",
 )
 
+env = os.environ.copy()
+env["PYTHONPATH"] = str(ROOT)
 for tool in (
     "tools/build_e07_tqsdk_mapping_schedule.py",
     "tools/build_raschke_holy_grail_playbook_contract_draft_v0_4.py",
@@ -49,7 +52,7 @@ for tool in (
     "tools/build_pre_shadow_gate_v0_1.py",
     "tools/build_pre_shadow_gate_v0_2.py",
 ):
-    subprocess.check_call([sys.executable, tool], cwd=ROOT)
+    subprocess.check_call([sys.executable, tool], cwd=ROOT, env=env)
 
 from src.jianghe_source_only_verification import build_verification_payload
 source_only_out = ROOT / "docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.json"
