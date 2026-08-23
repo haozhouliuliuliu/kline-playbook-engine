@@ -18,7 +18,7 @@ Fresh conversations follow the read-only takeover in `00_READ_FIRST.md`.
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=e74fc9fcdcf0091311f49395b71bfcb5e887b664
+LAST_MATERIAL_STATE_COMMIT=326c82db501670017a511dbcdb2cad7324b19fdb
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -34,10 +34,13 @@ JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
 PRE_SPEND_DOUBLE_AUDIT=COMPLETE_FAIL_REPAIR_REQUIRED
 PRE_SPEND_CONSOLIDATED_FINDINGS=FROZEN
+PRE_SPEND_FINDING_CURRENT_MAIN_VERIFICATION=COMPLETE_ALL_7_CONFIRMED_OPEN
 PRE_SPEND_BLOCKERS=5
 PRE_SPEND_REPAIR_RECOMMENDED=2
 SPEND_GATE=CLOSED
 PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
+PRE_SPEND_VERIFICATION_PROVIDER_REFRESH_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md
+PROVIDER_FIRST_PARTY_REFRESH_2026_08_24=COMPLETE
 JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__BSP003_REPAIR_REQUIRED_BEFORE_SPEND
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION_IDENTITY_BOUND
 JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
@@ -46,16 +49,18 @@ JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED__PRESPE
 JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__BSP001_CONTEXT_MATERIAL_BINDING_REQUIRED
 JIANGHE_AI_REAL_MODEL_PROVIDER=LIVE_TRANSPORT_NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
-CURRENT_WORK_PACKAGE=JIANGHE_PRE_SPEND_CONSOLIDATED_REPAIR_REQUIRED
-NEXT_NORMAL_PHASE=fresh_project_brain_takeover_then_verify_frozen_findings_refresh_provider_costs_owner_select_provider_then_one_batched_repair
-OWNER_ACTION=NONE_FOR_ORDINARY_REPAIR__FINAL_PROVIDER_SELECTION_AND_ANY_PAID_CALL_REMAIN_OWNER_GATED
-LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_PRESPEND_REPAIR_REAUDIT_AND_FINAL_PROVIDER_SELECTION
+CURRENT_WORK_PACKAGE=OWNER_PROVIDER_SELECTION_REQUIRED_BEFORE_PRESPEND_BATCHED_REPAIR
+NEXT_NORMAL_PHASE=owner_select_provider_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
+OWNER_ACTION=FINAL_PROVIDER_SELECTION_AND_BOUNDED_PROBE_SCOPE
+LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_PRESPEND_REPAIR_REAUDIT_FINAL_PROVIDER_SELECTION_AND_SEPARATE_PAID_CALL_AUTHORIZATION
 ANTHROPIC_CLAUDE=EXCLUDED_BY_OWNER
 GOOGLE_GEMINI=EXCLUDED_BY_OWNER
-OPENAI_GPT_5_6_SOL=CANDIDATE_RETAINED
-XAI_GROK_4_6=CANDIDATE_UNDER_OWNER_CONSIDERATION
-KIMI_K3=CANDIDATE_UNDER_OWNER_CONSIDERATION
-DEEPSEEK_V4_FLASH_VISION_EXP=CANDIDATE_UNDER_OWNER_CONSIDERATION__EXPERIMENTAL
+OPENAI_GPT_5_6_SOL=CANDIDATE_RETAINED__PROJECT_BRAIN_RECOMMENDED
+XAI_GROK_4_6=CANDIDATE_UNDER_OWNER_CONSIDERATION__PROJECT_BRAIN_RECOMMENDED
+KIMI_K3=CANDIDATE_UNDER_OWNER_CONSIDERATION__PROJECT_BRAIN_RECOMMENDED
+DEEPSEEK_V4_FLASH_VISION_EXP=NOT_FIRST_PARTY_VERIFIABLE_AS_CURRENT_VISUAL_API_MODEL__NOT_RECOMMENDED_FOR_CURRENT_VISUAL_PROBE
+PROJECT_BRAIN_RECOMMENDED_PROVIDER_SET=OPENAI_GPT_5_6_SOL,XAI_GROK_4_6,KIMI_K3
+PROJECT_BRAIN_LEAN_FALLBACK_PROVIDER_SET=OPENAI_GPT_5_6_SOL,XAI_GROK_4_6
 FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
 TOTAL_HARD_SPEND_CAP_CNY_IF_LATER_APPROVED=100.00
 PAID_MODEL_SPEND=NOT_AUTHORIZED
@@ -72,7 +77,9 @@ TOOL_DECISION=USE_EXISTING
 
 ## Current blocker set
 
-The original PRIMARY curated-quality and 27-item pre-live gates remain PASS. A later Owner-requested pre-spend assurance review found five concrete spend blockers:
+The original PRIMARY curated-quality and 27-item pre-live gates remain PASS. The later Owner-requested pre-spend assurance review found five concrete spend blockers and two repair-recommended runtime defects. A fresh verification against current `main` on 2026-08-24 confirmed all seven remain open; none was overturned and no new blocker was added.
+
+The five spend blockers remain:
 
 1. spend-eligible request does not yet materially bind/send content-addressed Jianghe selected context;
 2. structured input is not yet a strict closed-world canonical observation artifact;
@@ -80,28 +87,41 @@ The original PRIMARY curated-quality and 27-item pre-live gates remain PASS. A l
 4. real provider transport is not implemented;
 5. the RMB 100 total hard cap is not yet code-enforced before/cumulatively across calls.
 
-Two additional concrete runtime repairs are recommended: authoritative broker-event admission before OMS side effects, and fail-closed handling of same intent ID with different content.
+The two additional repairs remain: authoritative broker-event admission before OMS side effects, and fail-closed handling of same intent ID with different content.
 
-Full evidence/invariants/non-findings:
+Frozen evidence/invariants/non-findings:
 `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`.
 
-The finding set and acceptance invariants are frozen; exact repair design is intentionally open for the next fresh project brain to independently verify against current `main`.
+Fresh verification/provider reconnaissance:
+`docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md`.
+
+The finding set and acceptance invariants remain frozen; exact repair design remains open. Do not restart an open-ended audit without new concrete evidence.
+
+## Current provider recommendation / Owner gate
+
+The 2026-08-24 first-party refresh supports the current project-brain recommendation:
+
+```text
+RECOMMENDED_THREE_PROVIDER_COMPARISON=OPENAI_GPT_5_6_SOL,XAI_GROK_4_6,KIMI_K3
+LEAN_TWO_PROVIDER_FALLBACK=OPENAI_GPT_5_6_SOL,XAI_GROK_4_6
+DEEPSEEK_CURRENT_VISUAL_PROBE=NOT_RECOMMENDED__CURRENT_OFFICIAL_V4_API_IS_TEXT_ONLY
+```
+
+All three recommended models have current first-party direct API evidence for image input and structured output. DeepSeek's current official V4 API does not verify the prior experimental vision slug and documents current V4 as text-only, so it does not satisfy the mandatory visual K-line comparison requirement.
+
+OpenAI's public first-party surfaces are currently not fully synchronized on the temporary Sol API price reduction. Until implementation resolves a canonical billing/rate authority, the budget guard must fail closed or use the higher current published bound; it may not silently hard-code the lower promotional rate.
+
+No provider/model is VERIFIED or ADOPTED. Owner selection of the provider set authorizes only the implementation target for the repair package; it does not authorize a paid call.
 
 ## Current gates / next work
 
-Fresh conversation first performs the `00_READ_FIRST.md` read-only takeover and waits for Owner acceptance.
+1. Owner selects the final provider/model set and bounded probe scope.
+2. Execute one batched repair package for every still-valid BSP/RSP finding, including selected-provider transport and executable RMB 100 cumulative budget enforcement.
+3. Run finding-specific focused/adversarial regression, canonical full suite `python -m unittest discover -s tests -v`, and finding-specific re-audit only.
+4. Write formal CLOSED/PASS evidence and refresh state.
+5. Only after all five BSP blockers close may the project separately ask Owner authorization for bounded paid calls.
 
-After takeover acceptance:
-
-1. verify the frozen finding evidence against current `main` without restarting an open-ended audit;
-2. refresh current first-party provider capability/pricing;
-3. present final provider/model recommendation under the binding RMB 100 ceiling;
-4. Owner selects final provider/model set and bounded probe scope;
-5. execute one batched repair package for every still-valid finding;
-6. focused/adversarial regression + canonical full suite + finding-specific re-audit;
-7. only after all five spend blockers close may the project separately ask Owner authorization for paid calls.
-
-No provider/model is VERIFIED or ADOPTED. No real provider/model call or paid spend has occurred.
+Outcome access, PRIMARY semantic freeze, Validation, historical Final, prospective Shadow/Forward, broker access and real money remain separately locked.
 
 ## Product behavior that must survive handoff
 
