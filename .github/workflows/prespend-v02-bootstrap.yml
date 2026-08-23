@@ -27,6 +27,9 @@ jobs:
           if [ -f tools/_apply_prespend_context_projection_v06.py ]; then
             python tools/_apply_prespend_context_projection_v06.py
           fi
+          if [ -f tools/_apply_prespend_context_projection_v07.py ]; then
+            python tools/_apply_prespend_context_projection_v07.py
+          fi
       - name: Compile repaired surfaces
         run: |
           python -m py_compile \
@@ -57,10 +60,13 @@ jobs:
       - name: Materialize verified safe-context hardening on PR branch
         run: |
           set -euo pipefail
-          if [ ! -f tools/_apply_prespend_context_projection_v06.py ]; then
+          if [ ! -f tools/_apply_prespend_context_projection_v07.py ]; then
             exit 0
           fi
           rm -f tools/_apply_prespend_context_projection_v06.py
+          rm -f tools/_apply_prespend_context_projection_v07.py
+          rm -f docs/reviews/PRESPEND_V06_RETRIGGER.tmp
+          rm -f docs/reviews/PRESPEND_V07_RETRIGGER.tmp
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
