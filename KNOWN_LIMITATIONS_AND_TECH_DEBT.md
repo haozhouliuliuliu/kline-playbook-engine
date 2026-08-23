@@ -59,33 +59,38 @@ SOURCE_ONLY_OS_PROCESS_SANDBOX=NOT_PROVEN_NOT_CLAIMED
 LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
 ```
 
-Project API/session denial and material binding were verified for the previously bound bundle, but this does not prove OS sandboxing, resistance to malicious local introspection, cryptographic tamper protection, or absence of latent model knowledge.
+Project API/session denial and material binding were verified for the currently bound bundle, but this does not prove OS sandboxing, resistance to malicious local introspection, cryptographic tamper protection, or absence of latent model knowledge.
 
 ## LIMIT-012 — Real-model Jianghe fidelity evaluation has not been run
 
 ```text
 STATUS=ACTIVE
-PRIORITY=HIGH
+PRIORITY=HIGHEST_CURRENT
 CURRENT_BLOCKER=YES_FOR_MODEL_ADOPTION_AND_PRIMARY_PROMOTION
 REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 FIDELITY_CORPUS=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
+FIDELITY_EVALUATION_HARNESS=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL
+VISUAL_RENDERER=IN_PREPARATION_NOT_INTEGRATED
 OBSERVATION_REPLAY=INTEGRATED_SYNTHETIC_NON_OUTCOME
 AUTHORITY=docs/reviews/JIANGHE_AI_FIDELITY_AND_REPLAY_INTEGRATION_REVIEW_V0_1.md
 ```
 
-The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. Fidelity fixture metadata is rebound to the current knowledge-pack identity; real-model evaluation remains not started.
+The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. The offline evaluation harness is integrated; real-model evaluation remains blocked on governed visual input plus provider/model invocation capability and an Owner-authorized live probe.
 
 ## Current PRIMARY prerequisite
 
 ```text
 JIANGHE_PRIMARY_ELIGIBLE=NO
-JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
-JIANGHE_PRIMARY_FINAL_BRANCH_IDENTITIES=NOT_ASSERTED_PENDING_CLAIM_LEVEL_SEMANTIC_MAPPING
-NEXT_GATE=COMPLETE_352_CLAIM_LEVEL_SOURCE_JUSTIFIED_PRIMARY_MAPPING_PLUS_REAL_MODEL_FIDELITY_EVIDENCE_WITHOUT_OUTCOMES
+JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=COMPLETE_PRE_FREEZE_IDENTITY_BOUND
+JIANGHE_PRIMARY_READY_FOR_FREEZE_COUNT=340
+JIANGHE_PRIMARY_STOP_COUNT=12
+JIANGHE_PRIMARY_BRANCH_IDENTITIES_DETERMINISTIC=YES
+JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
+NEXT_GATE=REAL_MODEL_FIDELITY_EVIDENCE_THEN_OWNER_PRIMARY_FREEZE_DECISION
 ```
 
-Current active-bundle SOURCE_ONLY verification is `YES`; it does not create PRIMARY eligibility.
+Current active-bundle SOURCE_ONLY verification is `YES`, and the claim-level pre-freeze registry is complete. Neither fact alone creates PRIMARY eligibility. The 12 STOP records remain explicit fail-closed results rather than missing work.
 
 ## Maintenance rule
 
