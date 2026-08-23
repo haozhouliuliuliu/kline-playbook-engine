@@ -335,16 +335,21 @@ class HolyGrailIdentityChainConsistencyTests(unittest.TestCase):
         )
         self.assertEqual(strategy.strategy_version, self.freeze["strategy_version"])
 
-    def test_current_state_matches_formal_freeze_identity(self):
+    def test_current_state_declared_identity_matches_formal_freeze(self):
+        # CURRENT_STATE is not a required mirror of the historical Holy Grail
+        # formal-freeze identity (active-context consolidation keeps it current-
+        # truth only; the formal freeze remains in evidence/reviews/Git history).
+        # If CURRENT_STATE ever declares the field, the declared value must match
+        # the formal freeze and the authoritative set; absence is legal.
         state_text = (REPO_ROOT / "CURRENT_STATE.md").read_text(encoding="utf-8")
-        line = next(
-            line.strip()
-            for line in state_text.splitlines()
-            if line.startswith("HOLY_GRAIL_PRIMARY_STRATEGY_IDENTITY=")
-        )
-        declared = line.split("=", 1)[1].strip()
-        self.assertEqual(self.freeze["strategy_identity"], declared)
-        self.assertEqual(AUTHORITATIVE["strategy_identity"], declared)
+        declared = None
+        for line in state_text.splitlines():
+            if line.startswith("HOLY_GRAIL_PRIMARY_STRATEGY_IDENTITY="):
+                declared = line.split("=", 1)[1].strip()
+                break
+        if declared is not None:
+            self.assertEqual(self.freeze["strategy_identity"], declared)
+            self.assertEqual(AUTHORITATIVE["strategy_identity"], declared)
 
     def test_pre_shadow_gate_references_consistent_identity(self):
         # Gate V0_2 module hash must match the actual pre_shadow_gate.py bytes.

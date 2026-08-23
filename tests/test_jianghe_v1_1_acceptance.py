@@ -88,24 +88,32 @@ class JiangheV11AcceptanceTests(unittest.TestCase):
         self.assertIn("ENGINEERING OPEN, NOT A SEMANTIC BLOCKER", unknown)
         self.assertRegex(contradiction, r"Open contradiction count\s*\n\n`0`")
 
-    def test_current_view_source_only_verification_does_not_unlock_outcomes(self):
+    def test_current_view_delegates_readiness_and_keeps_stable_source_facts(self):
         current_view = (JH / "JIANGHE_CURRENT_VIEW_V1_1.md").read_text(encoding="utf-8")
         verification = (JH / "JIANGHE_SECOND_PASS_VERIFICATION_REPORT_V1_1.md").read_text(encoding="utf-8")
         combined = current_view + "\n" + verification
-        self.assertIn("SOURCE_ONLY_VERIFIED=YES", current_view)
-        self.assertIn("SOURCE_ONLY_VERIFIED=NO", verification)
-        required = (
+
+        # Stable V1.1 source facts remain owned by the distillation documents.
+        stable_source_facts = (
             "FULL_TIMELINE_SECOND_PASS_AVAILABLE_MEDIA=98",
             "UNACCOUNTED_TIMELINE_GAP=0",
             "SECOND_PASS_UNDEREXTRACTION_SOURCES=22",
             "SECOND_PASS_RECOVERED_CLAIMS=64",
             "SECOND_PASS_RECOVERED_CASES=9",
-            "PRIMARY_ELIGIBLE=NO",
-            "CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED",
-            "REAL_MONEY=NOT_AUTHORIZED",
         )
-        for value in required:
+        for value in stable_source_facts:
             self.assertIn(value, combined)
+
+        # Mutable SOURCE_ONLY / PRIMARY / outcome-authorization readiness is
+        # delegated to repository-root authority. The distillation documents
+        # must not carry current readiness values themselves.
+        self.assertIn(
+            "MUTABLE_READINESS_AUTHORITY=CURRENT_STATE.md + PROJECT_BRAIN_RUNTIME_BRIEF.md",
+            combined,
+        )
+        self.assertIn("SOURCE_DISTILLATION_DOCUMENT != MUTABLE_PROJECT_READINESS_AUTHORITY", combined)
+        self.assertNotIn("SOURCE_ONLY_VERIFIED=YES", current_view)
+        self.assertNotIn("SOURCE_ONLY_VERIFIED=YES", verification)
 
     def test_audit_is_closed_and_manifest_is_byte_honest(self):
         audit = (JH / "JIANGHE_SECOND_PASS_COVERAGE_AUDIT_V1_1.md").read_text(encoding="utf-8")
