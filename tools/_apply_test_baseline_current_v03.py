@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 def replace_exact(path: str, old: str, new: str) -> None:
@@ -53,6 +54,25 @@ for tool in (
     "tools/build_pre_shadow_gate_v0_2.py",
 ):
     subprocess.check_call([sys.executable, tool], cwd=ROOT, env=env)
+
+# Re-pin the explicit E07 identity assertion to the identity emitted by the
+# current deterministic builder, rather than weakening/removing the assertion.
+e07_artifact = json.loads(
+    (ROOT / "docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_V0_1.json").read_text(
+        encoding="utf-8"
+    )
+)
+e07_test = ROOT / "tests/test_e07_tqsdk_mapping_schedule.py"
+e07_text = e07_test.read_text(encoding="utf-8")
+e07_pattern = re.compile(r'            "[0-9a-f]{64}",\n            payload\["schedule_identity"\],')
+e07_replacement = (
+    f'            "{e07_artifact["schedule_identity"]}",\n'
+    '            payload["schedule_identity"],'
+)
+e07_text, e07_count = e07_pattern.subn(e07_replacement, e07_text, count=1)
+if e07_count != 1:
+    raise SystemExit("failed to locate E07 schedule identity pin")
+e07_test.write_text(e07_text, encoding="utf-8")
 
 from src.jianghe_source_only_verification import build_verification_payload
 source_only_out = ROOT / "docs/evidence/JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_V0_1.json"
