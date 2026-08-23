@@ -136,6 +136,35 @@ class SelectedContextTests(unittest.TestCase):
         self.assertNotEqual(first.identity, second.identity)
         self.assertIn("JH-CLM-006-SP01", first.common_model_text())
 
+    def test_model_receives_safe_primary_projection_not_fixture_answers_or_audit_baggage(self):
+        request = _request("JH-FIX-A-001")
+        model_text = request.common_model_text()
+        for forbidden in (
+            "JH-FIX-A-001",
+            "hidden_future_information",
+            '"expected"',
+            '"rubric"',
+            "review_evidence",
+            "source_finding",
+            '"bvid"',
+        ):
+            self.assertNotIn(forbidden, model_text)
+        payload = request.context.model_payload()
+        self.assertEqual(payload["source_claim_ids"], list(request.context.source_claim_ids))
+        self.assertEqual(
+            payload["model_context_identity"], request.context.to_payload()["model_context_identity"]
+        )
+        expected_fields = {
+            "claim_category", "claim_id", "contradiction_ids", "family_scope",
+            "invalidation_scope", "management_or_exit_scope", "no_trade_guard",
+            "operationalization_interpretation", "pre_freeze_disposition",
+            "selected_interpretation_text", "semantic_mode", "source_meaning", "unknown_ids",
+        }
+        for document in payload["documents"]:
+            projection = json.loads(document["selected_text"])
+            self.assertEqual(set(projection), expected_fields)
+            self.assertEqual(document["claim_id"], projection["claim_id"])
+
     def test_manual_unrelated_context_cannot_become_spend_eligible(self):
         doc = SelectedContextDocument.from_repository_authority(
             "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md", "UNKNOWN > GUESSING"

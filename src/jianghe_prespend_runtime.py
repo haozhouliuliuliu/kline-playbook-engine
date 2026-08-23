@@ -126,7 +126,7 @@ def current_context_selection_policy_identity() -> str:
             "allowed_repository_paths": tuple(sorted(_ALLOWED_CONTEXT_PATHS)),
             "repository_byte_authority": "EXACT_COMMITTED_GIT_BLOB_BYTES",
             "outcome_future_fixture_authority": "FORBIDDEN",
-            "selection_semantics": "FIXTURE_SOURCE_ANCHORS_TO_PRIMARY_V0_5_EXACT_JSONL_RECORDS",
+            "selection_semantics": "FIXTURE_SOURCE_ANCHORS_TO_PRIMARY_V0_5_SAFE_SEMANTIC_PROJECTION",
         }
     )
 
@@ -177,6 +177,88 @@ def _scan_forbidden(value: object, path: str = "$") -> None:
     elif isinstance(value, (list, tuple)):
         for index, nested in enumerate(value):
             _scan_forbidden(nested, f"{path}[{index}]")
+
+
+_PRIMARY_MODEL_CONTEXT_FIELDS = (
+    "claim_category",
+    "claim_id",
+    "contradiction_ids",
+    "family_scope",
+    "invalidation_scope",
+    "management_or_exit_scope",
+    "no_trade_guard",
+    "operationalization_interpretation",
+    "pre_freeze_disposition",
+    "selected_interpretation_text",
+    "semantic_mode",
+    "source_meaning",
+    "unknown_ids",
+)
+_FORBIDDEN_MODEL_CONTEXT_CATEGORY_MARKERS = ("OUTCOME", "PERFORMANCE", "PNL", "PROFIT", "RETURN")
+_FORBIDDEN_MODEL_CONTEXT_VALUE_MARKERS = (
+    "candidate_outcome",
+    "future_price",
+    "future_return",
+    "real_candidate_pnl",
+    "win_rate",
+    "sharpe",
+    "expectancy",
+    "后续价格路径",
+    "任何盈亏结果",
+    "任何结果标签",
+    "胜率/期望值",
+)
+
+
+def _primary_model_context_projection(record: Mapping[str, object]) -> str:
+    """Return the only PRIMARY V0.5 fields allowed to leave the process as model context.
+
+    The full PRIMARY registry record remains local provenance. Review metadata, source-file
+    paths, fixture material, historical outcome text and other audit baggage are not sent.
+    """
+    if not isinstance(record, Mapping):
+        raise ValueError("PRIMARY context source record must be an object")
+    claim_id = _require_text(record.get("claim_id"), "primary_context.claim_id")
+    claim_category = _require_text(record.get("claim_category"), "primary_context.claim_category")
+    upper_category = claim_category.upper()
+    if any(marker in upper_category for marker in _FORBIDDEN_MODEL_CONTEXT_CATEGORY_MARKERS):
+        raise ValueError("outcome/performance claim category is not spend-eligible context")
+
+    def text_or_unknown(name: str) -> str:
+        value = record.get(name)
+        if value is None:
+            return "UNKNOWN"
+        return _require_text(value, f"primary_context.{name}")
+
+    def text_list(name: str) -> list[str]:
+        value = record.get(name)
+        if not isinstance(value, list) or any(not isinstance(item, str) or not item for item in value):
+            raise ValueError(f"primary_context.{name} must be a string list")
+        if len(set(value)) != len(value):
+            raise ValueError(f"primary_context.{name} must be unique")
+        return sorted(value)
+
+    projection: dict[str, object] = {
+        "claim_category": claim_category,
+        "claim_id": claim_id,
+        "contradiction_ids": text_list("contradiction_ids"),
+        "family_scope": text_list("family_scope"),
+        "invalidation_scope": text_or_unknown("invalidation_scope"),
+        "management_or_exit_scope": text_or_unknown("management_or_exit_scope"),
+        "no_trade_guard": text_or_unknown("no_trade_guard"),
+        "operationalization_interpretation": text_or_unknown("operationalization_interpretation"),
+        "pre_freeze_disposition": text_or_unknown("pre_freeze_disposition"),
+        "selected_interpretation_text": text_or_unknown("selected_interpretation_text"),
+        "semantic_mode": text_or_unknown("semantic_mode"),
+        "source_meaning": text_or_unknown("source_meaning"),
+        "unknown_ids": text_list("unknown_ids"),
+    }
+    _scan_forbidden(projection, "primary_model_context")
+    serialized = _canonical_json(projection)
+    lowered = serialized.lower()
+    if any(marker.lower() in lowered for marker in _FORBIDDEN_MODEL_CONTEXT_VALUE_MARKERS):
+        raise ValueError("selected PRIMARY semantic projection contains forbidden outcome/future material")
+    return serialized
 
 
 @dataclass(frozen=True)
@@ -423,8 +505,53 @@ class SelectedJiangheContextArtifact:
             "selection_basis_identity": self.selection_basis_identity,
             "documents": [item.to_payload() for item in self.documents],
         }
+        payload["model_context_identity"] = (
+            self.model_payload()["model_context_identity"]
+            if self.fixture_id is not None and self.selection_basis_identity is not None
+            else None
+        )
         if include_identity:
             payload["selected_context_identity"] = self.identity
+        return payload
+
+    def model_payload(self) -> dict[str, object]:
+        """Exact context material sent to the model; fixture answers and audit baggage stay local."""
+        if self.fixture_id is None or self.selection_basis_identity is None:
+            raise ValueError("model context requires deterministic fixture-bound selection")
+        projected_documents: list[dict[str, object]] = []
+        for item in self.documents:
+            if item.repository_path != PRIMARY_REGISTRY_RELATIVE_PATH:
+                raise ValueError("spend-eligible model context must project current PRIMARY V0.5 records")
+            try:
+                record = json.loads(item.selected_text)
+            except json.JSONDecodeError as error:
+                raise ValueError("selected PRIMARY source record is malformed") from error
+            if not isinstance(record, Mapping):
+                raise ValueError("selected PRIMARY source record must be an object")
+            claim_id = _require_text(record.get("claim_id"), "selected_primary.claim_id")
+            if claim_id not in self.source_claim_ids:
+                raise ValueError("selected PRIMARY record is outside fixture source anchors")
+            projected_text = _primary_model_context_projection(record)
+            projected_documents.append(
+                {
+                    "claim_id": claim_id,
+                    "source_record_identity": item.identity,
+                    "selected_text": projected_text,
+                    "selected_text_sha256": sha256(projected_text.encode("utf-8")).hexdigest(),
+                }
+            )
+        projected_documents.sort(key=lambda value: (str(value["claim_id"]), str(value["source_record_identity"])))
+        payload: dict[str, object] = {
+            "version": SELECTED_CONTEXT_VERSION,
+            "knowledge_pack_identity": self.knowledge_pack_identity,
+            "primary_manifest_identity": self.primary_manifest_identity,
+            "primary_registry_version": self.primary_registry_version,
+            "context_selection_policy_identity": self.context_selection_policy_identity,
+            "source_claim_ids": list(self.source_claim_ids),
+            "selection_basis_identity": self.selection_basis_identity,
+            "documents": projected_documents,
+        }
+        payload["model_context_identity"] = _hash(payload)
         return payload
 
 
@@ -617,6 +744,7 @@ class SpendEligibleJiangheRequest:
                     "decision_prompt_sha256": sha256(self.decision_prompt.encode("utf-8")).hexdigest(),
                     "response_schema": self.response_schema,
                     "selected_context_identity": self.context.identity,
+                    "model_context_identity": self.context.model_payload()["model_context_identity"],
                     "structured_observation_identity": self.structured_observation.identity,
                     "visual_identities": [item.identity for item in self.visuals],
                     "max_output_tokens": self.max_output_tokens,
@@ -627,7 +755,7 @@ class SpendEligibleJiangheRequest:
     def common_model_text(self) -> str:
         return _canonical_json(
             {
-                "jianghe_context": self.context.to_payload(),
+                "jianghe_context": self.context.model_payload(),
                 "canonical_observation": self.structured_observation.payload(),
                 "decision_instruction": self.decision_prompt,
             }
