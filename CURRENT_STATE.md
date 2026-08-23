@@ -13,9 +13,9 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=OWNER_PROVIDER_SELECTION_REQUIRED_BEFORE_PRESPEND_BATCHED_REPAIR
-NEXT_NORMAL_PHASE=reassess_provider_recommendation_with_deepseek_restored_then_owner_select_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
-OWNER_ACTION=NONE_UNTIL_CORRECTED_PROVIDER_COMPARISON_IS_PRESENTED
+CURRENT_WORK_PACKAGE=DOMESTIC_PROVIDER_HARD_ELIGIBILITY_THEN_PRESPEND_BATCHED_REPAIR
+NEXT_NORMAL_PHASE=owner_confirm_domestic_implementation_target_set_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
+OWNER_ACTION=CONFIRM_IMPLEMENTATION_TARGET_SET_ONLY__PAID_CALL_AUTHORIZATION_REMAINS_SEPARATE_LATER_GATE
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -39,17 +39,12 @@ OUTCOME_ACCESS=NO
 ```
 
 Current authorities:
-- consolidated frozen pre-spend findings: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`
-- fresh finding verification + provider refresh: `docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md`
-- DeepSeek V4 Flash Vision Exp first-party correction: `docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`
-- Owner-requested two-review plan: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_PLAN_V0_1.md`
-- Owner live-probe scope: `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md`
+- frozen findings: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`
+- current-main finding verification/original provider refresh: `docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md`
+- DeepSeek Vision Exp correction: `docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`
+- domestic provider/payment scope + correct pre-spend sequence: `docs/reviews/DOMESTIC_PROVIDER_SCOPE_AND_PRESPEND_SEQUENCE_V0_1.md`
 - pre-live re-audit: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_REAUDIT_V0_1.md`
 - PRIMARY fixed-rubric re-audit: `docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT_V0_1.md`
-
-The original 27-item pre-live audit and PRIMARY V0.5 fixed R1–R8 re-audit remain PASS. The later Owner-requested pre-spend assurance review found concrete blockers. A fresh current-main verification on 2026-08-24 confirmed all five BSP and both RSP findings still open; no finding was overturned and no new blocker was introduced. This is not a reopening of PRIMARY prose/template standards or a new whole-repository audit.
-
-The dated double-audit plan still contains `PENDING` text because it is the historical plan document. Current completion status is owned by this file and the consolidated findings authority.
 
 ## Frozen current pre-spend findings
 
@@ -63,42 +58,33 @@ RSP-001=REPAIR_RECOMMENDED__OMS_SIDE_EFFECTS_PRECEDE_AUTHORITATIVE_TRADINGSTATE_
 RSP-002=REPAIR_RECOMMENDED__SAME_INTENT_ID_DIFFERENT_CONTENT_CAN_SILENTLY_COLLAPSE__CONFIRMED_OPEN
 ```
 
-Full frozen evidence, acceptance invariants, non-findings and closure rules live in:
-`docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`.
-
-Fresh-current-main finding adjudication and the original dated provider reconnaissance live in:
-`docs/reviews/JIANGHE_PRE_SPEND_FINDING_VERIFICATION_AND_PROVIDER_REFRESH_V0_1.md`.
-
-The later first-party correction that restores DeepSeek's experimental visual model as a current candidate lives in:
-`docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`.
-
-The finding set and non-negotiable acceptance invariants remain frozen. Exact implementation design remains deliberately open. Do not restart open-ended review cycles without new concrete correctness/evidence/security/cost evidence.
+The finding set and non-negotiable acceptance invariants remain frozen. Exact repair design remains open. Do not restart open-ended review cycles without new concrete correctness/evidence/security/cost evidence.
 
 ## Owner provider / cost scope
 
+The Owner reports that direct recharge/payment is unavailable for OpenAI/ChatGPT and xAI/Grok for this project. They are therefore not practical candidates for the current RMB 100 paid probe.
+
 ```text
-PROVIDER_FIRST_PARTY_REFRESH_2026_08_24=COMPLETE_WITH_DEEPSEEK_CORRECTION
-ANTHROPIC_CLAUDE=EXCLUDED_BY_OWNER
-GOOGLE_GEMINI=EXCLUDED_BY_OWNER
-OPENAI_GPT_5_6_SOL=CANDIDATE_RETAINED
-XAI_GROK_4_6=CANDIDATE_UNDER_OWNER_CONSIDERATION
-KIMI_K3=CANDIDATE_UNDER_OWNER_CONSIDERATION
-DEEPSEEK_V4_FLASH_VISION_EXP=CANDIDATE_UNDER_OWNER_CONSIDERATION__EXPERIMENTAL__FIRST_PARTY_DOCUMENTED_VISUAL_API
-PROJECT_BRAIN_PROVIDER_RECOMMENDATION=REASSESS_REQUIRED_WITH_DEEPSEEK_RESTORED
+OPENAI_GPT_5_6_SOL=TECHNICALLY_CAPABLE__NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
+XAI_GROK_4_6=TECHNICALLY_CAPABLE__NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
+KIMI_K3=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API
+DEEPSEEK_V4_FLASH_VISION_EXP=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API__EXPERIMENTAL
+MINIMAX_M3=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API__STRUCTURED_OUTPUT_CONTRACT_VERIFY_DURING_TRANSPORT_IMPLEMENTATION
+GLM_5_3_MAX=NOT_A_SEPARATE_MODEL_ID
+GLM_5_3_MODEL_ID=glm-5.3
+GLM_5_3_REASONING_EFFORT=max
+GLM_5_3_CURRENT_DIRECT_VISUAL_ELIGIBILITY=NO_ON_AVAILABLE_FIRST_PARTY_EVIDENCE
+LIKELY_DOMESTIC_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
 FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
 NO_MODEL_OR_PROVIDER_VERIFIED_BY_PROJECT_LIVE_CALL=YES
 NO_MODEL_OR_PROVIDER_ADOPTED=YES
 ```
 
-The Owner's binding budget ceiling is **RMB 100 total**, with no automatic extension. This is a future ceiling only; paid calls remain unauthorized.
+The current research requirement remains `REAL_MODEL_SELECTION_MUST_INCLUDE_VISUAL_KLINE_EYES=YES`. The candidate decision model itself must receive canonical K-line image input. A separate Vision MCP/sidecar feeding a text-only model is not equivalent under the current protocol and would require an Owner-approved research-design change.
 
-The initial 2026-08-24 provider refresh incorrectly excluded `deepseek-v4-flash-vision-exp` because the fetched standard `/models` documentation snapshot pre-dated the model's 2026-08-21 launch. Subsequent first-party verification against DeepSeek's official `deepseek-ai/deepseek-harness` repository confirmed that the current default DeepSeek catalog includes `deepseek-v4-flash-vision-exp` with `inputModalities: [text, image]`. Launch material identifies it as an experimental direct API model supporting mixed text/image input. The prior DeepSeek exclusion is therefore superseded.
+Kimi K3 first-party docs confirm native vision, direct API, strict JSON Schema and 1M context. DeepSeek Vision Exp is first-party documented as experimental direct text+image API. MiniMax M3 first-party material confirms native multimodal direct API and up to 1M context. Z.ai first-party material identifies `glm-5.3` as the model and `max` as a reasoning-effort level; current model-family evidence does not establish native image input for GLM-5.3.
 
-DeepSeek Vision Exp is not project-VERIFIED or ADOPTED: no project live call has occurred. Its experimental identity and provider image downscaling/token ceiling must be treated as candidate-specific fidelity risks to test, not as pre-test disqualifiers.
-
-OpenAI first-party public surfaces were not fully synchronized on the temporary Sol API price reduction. Until a canonical billing/rate authority is resolved at implementation time, BSP-005 must fail closed or use the higher current published bound for conservative pre-call reservation; the lower promotional number must not be silently hard-coded.
-
-A corrected four-candidate comparison must be presented before asking the Owner for final provider/model selection and bounded probe scope. Selecting the implementation target does **not** authorize any paid external call.
+The Owner's binding future paid-probe ceiling remains **RMB 100 total**, with no automatic extension. Paid calls remain unauthorized.
 
 ## Product / strategy boundary
 
@@ -125,7 +111,6 @@ JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
 JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_5=INTEGRATED_PRE_FREEZE_NON_FINAL_FIXED_RUBRIC_REAUDIT_PASS
 JIANGHE_PRIMARY_PROJECT_BRAIN_ACCEPTED_READY_COUNT=340
 JIANGHE_PRIMARY_REGISTRY_STOP_COUNT=12
-JIANGHE_PRIMARY_BRANCH_IDENTITIES_DETERMINISTIC=YES_FOR_CURRENT_NON_FINAL_REGISTRY
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 ```
@@ -134,12 +119,12 @@ JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 
 ```text
 JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
-JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__PRELIVE_EVIDENCE_REPAIRED__BSP003_REPAIR_REQUIRED_BEFORE_SPEND
+JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__BSP003_REPAIR_REQUIRED_BEFORE_SPEND
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION_IDENTITY_BOUND
 JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
 JIANGHE_AI_RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
 JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED__PRESPEND_REPAIR_REQUIRED
-JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__PRIMARY_SCOPE_REBOUND_TO_V0_5__BSP001_CONTEXT_MATERIAL_BINDING_REQUIRED
+JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__BSP001_CONTEXT_MATERIAL_BINDING_REQUIRED
 JIANGHE_AI_REAL_MODEL_PROVIDER=LIVE_TRANSPORT_NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
@@ -166,16 +151,17 @@ PAID_SPEND=0
 OUTCOME_ACCESS=NO
 ```
 
-`LIMIT-012` remains active because no real-model Jianghe fidelity evaluation has occurred. `LIMIT-015` remains the highest current pre-spend blocker and points to the frozen consolidated findings. Resolved historical LIMIT-013/LIMIT-014 remain preserved in their durable review evidence/Git history and are no longer active limitation entries.
+`LIMIT-012` remains active because no real-model Jianghe fidelity evaluation has occurred. `LIMIT-015` remains the highest current pre-spend blocker and points to the frozen consolidated findings.
 
 ## Next normal work
 
-1. Reassess the provider recommendation with `deepseek-v4-flash-vision-exp` restored as an experimental first-party visual API candidate; do not enter repair yet.
-2. Present the corrected four-candidate capability/cost comparison. Owner then selects the final provider/model set and bounded probe scope. This is the next major Owner decision.
-3. After selection, execute **one batched repair package** covering every still-valid BSP/RSP finding, including selected-provider transport and code-level hard budget enforcement. Ordinary engineering choices inside the package do not require repeated Owner approval.
-4. Run finding-specific focused/adversarial regression for every finding, canonical full suite `python -m unittest discover -s tests -v`, and the finding-specific re-audit. Do not restart broad rolling review/fix cycles.
-5. Update formal finding/state authority with CLOSED/PASS evidence.
-6. Only after all five BSP blockers are CLOSED can a separate explicit Owner authorization enable bounded paid provider calls under the RMB 100 total hard ceiling.
-7. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
+1. Finish zero-cost hard eligibility only; no provider calls and no spend. Current evidence leaves Kimi K3, DeepSeek V4 Flash Vision Exp and MiniMax M3 as likely direct-visual implementation targets. GLM-5.3(max) is not currently like-for-like visual eligible.
+2. Owner confirms the provider implementation target set. This only defines which BSP-004 transports and BSP-005 rate cards are implemented; it does **not** authorize paid calls.
+3. Execute **one batched repair package** for all still-valid findings: BSP-001..005 and RSP-001..002.
+4. Run finding-specific focused/adversarial regression, canonical full suite `python -m unittest discover -s tests -v`, and finding-specific re-audit only.
+5. Write formal CLOSED/PASS evidence and refresh state.
+6. Only after all five BSP blockers are CLOSED may the project separately ask Owner authorization for bounded paid provider calls.
+7. If later authorized, use an RMB 100 **funnel**: tiny qualification spend per eligible candidate (smoke + small SEMANTIC/VISUAL/DUAL_INPUT + schema/identity/usage/latency), immediately stop clearly weak candidates, then spend the remainder only on top 1–2 stability repeats.
+8. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
 
-No provider/model is currently VERIFIED by a project live call or ADOPTED. No paid provider/model call has occurred.
+No provider/model is currently VERIFIED or ADOPTED. No paid provider/model call has occurred.
