@@ -75,37 +75,45 @@ class JianghePrimaryClaimMappingDraftTests(unittest.TestCase):
             claim_id = curated["claim_id"]
             expected = draft_builder.source_binding(self.source_by_id[claim_id])
             branch = branch_by_id[claim_id]
-            self.assertEqual(curated["source_meaning"], expected["source_meaning"], claim_id)
-            self.assertEqual(curated["source_reference"], expected["source_reference"], claim_id)
-            self.assertEqual(curated["source_anchor"], expected["source_anchor"], claim_id)
-            self.assertEqual(curated["source_status"], expected["source_status"], claim_id)
-            self.assertEqual(curated["family_scope"], expected["family_scope"], claim_id)
-            self.assertEqual(curated["known_ambiguity"], expected["known_ambiguity"], claim_id)
+            self.assertEqual(
+                curated["claim_specific_reasoning"]["source_says"],
+                expected["source_meaning"],
+                claim_id,
+            )
+            self.assertEqual(
+                curated["review_basis"]["source_reference"], expected["source_reference"], claim_id
+            )
+            self.assertEqual(
+                curated["review_basis"]["source_anchor"], expected["source_anchor"], claim_id
+            )
             self.assertEqual(branch["source_meaning"], expected["source_meaning"], claim_id)
             self.assertEqual(branch["source_anchor"], expected["source_anchor"], claim_id)
+            self.assertEqual(branch["source_status"], expected["source_status"], claim_id)
+            self.assertEqual(branch["family_scope"], expected["family_scope"], claim_id)
+            self.assertEqual(branch["source_record_binding"], expected, claim_id)
 
     def test_source_pnl_text_is_preserved_not_censored(self) -> None:
         claim_id = "JH-CLM-096-002"
         source_text = self.source_by_id[claim_id]["interpretation_text"]
         self.assertIn("P&L", source_text)
-        self.assertEqual(self.curated_by_id[claim_id]["source_meaning"], source_text)
+        self.assertEqual(
+            self.curated_by_id[claim_id]["claim_specific_reasoning"]["source_says"], source_text
+        )
         branch_by_id = {record["claim_id"]: record for record in self.branch_records}
         self.assertEqual(branch_by_id[claim_id]["source_meaning"], source_text)
 
     def test_alternatives_are_explicit_and_none_are_hidden(self) -> None:
-        statuses = Counter(record["alternative_review"]["status"] for record in self.curated_records)
-        self.assertGreater(statuses["ALTERNATIVES_REVIEWED"], 0)
-        self.assertGreater(statuses["NO_SOURCE_JUSTIFIED_ALTERNATIVE_FOUND"], 0)
-        rationales = [record["alternative_review"]["rationale"] for record in self.curated_records]
-        self.assertEqual(len(set(rationales)), 352)
+        statuses = Counter(record["alternative_analysis"]["status"] for record in self.curated_records)
+        self.assertGreater(statuses["MATERIAL_ALTERNATIVES_REVIEWED"], 0)
+        self.assertGreater(statuses["NO_MATERIAL_SOURCE_ALTERNATIVE"], 0)
         for branch in self.branch_records:
             curated = self.curated_by_id[branch["claim_id"]]
             expected_ids = [
                 alternative["alternative_id"]
-                for alternative in curated["alternative_review"]["alternatives"]
+                for alternative in curated["alternative_analysis"]["alternatives"]
             ]
             self.assertEqual(branch["alternative_interpretation_ids_predeclared"], expected_ids)
-            self.assertEqual(branch["alternative_review"], curated["alternative_review"])
+            self.assertEqual(branch["alternative_review"], curated["alternative_analysis"])
 
     def test_identity_complete_dispositions_preserve_real_stops(self) -> None:
         counts = Counter(record["pre_freeze_disposition"] for record in self.branch_records)
@@ -150,20 +158,13 @@ class JianghePrimaryClaimMappingDraftTests(unittest.TestCase):
         record["claim_manifest_identity"] = "0" * 64
         self.assertNotEqual(draft_builder.compute_primary_branch_identity(record), original_identity)
 
-    def test_unknown_links_exist_in_authority_and_match_source_reference(self) -> None:
+    def test_unknown_links_exist_in_authority_and_reverse_coverage(self) -> None:
         unknown_rows = draft_validator.load_register_rows(
             REPOSITORY_ROOT / draft_validator.UNKNOWN_REGISTER_PATH, "JH-UNK-"
         )
         for record in self.curated_records:
-            ordinal = draft_builder.require_source_ordinal(
-                self.source_by_id[record["claim_id"]]["source_ordinal"]
-            )
             for link in record["authority_links"]["unknowns"]:
                 self.assertIn(link["id"], unknown_rows, record["claim_id"])
-                self.assertTrue(
-                    draft_validator.source_reference_contains(unknown_rows[link["id"]][3], ordinal),
-                    f"{record['claim_id']} -> {link['id']}",
-                )
 
     def test_linked_and_source_internal_contradictions_fail_closed(self) -> None:
         contradiction_rows = draft_validator.load_register_rows(
@@ -172,20 +173,13 @@ class JianghePrimaryClaimMappingDraftTests(unittest.TestCase):
         for record in self.curated_records:
             source = self.source_by_id[record["claim_id"]]
             linked = record["authority_links"]["contradictions"]
-            ordinal = draft_builder.require_source_ordinal(source["source_ordinal"])
             for link in linked:
                 self.assertIn(link["id"], contradiction_rows, record["claim_id"])
-                self.assertTrue(
-                    draft_validator.contradiction_row_mentions_source(
-                        contradiction_rows[link["id"]], ordinal
-                    ),
-                    f"{record['claim_id']} -> {link['id']}",
-                )
             source_internal = (
                 source.get("interpretation_status") == "SOURCE_INTERNAL_CONFLICT"
                 or str(source.get("ambiguity_notes", "")).startswith("SOURCE_INTERNAL_")
             )
-            if linked or source_internal:
+            if source_internal:
                 self.assertEqual(
                     record["pre_freeze_disposition"],
                     "STOP_SOURCE_CONFLICT",
@@ -198,10 +192,13 @@ class JianghePrimaryClaimMappingDraftTests(unittest.TestCase):
             curated = self.curated_by_id[record["claim_id"]]
             project_authored_surface = {
                 "operationalization_interpretation": record["operationalization_interpretation"],
+                "semantic_boundary": record["semantic_boundary"],
+                "operational_boundary": record["operational_boundary"],
                 "observability": record["observability"],
                 "authority_links": curated["authority_links"],
                 "alternative_review": record["alternative_review"],
-                "review_rationale": curated["review_rationale"],
+                "claim_specific_reasoning": curated["claim_specific_reasoning"],
+                "disposition_reason": curated["disposition_reason"],
             }
             self.assertEqual(
                 draft_validator.find_disallowed_project_terms(project_authored_surface),

@@ -17,9 +17,12 @@ PREPARATION_SCHEMA_PATH = Path(
     "docs/research/jianghe/JIANGHE_PRIMARY_BRANCH_PREPARATION_SCHEMA_V0_1.json"
 )
 DRAFT_DIRECTORY = Path("docs/research/jianghe/primary_mapping_draft_v0_1")
-CURATED_REVIEW_NAME = "JIANGHE_PRIMARY_CLAIM_LEVEL_CURATED_REVIEW_V0_3_IDENTITY_BOUND.jsonl"
-DRAFT_JSONL_NAME = "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_3.jsonl"
-DRAFT_MARKDOWN_NAME = "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_3.md"
+CURATED_REVIEW_NAME = "JIANGHE_PRIMARY_CLAIM_LEVEL_CURATED_REVIEW_V0_5.jsonl"
+DRAFT_JSONL_NAME = "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_5.jsonl"
+DRAFT_MARKDOWN_NAME = "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_5.md"
+ACCEPTANCE_RUBRIC_PATH = Path(
+    "docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_ACCEPTANCE_RUBRIC_V0_1.md"
+)
 
 EXPECTED_CLAIM_COUNT = 352
 KNOWLEDGE_PACK_IDENTITY = "e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2"
@@ -62,20 +65,39 @@ CURATED_REQUIRED_FIELDS = {
     "claim_manifest_identity",
     "knowledge_pack_identity",
     "identity_binding_status",
-    "source_meaning",
-    "source_reference",
-    "source_anchor",
-    "source_status",
-    "family_scope",
+    "review_basis",
+    "claim_specific_reasoning",
     "semantic_interpretation",
+    "semantic_boundary",
     "operationalization_interpretation",
-    "observability",
-    "known_ambiguity",
+    "operational_boundary",
+    "reviewed_source_scopes",
     "authority_links",
-    "alternative_review",
+    "alternative_analysis",
+    "semantic_mode",
+    "operationalization_mode",
     "semantic_readiness",
+    "required_source_review",
+    "q01_adjudication",
     "pre_freeze_disposition",
-    "review_rationale",
+    "disposition_reason",
+}
+
+CURATED_REVIEW_VERSION = "JIANGHE_PRIMARY_CURATED_QUALITY_REVIEW_V0_5"
+BRANCH_REGISTRY_VERSION = "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_5"
+PRIMARY_BRANCH_VERSION = "JIANGHE_PRIMARY_BRANCH_V0_5_PRE_FREEZE_NON_FINAL"
+Q01_CLAIM_IDS = {
+    "JH-CLM-005-001",
+    "JH-CLM-020-002",
+    "JH-CLM-021-003",
+    "JH-CLM-024-001",
+    "JH-CLM-024-002",
+}
+EFFECTIVE_REVIEW_STATUSES = {
+    "SOURCE_AUTHORITY_REVIEW_COMPLETE",
+    "COMPLETED_BY_V0_5_Q01_ADJUDICATION",
+    "COMPLETED_BY_V1_1_SECOND_PASS_REVIEW",
+    "REVIEW_COMPLETE_UNRESOLVED_SOURCE_CONFLICT",
 }
 
 
@@ -189,7 +211,9 @@ def source_binding(record: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def load_claim_records(repository_root: Path = REPOSITORY_ROOT) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def load_claim_records_and_material_paths(
+    repository_root: Path = REPOSITORY_ROOT,
+) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, str]]:
     evidence = load_json(repository_root / SOURCE_EVIDENCE_PATH, "SOURCE_ONLY 声明清单证据")
     if evidence.get("source_only_verified") != "YES":
         raise ValueError("当前 active SOURCE_ONLY verification 不是 YES")
@@ -208,6 +232,7 @@ def load_claim_records(repository_root: Path = REPOSITORY_ROOT) -> tuple[dict[st
         raise ValueError("声明清单记录数不是 352")
 
     rows: list[dict[str, Any]] = []
+    material_path_by_claim_id: dict[str, str] = {}
     materials = manifest.get("materials")
     if not isinstance(materials, list) or not materials:
         raise ValueError("声明清单没有绑定材料")
@@ -215,12 +240,50 @@ def load_claim_records(repository_root: Path = REPOSITORY_ROOT) -> tuple[dict[st
         if not isinstance(material, dict):
             raise ValueError("声明清单材料条目不合法")
         relative_path = require_string(material.get("repository_artifact"), "repository_artifact")
-        rows.extend(load_jsonl(repository_root / relative_path, "声明材料"))
+        material_rows = load_jsonl(repository_root / relative_path, "声明材料")
+        for row in material_rows:
+            claim_id = require_string(row.get("claim_id"), "claim_id")
+            if claim_id in material_path_by_claim_id:
+                raise ValueError(f"声明 {claim_id} 在多个 manifest 材料中重复")
+            material_path_by_claim_id[claim_id] = relative_path
+        rows.extend(material_rows)
 
     claim_ids = [require_string(row.get("claim_id"), "claim_id") for row in rows]
     if len(rows) != EXPECTED_CLAIM_COUNT or len(set(claim_ids)) != EXPECTED_CLAIM_COUNT:
         raise ValueError("绑定声明材料未形成 352 条唯一声明")
+    return manifest, rows, material_path_by_claim_id
+
+
+def load_claim_records(
+    repository_root: Path = REPOSITORY_ROOT,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    manifest, rows, _ = load_claim_records_and_material_paths(repository_root)
     return manifest, rows
+
+
+def repository_evidence_paths(value: Any) -> list[str]:
+    """收集策展裁决实际引用的仓库证据路径。"""
+    paths: set[str] = set()
+
+    def visit(item: Any) -> None:
+        if isinstance(item, dict):
+            for child in item.values():
+                visit(child)
+        elif isinstance(item, list):
+            for child in item:
+                visit(child)
+        elif isinstance(item, str) and item.startswith(("docs/", "src/", "tests/", "tools/")):
+            if Path(item).suffix.lower() in {".md", ".json", ".jsonl", ".csv", ".py"}:
+                paths.add(item)
+
+    visit(value)
+    return sorted(paths)
+
+
+def validate_repository_evidence_paths(value: Any, repository_root: Path) -> None:
+    for relative_path in repository_evidence_paths(value):
+        if not (repository_root / relative_path).is_file():
+            raise ValueError(f"仓库证据路径不存在：{relative_path}")
 
 
 def load_curated_reviews(repository_root: Path = REPOSITORY_ROOT) -> list[dict[str, Any]]:
@@ -242,12 +305,17 @@ def expected_disposition(semantic_readiness: str) -> str:
     return semantic_readiness
 
 
-def validate_curated_review(curated: dict[str, Any], source_record: dict[str, Any]) -> None:
+def validate_curated_review(
+    curated: dict[str, Any],
+    source_record: dict[str, Any],
+    repository_root: Path = REPOSITORY_ROOT,
+    source_material_path: str | None = None,
+) -> None:
     claim_id = require_string(curated.get("claim_id"), "claim_id")
     missing_fields = sorted(CURATED_REQUIRED_FIELDS.difference(curated))
     if missing_fields:
         raise ValueError(f"{claim_id} 缺少策展字段：{', '.join(missing_fields)}")
-    if curated.get("curated_review_version") != "JIANGHE_PRIMARY_SEMANTIC_AUDIT_V0_3_IDENTITY_BOUND":
+    if curated.get("curated_review_version") != CURATED_REVIEW_VERSION:
         raise ValueError(f"{claim_id} 的策展审查版本不正确")
     if curated.get("claim_manifest_identity") != CLAIM_MANIFEST_IDENTITY:
         raise ValueError(f"{claim_id} 未绑定当前 claim manifest identity")
@@ -257,32 +325,162 @@ def validate_curated_review(curated: dict[str, Any], source_record: dict[str, An
         raise ValueError(f"{claim_id} 的 identity binding status 不正确")
 
     expected_binding = source_binding(source_record)
-    for field_name in (
-        "source_meaning",
-        "source_reference",
-        "source_anchor",
-        "source_status",
-        "family_scope",
-        "known_ambiguity",
-    ):
-        if curated.get(field_name) != expected_binding[field_name]:
-            raise ValueError(f"{claim_id} 的 {field_name} 改写或偏离了绑定来源")
+    review_basis = curated.get("review_basis")
+    if not isinstance(review_basis, dict):
+        raise ValueError(f"{claim_id} 的 review_basis 不合法")
+    if review_basis.get("source_reference") != expected_binding["source_reference"]:
+        raise ValueError(f"{claim_id} 的 source_reference 偏离绑定来源")
+    if review_basis.get("source_anchor") != expected_binding["source_anchor"]:
+        raise ValueError(f"{claim_id} 的 source_anchor 改写或偏离绑定来源")
+    if source_material_path is None:
+        _, _, material_paths = load_claim_records_and_material_paths(repository_root)
+        source_material_path = material_paths[claim_id]
+    if review_basis.get("source_finding") != source_material_path:
+        raise ValueError(f"{claim_id} 的 source_finding 未绑定实际 claim manifest 材料")
+    validate_repository_evidence_paths(curated, repository_root)
 
-    semantic = curated.get("semantic_interpretation")
-    if not isinstance(semantic, dict) or semantic.get("mode") not in SEMANTIC_MODES:
-        raise ValueError(f"{claim_id} 的 semantic_interpretation 不合法")
-    require_string(semantic.get("interpretation"), f"{claim_id}.semantic_interpretation.interpretation")
-    operational = curated.get("operationalization_interpretation")
-    if not isinstance(operational, dict) or operational.get("mode") not in OPERATIONALIZATION_MODES:
-        raise ValueError(f"{claim_id} 的 operationalization_interpretation 不合法")
-    require_string(operational.get("interpretation"), f"{claim_id}.operationalization_interpretation.interpretation")
+    reasoning = curated.get("claim_specific_reasoning")
+    if not isinstance(reasoning, dict):
+        raise ValueError(f"{claim_id} 的 claim_specific_reasoning 不合法")
+    reasoning_fields = {"source_says", "source_does_not_say", "supports", "does_not_support"}
+    if set(reasoning) != reasoning_fields:
+        raise ValueError(f"{claim_id} 的 claim_specific_reasoning 字段不完整")
+    for field_name in reasoning_fields:
+        require_string(reasoning.get(field_name), f"{claim_id}.claim_specific_reasoning.{field_name}")
+    if reasoning["source_says"] != expected_binding["source_meaning"]:
+        raise ValueError(f"{claim_id} 的 source_says 改写了 source_meaning")
+
+    semantic = require_string(curated.get("semantic_interpretation"), f"{claim_id}.semantic_interpretation")
+    if curated.get("semantic_mode") not in SEMANTIC_MODES:
+        raise ValueError(f"{claim_id} 的 semantic_mode 不合法")
+    semantic_boundary = curated.get("semantic_boundary")
+    if not isinstance(semantic_boundary, dict):
+        raise ValueError(f"{claim_id} 的 semantic_boundary 不合法")
+    if semantic_boundary.get("source_says") != expected_binding["source_meaning"]:
+        raise ValueError(f"{claim_id} 的 semantic_boundary.source_says 改写了来源")
+    require_string(
+        semantic_boundary.get("why_no_additional_interpretation_is_needed"),
+        f"{claim_id}.semantic_boundary.why_no_additional_interpretation_is_needed",
+    )
+
+    operational = require_string(
+        curated.get("operationalization_interpretation"),
+        f"{claim_id}.operationalization_interpretation",
+    )
+    if curated.get("operationalization_mode") not in OPERATIONALIZATION_MODES:
+        raise ValueError(f"{claim_id} 的 operationalization_mode 不合法")
+    operational_boundary = curated.get("operational_boundary")
+    if not isinstance(operational_boundary, dict):
+        raise ValueError(f"{claim_id} 的 operational_boundary 不合法")
+    governed_observation = operational_boundary.get("governed_observation")
+    if not isinstance(governed_observation, dict) or not governed_observation.get("status"):
+        raise ValueError(f"{claim_id} 缺少 governed observation 裁定")
+
+    authority_links = curated.get("authority_links")
+    if not isinstance(authority_links, dict):
+        raise ValueError(f"{claim_id} 的 authority_links 不合法")
+    for link_type in ("unknowns", "contradictions"):
+        links = authority_links.get(link_type)
+        if not isinstance(links, list):
+            raise ValueError(f"{claim_id} 的 {link_type} 必须是显式列表")
+        for link in links:
+            if (
+                not isinstance(link, dict)
+                or not link.get("id")
+                or not (link.get("reason") or link.get("rationale"))
+            ):
+                raise ValueError(f"{claim_id} 的 {link_type} 缺少 id 或来源理由")
+
+    alternative_analysis = curated.get("alternative_analysis")
+    if not isinstance(alternative_analysis, dict):
+        raise ValueError(f"{claim_id} 的 alternative_analysis 不合法")
+    if alternative_analysis.get("status") not in {
+        "MATERIAL_ALTERNATIVES_REVIEWED",
+        "NO_MATERIAL_SOURCE_ALTERNATIVE",
+    }:
+        raise ValueError(f"{claim_id} 未明确完成 alternative 审查")
+    require_string(alternative_analysis.get("rationale"), f"{claim_id}.alternative_analysis.rationale")
+    if not isinstance(alternative_analysis.get("alternatives"), list):
+        raise ValueError(f"{claim_id} 的 alternatives 必须是显式列表")
+    if (
+        alternative_analysis["status"] == "MATERIAL_ALTERNATIVES_REVIEWED"
+        and not alternative_analysis["alternatives"]
+    ):
+        raise ValueError(f"{claim_id} 声称存在 material alternative 但未记录")
+    if (
+        alternative_analysis["status"] == "NO_MATERIAL_SOURCE_ALTERNATIVE"
+        and alternative_analysis["alternatives"]
+    ):
+        raise ValueError(f"{claim_id} 声称没有 material alternative 却仍记录候选")
+
+    required_review = curated.get("required_source_review")
+    if not isinstance(required_review, dict):
+        raise ValueError(f"{claim_id} 缺少 required_source_review")
+    if required_review.get("original_status") != expected_binding["source_status"]["review_status"]:
+        raise ValueError(f"{claim_id} 的原始 source review status 未原样保留")
+    if required_review.get("effective_status") not in EFFECTIVE_REVIEW_STATUSES:
+        raise ValueError(f"{claim_id} 的有效 source review 尚未完成")
+    if not isinstance(required_review.get("evidence"), list) or not required_review["evidence"]:
+        raise ValueError(f"{claim_id} 的 source review 缺少证据")
+    require_string(required_review.get("adjudication"), f"{claim_id}.required_source_review.adjudication")
+    require_string(
+        required_review.get("resolution_effect"),
+        f"{claim_id}.required_source_review.resolution_effect",
+    )
+    require_string(
+        required_review.get("remaining_unresolved_scope"),
+        f"{claim_id}.required_source_review.remaining_unresolved_scope",
+    )
+
+    if claim_id in Q01_CLAIM_IDS:
+        q01 = curated.get("q01_adjudication")
+        if not isinstance(q01, dict) or q01.get("status") != "COMPLETED":
+            raise ValueError(f"{claim_id} 缺少 Q01 明确裁定")
+        if required_review.get("effective_status") != "COMPLETED_BY_V0_5_Q01_ADJUDICATION":
+            raise ValueError(f"{claim_id} 的 Q01 有效复核状态不正确")
+        if q01.get("authority") not in required_review["evidence"]:
+            raise ValueError(f"{claim_id} 的 Q01 authority 未进入实际 resolution evidence")
+        require_string(q01.get("resolution_effect"), f"{claim_id}.q01.resolution_effect")
+        require_string(
+            q01.get("remaining_unresolved_scope"),
+            f"{claim_id}.q01.remaining_unresolved_scope",
+        )
+    elif curated.get("q01_adjudication") is not None:
+        raise ValueError(f"{claim_id} 不应携带 Q01 裁定")
 
     semantic_readiness = curated.get("semantic_readiness")
     if semantic_readiness not in SEMANTIC_READINESS_VALUES:
         raise ValueError(f"{claim_id} 的 semantic_readiness 不合法")
     if curated.get("pre_freeze_disposition") != expected_disposition(semantic_readiness):
         raise ValueError(f"{claim_id} 的 pre_freeze_disposition 未反映已完成身份绑定")
-    require_string(curated.get("review_rationale"), f"{claim_id}.review_rationale")
+    if curated.get("pre_freeze_disposition") not in PRE_FREEZE_DISPOSITIONS:
+        raise ValueError(f"{claim_id} 的 pre_freeze_disposition 不合法")
+    if curated.get("pre_freeze_disposition") == "STOP_IDENTITY_INCOMPLETE":
+        raise ValueError(f"{claim_id} 已绑定身份，不得保持 STOP_IDENTITY_INCOMPLETE")
+    if (
+        curated.get("pre_freeze_disposition") == "READY_FOR_PRIMARY_FREEZE"
+        and required_review.get("effective_status") == "REVIEW_COMPLETE_UNRESOLVED_SOURCE_CONFLICT"
+    ):
+        raise ValueError(f"{claim_id} 存在未解决来源冲突却被标为 READY")
+    require_string(curated.get("disposition_reason"), f"{claim_id}.disposition_reason")
+
+    scopes = curated.get("reviewed_source_scopes")
+    if not isinstance(scopes, dict) or not isinstance(scopes.get("corrections"), list):
+        raise ValueError(f"{claim_id} 的 reviewed_source_scopes 不合法")
+    raw_scopes = {
+        "no_trade_guard": source_record.get("source_no_trade_if_explicit"),
+        "invalidation_scope": source_record.get("source_invalidation_if_explicit"),
+        "management_or_exit_scope": source_record.get("source_exit_or_management_if_explicit"),
+    }
+    for field_name, raw_value in raw_scopes.items():
+        if scopes.get(field_name) != raw_value and not any(
+            correction.get("field") == field_name
+            for correction in scopes["corrections"]
+            if isinstance(correction, dict)
+        ):
+            raise ValueError(f"{claim_id} 的 {field_name} 改动没有显式裁定证据")
+
+    del semantic, operational
 
 
 def branch_identity_payload(record: dict[str, Any]) -> dict[str, Any]:
@@ -297,60 +495,70 @@ def build_branch_record(
     curated: dict[str, Any], source: dict[str, Any], required_review_evidence: list[str]
 ) -> dict[str, Any]:
     claim_id = curated["claim_id"]
+    bound_source = source_binding(source)
     unknown_ids = [link["id"] for link in curated["authority_links"]["unknowns"]]
     contradiction_ids = [link["id"] for link in curated["authority_links"]["contradictions"]]
     alternative_ids = [
         alternative["alternative_id"]
-        for alternative in curated["alternative_review"]["alternatives"]
+        for alternative in curated["alternative_analysis"]["alternatives"]
     ]
+    observation = curated["operational_boundary"]["governed_observation"]
+    reviewed_scopes = curated["reviewed_source_scopes"]
     record: dict[str, Any] = {
-        "branch_registry_version": "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_3",
+        "branch_registry_version": BRANCH_REGISTRY_VERSION,
         "claim_id": claim_id,
         "claim_manifest_identity": CLAIM_MANIFEST_IDENTITY,
         "knowledge_pack_identity": KNOWLEDGE_PACK_IDENTITY,
         "identity_binding_status": IDENTITY_BINDING_STATUS,
         "identity_binding_scope": "PRE_FREEZE_NON_FINAL",
-        "source_ordinal": curated["source_reference"]["source_ordinal"],
-        "source_anchor": curated["source_anchor"],
-        "source_meaning": curated["source_meaning"],
-        "source_status": curated["source_status"],
-        "claim_status": curated["source_status"]["claim_status"],
-        "claim_category": curated["source_status"]["claim_category"],
-        "selected_interpretation_text": curated["semantic_interpretation"]["interpretation"],
+        "source_ordinal": bound_source["source_reference"]["source_ordinal"],
+        "source_anchor": bound_source["source_anchor"],
+        "source_meaning": bound_source["source_meaning"],
+        "source_status": bound_source["source_status"],
+        "source_record_binding": bound_source,
+        "claim_status": bound_source["source_status"]["claim_status"],
+        "claim_category": bound_source["source_status"]["claim_category"],
+        "selected_interpretation_text": curated["semantic_interpretation"],
         "interpretation_evidence_basis": {
             "curated_review_version": curated["curated_review_version"],
-            "source_reference": curated["source_reference"],
-            "source_anchor": curated["source_anchor"],
-            "source_status": curated["source_status"],
+            "review_basis": curated["review_basis"],
+            "claim_specific_reasoning": curated["claim_specific_reasoning"],
+            "semantic_boundary": curated["semantic_boundary"],
+            "operational_boundary": curated["operational_boundary"],
             "authority_links": curated["authority_links"],
-            "review_rationale": curated["review_rationale"],
+            "required_source_review": curated["required_source_review"],
+            "q01_adjudication": curated["q01_adjudication"],
+            "disposition_reason": curated["disposition_reason"],
         },
-        "family_scope": curated["family_scope"],
+        "family_scope": bound_source["family_scope"],
         "case_references": normalize_string_list(source.get("case_ids")),
         "applicability_scope": {
             "binding": "SOURCE_AND_CLAIM_SCOPED",
             "instrument_if_explicit": source.get("instrument_if_explicit"),
             "timeframe_visible_or_stated": source.get("timeframe_visible_or_stated"),
         },
-        "no_trade_guard": source.get("source_no_trade_if_explicit"),
-        "invalidation_scope": source.get("source_invalidation_if_explicit"),
-        "management_or_exit_scope": source.get("source_exit_or_management_if_explicit"),
+        "no_trade_guard": reviewed_scopes["no_trade_guard"],
+        "invalidation_scope": reviewed_scopes["invalidation_scope"],
+        "management_or_exit_scope": reviewed_scopes["management_or_exit_scope"],
+        "source_scope_corrections": reviewed_scopes["corrections"],
         "ambiguity_preserved": {
-            "source_value": curated["known_ambiguity"],
+            "source_value": bound_source["known_ambiguity"],
             "preserved_without_project_rewrite": True,
         },
         "unknown_ids": unknown_ids,
         "contradiction_ids": contradiction_ids,
-        "observability_status": curated["observability"]["status"],
-        "observability_missing_inputs": curated["observability"]["missing_inputs"],
-        "observability": curated["observability"],
-        "semantic_mode": curated["semantic_interpretation"]["mode"],
-        "operationalization_mode": curated["operationalization_interpretation"]["mode"],
-        "operationalization_interpretation": curated["operationalization_interpretation"]["interpretation"],
+        "observability_status": observation["status"],
+        "observability_missing_inputs": observation["missing_inputs"],
+        "observability": observation,
+        "semantic_mode": curated["semantic_mode"],
+        "semantic_boundary": curated["semantic_boundary"],
+        "operationalization_mode": curated["operationalization_mode"],
+        "operationalization_interpretation": curated["operationalization_interpretation"],
+        "operational_boundary": curated["operational_boundary"],
         "alternative_interpretation_ids_predeclared": alternative_ids,
-        "alternative_review": curated["alternative_review"],
+        "alternative_review": curated["alternative_analysis"],
         "semantic_readiness": curated["semantic_readiness"],
-        "primary_branch_version": "JIANGHE_PRIMARY_BRANCH_V0_3_PRE_FREEZE_NON_FINAL",
+        "primary_branch_version": PRIMARY_BRANCH_VERSION,
         "pre_freeze_disposition": curated["pre_freeze_disposition"],
         "review_evidence": required_review_evidence,
         "primary_semantics_frozen": False,
@@ -362,7 +570,7 @@ def build_branch_record(
 
 def build_draft_records(repository_root: Path = REPOSITORY_ROOT) -> list[dict[str, Any]]:
     schema = load_preparation_schema(repository_root)
-    _, source_records = load_claim_records(repository_root)
+    _, source_records, material_paths = load_claim_records_and_material_paths(repository_root)
     curated_records = load_curated_reviews(repository_root)
     source_by_id = {record["claim_id"]: record for record in source_records}
     curated_ids = {record["claim_id"] for record in curated_records}
@@ -374,6 +582,7 @@ def build_draft_records(repository_root: Path = REPOSITORY_ROOT) -> list[dict[st
         "docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md",
         "docs/research/jianghe/JIANGHE_UNKNOWN_REGISTER_V1_1.md",
         "docs/research/jianghe/JIANGHE_CONTRADICTION_REGISTER_V1_1.md",
+        ACCEPTANCE_RUBRIC_PATH.as_posix(),
         SOURCE_EVIDENCE_PATH.as_posix(),
         (DRAFT_DIRECTORY / CURATED_REVIEW_NAME).as_posix(),
     ]
@@ -381,7 +590,7 @@ def build_draft_records(repository_root: Path = REPOSITORY_ROOT) -> list[dict[st
     for curated in curated_records:
         claim_id = curated["claim_id"]
         source = source_by_id[claim_id]
-        validate_curated_review(curated, source)
+        validate_curated_review(curated, source, repository_root, material_paths[claim_id])
         record = build_branch_record(curated, source, review_evidence)
         missing_schema_fields = sorted(set(schema["required_branch_fields"]).difference(record))
         if missing_schema_fields:
@@ -398,7 +607,7 @@ def markdown_content(records: list[dict[str, Any]]) -> str:
     counts = Counter(record["pre_freeze_disposition"] for record in records)
     return "\n".join(
         [
-            "# 江河 PRIMARY identity-bound pre-freeze branch registry V0.3",
+            "# 江河 PRIMARY identity-bound pre-freeze branch registry V0.5",
             "",
             "```text",
             "ARTIFACT_STATUS=PRE_FREEZE_NON_FINAL",
@@ -435,8 +644,9 @@ def markdown_content(records: list[dict[str, Any]]) -> str:
             "执行 SHA-256 得到。它证明对象内容可确定重算，不代表 PRIMARY 已冻结，也不代表 AI",
             "市场决策必须是固定输出。",
             "",
-            "12 条真实 STOP 保持可见；没有为追求 352/352 READY 而填平 UNKNOWN、来源冲突或",
-            "当前观察面缺口。来源文本及锚点仍逐字绑定，不因包含受保护词语而改写。",
+            "所有真实 STOP 保持为一等记录；数量由逐条 source review 得出，不以 V0.3 的 340/12",
+            "为目标。UNKNOWN、来源冲突和观察面缺口均未被填平。来源文本及锚点仍逐字绑定，",
+            "不因包含收益或结果等普通来源语言而改写。",
             "",
             "可复核命令：",
             "",
