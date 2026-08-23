@@ -64,45 +64,28 @@ Project API/session denial and material binding were verified for the previously
 ## LIMIT-012 — Real-model Jianghe fidelity evaluation has not been run
 
 ```text
-STATUS=ACTIVE_NEXT_PHASE_AFTER_IDENTITY_REBIND
+STATUS=ACTIVE
 PRIORITY=HIGH
 CURRENT_BLOCKER=YES_FOR_MODEL_ADOPTION_AND_PRIMARY_PROMOTION
 REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
-FIDELITY_CORPUS=INTEGRATED_NON_OUTCOME
+FIDELITY_CORPUS=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
 OBSERVATION_REPLAY=INTEGRATED_SYNTHETIC_NON_OUTCOME
 AUTHORITY=docs/reviews/JIANGHE_AI_FIDELITY_AND_REPLAY_INTEGRATION_REVIEW_V0_1.md
 ```
 
-The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. Current fixture metadata that references the pre-hygiene knowledge-pack identity must be rebound before it can serve as the current model-evaluation identity.
-
-## LIMIT-013 — Jianghe active bundle identity must be rebound after authority hygiene
-
-```text
-STATUS=ACTIVE_BLOCKER
-PRIORITY=HIGHEST_CURRENT
-CURRENT_BLOCKER=YES_FOR_CURRENT_SOURCE_ONLY_ASSERTION_FINAL_PRIMARY_BRANCH_IDENTITIES_AND_REAL_MODEL_FIDELITY_IDENTITY
-HISTORICAL_PRE_HYGIENE_KNOWLEDGE_PACK_IDENTITY=3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5
-HISTORICAL_PRE_HYGIENE_SOURCE_ONLY_VERIFICATION=PASS
-CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=REBIND_REQUIRED
-CURRENT_ACTIVE_SOURCE_ONLY_VERIFICATION=REVERIFY_REQUIRED
-AUTHORITY=docs/reviews/JIANGHE_AUTHORITY_HYGIENE_IDENTITY_REBIND_REVIEW_V0_1.md
-```
-
-Authority-hygiene edits removed mutable SOURCE_ONLY/PRIMARY/current-authorization fields from Jianghe source-distillation documents. Jianghe source semantics did not change, but existing builders bind raw repository bytes, so the active knowledge-pack and SOURCE_ONLY bundle identities changed. Under the existing identity semantics, the deterministic builders and evidence must be regenerated and all active dependent identities synchronized before current SOURCE_ONLY=YES or final claim-level PRIMARY branch identities are asserted again.
-
-This repair must not redesign identity semantics. A change to what the knowledge-pack identity means would be a separate research-governance decision.
+The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. Fidelity fixture metadata is rebound to the current knowledge-pack identity; real-model evaluation remains not started.
 
 ## Current PRIMARY prerequisite
 
 ```text
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
-JIANGHE_PRIMARY_FINAL_BRANCH_IDENTITIES=BLOCKED_ON_LIMIT_013_REBIND
-NEXT_GATE=REBIND_CURRENT_JIANGHE_IDENTITY_THEN_COMPLETE_352_CLAIM_LEVEL_SOURCE_JUSTIFIED_PRIMARY_MAPPING_PLUS_REAL_MODEL_FIDELITY_EVIDENCE_WITHOUT_OUTCOMES
+JIANGHE_PRIMARY_FINAL_BRANCH_IDENTITIES=NOT_ASSERTED_PENDING_CLAIM_LEVEL_SEMANTIC_MAPPING
+NEXT_GATE=COMPLETE_352_CLAIM_LEVEL_SOURCE_JUSTIFIED_PRIMARY_MAPPING_PLUS_REAL_MODEL_FIDELITY_EVIDENCE_WITHOUT_OUTCOMES
 ```
 
-Historical SOURCE_ONLY verification does not automatically create current active-bundle SOURCE_ONLY verification or PRIMARY eligibility.
+Current active-bundle SOURCE_ONLY verification is `YES`; it does not create PRIMARY eligibility.
 
 ## Maintenance rule
 

@@ -4,7 +4,7 @@
   "status": "READY_FOR_MODEL_EVALUATION",
   "trader_id": "JIANGHE_TRADER",
   "knowledge_pack_reference": "JIANGHE_V1_1",
-  "knowledge_pack_identity": "3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5",
+  "knowledge_pack_identity": "e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2",
   "baseline_commit": "ebc9da72c989086f97ff77f9840dcb124c3c5935",
   "branch": "research/jianghe-ai-fidelity-fixtures-v01",
   "integration_state": "INTEGRATED_NON_OUTCOME",

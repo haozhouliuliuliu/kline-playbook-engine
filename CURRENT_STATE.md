@@ -13,9 +13,9 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=JIANGHE_ACTIVE_IDENTITY_REBIND_AFTER_AUTHORITY_HYGIENE
-NEXT_NORMAL_PHASE=REBIND_CURRENT_JIANGHE_IDENTITY_THEN_CLAIM_LEVEL_PRIMARY_MAPPING_PLUS_REAL_MODEL_FIDELITY_WITHOUT_CANDIDATE_OUTCOMES
-OWNER_ACTION=NONE_FOR_ORDINARY_REBIND_ENGINEERING
+CURRENT_WORK_PACKAGE=JIANGHE_PRIMARY_MAPPING_AND_REAL_MODEL_FIDELITY_PREOUTCOME
+NEXT_NORMAL_PHASE=integrate claim-level semantic mapping + real-model Jianghe fidelity without candidate outcomes
+OWNER_ACTION=NONE_FOR_ORDINARY_PREOUTCOME_ENGINEERING
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -53,22 +53,22 @@ Authority: `docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
 JIANGHE_SOURCE_SEMANTICS_CHANGED_BY_HYGIENE=NO
 HISTORICAL_PRE_HYGIENE_SOURCE_ONLY_VERIFICATION=PASS
-JIANGHE_SOURCE_ONLY_VERIFIED_CURRENT_ACTIVE_BUNDLE=REVERIFY_REQUIRED
+JIANGHE_SOURCE_ONLY_VERIFIED_CURRENT_ACTIVE_BUNDLE=YES
 JIANGHE_PRIMARY_ELIGIBLE=NO
 KNOWLEDGE_PACK_VERSION=JIANGHE_V1_1
 HISTORICAL_PRE_HYGIENE_KNOWLEDGE_PACK_IDENTITY=3f2ddbf9c007b3246661088986a35b84258bdc984ed5fa82dace59074495a9d5
-CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=REBIND_REQUIRED
-JIANGHE_PRIMARY_PREPARATION_SCHEMA_V0_1=INTEGRATED_PRE_FREEZE_NON_OUTCOME__CURRENT_IDENTITY_BINDING_PENDING_REBIND
+CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
+JIANGHE_PRIMARY_PREPARATION_SCHEMA_V0_1=INTEGRATED_PRE_FREEZE_NON_OUTCOME__CURRENT_IDENTITY_BINDING_AVAILABLE__MAPPING_SEMANTIC_AUDIT_PENDING_INTEGRATION
 JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=60d4a1f9069a6dc33d04a82ce544d7525cd4bf2805c5b6e8dd9502d85bf39940
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
 JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
-JIANGHE_PRIMARY_FINAL_BRANCH_IDENTITIES=BLOCKED_ON_CURRENT_IDENTITY_REBIND
+JIANGHE_PRIMARY_FINAL_BRANCH_IDENTITIES=NOT_ASSERTED_PENDING_CLAIM_LEVEL_SEMANTIC_MAPPING
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-JIANGHE_PRIMARY_NEXT_GATE=REBIND_CURRENT_IDENTITY_THEN_COMPLETE_352_CLAIM_LEVEL_SOURCE_JUSTIFIED_MAPPING_PLUS_REAL_MODEL_FIDELITY_WITHOUT_OUTCOMES
+JIANGHE_PRIMARY_NEXT_GATE=COMPLETE_352_CLAIM_LEVEL_SOURCE_JUSTIFIED_MAPPING_PLUS_REAL_MODEL_FIDELITY_WITHOUT_OUTCOMES
 JIANGHE_PRIMARY_SEMANTICS=SOURCE_JUSTIFIED_AI_INTERPRETATION_BRANCH_NOT_FIXED_RULE_MACHINE
 ```
 
-The V1.1 source semantics remain complete. The current active byte identity is temporarily unbound because authority-hygiene edits changed documents that the existing knowledge-pack/SOURCE_ONLY builders hash as raw content. The old `3f2ddbf9...` identity and SOURCE_ONLY PASS remain valid **historical pre-hygiene evidence**, not current active-bundle identity. Under existing identity semantics the builders must be deterministically re-run and dependent evidence synchronized before current active SOURCE_ONLY can return to YES.
+The V1.1 source semantics remain complete and unchanged (`JIANGHE_SOURCE_SEMANTICS_CHANGED_BY_HYGIENE=NO`). The current active bundle identity was deterministically rebuilt from current `main` by the canonical builders (`e079c225...`), and current active-bundle SOURCE_ONLY verification is `YES` with all technical denials PASS. The old `3f2ddbf9...` identity and pre-hygiene SOURCE_ONLY PASS remain valid **historical pre-hygiene evidence**, preserved in the hygiene review and execution evidence; they are no longer the current active-bundle identity.
 
 For the Jianghe AI Trader, PRIMARY does **not** mean converting Jianghe into a rigid threshold strategy. The integrated pre-freeze preparation still uses one source-justified branch object per claim, but final branch identities must bind the rebuilt current knowledge-pack identity. Final semantic freeze remains Owner-gated.
 
@@ -81,7 +81,7 @@ Authorities:
 ## Jianghe AI engineering status
 
 ```text
-JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__IDENTITY_METADATA_REBIND_REQUIRED
+JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND__REAL_MODEL_EVALUATION_NOT_STARTED
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
@@ -90,7 +90,7 @@ JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
 JIANGHE_AI_SUB_MINUTE_LIVE_CAPABILITY=NOT_VALIDATED_NOT_EQUIVALENT_TO_1M_REPLAY
 ```
 
-The fidelity fixtures/replay semantics remain non-outcome and intact; fixture metadata that binds `3f2ddbf9...` as the current pack identity must be synchronized after the deterministic rebind before real-model evaluation starts.
+The fidelity fixtures/replay semantics remain non-outcome and intact; fixture metadata is rebound to the current knowledge-pack identity `e079c225...`. Real-model fidelity evaluation has not started.
 
 ## Data authority relevant to the next phase
 
@@ -125,11 +125,11 @@ No project-recorded real candidate outcome exposure has been established.
 
 ## Active future gates / limitations
 
-Current highest-priority blocker is `LIMIT-013` in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`:
+Current highest-priority blocker is `LIMIT-012` in `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`:
 
 ```text
-CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=REBIND_REQUIRED
-CURRENT_ACTIVE_SOURCE_ONLY_VERIFICATION=REVERIFY_REQUIRED
+CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
+CURRENT_ACTIVE_SOURCE_ONLY_VERIFICATION=YES
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_CLAIM_LEVEL_MAPPING=NOT_COMPLETE
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
@@ -140,17 +140,11 @@ Historical fee/margin, price-limit realism, future Shadow statistical profile, p
 
 ## Next normal work
 
-The immediate bounded package is **identity/evidence rebind under existing semantics**:
+The identity/evidence rebind under existing semantics is complete: the current V1.1 knowledge-pack artifact and SOURCE_ONLY evidence were deterministically rebuilt from current `main`, all active dependencies now bind the current identity `e079c225...`, and current active-bundle SOURCE_ONLY verification is `YES` with all technical denials PASS.
 
-1. deterministically rebuild the current V1.1 knowledge-pack artifact from current `main` using the existing builder;
-2. rebuild the SOURCE_ONLY verification evidence on the same tree;
-3. synchronize all active dependencies that currently reference `3f2ddbf9...` as the current identity, including fidelity fixture metadata and PRIMARY-preparation bindings;
-4. run targeted tests and the canonical full suite;
-5. restore `JIANGHE_SOURCE_ONLY_VERIFIED_CURRENT_ACTIVE_BUNDLE=YES` only if the rebuilt evidence exactly matches current bytes and all technical-denial checks pass.
-
-After that, two non-outcome lanes resume:
-- **352 claim-level PRIMARY mapping** — one source-justified branch or explicit STOP per claim; no outcome use; no automatic semantic freeze.
-- **Real-model fidelity candidate evaluation** — semantic + visual + structured + dual-input + operational-provider, selected by Jianghe fidelity rather than PnL.
+Two non-outcome lanes are now current:
+- **352 claim-level PRIMARY mapping** — one source-justified branch or explicit STOP per claim; no outcome use; no automatic semantic freeze. Identity binding is available; the semantic mapping audit awaits integration.
+- **Real-model fidelity candidate evaluation** — semantic + visual + structured + dual-input + operational-provider, selected by Jianghe fidelity rather than PnL; fixture metadata is rebound to the current identity; real-model evaluation has not started.
 
 No model/provider is currently adopted.
 
