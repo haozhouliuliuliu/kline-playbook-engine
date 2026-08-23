@@ -42,7 +42,6 @@ from src.jianghe_ai_trader import (
     WakeEvent,
     WakeEventType,
     WatchRegion,
-    validate_transition,
 )
 from src.jianghe_chart_renderer import (
     DEFAULT_WINDOW_SIZES,
@@ -88,6 +87,7 @@ def _format_decimal(value: Decimal) -> str:
 
 
 def _floor_epoch(value: datetime, seconds: int) -> datetime:
+    """仅供 synthetic replay 使用；真实交易时段聚合必须由显式 session authority 取代。"""
     epoch = int(value.timestamp())
     floored = (epoch // seconds) * seconds
     return datetime.fromtimestamp(floored, tz=value.tzinfo)
@@ -145,6 +145,10 @@ class _BucketAccumulator:
 
 class RollingMarketState:
     """连续接收已收盘 1 分钟 K 线并因果聚合到 5m/15m/1h；禁止未来数据。
+
+    当前高周期切桶是 synthetic replay 的确定性 wall-clock 规则，不构成真实交易所
+    session authority。真实下载数据进入付费 API 前必须通过独立 pre-spend readiness
+    gate 绑定显式、版本化的 SessionMetadata/aggregation authority；否则失败闭合。
 
     高周期桶只有在回放时钟（最近已见 1 分钟收盘时间）到达桶边界后才标记为已收盘；
     未收盘桶以最后一根成分 K 线的收盘时间作为当前已知范围（部分 K 线）。
@@ -207,6 +211,11 @@ class RollingMarketState:
         if self._one_m_bars and bar.close_time <= self._one_m_bars[-1].close_time:
             raise ValueError("滚动市场状态拒绝倒退或重复的 1 分钟 K 线")
         self._one_m_bars.append(bar)
+        # 回放只需要 renderer 当前窗口；历史全量由 canonical dataset 持有，不在 runtime
+        # state 中无限复制。
+        one_m_keep = self.window_sizes["1m"]
+        if len(self._one_m_bars) > one_m_keep:
+            del self._one_m_bars[:-one_m_keep]
         for timeframe in _AGGREGATED_TIMEFRAMES:
             seconds = _TIMEFRAME_SECONDS[timeframe]
             bucket_start = _floor_epoch(bar.open_time, seconds)
@@ -241,6 +250,11 @@ class RollingMarketState:
             for bucket in closable:
                 bucket.mark_closed(bar)
                 self._closed_buckets[timeframe].append(bucket)
+                # 已关闭桶不再留在 live bucket map；历史窗口也只保留 renderer 所需数量。
+                self._buckets[timeframe].pop(bucket.open_time, None)
+                keep = self.window_sizes[timeframe]
+                if len(self._closed_buckets[timeframe]) > keep:
+                    del self._closed_buckets[timeframe][:-keep]
                 if timeframe not in newly_closed:
                     newly_closed.append(timeframe)
         return tuple(newly_closed)
@@ -637,8 +651,31 @@ class JiangheMarketReplaySession:
     def clock(self) -> ReplayClock:
         return self.replay.clock
 
+    @staticmethod
+    def _coalesce_market_events(events: Sequence[WakeEvent]) -> WakeEvent:
+        """同一根 1m bar 形成的多重市场理由只触发一次推理，避免重复付费调用。"""
+        if not events:
+            raise ValueError("不能合并空的市场唤醒集合")
+        occurred_at = max(event.occurred_at for event in events)
+        priority = {
+            WakeEventType.AI_INVALIDATION_LEVEL_TOUCHED: 100,
+            WakeEventType.PRICE_ENTERS_AI_WATCH_REGION: 90,
+            WakeEventType.PRICE_EXITS_AI_WATCH_REGION: 90,
+            WakeEventType.NEW_1H_CLOSED_BAR: 40,
+            WakeEventType.NEW_15M_CLOSED_BAR: 30,
+            WakeEventType.NEW_5M_CLOSED_BAR: 20,
+            WakeEventType.NEW_1M_CLOSED_BAR: 10,
+        }
+        primary = max(events, key=lambda event: (priority.get(event.event_type, 0), event.identity))
+        identities = "|".join(sorted(event.identity for event in events))
+        return WakeEvent(
+            primary.event_type,
+            occurred_at,
+            f"COALESCED_MARKET:{occurred_at.isoformat()}:{identities}",
+        )
+
     def feed_1m_bar(self, bar: ObservationBar) -> tuple[WakeEvent, ...]:
-        """喂入一根已收盘 1 分钟 K 线；返回本次产生的唤醒事件。"""
+        """喂入一根已收盘 1 分钟 K 线；返回全部原始唤醒理由，但最多调用模型一次。"""
         newly_closed = self.state.accept_1m_bar(bar)
         expire_at = max(bar.available_at, self.replay.clock.current_time)
         self._expire_hypotheses(at=expire_at, marker=f"BAR_1M:{bar.open_time.isoformat()}")
@@ -648,9 +685,9 @@ class JiangheMarketReplaySession:
             watch_regions=self.replay.memory.watch_regions,
             invalidation_levels=self.invalidation_levels,
         )
-        for event in events:
-            if event.event_type in self.wake_policy:
-                self._run_decision_cycle(event)
+        eligible = tuple(event for event in events if event.event_type in self.wake_policy)
+        if eligible:
+            self._run_decision_cycle(self._coalesce_market_events(eligible))
         return events
 
     def emit_external_wake(
@@ -789,28 +826,6 @@ class JiangheMarketReplaySession:
         decision_at = response_at
         intent_at = response_at
         raw, decision = self.provider.decide(observation, self.replay.memory)
-        new_mode = validate_transition(attention_from, decision)
-        mutations: list[MemoryMutation] = []
-        memory = self.replay.memory
-
-        def apply(field_name: str, new_value: object, reason: str) -> None:
-            nonlocal memory
-            if getattr(memory, field_name) != new_value:
-                memory = memory.mutate(
-                    field_name=field_name,
-                    new_value=new_value,
-                    reason=reason,
-                    timestamp=intent_at,
-                    observation_identity=observation.identity.identity,
-                    ai_trader_identity=self.ai_trader_identity.identity,
-                )
-                mutations.append(memory.mutation_history[-1])
-
-        apply("attention_mode", decision.attention_mode, f"DECISION_{decision.action.value}")
-        apply("watch_regions", decision.watch_regions, "DECISION_WATCH_REGIONS")
-        apply("last_meaningful_decision", decision.action.value, "DECISION_ACTION")
-        apply("transition_reason", decision.rationale, "DECISION_RATIONALE")
-        self.replay.memory = memory
         audit = DecisionAuditRecord(
             observation_identity=observation.identity.identity,
             ai_trader_identity=self.ai_trader_identity.identity,
@@ -822,7 +837,8 @@ class JiangheMarketReplaySession:
             normalized_decision_at=decision_at,
             intent_available_at=intent_at,
         )
-        self.replay.record_decision(audit)
+        # replay.record_decision 是唯一 validate+memory mutation+ledger owner；禁止调用方预改状态。
+        mutations = self.replay.record_decision(audit)
         annotations = tuple(
             sorted({(kind, note) for chart in observation.charts for kind, note in chart.annotations})
         )
@@ -840,7 +856,7 @@ class JiangheMarketReplaySession:
             memory_mutations=tuple(mutations),
             annotations=annotations,
             attention_mode_from=attention_from.value,
-            attention_mode_to=new_mode.value,
+            attention_mode_to=decision.attention_mode.value,
             decision_action=decision.action.value,
         )
         self.traces.append(trace)
