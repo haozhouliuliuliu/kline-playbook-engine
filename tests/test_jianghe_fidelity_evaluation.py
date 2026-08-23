@@ -1,13 +1,17 @@
 """江河 AI 忠实度评估 harness 的测试。
 
-验证：
-- 规范化 response records 可被解析并送入现有 scorer；
-- 报告包含要求的全部字段，且行为 fail-closed；
+验证（fail-closed）：
+- 规范化 response records 可被严格解析（禁止 coercion）并送入现有 scorer；
+- 未知 response 字段 / corpus 不匹配 / call_success=False / 证据不完整 /
+  outcome contamination / metadata 违规 都使 record 不被 admit，绝不评分；
+- 报告包含 processing_status / evidence_completeness / evidence_eligibility
+  三态与确定性 report_identity；
 - 不涉及任何 provider / 网络 / outcome 访问。
 """
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import inspect
 import json
@@ -19,16 +23,62 @@ from pathlib import Path
 from src.jianghe_fidelity_evaluation import (
     ALLOWED_TRACKS,
     CORPUS_PATH,
+    COMPLETENESS_COMPLETE,
+    COMPLETENESS_INCOMPLETE,
+    ELIGIBILITY_ELIGIBLE,
+    ELIGIBILITY_INELIGIBLE,
+    PROCESSING_ERROR,
+    PROCESSING_OK,
     EvaluationRecord,
+    InputEvidence,
+    TRACK_REQUIRED_EVIDENCE,
     evaluate_response_records,
     load_corpus,
     load_response_records,
+    parse_input_evidence,
     parse_record,
     render_report,
 )
 from src.jianghe_fidelity_scoring import FidelityResponse, evaluate_fixture
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _hex_id(seed: str) -> str:
+    """确定性 64 位 sha256 hex，作为测试用 artifact identity。"""
+    return hashlib.sha256(seed.encode("utf-8")).hexdigest()
+
+
+def _input_evidence(track: str, **overrides) -> dict:
+    """按 track 提供最小合法 typed input provenance。"""
+    base = {
+        "SEMANTIC": {
+            "prompt_package_identity": _hex_id("prompt-semantic"),
+            "evaluation_extractor_identity": _hex_id("eval-extractor-semantic"),
+        },
+        "VISUAL": {
+            "visual_artifact_identity": _hex_id("visual-artifact"),
+            "renderer_config_identity": _hex_id("renderer-config"),
+        },
+        "STRUCTURED": {
+            "structured_input_identity": _hex_id("structured-input"),
+            "observation_identity": _hex_id("observation-1"),
+        },
+        "DUAL_INPUT": {
+            "visual_artifact_identity": _hex_id("visual-artifact"),
+            "renderer_config_identity": _hex_id("renderer-config"),
+            "structured_input_identity": _hex_id("structured-input"),
+            "observation_identity": _hex_id("observation-1"),
+        },
+        "OPERATIONAL_PROVIDER": {
+            "provider_invocation_identity": _hex_id("provider-invocation"),
+            "provider_response_identity": _hex_id("provider-response"),
+            "model_provider_identity": _hex_id("model-provider"),
+        },
+    }
+    evidence = dict(base.get(track, {}))
+    evidence.update(overrides)
+    return evidence
 
 
 def _response_payload(**kwargs) -> dict:
@@ -53,15 +103,21 @@ def _make_record(
     candidate: str = "candidate-x",
     response: dict | None = None,
     record_id: str | None = None,
+    input_evidence: dict | None = None,
     **kwargs,
 ) -> dict:
     rec = {
-        "record_id": record_id or f"{candidate}-{fixture_id}-{track}",
+        "record_id": (
+            record_id if record_id is not None else f"{candidate}-{fixture_id}-{track}"
+        ),
         "candidate_label": candidate,
         "corpus_id": "JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1",
         "fixture_id": fixture_id,
         "track": track,
         "response": response if response is not None else _response_payload(),
+        "input_evidence": (
+            input_evidence if input_evidence is not None else _input_evidence(track)
+        ),
     }
     rec.update(kwargs)
     return rec
@@ -128,6 +184,15 @@ class RecordParsingTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             parse_record(rec)
+
+    def test_missing_optional_response_fields_default_to_empty(self):
+        rec = _make_record("JH-FIX-A-001", "SEMANTIC")
+        rec["response"] = {"family": "A", "action": "WAIT"}
+        parsed = parse_record(rec)
+        self.assertEqual(parsed.response.violated_principles, ())
+        self.assertEqual(parsed.response.acknowledged_principles, ())
+        self.assertEqual(parsed.response.invented_thresholds, ())
+        self.assertEqual(parsed.response.declared_unknown, ())
 
 
 class FileLoadingTests(unittest.TestCase):
@@ -314,23 +379,39 @@ class EvidenceSurvivalTests(unittest.TestCase):
             ["JH-UNK-003"],
         )
 
-    def test_outcome_reference_violation_is_recorded(self):
+    def test_outcome_reference_flag_is_fail_closed(self):
         response = _passing_response("JH-FIX-A-001")
         response["outcome_reference"] = True
         records = [_make_record("JH-FIX-A-001", "SEMANTIC", response=response)]
         report = evaluate_response_records(self.corpus, records)
-        self.assertEqual(len(report["outcome_reference_violations"]), 1)
-        self.assertEqual(report["per_track_fixture_counts"]["SEMANTIC"]["FAIL"], 1)
+        # 之前允许 violation 存在但 status=OK / FAIL 评分；现在必须 fail-closed。
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(report["evidence_eligibility"], ELIGIBILITY_INELIGIBLE)
+        self.assertEqual(len(report["outcome_contamination_violations"]), 1)
+        self.assertEqual(
+            report["outcome_contamination_violations"][0]["source"],
+            "outcome_reference_flag",
+        )
+        self.assertEqual(report["admitted_record_total"], 0)
+        self.assertEqual(report["per_fixture_scores"], [])
+        self.assertEqual(report["per_track_fixture_counts"]["SEMANTIC"]["PASS"], 0)
+        self.assertEqual(report["per_track_fixture_counts"]["SEMANTIC"]["FAIL"], 0)
 
-    def test_outcome_contamination_in_raw_text_is_recorded(self):
+    def test_outcome_contamination_in_raw_text_is_fail_closed(self):
         response = _passing_response("JH-FIX-A-001")
         response["raw_text"] = "这笔交易最终盈利很多。"
         records = [_make_record("JH-FIX-A-001", "SEMANTIC", response=response)]
         report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(report["evidence_eligibility"], ELIGIBILITY_INELIGIBLE)
         raw_text_hits = [
-            v for v in report["outcome_reference_violations"] if v.get("source") == "raw_text"
+            v
+            for v in report["outcome_contamination_violations"]
+            if v.get("source") == "raw_text"
         ]
         self.assertTrue(len(raw_text_hits) > 0)
+        self.assertEqual(report["admitted_record_total"], 0)
+        self.assertEqual(report["per_fixture_scores"], [])
 
 
 class MissingTrackReportingTests(unittest.TestCase):
@@ -378,6 +459,399 @@ class NoProviderNetworkTests(unittest.TestCase):
         forbidden = ["import requests", "import urllib", "import openai", "import httpx"]
         for token in forbidden:
             self.assertNotIn(token, source, f"runner 源码不应包含 {token}")
+
+
+class StrictResponseSchemaTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = load_corpus()
+
+    def test_unknown_response_field_is_rejected(self):
+        response = _passing_response("JH-FIX-A-001")
+        response["future_price"] = "later went up"
+        records = [_make_record("JH-FIX-A-001", "SEMANTIC", response=response)]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertTrue(len(report["malformed_response_records"]) > 0)
+        self.assertTrue(any("未知字段" in e for e in report["errors"]))
+
+    def test_unknown_response_field_never_scored(self):
+        response = _passing_response("JH-FIX-A-001")
+        response["extra_field"] = "x"
+        records = [_make_record("JH-FIX-A-001", "SEMANTIC", response=response)]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(report["admitted_record_total"], 0)
+        self.assertEqual(report["per_fixture_scores"], [])
+
+
+class CorpusBindingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = load_corpus()
+
+    def test_corpus_mismatch_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                corpus_id="SOME_OTHER_CORPUS",
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(report["evidence_eligibility"], ELIGIBILITY_INELIGIBLE)
+        self.assertEqual(len(report["corpus_mismatch_records"]), 1)
+        self.assertEqual(report["admitted_record_total"], 0)
+        self.assertEqual(report["per_fixture_scores"], [])
+
+
+class FailedCallTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = load_corpus()
+
+    def test_call_success_false_is_non_scoreable(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                call_success=False,
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(len(report["failed_call_records"]), 1)
+        self.assertEqual(report["admitted_record_total"], 0)
+        self.assertEqual(report["per_fixture_scores"], [])
+
+    def test_call_success_must_be_real_bool(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                call_success="true",
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertTrue(len(report["malformed_response_records"]) > 0)
+
+
+class StrictTypeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = load_corpus()
+
+    def test_record_id_must_be_non_empty_str(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                record_id="",
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+
+    def test_negative_latency_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                latency_ms=-5,
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertTrue(len(report["malformed_response_records"]) > 0)
+
+    def test_float_latency_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                latency_ms=1.5,
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+
+    def test_latency_bool_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                latency_ms=True,
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+
+    def test_no_str_coercion_for_principles(self):
+        response = _passing_response("JH-FIX-A-001")
+        response["acknowledged_principles"] = [123]
+        records = [_make_record("JH-FIX-A-001", "SEMANTIC", response=response)]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+
+
+class TrackProvenanceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = load_corpus()
+
+    def test_visual_without_visual_provenance_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "VISUAL",
+                response=_passing_response("JH-FIX-A-001"),
+                input_evidence=_input_evidence("SEMANTIC"),
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(len(report["provenance_ineligible_records"]), 1)
+        self.assertEqual(report["admitted_record_total"], 0)
+
+    def test_structured_without_structured_provenance_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "STRUCTURED",
+                response=_passing_response("JH-FIX-A-001"),
+                input_evidence=_input_evidence("SEMANTIC"),
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(len(report["provenance_ineligible_records"]), 1)
+        self.assertEqual(report["admitted_record_total"], 0)
+
+    def test_semantic_cannot_use_visual_evidence(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                input_evidence=_input_evidence("VISUAL"),
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(len(report["provenance_ineligible_records"]), 1)
+        self.assertEqual(report["admitted_record_total"], 0)
+
+    def test_dual_missing_structured_input_is_rejected(self):
+        dual = _input_evidence("DUAL_INPUT")
+        dual.pop("structured_input_identity")
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "DUAL_INPUT",
+                response=_passing_response("JH-FIX-A-001"),
+                input_evidence=dual,
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(len(report["provenance_ineligible_records"]), 1)
+        self.assertEqual(report["admitted_record_total"], 0)
+
+    def test_dual_inconsistent_observation_identities_is_rejected(self):
+        dual = _input_evidence("DUAL_INPUT")
+        dual["structured_observation_identity"] = _hex_id("observation-2")
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "DUAL_INPUT",
+                response=_passing_response("JH-FIX-A-001"),
+                input_evidence=dual,
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(len(report["provenance_ineligible_records"]), 1)
+        self.assertTrue(any("不一致" in e for e in report["errors"]))
+
+    def test_operational_provider_without_provider_evidence_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "OPERATIONAL_PROVIDER",
+                response=_passing_response("JH-FIX-A-001"),
+                input_evidence=_input_evidence("SEMANTIC"),
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(len(report["provenance_ineligible_records"]), 1)
+        self.assertEqual(report["admitted_record_total"], 0)
+
+    def test_identity_must_be_64_hex(self):
+        bad = _input_evidence("SEMANTIC")
+        bad["prompt_package_identity"] = "not-a-sha256"
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                input_evidence=bad,
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertTrue(len(report["malformed_response_records"]) > 0)
+
+    def test_input_evidence_unknown_field_is_rejected(self):
+        bad = _input_evidence("SEMANTIC")
+        bad["arbitrary_provenance_string"] = _hex_id("x")
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                input_evidence=bad,
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertTrue(len(report["malformed_response_records"]) > 0)
+
+
+class MetadataGovernanceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = load_corpus()
+
+    def test_metadata_contamination_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                metadata={"probe_session_id": "session-with-胜率-claim"},
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(report["evidence_eligibility"], ELIGIBILITY_INELIGIBLE)
+        self.assertEqual(len(report["metadata_violations"]), 1)
+        self.assertEqual(report["admitted_record_total"], 0)
+        metadata_hits = [
+            v
+            for v in report["outcome_contamination_violations"]
+            if v.get("source") == "metadata"
+        ]
+        self.assertTrue(len(metadata_hits) > 0)
+
+    def test_metadata_unknown_key_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                metadata={"hidden_outcome_channel": "胜率 0.6"},
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertTrue(len(report["malformed_response_records"]) > 0)
+
+    def test_metadata_non_scalar_is_rejected(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001",
+                "SEMANTIC",
+                response=_passing_response("JH-FIX-A-001"),
+                metadata={"probe_session_id": {"nested": "object"}},
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertTrue(len(report["malformed_response_records"]) > 0)
+
+
+class ReportIdentityTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = load_corpus()
+
+    def _records(self, response=None):
+        fixture_id = "JH-FIX-A-001"
+        return [
+            _make_record(
+                fixture_id,
+                "SEMANTIC",
+                response=response or _passing_response(fixture_id),
+            )
+        ]
+
+    def test_report_identity_is_deterministic(self):
+        report_a = evaluate_response_records(self.corpus, self._records())
+        report_b = evaluate_response_records(self.corpus, self._records())
+        self.assertEqual(report_a["report_identity"], report_b["report_identity"])
+
+    def test_report_identity_changes_on_evidence_mutation(self):
+        base = evaluate_response_records(self.corpus, self._records())
+        mutated = self._records()
+        mutated[0]["response"]["raw_text"] = "额外的不同内容。"
+        changed = evaluate_response_records(self.corpus, mutated)
+        self.assertNotEqual(base["report_identity"], changed["report_identity"])
+
+    def test_report_identity_binds_corpus_and_track_provenance(self):
+        base = evaluate_response_records(self.corpus, self._records())
+        changed_evidence = self._records()
+        changed_evidence[0]["input_evidence"]["prompt_package_identity"] = _hex_id(
+            "other-prompt"
+        )
+        changed = evaluate_response_records(self.corpus, changed_evidence)
+        self.assertNotEqual(base["report_identity"], changed["report_identity"])
+
+
+class ThreeStateSeparationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.corpus = load_corpus()
+
+    def test_full_valid_semantic_run_ok_eligible(self):
+        fixture_ids = ["JH-FIX-A-001", "JH-FIX-B-001", "JH-FIX-C-001"]
+        records = [
+            _make_record(fid, "SEMANTIC", response=_passing_response(fid))
+            for fid in fixture_ids
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_OK)
+        self.assertEqual(report["evidence_eligibility"], ELIGIBILITY_ELIGIBLE)
+        self.assertEqual(report["status"], PROCESSING_OK)
+
+    def test_partial_coverage_is_incomplete_but_ok(self):
+        records = [
+            _make_record(
+                "JH-FIX-A-001", "SEMANTIC", response=_passing_response("JH-FIX-A-001")
+            )
+        ]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_OK)
+        self.assertEqual(report["evidence_completeness"], COMPLETENESS_INCOMPLETE)
+        self.assertEqual(report["evidence_eligibility"], ELIGIBILITY_ELIGIBLE)
+
+    def test_contamination_sets_all_states_fail_closed(self):
+        response = _passing_response("JH-FIX-A-001")
+        response["outcome_reference"] = True
+        records = [_make_record("JH-FIX-A-001", "SEMANTIC", response=response)]
+        report = evaluate_response_records(self.corpus, records)
+        self.assertEqual(report["processing_status"], PROCESSING_ERROR)
+        self.assertEqual(report["evidence_completeness"], COMPLETENESS_INCOMPLETE)
+        self.assertEqual(report["evidence_eligibility"], ELIGIBILITY_INELIGIBLE)
 
 
 if __name__ == "__main__":

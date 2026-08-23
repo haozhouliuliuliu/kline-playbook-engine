@@ -7,7 +7,10 @@
 
 输入文件支持 JSON（对象或数组）或 JSONL。
 输出为机器可读确定性 JSON 报告；默认写到 stdout，可用 --output 指定文件。
+报告包含 processing_status / evidence_completeness / evidence_eligibility 三态
+与确定性 report_identity。
 
+退出码：0 当且仅当 processing_status == "OK"；否则 1（fail-closed）。
 本脚本不调用任何真实模型、不访问网络、不读取 outcome/PnL。
 """
 
@@ -16,6 +19,10 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from src.jianghe_fidelity_evaluation import (
     CORPUS_PATH,
@@ -80,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         args.output.write_text(rendered, encoding="utf-8")
 
-    return 0 if report["status"] == "OK" else 1
+    return 0 if report.get("processing_status", report.get("status")) == "OK" else 1
 
 
 if __name__ == "__main__":
