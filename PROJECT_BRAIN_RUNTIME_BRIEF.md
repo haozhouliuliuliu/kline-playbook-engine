@@ -45,9 +45,11 @@ JIANGHE_AI_VISUAL_RENDERER=IN_PREPARATION_NOT_INTEGRATED
 JIANGHE_AI_REAL_MODEL_PROVIDER=NOT_IMPLEMENTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
-CURRENT_WORK_PACKAGE=JIANGHE_REAL_MODEL_FIDELITY_PREP_AND_PRIMARY_FREEZE_READINESS
-NEXT_NORMAL_PHASE=complete_visual_renderer_plus_provider_contract_then_owner_authorized_live_fidelity_probe
-LIVE_MODEL_PROVIDER_PROBE=OWNER_GATE_NOT_YET_REQUESTED
+CURRENT_WORK_PACKAGE=JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_REPAIR
+NEXT_NORMAL_PHASE=repair_pre_live_identity_fidelity_provider_normalizer_and_visual_findings_then_rerun_gate_audit
+PRE_LIVE_FIDELITY_GATE_AUDIT=NOT_READY_REPAIR_REQUIRED
+OWNER_ACTION=NONE_UNTIL_REAUDIT_PASSES_AND_LIVE_PROBE_APPROVAL_IS_REQUESTED
+LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_AUDIT_REPAIR
 PAID_MODEL_SPEND=NOT_AUTHORIZED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
@@ -55,6 +57,7 @@ HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
+OUTCOME_ACCESS=NO
 ```
 
 ## Product behavior that must survive handoff
@@ -76,9 +79,19 @@ FULL_RATIONALE=MEANINGFUL_STATE_TRANSITION_OR_TRADE_MANAGEMENT
 
 The 352-claim identity-bound pre-freeze registry is integrated; 340 claims are ready for freeze and 12 remain explicit fail-closed STOP records. This is not the Owner-gated PRIMARY semantic freeze.
 
-The offline provider-neutral fidelity evaluation harness is integrated. Current normal work is parallel visual-renderer preparation plus governed provider-contract preparation. No real provider/model call is authorized yet.
+The pre-live fidelity gate audit found evidence-chain gaps and is locked
+`NOT_READY_REPAIR_REQUIRED` (authority: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_V0_1.md`).
+Live provider probe is `BLOCKED_PENDING_AUDIT_REPAIR`. Current package is the audit
+repair: fidelity-evaluator evidence completeness, visual renderer import + independent
+review, and real-model firewall tests — all offline and fail-closed. No real
+provider/model call is authorized yet.
 
-After those preparations integrate and tests remain green, request Owner approval for one bounded real-provider fidelity probe covering credentials/data egress/paid spend. That approval does **not** unlock candidate outcomes. After real-model fidelity evidence supports a model/provider, final PRIMARY semantic freeze remains a separate Owner decision before outcome-bearing candidate research.
+After the repair and a re-run of the gate audit confirm no remaining evidence gaps,
+request Owner approval for one bounded real-provider fidelity probe covering
+credentials/data egress/paid spend. That approval does **not** unlock candidate
+outcomes. After real-model fidelity evidence supports a model/provider, final PRIMARY
+semantic freeze remains a separate Owner decision before outcome-bearing candidate
+research.
 
 ## Local worker relay facts / Owner workflow
 

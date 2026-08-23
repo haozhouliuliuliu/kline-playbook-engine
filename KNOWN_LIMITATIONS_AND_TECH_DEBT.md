@@ -78,6 +78,27 @@ AUTHORITY=docs/reviews/JIANGHE_AI_FIDELITY_AND_REPLAY_INTEGRATION_REVIEW_V0_1.md
 
 The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. The offline evaluation harness is integrated; real-model evaluation remains blocked on governed visual input plus provider/model invocation capability and an Owner-authorized live probe.
 
+## LIMIT-013 — Pre-live fidelity gate audit is NOT_READY (evidence-chain gaps)
+
+```text
+STATUS=ACTIVE
+PRIORITY=HIGHEST_CURRENT
+CURRENT_BLOCKER=YES_FOR_LIVE_MODEL_PROVIDER_PROBE_AND_PRIMARY_PROMOTION
+PRE_LIVE_FIDELITY_GATE_AUDIT=NOT_READY_REPAIR_REQUIRED
+LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_AUDIT_REPAIR
+OUTCOME_ACCESS=NO
+AUTHORITY=docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_V0_1.md
+```
+
+Live probe 前发现证据链缺口（GLOBAL G-01..G-03、FIDELITY H-01..H-08、
+PROVIDER H-09..H-13、OBSERVATION O-01..O-03、NORMALIZER/PROMPT N-01..N-04、
+PROCESS P-01..P-04）。修复目标：fidelity evaluator evidence completeness
+（outcome contamination fail-closed、strict schema、corpus binding、
+failed-call non-scoreable、strict types、typed provenance、metadata allowlist+scan、
+deterministic report_identity、三态分离）、visual renderer 按文件/hash 独立搬运与
+review、real-model firewall tests。全部离线且 fail-closed，不访问任何 protected
+artifact，不做任何真实模型调用。
+
 ## Current PRIMARY prerequisite
 
 ```text

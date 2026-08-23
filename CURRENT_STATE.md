@@ -13,11 +13,27 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=JIANGHE_REAL_MODEL_FIDELITY_PREP_AND_PRIMARY_FREEZE_READINESS
-NEXT_NORMAL_PHASE=complete_visual_renderer_plus_provider_contract_then_owner_authorized_live_fidelity_probe
-OWNER_ACTION=NONE_UNTIL_LIVE_PROVIDER_PROBE_GATE
+CURRENT_WORK_PACKAGE=JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_REPAIR
+NEXT_NORMAL_PHASE=repair_pre_live_identity_fidelity_provider_normalizer_and_visual_findings_then_rerun_gate_audit
+OWNER_ACTION=NONE_UNTIL_REAUDIT_PASSES_AND_LIVE_PROBE_APPROVAL_IS_REQUESTED
 TOOL_DECISION=USE_EXISTING
 ```
+
+## Pre-live fidelity gate audit（当前裁决）
+
+```text
+PRE_LIVE_FIDELITY_GATE_AUDIT=NOT_READY_REPAIR_REQUIRED
+LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_AUDIT_REPAIR
+PAID_MODEL_SPEND=NOT_AUTHORIZED
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
+OUTCOME_ACCESS=NO
+AUTHORITY=docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_AUDIT_V0_1.md
+```
+
+Live probe 前发现证据链缺口（G-01..G-03、H-01..H-08、H-09..H-13、
+O-01..O-03、N-01..N-04、P-01..P-04），详见审计文件。修复完成并重新运行
+gate audit 之前，`LIVE_MODEL_PROVIDER_PROBE` 保持 BLOCKED。
 
 ## Current product / strategy boundary
 
@@ -124,8 +140,9 @@ HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
-LIVE_MODEL_PROVIDER_PROBE=OWNER_GATE_NOT_YET_REQUESTED
+LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_AUDIT_REPAIR
 PAID_MODEL_SPEND=NOT_AUTHORIZED
+OUTCOME_ACCESS=NO
 ```
 
 No project-recorded real candidate outcome exposure has been established.
@@ -147,11 +164,27 @@ Historical fee/margin, price-limit realism, future Shadow statistical profile, p
 
 ## Next normal work
 
-Two pre-outcome lanes are current and may proceed in parallel:
-- **standardized visual observation renderer/input** — deterministic, causal, point-in-time chart artifacts suitable for the VISUAL and DUAL_INPUT fidelity tracks;
-- **real-model provider contract/preparation** — provider/model/version/timing/raw-response governance with live calls disabled until Owner approval.
+Current package is the pre-live fidelity gate audit repair, which must stay fail-closed and offline:
 
-After both are integrated and the combined suite is green, the next Owner gate is a bounded real-provider fidelity probe. That gate is for credentials/data egress/paid spend and does not authorize candidate outcomes. After real-model fidelity evidence supports a model/provider, the final PRIMARY semantic freeze remains a separate Owner decision before any outcome-bearing candidate research.
+- **fidelity evaluator evidence completeness** — outcome contamination fail-closed
+  (PROCESSING_STATUS=ERROR / EVIDENCE_ELIGIBLE=NO), strict response schema,
+  exact corpus binding, failed-call non-scoreable, strict types, typed input
+  provenance per track, metadata allowlist + recursive contamination scan,
+  deterministic report identity, and separation of processing_status /
+  evidence_completeness / evidence_eligibility;
+- **visual renderer import + independent review** — port WorkBuddy visual renderer
+  by file/hash (no branch-ancestry merge), then review for pure stdlib, no network,
+  no system font/clock/random, deterministic artifact identities, no PnL/outcome,
+  provider-neutral;
+- **real-model firewall tests** — prove the new paths reject unknown outcome fields,
+  contamination, corpus mismatch, missing provenance, etc., without any real model call.
+
+No provider/model call or candidate outcome access occurs in this package. After the
+repair and a re-run of the gate audit confirm no remaining evidence gaps, the next
+Owner gate is a bounded real-provider fidelity probe (credentials/data egress/paid
+spend). That approval does **not** unlock candidate outcomes. After real-model
+fidelity evidence supports a model/provider, the final PRIMARY semantic freeze
+remains a separate Owner decision before any outcome-bearing candidate research.
 
 No model/provider is currently VERIFIED or ADOPTED.
 
