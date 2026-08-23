@@ -64,11 +64,11 @@ SESSION_EVIDENCE = (
 # These values are the source of truth until a genuine, reviewed semantic change
 # deliberately re-generates every derived artifact from the builders.
 AUTHORITATIVE = {
-    "contract_identity": "be8872baf56983385636a4480889ba2e006578912c565bf824694aafb861c67b",
-    "machine_identity": "14fbde5279f43e8dfa96241f35ca84c806f6b4e434a1784bafe6f66d1f8c1fce",
-    "feature_identity": "333ca10c58adabe6c5348cd95d3ef5d19b2450fdf0ff51b0339993129f69b6b4",
-    "strategy_identity": "d2093ca202c465b5bedc77ad6cf46b6a5776077be29bbfe67ce093669b7738e8",
-    "strategy_version": "pc-0.4.0-be8872baf56983385636a4480889ba2e006578912c565bf824694aafb861c67b",
+    "contract_identity": "549e730b4c3b78b7367b253fc665f651d7486f053fab6dde101ca9d73a4b2a61",
+    "machine_identity": "22886cfa770ba7dd1f266133f950e99ec6770ca0332eca40657d57943155b6c9",
+    "feature_identity": "3c3dfff55831482b6ee44e746d9976b8b5a3a7a7b986c21b9f799868761b0309",
+    "strategy_identity": "64ff2a4fd4df6a89047fe2042a1120f67037f5179b908b29922996908daa3040",
+    "strategy_version": "pc-0.4.0-549e730b4c3b78b7367b253fc665f651d7486f053fab6dde101ca9d73a4b2a61",
     "parameter_hash": "aa41f53232f44255e9a012b93e1890d889bf4a0a986dc5e4f754dbb1c46d1659",
 }
 

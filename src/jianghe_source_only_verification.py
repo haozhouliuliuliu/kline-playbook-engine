@@ -11,6 +11,7 @@ import csv
 import io
 import json
 import re
+import subprocess
 from hashlib import sha256
 from pathlib import Path
 from typing import Iterable
@@ -43,6 +44,45 @@ def _canonical_hash(value: object) -> str:
 
 def _relative(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
+
+
+def _normalize_worktree_text_bytes(content: bytes) -> bytes:
+    """Normalize only the CRLF transform Git may apply to checked-out text files."""
+    return content.replace(b"\r\n", b"\n")
+
+
+def _repository_blob_bytes(path: Path) -> bytes:
+    """Return exact committed Git blob bytes and fail closed on real worktree drift.
+
+    SOURCE_ONLY claims exact *repository* artifact bytes. Git blobs are the repository
+    authority; OS checkout newline transforms are not. A working tree may differ only
+    by CRLF<->LF checkout normalization. Any other difference is an uncommitted material
+    change and must not be silently laundered into a verified session.
+    """
+    if not path.is_file():
+        raise ValueError(f"repository material missing: {_relative(path)}")
+    relative = _relative(path)
+    process = subprocess.run(
+        ["git", "show", f"HEAD:{relative}"],
+        cwd=ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if process.returncode != 0:
+        raise ValueError(f"cannot resolve committed repository blob: {relative}")
+    blob = bytes(process.stdout)
+    worktree = path.read_bytes()
+    if worktree != blob and _normalize_worktree_text_bytes(worktree) != blob:
+        raise ValueError(f"working tree differs from committed repository material: {relative}")
+    return blob
+
+
+def _repository_text(path: Path) -> str:
+    try:
+        return _repository_blob_bytes(path).decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ValueError(f"repository material is not UTF-8 text: {_relative(path)}") from error
 
 
 def _source_paths() -> tuple[Path, ...]:
@@ -84,15 +124,17 @@ def _assert_paths_exist(paths: Iterable[Path]) -> tuple[Path, ...]:
 
 def _manifest(label: str, paths: Iterable[Path]) -> dict[str, object]:
     resolved = _assert_paths_exist(paths)
-    materials = [
-        {
-            "logical_material_id": f"{label}:{index:03d}",
-            "repository_artifact": _relative(path),
-            "content_sha256": sha256(path.read_bytes()).hexdigest(),
-            "byte_size": path.stat().st_size,
-        }
-        for index, path in enumerate(resolved, start=1)
-    ]
+    materials = []
+    for index, path in enumerate(resolved, start=1):
+        blob = _repository_blob_bytes(path)
+        materials.append(
+            {
+                "logical_material_id": f"{label}:{index:03d}",
+                "repository_artifact": _relative(path),
+                "content_sha256": sha256(blob).hexdigest(),
+                "byte_size": len(blob),
+            }
+        )
     return {
         "manifest_id": label,
         "material_count": len(materials),
@@ -105,7 +147,7 @@ def _manifest(label: str, paths: Iterable[Path]) -> dict[str, object]:
 def _claim_summary(paths: Iterable[Path]) -> dict[str, object]:
     claims: list[dict[str, object]] = []
     for path in _assert_paths_exist(paths):
-        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        for line_number, line in enumerate(_repository_text(path).splitlines(), start=1):
             if line.strip():
                 try:
                     claims.append(json.loads(line))
@@ -138,7 +180,7 @@ def _case_summary(paths: Iterable[Path]) -> dict[str, object]:
     case_ids: list[str] = []
     for path in _assert_paths_exist(paths):
         case_ids.extend(
-            re.findall(r"^## (JH-CASE-[A-Z0-9-]+)", path.read_text(encoding="utf-8"), flags=re.MULTILINE)
+            re.findall(r"^## (JH-CASE-[A-Z0-9-]+)", _repository_text(path), flags=re.MULTILINE)
         )
     if not case_ids or len(set(case_ids)) != len(case_ids):
         raise ValueError("江河 case_id 缺失或不唯一")
@@ -152,7 +194,7 @@ def _case_summary(paths: Iterable[Path]) -> dict[str, object]:
 
 def _coverage_summary() -> dict[str, object]:
     paths = tuple(sorted(SALVAGE_ROOT.glob("JIANGHE_SECOND_PASS_SOURCE_COVERAGE_RECORD_V1_1.part*.csv")))
-    text = "".join(path.read_text(encoding="utf-8") for path in _assert_paths_exist(paths))
+    text = "".join(_repository_text(path) for path in _assert_paths_exist(paths))
     rows = list(csv.DictReader(io.StringIO(text)))
     if len(rows) != 99 or len({row["source_ordinal"] for row in rows}) != 99:
         raise ValueError("江河 source coverage 不是完整 001..099")
@@ -183,7 +225,7 @@ def _coverage_summary() -> dict[str, object]:
 def _knowledge_pack() -> dict[str, object]:
     if not FOUNDATION_PATH.is_file():
         raise ValueError("江河知识包基础工件缺失")
-    payload = json.loads(FOUNDATION_PATH.read_text(encoding="utf-8"))
+    payload = json.loads(_repository_text(FOUNDATION_PATH))
     if payload.get("knowledge_pack_version") != "JIANGHE_V1_1" or not payload.get("knowledge_pack_identity"):
         raise ValueError("江河 V1.1 知识包身份缺失")
     return {
@@ -218,7 +260,7 @@ def build_verification_payload() -> dict[str, object]:
                     source_id="JIANGHE_TRADER_V1_1",
                     material_id=f"{category}:{index:03d}",
                     source_anchor_reference=f"JIANGHE_V1_1:{category}:{index:03d}",
-                    content=path.read_bytes(),
+                    content=_repository_blob_bytes(path),
                 )
             )
     source_bundle = ApprovedSourceBundle(
@@ -270,9 +312,9 @@ def build_verification_payload() -> dict[str, object]:
     if any(denial.outcome != "DENIED" or denial.reason != "SOURCE_ONLY_TECHNICAL_DENIAL" for denial in denials):
         raise ValueError("江河 SOURCE_ONLY 保护面未失败闭合")
 
-    unknown_register = (JIANGHE_ROOT / "JIANGHE_UNKNOWN_REGISTER_V1_1.md").read_text(encoding="utf-8")
-    contradiction_register = (JIANGHE_ROOT / "JIANGHE_CONTRADICTION_REGISTER_V1_1.md").read_text(encoding="utf-8")
-    family_document = (JIANGHE_ROOT / "JIANGHE_STRATEGY_FAMILIES_V1_1.md").read_text(encoding="utf-8")
+    unknown_register = _repository_text(JIANGHE_ROOT / "JIANGHE_UNKNOWN_REGISTER_V1_1.md")
+    contradiction_register = _repository_text(JIANGHE_ROOT / "JIANGHE_CONTRADICTION_REGISTER_V1_1.md")
+    family_document = _repository_text(JIANGHE_ROOT / "JIANGHE_STRATEGY_FAMILIES_V1_1.md")
     family_ids = re.findall(r"^## (JH-FAMILY-[A-Z])", family_document, flags=re.MULTILINE)
     if family_ids != ["JH-FAMILY-A", "JH-FAMILY-B", "JH-FAMILY-C", "JH-FAMILY-D"]:
         raise ValueError("江河策略家族不再是唯一 A/B/C/D")

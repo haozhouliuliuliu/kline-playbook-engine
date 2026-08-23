@@ -22,7 +22,7 @@ class E07TqSdkMappingScheduleTests(unittest.TestCase):
         self.assertEqual("NO", payload["price_data_used"])
         self.assertEqual("NO", payload["candidate_outcome_data_used"])
         self.assertEqual(
-            "331ba31e2a03695160aff28f7c7c58888dcc9bc091515e176c8d5c6b66edcb5c",
+            "d52e92a66c0096741217ee4d0a881d1668a07a7ddc38aba6dca19efa6ccb161e",
             payload["schedule_identity"],
         )
 

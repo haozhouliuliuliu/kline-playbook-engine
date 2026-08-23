@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import json
 import unittest
+from hashlib import sha256
 from pathlib import Path
 
 from src.jianghe_source_only_verification import (
     FOUNDATION_PATH,
     ROOT,
     SESSION_ID,
+    _repository_blob_bytes,
     build_verification_payload,
 )
 
@@ -58,6 +60,15 @@ class JiangheSourceOnlyVerificationTests(unittest.TestCase):
         self.assertEqual(payload["semantic_verification"]["new_claims_created"], 0)
         self.assertEqual(payload["semantic_verification"]["new_cases_created"], 0)
         self.assertEqual(payload["semantic_verification"]["family_consistency"], "PASS__JH_FAMILY_A_B_C_D_ONLY")
+
+    def test_material_hashes_bind_exact_committed_git_blob_bytes(self):
+        payload = build_verification_payload()
+        for section in ("source_material_manifest", "claim_manifest", "case_manifest"):
+            for material in payload[section]["materials"]:
+                path = ROOT / material["repository_artifact"]
+                blob = _repository_blob_bytes(path)
+                self.assertEqual(material["content_sha256"], sha256(blob).hexdigest())
+                self.assertEqual(material["byte_size"], len(blob))
 
     def test_committed_evidence_matches_current_material_bindings(self):
         self.assertTrue(FOUNDATION_PATH.is_file())
