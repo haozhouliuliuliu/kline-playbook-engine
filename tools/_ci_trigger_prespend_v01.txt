@@ -1,0 +1,1 @@
+trigger baseline differential run after default-branch workflow update
