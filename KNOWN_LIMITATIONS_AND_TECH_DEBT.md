@@ -65,7 +65,7 @@ Project API/session denial and material binding were verified for the currently 
 
 ```text
 STATUS=ACTIVE
-PRIORITY=HIGH_FUTURE_AFTER_PRELIVE_GATE
+PRIORITY=HIGH_FUTURE_AFTER_PRESPEND_REPAIR
 CURRENT_BLOCKER=YES_FOR_MODEL_ADOPTION_AND_PRIMARY_PROMOTION
 REAL_MODEL_PROVIDER_LIVE_TRANSPORT=NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
 REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
@@ -77,42 +77,36 @@ PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED
 RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
 ```
 
-The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. The offline evidence chain is integrated, but no real provider/model has been called or verified. A future live probe remains Owner-gated for credentials, data egress and paid spend.
+The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. No real provider/model has been called or verified. A future live probe remains Owner-gated for credentials, data egress and paid spend.
 
-## LIMIT-013 — Pre-live fidelity gate audit blocker (RESOLVED)
-
-```text
-STATUS=RESOLVED_BY_INTEGRATION_2026-08-23
-CURRENT_BLOCKER=NO
-PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
-LIVE_MODEL_PROVIDER_PROBE=AWAITING_OWNER_BOUNDED_PROBE_APPROVAL
-OUTCOME_ACCESS=NO
-RESOLUTION=docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_REAUDIT_V0_1.md
-CLOSING_EVIDENCE=all 27 original findings (G-01..G-03, H-01..H-13, O-01..O-03, N-01..N-04, P-01..P-04) CLOSED with concrete code/artifact/test evidence; full suite 1195 tests 0 failures 0 errors; firewalls pass.
-```
-
-Pre-live audit blocker is closed only because Gate C passed in full. Real-model fidelity itself remains the later `LIMIT-012`.
-
-## LIMIT-014 — PRIMARY curated review quality (RESOLVED)
+## LIMIT-015 — Owner-requested pre-spend assurance audit found unresolved correctness/evidence/cost blockers
 
 ```text
-STATUS=RESOLVED_BY_V0_5_FIXED_RUBRIC_INDEPENDENT_REAUDIT_2026-08-23
-CURRENT_BLOCKER=NO
-AUDIT_STATUS=PASS
-PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
-RESOLUTION=docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT_V0_1.md
-CANDIDATE_COMMIT=08dc196e1a889c9d17070a767a24a41aab2f17d6
-TOTAL_RECORDS=352
-REGISTRY_DECLARED_READY_COUNT=340
-REGISTRY_STOP_COUNT=12
-PROJECT_BRAIN_ACCEPTED_READY_COUNT=340
-Q01_SOL_REVIEW_READY_CONFLICT_COUNT=0_RESOLVED_BY_V0_5
-Q02_TEMPLATE_EVIDENCE_PROBLEM=RESOLVED_BY_V0_5_FIXED_RUBRIC_REAUDIT
-PRIMARY_FREEZE=NO
-OUTCOME_ACCESS=NO
+STATUS=ACTIVE_REPAIR_REQUIRED
+PRIORITY=HIGHEST_CURRENT_BEFORE_ANY_LIVE_PROVIDER_CALL
+CURRENT_BLOCKER=YES_FOR_PAID_MODEL_SPEND
+AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
+AUDIT_BASELINE=7d85b41044181ee35ac482ea158898956727f23b
+ROUND_1_ARCHITECTURE_AUDIT=FAIL
+ROUND_2_FINE_GRAINED_AUDIT=FAIL
+BLOCKER_BEFORE_SPEND=5
+REPAIR_RECOMMENDED_BEFORE_SPEND=2
+SPEND_GATE=CLOSED
+LIVE_CALLS=0
+PAID_SPEND=0
 ```
 
-The V0.5 curated-quality repair (exact candidate commit above) passed the independent fixed R1–R8 re-audit (`AUDITOR_ROLE=INDEPENDENT_LOCAL_WORKBUDDY_READ_ONLY`). `PRIMARY_ELIGIBLE=NO` remains; this resolution does not create PRIMARY eligibility, freeze, outcome access, or model/provider adoption.
+The five hard blockers are:
+
+1. no content-addressed Jianghe knowledge/context artifact is yet bound to and materially sent with a spend-eligible model request;
+2. structured model input is not yet a strict closed-world canonical observation artifact;
+3. model-declared `principle_references` can currently become positive `acknowledged_principles` scoring evidence;
+4. real provider transport remains intentionally unimplemented;
+5. the Owner's RMB 100 total hard cap is not yet enforced by a code-level pre-call/cumulative budget guard.
+
+Two additional concrete runtime repairs are recommended in the same package: authoritative broker-event admission must precede OMS side effects, and same `intent_id` with different content must fail closed rather than silently collapse.
+
+The finding set and acceptance invariants are frozen; exact implementation design is intentionally left for the next fresh project brain to independently verify against current `main` and choose. Do not restart an open-ended review cycle without new concrete evidence.
 
 ## Current PRIMARY prerequisite
 
@@ -127,7 +121,7 @@ JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 NEXT_GATE=OWNER_FREEZE_DECISION_AFTER_REAL_MODEL_FIDELITY_EVIDENCE
 ```
 
-Current active-bundle SOURCE_ONLY verification is `YES`, and the V0.5 registry passed the independent fixed-rubric re-audit. Neither creates PRIMARY eligibility. Final PRIMARY semantic freeze remains an Owner decision after real-model fidelity evidence.
+The V0.5 registry passed its independent fixed-rubric re-audit and the original 27-item pre-live gate passed. Those resolved results remain in their durable review evidence and Git history; they are intentionally not retained as resolved entries in this active limitations index.
 
 ## Maintenance rule
 
