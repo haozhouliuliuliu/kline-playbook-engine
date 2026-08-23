@@ -7,11 +7,11 @@ on:
     types: [opened, synchronize, reopened]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  prespend-v02:
-    if: github.actor != 'github-actions[bot]' && github.head_ref == 'repair/prespend-batched-domestic-v02'
+  prespend-v02-final-verification:
+    if: github.head_ref == 'repair/prespend-batched-domestic-v02'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,99 +21,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Apply, test, materialize only on true green
-        shell: bash
+      - name: Compile repaired surfaces
         run: |
-          set +e
-          DIAG=docs/reviews/PRESPEND_BATCHED_DOMESTIC_V02_CI_DIAGNOSTIC.tmp.md
-
-          persist_diag() {
-            STAGE="$1"
-            LOGFILE="$2"
-            mkdir -p docs/reviews
-            {
-              echo "# Temporary prespend v02 CI diagnostic"
-              echo
-              echo "STAGE=$STAGE"
-              echo "BRANCH=repair/prespend-batched-domestic-v02"
-              echo "PAID_CALLS=0"
-              echo "OUTCOME_ACCESS=NO"
-              echo
-              echo '```text'
-              tail -n 260 "$LOGFILE" 2>/dev/null || true
-              echo '```'
-            } > "$DIAG"
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add "$DIAG"
-            git commit -m "ci: record prespend v02 diagnostic" || true
-            git push origin HEAD:repair/prespend-batched-domestic-v02 || true
-          }
-
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("tools/_apply_prespend_batched_domestic_v02.py")
-          text = path.read_text(encoding="utf-8")
-          old = '''replace_once(
-              RUNTIME,
-              '    "CnyBudgetLedger", "DEEPSEEK_VISION_SPEC", "DomesticProviderTransport",\\n',
-              '    "CnyBudgetLedger", "DEEPSEEK_VISION_SPEC", "DomesticProviderTransport",\\n'
-              '    "current_context_selection_policy_identity", "load_current_repository_rate_card",\\n',
-          )'''
-          new = '''replace_once(
-              RUNTIME,
-              '    "CnyBudgetLedger", "CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY", "CURRENT_PRIMARY_MANIFEST_IDENTITY",\\n'
-              '    "DEEPSEEK_VISION_SPEC", "DomesticProviderTransport", "FxAuthority", "HARD_PROJECT_CAP_CNY",\\n',
-              '    "CnyBudgetLedger", "CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY", "CURRENT_PRIMARY_MANIFEST_IDENTITY",\\n'
-              '    "DEEPSEEK_VISION_SPEC", "DomesticProviderTransport", "FxAuthority", "HARD_PROJECT_CAP_CNY",\\n'
-              '    "current_context_selection_policy_identity", "load_current_repository_rate_card",\\n',
-          )'''
-          if text.count(old) != 1:
-              raise SystemExit("temporary applicator export block did not match exactly")
-          path.write_text(text.replace(old, new), encoding="utf-8", newline="\n")
-          PY
-          PREP=$?
-          if [ "$PREP" -ne 0 ]; then
-            echo "temporary applicator preparation failed" > /tmp/prep.log
-            persist_diag PREPARE /tmp/prep.log
-            exit 0
-          fi
-
-          python tools/_apply_prespend_batched_domestic_v02.py > /tmp/apply.log 2>&1
-          APPLY=$?
-          cat /tmp/apply.log
-          if [ "$APPLY" -ne 0 ]; then
-            persist_diag APPLY /tmp/apply.log
-            exit 0
-          fi
-
-          python -m py_compile src/jianghe_prespend_runtime.py src/jianghe_response_normalizer.py src/intent.py src/shadow_runtime.py tests/test_jianghe_prespend_repair.py tests/test_jianghe_response_normalizer.py > /tmp/compile.log 2>&1
-          if [ "$?" -ne 0 ]; then
-            persist_diag COMPILE /tmp/compile.log
-            exit 0
-          fi
-
-          python -m unittest tests.test_jianghe_prespend_repair tests.test_jianghe_response_normalizer tests.test_jianghe_fidelity_evaluation -v > /tmp/focused.log 2>&1
-          if [ "$?" -ne 0 ]; then
-            persist_diag FOCUSED /tmp/focused.log
-            exit 0
-          fi
-
-          python -m unittest discover -s tests -v > /tmp/full.log 2>&1
-          if [ "$?" -ne 0 ]; then
-            persist_diag FULL_SUITE /tmp/full.log
-            exit 0
-          fi
-
-          rm -f "$DIAG" docs/reviews/PRESPEND_V02_TRIGGER.tmp
-          rm tools/_apply_prespend_batched_domestic_v02.py
-          rm -f .github/workflows/prespend-batched-domestic-v02.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --check
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "repair: harden domestic prespend runtime v02"
-          git push origin HEAD:repair/prespend-batched-domestic-v02
+          python -m py_compile \
+            src/jianghe_prespend_runtime.py \
+            src/jianghe_response_normalizer.py \
+            src/intent.py \
+            src/shadow_runtime.py \
+            tests/test_jianghe_prespend_repair.py \
+            tests/test_jianghe_response_normalizer.py
+      - name: Focused and adversarial repair regression
+        run: |
+          python -m unittest \
+            tests.test_jianghe_prespend_repair \
+            tests.test_jianghe_response_normalizer \
+            tests.test_jianghe_fidelity_evaluation -v
+      - name: Canonical full suite
+        run: python -m unittest discover -s tests -v
+      - name: Diff hygiene
+        run: git diff --check origin/main...HEAD
