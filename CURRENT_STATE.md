@@ -13,9 +13,9 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=JIANGHE_OWNER_REQUESTED_DOUBLE_PRE_SPEND_AUDIT_AND_PROVIDER_COST_SELECTION
-NEXT_NORMAL_PHASE=complete_two_read_only_audits_then_owner_select_final_provider_set_and_probe_scope
-OWNER_ACTION=NONE_UNTIL_DOUBLE_AUDIT_RESULTS_AND_FINAL_COST_RECOMMENDATION
+CURRENT_WORK_PACKAGE=JIANGHE_PRE_SPEND_CONSOLIDATED_REPAIR_REQUIRED
+NEXT_NORMAL_PHASE=fresh_project_brain_takeover_then_verify_frozen_findings_refresh_provider_costs_owner_select_provider_then_one_batched_repair
+OWNER_ACTION=NONE_FOR_ORDINARY_REPAIR__FINAL_PROVIDER_SELECTION_AND_ANY_PAID_CALL_REMAIN_OWNER_GATED
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -24,7 +24,12 @@ TOOL_DECISION=USE_EXISTING
 ```text
 PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
 PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
-LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_OWNER_REQUESTED_DOUBLE_AUDIT_AND_FINAL_PROVIDER_SELECTION
+PRE_SPEND_DOUBLE_AUDIT=COMPLETE_FAIL_REPAIR_REQUIRED
+PRE_SPEND_CONSOLIDATED_FINDINGS=FROZEN
+PRE_SPEND_BLOCKER_BEFORE_SPEND_COUNT=5
+PRE_SPEND_REPAIR_RECOMMENDED_COUNT=2
+SPEND_GATE=CLOSED
+LIVE_MODEL_PROVIDER_PROBE=BLOCKED_PENDING_PRESPEND_REPAIR_REAUDIT_AND_FINAL_PROVIDER_SELECTION
 PAID_MODEL_SPEND=NOT_AUTHORIZED
 TOTAL_HARD_SPEND_CAP_CNY_IF_LATER_APPROVED=100.00
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
@@ -32,14 +37,34 @@ JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 OUTCOME_ACCESS=NO
 ```
 
-Authorities:
+Current authorities:
+- consolidated pre-spend findings: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`
+- Owner-requested two-review plan: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_PLAN_V0_1.md`
+- Owner live-probe scope revision: `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md`
 - pre-live re-audit: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_REAUDIT_V0_1.md`
 - PRIMARY fixed-rubric re-audit: `docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT_V0_1.md`
-- Owner live-probe scope revision: `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md`
-- Owner-requested two-review plan: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_PLAN_V0_1.md`
 - superseded historical approval proposal: `docs/reviews/JIANGHE_BOUNDED_LIVE_MODEL_FIDELITY_PROBE_APPROVAL_PACKAGE_V0_1.md`
 
-The original 27-item pre-live audit is closed and PRIMARY V0.5 passed the fixed R1–R8 independent re-audit. The Owner has nevertheless requested two additional **read-only** reviews before any paid API request because repeated historical repair cycles may have left redundancy, stale compatibility layers, or regressions. This is a new pre-spend assurance step, not a reopening of the old prose/template gate.
+The original 27-item pre-live audit and PRIMARY V0.5 fixed R1–R8 re-audit remain PASS. The later Owner-requested pre-spend assurance review is now complete and found concrete blockers. This is not a reopening of PRIMARY prose/template standards.
+
+The dated double-audit plan still contains `PENDING` text because it is the historical plan document. Current completion status is owned by this file and the consolidated findings authority.
+
+## Frozen current pre-spend findings
+
+```text
+BSP-001=BLOCKER__MISSING_CONTENT_ADDRESSED_JIANGHE_CONTEXT_IN_SPEND_ELIGIBLE_REQUEST
+BSP-002=BLOCKER__STRUCTURED_INPUT_NOT_STRICT_CLOSED_WORLD_CANONICAL_OBSERVATION_ARTIFACT
+BSP-003=BLOCKER__MODEL_DECLARED_PRINCIPLE_REFERENCES_CAN_BECOME_POSITIVE_SCORING_EVIDENCE
+BSP-004=BLOCKER__REAL_PROVIDER_TRANSPORT_NOT_IMPLEMENTED
+BSP-005=BLOCKER__RMB100_HARD_CAP_NOT_CODE_ENFORCED
+RSP-001=REPAIR_RECOMMENDED__OMS_SIDE_EFFECTS_PRECEDE_AUTHORITATIVE_TRADINGSTATE_EVENT_ADMISSION
+RSP-002=REPAIR_RECOMMENDED__SAME_INTENT_ID_DIFFERENT_CONTENT_CAN_SILENTLY_COLLAPSE
+```
+
+Full evidence, acceptance invariants, non-findings and closure rules live only in:
+`docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`.
+
+The finding set and non-negotiable acceptance invariants are frozen. Exact implementation design is deliberately **not** frozen; the next fresh project brain must independently refresh current `main`, verify the findings, and choose the simplest correct repair. Do not restart open-ended review cycles without new concrete correctness/evidence/security/cost evidence.
 
 ## Owner provider / cost scope
 
@@ -55,9 +80,11 @@ NO_MODEL_OR_PROVIDER_VERIFIED=YES
 NO_MODEL_OR_PROVIDER_ADOPTED=YES
 ```
 
-The previous USD 100 / OpenAI+Anthropic+Gemini proposal is superseded for execution. The Owner's binding budget ceiling is **RMB 100 total**, with no automatic extension. Grok/Kimi/DeepSeek are only candidates until the Owner makes the final selection after cost/capability review and the two audits.
+The previous USD 100 / OpenAI+Anthropic+Gemini proposal is superseded for execution. The Owner's binding budget ceiling is **RMB 100 total**, with no automatic extension.
 
-DeepSeek `deepseek-v4-flash-vision-exp` is treated as an experimental multimodal candidate. Current release evidence supports text+image input, but its latest direct price must be rechecked from first-party DeepSeek immediately before any implementation because current fetched official pricing caches lag the Aug-21 vision release.
+Before recommending the final provider set, the next project brain must recheck current first-party provider/model capability and direct pricing because those facts are time-sensitive. Final provider/model selection and any paid external call remain Owner decisions.
+
+DeepSeek `deepseek-v4-flash-vision-exp` remains an experimental candidate; prior price reconnaissance is not sufficient authority for a future spend decision without a fresh first-party recheck.
 
 ## Product / strategy boundary
 
@@ -93,12 +120,12 @@ JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 
 ```text
 JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
-JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__PRELIVE_EVIDENCE_REPAIRED
+JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__PRELIVE_EVIDENCE_REPAIRED__BSP003_REPAIR_REQUIRED_BEFORE_SPEND
 JIANGHE_AI_OBSERVATION_REPLAY_V0_2=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION_IDENTITY_BOUND
 JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
 JIANGHE_AI_RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
-JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED
-JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__PRIMARY_SCOPE_REBOUND_TO_V0_5
+JIANGHE_AI_PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED__PRESPEND_REPAIR_REQUIRED
+JIANGHE_AI_LIVE_FIDELITY_PROMPT_PACKAGE=INTEGRATED_CANDIDATE_PRE_LIVE_NON_OUTCOME_NOT_ADOPTED__PRIMARY_SCOPE_REBOUND_TO_V0_5__BSP001_CONTEXT_MATERIAL_BINDING_REQUIRED
 JIANGHE_AI_REAL_MODEL_PROVIDER=LIVE_TRANSPORT_NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
@@ -125,16 +152,17 @@ PAID_SPEND=0
 OUTCOME_ACCESS=NO
 ```
 
-`LIMIT-013` and `LIMIT-014` remain resolved by the integrated re-audits. `LIMIT-012` remains active because no real-model Jianghe fidelity evaluation has yet occurred.
+`LIMIT-012` remains active because no real-model Jianghe fidelity evaluation has occurred. `LIMIT-015` is the highest current pre-spend blocker and points to the frozen consolidated findings. Resolved historical LIMIT-013/LIMIT-014 remain preserved in their durable review evidence/Git history and are no longer active limitation entries.
 
 ## Next normal work
 
-1. Freeze one current main commit as the common baseline for both Owner-requested read-only audits.
-2. Round 1: whole-system architecture / redundancy / repair-accumulation review.
-3. Round 2: independent fine-grained regression / dead-code / authority-hygiene / cost-path review.
-4. Project brain consolidates both finding sets before any code change; false positives and duplicate findings are removed.
-5. If repair is actually required, do one batched repair rather than rolling review/fix cycles.
-6. After the audits, present the Owner with a final cost/capability recommendation for the remaining provider candidates under the RMB 100 hard ceiling.
-7. No live provider request occurs before the Owner explicitly selects the final provider set and approves the resulting bounded probe.
+1. Fresh project brain performs the read-only takeover from current `main`; Owner accepts takeover before work begins.
+2. Re-read the frozen consolidated finding authority and independently verify BSP-001..005 and RSP-001..002 against current source. This is verification, not a new open-ended audit.
+3. Refresh first-party capability/pricing for the remaining provider/model candidates and present a final cost/capability recommendation.
+4. Owner selects the final provider/model set and bounded probe scope. This is the next major Owner decision.
+5. After selection, execute **one batched repair package** covering every still-valid BSP/RSP finding, including selected-provider transport and code-level hard budget enforcement. Ordinary engineering choices inside the package do not require repeated Owner approval.
+6. Run focused/adversarial regression for every finding, canonical full suite `python -m unittest discover -s tests -v`, and the finding-specific re-audit. Do not restart broad rolling review/fix cycles.
+7. Update formal finding/state authority with CLOSED/PASS evidence.
+8. Only after all five BSP blockers are CLOSED can a separate explicit Owner authorization enable bounded paid provider calls. Outcome access, PRIMARY semantic freeze, broker access and real money remain separately locked.
 
 No provider/model is currently VERIFIED or ADOPTED.
