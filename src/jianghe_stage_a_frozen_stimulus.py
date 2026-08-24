@@ -16,6 +16,7 @@ information is consulted.
 
 from __future__ import annotations
 
+from decimal import Decimal
 from hashlib import sha256
 import json
 
@@ -95,7 +96,7 @@ def build_frozen_stage_a_stimulus() -> StageAStimulus:
     poke = fine[20]
     if poke.high_price != "103" or poke.close_price != "101.1":
         raise ValueError("frozen Stage-A wick/poke anchor drifted")
-    if any(float(bar.high_price) >= 102 for bar in fine[:20] + fine[21:]):
+    if any(Decimal(bar.high_price) >= Decimal("102") for bar in fine[:20] + fine[21:]):
         raise ValueError("frozen Stage-A window contains an unintended second upper-boundary poke")
 
     as_of = fine[-1].close_time
