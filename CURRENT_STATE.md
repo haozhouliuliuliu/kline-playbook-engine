@@ -11,16 +11,16 @@ ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A__CREDENTIAL_EXISTING_BALANCE_READINESS
-NEXT_NORMAL_PHASE=secure_credential_presence_then_run_non_billable_readiness_checker_then_execute_stage_a_only_if_funds_suffice
-OWNER_ACTION=NO_NEW_RECHARGE_DECISION_NOW__EXISTING_CREDENTIALS_ARE_NOT_AVAILABLE_IN_CURRENT_PROJECT_BRAIN_RUNTIME
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A__SECURE_CREDENTIAL_HANDOFF_AND_EXISTING_BALANCE_READINESS
+NEXT_NORMAL_PHASE=owner_configures_secure_stage_a_readiness_secrets_then_run_manual_non_billable_readiness_then_execute_stage_a_only_if_existing_funds_suffice
+OWNER_ACTION=CONFIGURE_STAGE_A_READINESS_ENVIRONMENT_AND_PROVIDER_SECRETS__NO_RECHARGE_DECISION_YET
 TOOL_DECISION=USE_EXISTING
 ```
 
 ## Current material checkpoint
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=744c79dab19d8ac5ddb4e941dcd24bee4fa82895
+LAST_MATERIAL_STATE_COMMIT=c3ec8fda6331106b3916ea14875e26fc0a0ec640
 STAGE_A_OFFLINE_PREEXECUTION=COMPLETE
 STAGE_A_FROZEN_PLAN_IDENTITY=7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4
 STAGE_A_FROZEN_STIMULUS=36x5m__12x15m__3x1H__JH-FIX-C-001
@@ -29,45 +29,42 @@ STAGE_A_PERSISTENT_HASH_CHAIN_JOURNAL=INTEGRATED
 STAGE_A_CRASH_RECOVERY_NO_RETRY=INTEGRATED
 STAGE_A_PROVIDER_MODEL_DRIFT_GUARD=INTEGRATED
 PROVIDER_BALANCE_READINESS_CHECKER=INTEGRATED__NON_BILLABLE
+STAGE_A_MANUAL_READINESS_WORKFLOW=INTEGRATED__MANUAL_ONLY__MAIN_ONLY
+STAGE_A_READINESS_INTEGRATION_EVIDENCE=docs/reviews/JIANGHE_STAGE_A_SECURE_CREDENTIAL_READINESS_INTEGRATION_V0_1.md
+STAGE_A_READINESS_GITHUB_ENVIRONMENT=stage-a-readiness__OWNER_CONFIGURATION_PENDING
 STAGE_A_RUNTIME_STATE=.runtime/jianghe_stage_a__GIT_IGNORED
 ```
 
-Frozen plan authority:
-
-- `docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json`
+Frozen plan authority: `docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json`.
 
 Execution boundary:
-
 - `src/jianghe_stage_a_runner.py`
 - `tools/run_jianghe_stage_a_slot.py`
 
-Read-only readiness boundary:
-
+Read-only credential / balance boundary:
 - `src/jianghe_provider_readiness.py`
 - `tools/check_jianghe_provider_readiness.py`
+- `.github/workflows/stage-a-provider-readiness.yml`
+- `tests/test_stage_a_readiness_workflow.py`
 
-Owner-approved Stage-A protocol:
-
-- `docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md`
-
-Current paid-call authorization:
-
-- `docs/evidence/JIANGHE_OWNER_PAID_CALL_DECISION_20260824_V0_1.md`
-- `docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json`
+Owner credential/funding handoff rule:
+- `docs/reviews/OWNER_API_CREDENTIAL_FUNDING_HANDOFF_RULE_V0_1.md`
 
 ## Latest offline verification
 
-PR #24 / merged tree verification:
+PR #25 / merged tree verification:
 
 ```text
-STAGE_A_FOCUSED_TESTS=PASS__44_TESTS
-CANONICAL_FULL_SUITE=PASS__1273_TESTS__27_SKIPPED
+STAGE_A_FOCUSED_TESTS=PASS__49_TESTS
+CANONICAL_FULL_SUITE=PASS__1278_TESTS__27_SKIPPED
 DIFF_HYGIENE=PASS
+FROZEN_PLAN_CHECK=PASS
+FROZEN_PLAN_INDEPENDENT_REBUILD=PASS
 LIVE_CALLS=0
 PAID_SPEND_CNY=0
 ```
 
-The focused suite includes frozen-plan byte equality, 36-bar frozen stimulus enforcement, journal tamper rejection, stale-lock fail-closed behavior, crash/incomplete-attempt worst-case accounting, persistent cap enforcement, duplicate-slot rejection, missing-credential zero-network behavior, provider-model drift handling, malformed-output NON_SCOREABLE handling, terminal HTTP failure without automatic retry, Kimi/DeepSeek official read-only balance-only routing, MiniMax paygo zero-network unresolved behavior, exact frozen shortfall computation, auth/readiness failure handling and credential non-exposure.
+The focused suite locks the credential-readiness workflow to manual dispatch, `main`, read-only repository permission, the `stage-a-readiness` environment, named provider secrets only, no credential echoing, no direct curl/wget path, and no Stage-A model-slot runner. Existing Stage-A runner/readiness adversarial coverage remains intact.
 
 ## Pre-live / pre-spend closure state
 
@@ -86,8 +83,6 @@ RSP-002=CLOSED
 LIMIT_015=RESOLVED
 LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
 ```
-
-Do not reopen frozen findings without concrete current-repo correctness/evidence/security/cost evidence.
 
 ## Owner paid-call authorization
 
@@ -111,7 +106,7 @@ LIVE_CALLS=0
 PAID_SPEND_CNY=0
 ```
 
-Existing funded balance or granted credits may be consumed only through the authorized funnel. A new recharge/prepaid purchase/subscription/payment action still requires the exact amount to be returned to Owner first.
+Existing funded balance or granted credits may be consumed only through the authorized funnel. A new recharge/prepaid purchase/subscription/payment action still requires provider + exact amount + reason to be returned to Owner first.
 
 ## Stage-A frozen input protocol
 
@@ -136,8 +131,6 @@ DUAL_INPUT=SAME_OBSERVATION_IMAGE_PLUS_STRUCTURED__NO_ANSWER_BEARING_PROSE
 UNKNOWN_OR_MISMATCHED_MODALITY_COMBINATION=FAIL_CLOSED
 ```
 
-The exact numeric stimulus is frozen and deterministically rebuildable. It uses normalized synthetic prices around 100, no real/canonical candidate market data, no hidden future, no PnL/outcome/result labels, and one identical underlying observation for visual/structured/dual tracks.
-
 ## Provider / pricing state
 
 ```text
@@ -148,29 +141,51 @@ FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
 ```
 
 Conservative budget rates remain governed by:
-
 - `docs/evidence/JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json`
 - `docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md`
 - `docs/reviews/DOMESTIC_PROVIDER_PRICING_REFRESH_V0_1.md`
 - `docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`
 
-No cache/off-peak/promotional assumption is permitted. Unknown billing semantics fail closed.
+Frozen five-slot Stage-A worst-case ceilings:
+
+```text
+KIMI=5.57772_CNY
+DEEPSEEK=0.775968_CNY
+MINIMAX=1.0885308_CNY
+```
+
+These are ceilings, not recharge requests. Recharge shortfall remains unknown until existing balance is verified.
 
 ## Credential / existing-balance readiness
 
-Current project-brain execution environment was checked without printing secret values:
+The repository has a separate manual-only GitHub Actions boundary so the Owner never needs to paste provider credentials into chat or commit them to Git.
 
 ```text
-MOONSHOT_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
-DEEPSEEK_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
-MINIMAX_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+MOONSHOT_API_KEY=NOT_CONFIGURED_FOR_STAGE_A_READINESS_WORKFLOW
+DEEPSEEK_API_KEY=NOT_CONFIGURED_FOR_STAGE_A_READINESS_WORKFLOW
+MINIMAX_API_KEY=NOT_CONFIGURED_FOR_STAGE_A_READINESS_WORKFLOW
 CREDENTIAL_VALUE_EXPOSURE=NONE
-EXISTING_PROVIDER_BALANCE=NOT_VERIFIED__BLOCKED_BY_MISSING_CREDENTIALS
+EXISTING_PROVIDER_BALANCE=NOT_VERIFIED__BLOCKED_BY_SECRET_CONFIGURATION
 NEW_RECHARGE_REQUIRED=NOT_DETERMINED
 STAGE_A_NETWORK_EXECUTION=BLOCKED_BEFORE_FIRST_REQUEST
 ```
 
-Integrated non-billable readiness behavior:
+Manual readiness workflow invariants:
+
+```text
+WORKFLOW=.github/workflows/stage-a-provider-readiness.yml
+TRIGGER=workflow_dispatch_ONLY
+ALLOWED_REF=main_ONLY
+REPOSITORY_PERMISSION=contents_read_ONLY
+GITHUB_ENVIRONMENT=stage-a-readiness
+MODEL_SLOT_RUNNER_PRESENT=NO
+MODEL_ENDPOINT_AS_BALANCE_PROBE=FORBIDDEN
+OUTPUT_ARTIFACT=SANITIZED_JSON__RETENTION_1_DAY
+CREDENTIAL_VALUE_OUTPUT=FORBIDDEN
+READINESS_WORKFLOW_RUN=NOT_YET_RUN
+```
+
+Integrated non-billable checker behavior:
 
 ```text
 KIMI=OFFICIAL_READ_ONLY_BALANCE_API_ONLY__GET_/v1/users/me/balance
@@ -178,9 +193,7 @@ DEEPSEEK=OFFICIAL_READ_ONLY_BALANCE_API_ONLY__GET_/user/balance
 MINIMAX_PAYGO=NO_VERIFIED_READ_ONLY_BALANCE_API__RETURN_UNKNOWN_WITH_ZERO_NETWORK
 MISSING_CREDENTIAL=RETURN_CREDENTIAL_MISSING_WITH_ZERO_NETWORK
 BALANCE_REQUEST_RETRY=FORBIDDEN
-MODEL_ENDPOINT_AS_BALANCE_PROBE=FORBIDDEN
 DEEPSEEK_NON_CNY_ONLY=UNKNOWN__NO_FX_GUESS
-CREDENTIAL_VALUE_OUTPUT=FORBIDDEN
 SHORTFALL=COMPUTED_ONLY_FROM_EXISTING_CNY_BALANCE_VS_FROZEN_FIVE_SLOT_WORST_CASE
 FUNDING_ACTION=NONE
 ```
@@ -227,13 +240,13 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Make the already-existing provider credentials available to the secure execution environment without committing or printing them.
-2. Run `tools/check_jianghe_provider_readiness.py`; it first rebuilds and byte-verifies the frozen plan.
-3. Let the checker query Kimi and DeepSeek existing CNY balance through their official read-only endpoints only.
-4. Keep MiniMax pay-as-you-go readiness unresolved unless an official non-billable read-only balance surface becomes available; never probe it with a model call.
-5. If any **new** recharge/top-up is actually required, return provider + exact frozen shortfall amount + reason to Owner and stop.
+1. Owner configures the GitHub `stage-a-readiness` environment for `main` and supplies the three existing provider API credentials as secrets; never paste secret values into chat or commit them.
+2. Run the manual `Stage-A Provider Readiness` workflow. It rebuilds/byte-verifies the frozen plan before any balance request.
+3. Query Kimi and DeepSeek existing CNY balance through their official read-only endpoints only.
+4. Keep MiniMax pay-as-you-go readiness unresolved unless an official non-billable read-only balance surface is available; never probe it with a model call.
+5. If any **new** recharge/top-up is actually required, return provider + exact frozen shortfall amount + verified official funding URL + reason to Owner and stop.
 6. If existing credentials/funds suffice, execute Stage A one frozen slot at a time under the persistent journal: max CNY18 / 15 calls / CNY6 per provider / shared CNY100 cap.
-7. Persist evidence after every attempted slot; never automatically retry a started slot.
+7. Persist durable Stage-A attempt evidence after every attempted slot; never automatically retry a started slot.
 8. Commit Stage-A evidence/ranking before any Stage-B activity.
 
 At this checkpoint:
