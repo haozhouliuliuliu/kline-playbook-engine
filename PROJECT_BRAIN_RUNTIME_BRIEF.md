@@ -18,7 +18,7 @@ Fresh conversations follow the read-only takeover in `00_READ_FIRST.md`.
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=ef6862cadb495f543d4d6fcc659701c7ccea7dd0
+LAST_MATERIAL_STATE_COMMIT=f44fe8601a2afe2b015be3e65942e5d1694d7b98
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -27,84 +27,102 @@ CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e0718
 JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
 SOURCE_ONLY_REPOSITORY_BYTE_AUTHORITY=EXACT_COMMITTED_GIT_BLOB_BYTES
-JIANGHE_PRIMARY_V0_5_IDENTITY_REBIND=COMPLETE__SEMANTIC_CHANGE_COUNT_0
 JIANGHE_PRIMARY_BRANCH_REGISTRY_V0_5=INTEGRATED_PRE_FREEZE_NON_FINAL_FIXED_RUBRIC_REAUDIT_PASS
 JIANGHE_PRIMARY_PROJECT_BRAIN_ACCEPTED_READY_COUNT=340
 JIANGHE_PRIMARY_REGISTRY_STOP_COUNT=12
-PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
-MAIN_BASELINE_PORTABLE_CI=PASS_AFTER_REPAIR
-PRE_SPEND_DOUBLE_AUDIT=COMPLETE_FAIL_REPAIR_REQUIRED
+PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
 PRE_SPEND_CONSOLIDATED_FINDINGS=FROZEN
-PRE_SPEND_FINDING_CURRENT_MAIN_VERIFICATION=COMPLETE_ALL_7_CONFIRMED_OPEN
-PRE_SPEND_BLOCKERS=5
-PRE_SPEND_REPAIR_RECOMMENDED=2
-SPEND_GATE=CLOSED
-PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
-DOMESTIC_PROVIDER_SCOPE_AUTHORITY=docs/reviews/DOMESTIC_PROVIDER_SCOPE_AND_PRESPEND_SEQUENCE_V0_1.md
-SOURCE_ONLY_GIT_BLOB_CORRECTION_AUTHORITY=docs/reviews/JIANGHE_SOURCE_ONLY_GIT_BLOB_IDENTITY_CORRECTION_V0_1.md
-MAIN_BASELINE_REPAIR_AUTHORITY=docs/reviews/MAIN_BASELINE_TEST_DEBT_AND_GIT_BLOB_IDENTITY_REPAIR_V0_1.md
-CURRENT_WORK_PACKAGE=DOMESTIC_PROVIDER_HARD_ELIGIBILITY_THEN_PRESPEND_BATCHED_REPAIR
-NEXT_NORMAL_PHASE=owner_confirm_domestic_implementation_target_set_then_one_batched_repair_focused_tests_full_suite_finding_specific_reaudit
-OWNER_ACTION=CONFIRM_IMPLEMENTATION_TARGET_SET_ONLY__PAID_CALL_AUTHORIZATION_REMAINS_SEPARATE_LATER_GATE
-OPENAI_GPT_5_6_SOL=NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
-XAI_GROK_4_6=NOT_PRACTICAL_FOR_CURRENT_PROBE_DUE_OWNER_PAYMENT_ACCESS
-KIMI_K3=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API
-DEEPSEEK_V4_FLASH_VISION_EXP=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API__EXPERIMENTAL
-MINIMAX_M3=DOMESTIC_CANDIDATE__HARD_ELIGIBLE_DIRECT_VISUAL_API__STRUCTURED_OUTPUT_CONTRACT_VERIFY_DURING_TRANSPORT_IMPLEMENTATION
-GLM_5_3_MODEL_ID=glm-5.3
-GLM_5_3_REASONING_EFFORT=max
-GLM_5_3_CURRENT_DIRECT_VISUAL_ELIGIBILITY=NO_ON_AVAILABLE_FIRST_PARTY_EVIDENCE
-LIKELY_DOMESTIC_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
+PRE_SPEND_REPAIR_REAUDIT=PASS
+PRE_SPEND_BLOCKER_BEFORE_SPEND_COUNT=0
+PRE_SPEND_REPAIR_RECOMMENDED_OPEN_COUNT=0
+BSP_001=CLOSED
+BSP_002=CLOSED
+BSP_003=CLOSED
+BSP_004=CLOSED
+BSP_005=CLOSED
+RSP_001=CLOSED
+RSP_002=CLOSED
+LIMIT_015=RESOLVED
+LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
+CURRENT_WORK_PACKAGE=RMB100_REAL_MODEL_FIDELITY_FUNNEL_READY_FOR_OWNER_PAID_DECISION
+NEXT_NORMAL_PHASE=owner_authorize_or_decline_bounded_paid_funnel_then_if_authorized_commit_closed_world_authorization_and_execute_stage_a_only
+OWNER_ACTION=AUTHORIZE_OR_DECLINE_BOUNDED_CNY100_NON_OUTCOME_PAID_MODEL_FUNNEL
+OWNER_CONFIRMED_PROVIDER_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
+KIMI_K3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__CANDIDATE
+DEEPSEEK_V4_FLASH_VISION_EXP=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__EXPERIMENTAL__CANDIDATE
+MINIMAX_M3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__CANDIDATE
 FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
-TOTAL_HARD_SPEND_CAP_CNY_IF_LATER_APPROVED=100.00
+NO_MODEL_OR_PROVIDER_VERIFIED_BY_PROJECT_LIVE_CALL=YES
+NO_MODEL_OR_PROVIDER_ADOPTED=YES
+SPEND_GATE=CLOSED_PENDING_OWNER_EXPLICIT_PAID_CALL_AUTHORIZATION
 PAID_MODEL_SPEND=NOT_AUTHORIZED
+ACCOUNT_TOPUP_OR_RECHARGE=NOT_AUTHORIZED
+TOTAL_HARD_API_SPEND_CAP_CNY_IF_APPROVED=100.00
+LIVE_CALLS=0
+PAID_SPEND=0
+OUTCOME_ACCESS=NO
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
 BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
-LIVE_CALLS=0
-OUTCOME_ACCESS=NO
 TOOL_DECISION=USE_EXISTING
 ```
 
-## Current blocker set
-
-The frozen pre-spend set remains unchanged and reverified: BSP-001..005 are open spend blockers; RSP-001..002 remain recommended runtime repairs. Full frozen evidence and acceptance invariants live in `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`. Do not reopen a broad audit.
-
-The clean-main baseline repair and SOURCE_ONLY Git-blob identity correction are integrated. They do **not** close any BSP/RSP finding by themselves. The corrected claim-manifest identity is `f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36`; all 352 claim semantics and current PRIMARY V0.5 curated semantics were unchanged.
-
-## Current domestic provider scope
-
-Owner payment/access makes OpenAI and xAI impractical for the current paid probe. Current domestic pool considered: Kimi K3, DeepSeek V4 Flash Vision Exp, MiniMax M3, and GLM-5.3 at `reasoning_effort=max`.
-
-`GLM-5.3 Max` is not a separate model ID. Current first-party evidence does not establish native image input for `glm-5.3`. The Jianghe protocol requires the candidate decision model itself to receive canonical K-line images; a separate Vision MCP/sidecar would be a new research design rather than a like-for-like candidate.
-
-Current likely direct-visual implementation target set:
+## Current authorities
 
 ```text
-KIMI_K3
-DEEPSEEK_V4_FLASH_VISION_EXP
-MINIMAX_M3
+PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
+PRE_SPEND_REPAIR_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md
+DOMESTIC_PROVIDER_SCOPE_AUTHORITY=docs/reviews/DOMESTIC_PROVIDER_SCOPE_AND_PRESPEND_SEQUENCE_V0_1.md
+DEEPSEEK_CORRECTION_AUTHORITY=docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md
+PROVIDER_PRICING_AUTHORITY=docs/evidence/JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json
+PROVIDER_PRICING_FALLBACK_AUTHORITY=docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md
+PROVIDER_PRICING_REFRESH_AUTHORITY=docs/reviews/DOMESTIC_PROVIDER_PRICING_REFRESH_V0_1.md
+RMB100_FUNNEL_AUTHORITY=docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md
 ```
 
-No provider/model is project-VERIFIED or ADOPTED.
+## Current provider spend guard
+
+```text
+KIMI_K3_BUDGET_RATE=INPUT_20_CNY_PER_MTOK__OUTPUT_100__IMAGE_1024_INPUT_TOKENS_EACH
+DEEPSEEK_V4_FLASH_VISION_EXP_BUDGET_RATE=PEAK_CACHE_MISS_INPUT_3__OUTPUT_9__IMAGE_384_INPUT_TOKENS_EACH
+MINIMAX_M3_BUDGET_RATE=CONSERVATIVE_GT512K_INPUT_4_2__OUTPUT_16_8__IMAGE_BILLED_AS_INPUT_TOKENS
+SHARED_HARD_CAP_CNY=100.00
+AUTOMATIC_SEMANTIC_RETRY=FORBIDDEN
+PROVIDER_LOCAL_BUDGET_BYPASS=FORBIDDEN
+```
+
+DeepSeek's same-price/base-performance relationship to V4 Flash with multimodality added is a provider/Owner-level product fact, not a project Jianghe-fidelity `VERIFIED` result.
+
+## RMB100 funnel
+
+```text
+STAGE_A=3_PROVIDERS_X_MAX_5_CALLS_X_MAX_6_CNY_PER_PROVIDER=18_CNY
+TOP1_STABILITY=MAX_12_CALLS__42_CNY
+TOP2_COMPARISON=MAX_8_CALLS__28_CNY
+TIE_RESERVE=MAX_4_CALLS__12_CNY
+TOTAL_API_SPEND_CAP=100_CNY
+MAX_TOTAL_CALLS=39
+UNUSED_BUDGET=REMAINS_UNSPENT
+NO_AUTO_EXTENSION=YES
+```
+
+Stage A covers `OPERATIONAL_PROVIDER`, `SEMANTIC`, `VISUAL`, `STRUCTURED`, and `DUAL_INPUT`. Only providers passing the fixed qualification gate may receive Stage-B calls. Cost/latency are tie-breakers only after Jianghe fidelity. PnL/outcome evidence remains unavailable.
 
 ## Current gates / next work
 
-1. complete zero-cost hard eligibility only; no provider calls and no spend;
-2. Owner confirms the provider implementation target set — this selects which BSP-004 transports and BSP-005 rate cards to implement, not paid-call authorization;
-3. execute one batched repair for BSP-001..005 + RSP-001..002 on the now-clean main baseline;
-4. run finding-specific focused/adversarial regression, canonical full suite `python -m unittest discover -s tests -v`, and finding-specific re-audit only;
-5. write formal CLOSED/PASS evidence and refresh state;
-6. only after all five BSP blockers close may the project separately ask Owner for bounded paid-call authorization;
-7. if authorized, spend RMB 100 as a funnel: tiny qualification spend per eligible candidate, eliminate obvious failures immediately, then use remaining budget only on the top 1–2 for stability repeats.
-
-Outcome access, PRIMARY semantic freeze, Validation, historical Final, prospective Shadow/Forward, broker access and real money remain separately locked.
+1. Owner authorizes or declines the bounded CNY100 non-outcome paid-call funnel.
+2. If declined, no external provider request occurs.
+3. If authorized, first recheck rate-card freshness and each provider's current recharge/balance requirement; no recharge/top-up without explicit cash authorization.
+4. Commit a closed-world Owner paid-call authorization artifact covering only the approved provider/model set and CNY100 cap.
+5. Execute Stage A only, with no automatic retry, and write request/response/usage/fidelity evidence after every call.
+6. Stop eliminated providers immediately; do not begin Stage B until Stage-A evidence and ranking are committed.
+7. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
 
 ## Product behavior that must survive handoff
 
