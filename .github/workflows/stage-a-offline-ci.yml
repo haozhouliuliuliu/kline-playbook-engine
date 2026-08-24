@@ -26,14 +26,14 @@ jobs:
           python-version: "3.12"
       - name: Compile
         run: python -m compileall -q src tools tests
-      - name: Diagnose deterministic Stage-A budget bounds
-        run: python tools/diagnose_jianghe_stage_a_budget.py
-      - name: Build deterministic Stage-A frozen-plan candidate
+      - name: Check committed Stage-A frozen plan
+        run: python tools/build_jianghe_stage_a_frozen_plan.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
+      - name: Rebuild Stage-A frozen plan independently
         run: python tools/build_jianghe_stage_a_frozen_plan.py --output /tmp/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
-      - name: Upload frozen-plan candidate
+      - name: Upload rebuilt frozen plan
         uses: actions/upload-artifact@v4
         with:
-          name: stage-a-frozen-plan-candidate
+          name: stage-a-frozen-plan-rebuild
           path: /tmp/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
           if-no-files-found: error
       - name: Stage-A focused tests
