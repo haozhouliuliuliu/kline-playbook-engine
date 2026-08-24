@@ -16,8 +16,9 @@ After takeover acceptance, before every substantive project reply:
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=07b8159acc47634d5b122d534987981ba8707f96
+LAST_MATERIAL_STATE_COMMIT=72f96d200f8ed8d3f6da042597344f828b54ae25
 PR_26_MERGE_COMMIT=a6f8cc99641a37c628264cb57b30a75c4537aa4a
+PR_29_MERGE_COMMIT=72f96d200f8ed8d3f6da042597344f828b54ae25
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -30,8 +31,8 @@ BSP_001_TO_005=CLOSED
 RSP_001_TO_002=CLOSED
 LIMIT_015=RESOLVED
 LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
-CURRENT_WORK_PACKAGE=STAGE_A_LIVE_EXECUTION_LANE_PREFLIGHT_AND_DURABILITY
-NEXT_NORMAL_PHASE=integrate_and_review_crash_resilient_remote_write_ahead_lane_before_any_paid_stage_a_call
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A__FIRST_LIVE_SLOT_EXECUTION_AND_EVIDENCE_REVIEW
+NEXT_NORMAL_PHASE=bootstrap_empty_remote_state_then_execute_one_explicit_authorized_stage_a_slot
 OWNER_ACTION=NONE_NOW
 TOOL_DECISION=USE_EXISTING
 ```
@@ -57,7 +58,7 @@ STAGE_A_FROZEN_PLAN_IDENTITY=7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4b
 STAGE_A_SINGLE_SLOT_RUNNER=INTEGRATED
 PERSISTENT_ATTEMPT_JOURNAL=HASH_CHAINED__FSYNC_BEFORE_NETWORK
 CRASH_OR_INCOMPLETE_ATTEMPT=ACCOUNT_FULL_FROZEN_WORST_CASE
-STAGE_A_STATUS=AUTHORIZED__OFFLINE_PREEXECUTION_COMPLETE__NOT_STARTED
+STAGE_A_STATUS=AUTHORIZED__LIVE_LANE_INTEGRATED__REMOTE_STATE_BOOTSTRAP_PENDING__NOT_STARTED
 LIVE_CALLS=0
 PAID_SPEND_CNY=0
 ```
@@ -98,15 +99,27 @@ MINIMAX=1.0885308_CNY
 These are not recharge requests. The Owner-reported CNY 10 wallet balance at each provider covers these ceilings; the evidence class remains `OWNER_CONFIRMED__NOT_MACHINE_VERIFIED_ALL_THREE`, and no transaction history is inferred.
 
 ```text
-STAGE_A_HOSTED_RUNNER_DURABILITY=BLOCKED__REMOTE_WRITE_AHEAD_REQUIRED_BEFORE_PAID_CALL
+STAGE_A_LIVE_LANE=INTEGRATED__PROJECT_BRAIN_ACCEPTED
+STAGE_A_REMOTE_LEDGER=INTEGRATED
+STAGE_A_REMOTE_CAS=INTEGRATED
+STAGE_A_REMOTE_REREAD_VERIFICATION=INTEGRATED
+STAGE_A_CRASH_ACCOUNTING=INTEGRATED
+STAGE_A_SINGLE_SLOT_LIVE_WORKFLOW=INTEGRATED
+STAGE_A_FIXED_REMOTE_REF=refs/heads/stage-a-live-state-v0-1
+STAGE_A_HOSTED_RUNNER_DURABILITY=INTEGRATED__REMOTE_STATE_BOOTSTRAP_PENDING
+REMOTE_STATE_BOOTSTRAP=REQUIRED_ONCE_BEFORE_FIRST_CALL
+REMOTE_STATE_BOOTSTRAP_METHOD=GitRemoteLedgerStore.compare_and_swap(expected_head=None,ledger_bytes=RemoteExecutionLedger.empty(plan).to_bytes())__THEN_store.load(plan)__AND_EXACT_EMPTY_LEDGER_VERIFICATION
+NAMED_initialize_empty_state_WRAPPER=NOT_REQUIRED
+STAGE_A_NETWORK_EXECUTION=AUTHORIZED_FOR_ONE_EXPLICIT_SLOT_AFTER_SUCCESSFUL_EMPTY_REMOTE_STATE_BOOTSTRAP__NO_AUTOMATIC_NEXT_SLOT
 ```
 
 ## Latest offline verification
 
 ```text
-STAGE_A_FOCUSED_TESTS=PASS__70_TESTS
-CANONICAL_FULL_SUITE=PASS__1299_TESTS__27_SKIPPED
-DIFF_HYGIENE=PASS
+HEAD_SHA=1d74e60bb857bc593887f2121fd2df516331914c
+STAGE_A_FOCUSED_TESTS=PASS__114_OF_114__LINUX_CI_PASS
+CANONICAL_FULL_SUITE=PASS__RUN_32703991488__1343_TESTS__27_SKIPPED
+DIFF_HYGIENE=PASS__ORIGIN_MAIN_TO_HEAD
 FROZEN_PLAN_CHECK=PASS
 FROZEN_PLAN_INDEPENDENT_REBUILD=PASS
 LIVE_CALLS=0
@@ -127,6 +140,7 @@ STAGE_A_SINGLE_SLOT_CLI=tools/run_jianghe_stage_a_slot.py
 STAGE_A_EVIDENCE_EXPORTER=src/jianghe_stage_a_evidence.py
 STAGE_A_EVIDENCE_EXPORT_CLI=tools/materialize_jianghe_stage_a_evidence.py
 STAGE_A_EVIDENCE_AND_READINESS_CLOSURE=docs/reviews/JIANGHE_STAGE_A_EVIDENCE_EXPORT_AND_READINESS_CLOSURE_V0_1.md
+STAGE_A_LIVE_LANE_INTEGRATION_CLOSURE=docs/reviews/JIANGHE_STAGE_A_LIVE_LANE_INTEGRATION_CLOSURE_V0_1.md
 PROVIDER_READINESS_CHECKER=src/jianghe_provider_readiness.py
 PROVIDER_READINESS_CLI=tools/check_jianghe_provider_readiness.py
 PROVIDER_READINESS_WORKFLOW=.github/workflows/stage-a-provider-readiness.yml
@@ -138,12 +152,12 @@ CURRENT_PAID_CALL_AUTHORIZATION=docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CU
 
 ## Exact next work
 
-1. Integrate and review a repository-native remote write-ahead lane before any hosted-runner paid call.
-2. The lane must durably reserve and re-read-verify a frozen slot with CAS before provider transport.
-3. Crash, cancellation, timeout, evidence-export failure or terminal-persistence failure keeps the slot attempted, non-retryable and fully worst-case-accounted.
-4. Keep the first live lane manual, main-only and explicit single-slot; do not add research-semantic scheduling.
-5. After project-brain review closure, paid Stage A remains governed by CNY18 / 15 calls / CNY6 per provider / shared CNY100 cap and the current expiring authorization.
-6. Commit secret-guarded Stage-A evidence/ranking before Stage B.
+1. Bootstrap the fixed remote state ref exactly once with the verified frozen plan and an empty remote ledger.
+2. Re-read and verify exact empty state before any provider call.
+3. Execute only one explicit authorized Stage-A slot through the main-only workflow; do not auto-run another slot.
+4. Read durable mechanical evidence without evaluator judgment, provider ranking or Stage-B decision.
+5. Crash/incomplete state remains attempted, non-retryable and fully worst-case-accounted.
+6. Paid Stage A remains governed by CNY18 / 15 calls / CNY6 per provider / shared CNY100 cap and the current expiring authorization.
 
 ## Locks that remain closed
 
