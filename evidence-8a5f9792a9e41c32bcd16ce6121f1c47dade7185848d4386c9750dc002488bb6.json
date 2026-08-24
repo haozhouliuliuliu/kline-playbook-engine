@@ -1,0 +1,80 @@
+{
+  "accounted_cny": "0.270021",
+  "artifact_identity": "8a5f9792a9e41c32bcd16ce6121f1c47dade7185848d4386c9750dc002488bb6",
+  "artifact_schema_version": "JIANGHE_STAGE_A_ATTEMPT_EVIDENCE_V0_2",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "accounted_cny": "0.050799",
+      "attempt_identity": "cfb179d60578cff7fdd26b5365976806980268a6e61fbeb46436ddcc857196b3",
+      "automatic_retry": "FORBIDDEN",
+      "error_message": "raw_response 必须是合法 JSON 对象",
+      "error_type": "ValueError",
+      "frozen_worst_case_cny": "0.321342",
+      "network_start_event_identity": "6a2ecfc6691fbffd7a9fd88e3cca1cb53f4686d923e2157e2bdccf29a416efce",
+      "normalized_decision_identity": null,
+      "payload_sha256": "db346c1f49cd766cfa31e3702259bef57139ddccfda7d656df7893fde7a99bf0",
+      "plan_identity": "9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913",
+      "plan_sha256": "613b581c3e9a99f910b572c2415d828a131ca694dfe3c1c42706a97443204c6a",
+      "provider_evidence": {
+        "budget_reservation_id": "260ce598dfbcc42c5a822844c96b6483a0645bedd9a3378490729addd24ea3a1",
+        "charged_cny": "0.050799",
+        "context_selection_policy_identity": "41fc4c39c76fcb6c8951b04a913e9224f605c03379e5f4e3564cc2a76aa68c7b",
+        "final_content_sha256": "eeadd070b605b8e7ead83a15ca90d97373dc68583b71ea4dc69211e11c143cb7",
+        "final_content_state": "TEXT_NONEMPTY",
+        "finish_reason": "length",
+        "http_status_class": "2xx",
+        "identity": "3836557cb7ef0e7c82cccd62695d40156b5fb6fc2d22c37fcef38f7776773485",
+        "input_track": "OPERATIONAL_PROVIDER",
+        "latency_ms": 10364,
+        "local_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+        "provider_request_id": "06db5dc323f11955ace313c34f79795a",
+        "provider_spec_identity": "066e4348e12a10f03f878962251018ed5802057ef30d5874bb1cd3766f841d2d",
+        "rate_card_identity": "cef3e0133e42efe9e40216a56e593cae2658456378be6c1c4051acaff2007d07",
+        "reasoning_length": 3579,
+        "reasoning_present": true,
+        "reasoning_sha256": "1d6788ca14775b8185c3cc25323f93f731dbebdf58cf02728f7ebcb5dffdd69c",
+        "reasoning_token_count": 914,
+        "request_identity": "df858a0d339885d4dd3e59acd1fecf5c5de75ddd76c3c4900fb757a2fedeb7b6",
+        "requested_model_id": "MiniMax-M3",
+        "resolved_model_id": "MiniMax-M3",
+        "selected_context_identity": "e19b7a49113b9c02c6d48b56dd4c79278876110379e21b27acb65c863ee30f8a",
+        "source_observation_identity": "84c054e6ff9889b4662a3ecb94ce5f5259a4b689891cc75ff7c30490cf7c6ce0",
+        "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+        "transmitted_visual_identities": [
+          "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+        ],
+        "usage": {
+          "completion_tokens": 1024,
+          "image_tokens": 0,
+          "prompt_tokens": 7999
+        }
+      },
+      "provider_id": "MINIMAX",
+      "request_identity": "df858a0d339885d4dd3e59acd1fecf5c5de75ddd76c3c4900fb757a2fedeb7b6",
+      "request_provenance": {
+        "fixture_id": "JH-FIX-C-001",
+        "inference_configuration_identity": "e14c4ed4c4e34f75e500c050cacb59295448edd57b07c32a3f94f7f8a28f7bd6",
+        "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+        "transmitted_visual_identities": [
+          "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+        ]
+      },
+      "requested_model_id": "MiniMax-M3",
+      "semantic_score_status": "INELIGIBLE_CURRENT_ATTEMPT",
+      "slot": 1,
+      "slot_key": "MINIMAX:1",
+      "terminal_event_identity": "ed3eca49204e40f83a31534ea2b2f8689937a10995aae63e8f3fa48e48d87889",
+      "terminal_status": "NON_SCOREABLE_NORMALIZER",
+      "track": "OPERATIONAL_PROVIDER"
+    }
+  ],
+  "automatic_retry": "FORBIDDEN",
+  "evaluator_boundary": "EXPLICIT_EVALUATOR_SIDE_ADJUDICATION_REQUIRED",
+  "outcome_access": "NO",
+  "plan_identity": "9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913",
+  "plan_sha256": "613b581c3e9a99f910b572c2415d828a131ca694dfe3c1c42706a97443204c6a",
+  "source_journal_event_count": 2,
+  "source_journal_last_event_identity": "ed3eca49204e40f83a31534ea2b2f8689937a10995aae63e8f3fa48e48d87889",
+  "source_journal_sha256": "4b245587e6ad080cbe4b6e0d8f12e6b31be5046c7142867ddb25aeb802b42c96"
+}
