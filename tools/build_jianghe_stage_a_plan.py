@@ -40,6 +40,7 @@ from src.jianghe_stage_a_runtime import (  # noqa: E402
     STAGE_A_PROVIDER_CAP_CNY,
     STAGE_A_STIMULUS_VERSION,
     STAGE_A_TOTAL_CAP_CNY,
+    STAGE_A_REQUEST_VERSION_V0_1,
     StageAProviderTransport,
     build_stage_a_stimulus,
     exact_invocation_bounds,
@@ -51,6 +52,7 @@ from src.jianghe_stage_a_runtime import (  # noqa: E402
 
 PLAN_AS_OF = datetime(2026, 8, 24, 1, 3, tzinfo=timezone.utc)  # Owner approval 09:03 +08
 MAX_OUTPUT_TOKENS = 400
+REQUEST_CONTRACT_VERSION = STAGE_A_REQUEST_VERSION_V0_1
 PROMPT_PACKAGE_PATH = (
     REPOSITORY_ROOT / "docs" / "research" / "jianghe" / "JIANGHE_LIVE_FIDELITY_PROMPT_PACKAGE_V0_1.json"
 )
@@ -117,7 +119,7 @@ def _inference_identity(spec, payload: Mapping[str, object]) -> str:
         "tools": payload.get("tools"),
         "max_output_tokens": MAX_OUTPUT_TOKENS,
     }
-    for name in ("reasoning_effort", "response_format", "stream"):
+    for name in ("thinking", "reasoning_effort", "reasoning_split", "response_format", "stream"):
         if name in payload:
             provider_specific[name] = payload[name]
     return _hash(provider_specific)
@@ -141,6 +143,7 @@ def build_plan() -> dict[str, object]:
             decision_prompt=decision_prompt,
             max_output_tokens=MAX_OUTPUT_TOKENS,
             stimulus=stimulus,
+            contract_version=REQUEST_CONTRACT_VERSION,
         )
         for track in ALL_TRACKS
     }

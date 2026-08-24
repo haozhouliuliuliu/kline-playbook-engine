@@ -27,7 +27,7 @@ from src.jianghe_stage_a_runner import (  # noqa: E402
     VerifiedFrozenStageAPlan,
     execute_frozen_slot,
 )
-from tools.build_jianghe_stage_a_frozen_plan import build_frozen_plan  # noqa: E402
+from tools.build_jianghe_stage_a_frozen_plan_v0_2 import build_frozen_plan  # noqa: E402
 
 
 def _pretty_bytes(value: object) -> bytes:

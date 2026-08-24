@@ -38,6 +38,18 @@ DEFAULT_OUTPUT = ROOT / "docs" / "evidence" / "JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.
 
 
 def build_frozen_plan() -> dict[str, object]:
+    # Historical V0.1 rebuild stays pinned even though the current runtime is V0.2.
+    base.PLAN_AS_OF = base.datetime(2026, 8, 24, 1, 3, tzinfo=base.timezone.utc)
+    base.MAX_OUTPUT_TOKENS = 400
+    base.REQUEST_CONTRACT_VERSION = "JIANGHE_STAGE_A_REQUEST_V0_1"
+    base.PROMPT_PACKAGE_PATH = (
+        ROOT / "docs/research/jianghe/JIANGHE_LIVE_FIDELITY_PROMPT_PACKAGE_V0_1.json"
+    )
+    base.PROTOCOL_AUTHORITY_PATH = (
+        ROOT / "docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md"
+    )
+    base.STAGE_A_PLAN_VERSION = "JIANGHE_STAGE_A_FROZEN_PLAN_V0_1"
+    base.STAGE_A_PROTOCOL_VERSION = "JIANGHE_STAGE_A_INPUT_PROTOCOL_V0_1"
     base.build_stage_a_stimulus = build_frozen_stage_a_stimulus
     plan = base.build_plan()
     stimulus = plan.get("stimulus")

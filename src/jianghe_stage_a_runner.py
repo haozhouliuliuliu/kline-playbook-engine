@@ -46,9 +46,9 @@ from src.jianghe_stage_a_runtime import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-FROZEN_PLAN_PATH = ROOT / "docs" / "evidence" / "JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json"
+FROZEN_PLAN_PATH = ROOT / "docs" / "evidence" / "JIANGHE_STAGE_A_FROZEN_PLAN_V0_2.json"
 PROMPT_PACKAGE_PATH = (
-    ROOT / "docs" / "research" / "jianghe" / "JIANGHE_LIVE_FIDELITY_PROMPT_PACKAGE_V0_1.json"
+    ROOT / "docs" / "research" / "jianghe" / "JIANGHE_LIVE_FIDELITY_PROMPT_PACKAGE_V0_2.json"
 )
 DEFAULT_STATE_DIR = ROOT / ".runtime" / "jianghe_stage_a"
 JOURNAL_SCHEMA_VERSION = "JIANGHE_STAGE_A_EXECUTION_EVENT_V0_1"
@@ -59,6 +59,7 @@ TERMINAL_STATUSES = frozenset(
     {
         "SUCCESS_NORMALIZED",
         "NON_SCOREABLE_NORMALIZER",
+        "NON_SCOREABLE_PROVIDER_RESPONSE",
         "PROVIDER_MODEL_DRIFT",
         "TRANSPORT_FAILURE",
     }
@@ -186,9 +187,16 @@ class VerifiedFrozenStageAPlan:
         identity_payload.pop("plan_identity", None)
         if _hash(identity_payload) != declared_identity:
             raise FrozenPlanMismatchError("frozen plan identity does not match its content")
+        version = payload.get("artifact_schema_version")
+        if version not in {"JIANGHE_STAGE_A_FROZEN_PLAN_V0_1", "JIANGHE_STAGE_A_FROZEN_PLAN_V0_2"}:
+            raise FrozenPlanMismatchError("frozen plan version is unsupported")
         expected_top = {
-            "artifact_schema_version": "JIANGHE_STAGE_A_FROZEN_PLAN_V0_1",
-            "status": "FROZEN_BEFORE_FIRST_PAID_CALL",
+            "artifact_schema_version": version,
+            "status": (
+                "FROZEN_BEFORE_FIRST_PAID_CALL"
+                if version.endswith("V0_1")
+                else "FROZEN_V0_2_OFFLINE__REMOTE_BOOTSTRAP_PENDING_AFTER_MERGE"
+            ),
             "automatic_retry": "FORBIDDEN",
             "outcome_access": "NO",
             "max_calls_per_provider": STAGE_A_MAX_CALLS_PER_PROVIDER,
@@ -214,6 +222,25 @@ class VerifiedFrozenStageAPlan:
         providers = payload.get("providers")
         if not isinstance(providers, list) or len(providers) != len(IMPLEMENTATION_TARGET_SPECS):
             raise FrozenPlanMismatchError("frozen plan provider set is malformed")
+        if version.endswith("V0_2"):
+            carry = payload.get("carry_forward")
+            expected_carry = {
+                "live_calls": 1,
+                "project_accounted_cny": "0.219222",
+                "stage_accounted_cny": "0.219222",
+                "provider_accounted_cny": {"DEEPSEEK": "0.219222"},
+                "provider_attempts": {"DEEPSEEK": 1},
+                "attempted_slots": ["DEEPSEEK:1"],
+                "attempt_001_evidence_identity": "d36c1fbbb1cd639e48a6f049f7df1be3bb95d9f346d75bbb85e25451fba9dc55",
+                "automatic_retry": "FORBIDDEN",
+                "replacement_call": "FORBIDDEN",
+            }
+            if (
+                carry != expected_carry
+                or payload.get("future_executable_call_count") != 14
+                or payload.get("max_total_stage_a_calls") != _MAX_TOTAL_STAGE_A_CALLS
+            ):
+                raise FrozenPlanMismatchError("V0.2 carry-forward baseline drifted")
         return cls(
             payload=payload,
             raw_bytes=committed,
@@ -245,6 +272,22 @@ class VerifiedFrozenStageAPlan:
         if len(matches) != 1:
             raise FrozenPlanMismatchError("slot must resolve exactly once in frozen plan")
         return matches[0]
+
+    def carry_forward_snapshot(self) -> "JournalSnapshot":
+        carry = self.payload.get("carry_forward")
+        if not isinstance(carry, Mapping):
+            return JournalSnapshot(frozenset(), Decimal("0"), Decimal("0"), {}, 0, {})
+        return JournalSnapshot(
+            attempted_slots=frozenset(str(item) for item in carry["attempted_slots"]),
+            project_accounted_cny=_decimal(carry["project_accounted_cny"], "carry.project"),
+            stage_accounted_cny=_decimal(carry["stage_accounted_cny"], "carry.stage"),
+            provider_accounted_cny={
+                str(key): _decimal(value, "carry.provider")
+                for key, value in carry["provider_accounted_cny"].items()
+            },
+            total_attempts=int(carry["live_calls"]),
+            provider_attempts={str(key): int(value) for key, value in carry["provider_attempts"].items()},
+        )
 
 
 @dataclass(frozen=True)
@@ -370,8 +413,9 @@ class StageAExecutionJournal:
                 provider_attempts[provider] = provider_attempts.get(provider, 0) + 1
             else:
                 terminals[key] = dict(event)
-        provider_spend: dict[str, Decimal] = {}
-        total = Decimal("0")
+        baseline = self.plan.carry_forward_snapshot()
+        provider_spend: dict[str, Decimal] = dict(baseline.provider_accounted_cny)
+        total = baseline.stage_accounted_cny
         for key, start in starts.items():
             terminal = terminals.get(key)
             amount = (
@@ -387,17 +431,21 @@ class StageAExecutionJournal:
         for provider, amount in provider_spend.items():
             if amount > STAGE_A_PROVIDER_CAP_CNY:
                 raise JournalIntegrityError(f"persisted provider accounting exceeds CNY6: {provider}")
-        if len(starts) > _MAX_TOTAL_STAGE_A_CALLS:
+        total_attempts = baseline.total_attempts + len(starts)
+        combined_provider_attempts = dict(baseline.provider_attempts)
+        for provider, count in provider_attempts.items():
+            combined_provider_attempts[provider] = combined_provider_attempts.get(provider, 0) + count
+        if total_attempts > _MAX_TOTAL_STAGE_A_CALLS:
             raise JournalIntegrityError("persisted attempt count exceeds Stage-A maximum")
-        if any(value > STAGE_A_MAX_CALLS_PER_PROVIDER for value in provider_attempts.values()):
+        if any(value > STAGE_A_MAX_CALLS_PER_PROVIDER for value in combined_provider_attempts.values()):
             raise JournalIntegrityError("persisted provider attempt count exceeds maximum")
         return JournalSnapshot(
-            attempted_slots=frozenset(starts),
+            attempted_slots=frozenset((*baseline.attempted_slots, *starts.keys())),
             project_accounted_cny=total,
             stage_accounted_cny=total,
             provider_accounted_cny=dict(provider_spend),
-            total_attempts=len(starts),
-            provider_attempts=dict(provider_attempts),
+            total_attempts=total_attempts,
+            provider_attempts=combined_provider_attempts,
         )
 
     def snapshot(self) -> JournalSnapshot:
@@ -577,7 +625,12 @@ def _find_provider_spec(provider_id: str) -> ProviderSpec:
 
 
 def _prompt_strings(plan: VerifiedFrozenStageAPlan) -> tuple[str, str]:
-    blob = _repository_blob_bytes(PROMPT_PACKAGE_PATH)
+    prompt_path = (
+        ROOT / "docs/research/jianghe/JIANGHE_LIVE_FIDELITY_PROMPT_PACKAGE_V0_1.json"
+        if plan.payload.get("artifact_schema_version") == "JIANGHE_STAGE_A_FROZEN_PLAN_V0_1"
+        else PROMPT_PACKAGE_PATH
+    )
+    blob = _repository_blob_bytes(prompt_path)
     if sha256(blob).hexdigest() != plan.payload.get("prompt_package_blob_sha256"):
         raise FrozenPlanMismatchError("prompt package bytes differ from the frozen plan")
     try:
@@ -645,6 +698,8 @@ def prepare_frozen_slot(
     if provider_row.get("endpoint") != spec.endpoint or provider_row.get("payload_style") != spec.payload_style:
         raise FrozenPlanMismatchError("frozen provider transport metadata drifted")
     slot_row = plan.slot_row(provider_id, slot)
+    if slot_row.get("future_executable") is False:
+        raise SlotAlreadyAttemptedError("CARRY_FORWARD_ATTEMPTED__NON_RETRYABLE")
     try:
         track = StageAInputTrack(str(slot_row.get("track")))
     except ValueError as error:
@@ -661,6 +716,11 @@ def prepare_frozen_slot(
         decision_prompt=decision_prompt,
         max_output_tokens=max_output,
         stimulus=stimulus,
+        contract_version=(
+            "JIANGHE_STAGE_A_REQUEST_V0_1"
+            if plan.payload.get("artifact_schema_version") == "JIANGHE_STAGE_A_FROZEN_PLAN_V0_1"
+            else "JIANGHE_STAGE_A_REQUEST_V0_2"
+        ),
     )
     transport = (
         StageAProviderTransport(spec, http_post=http_post)
@@ -719,8 +779,7 @@ def enforce_persistent_caps(
 def _provider_evidence_payload(
     evidence: StageAProviderInvocationEvidence,
 ) -> dict[str, object]:
-    usage: ProviderUsage = evidence.usage
-    return {
+    payload = {
         "identity": evidence.identity,
         "input_track": evidence.input_track.value,
         "request_identity": evidence.request_identity,
@@ -734,18 +793,13 @@ def _provider_evidence_payload(
         "requested_model_id": evidence.requested_model_id,
         "resolved_model_id": evidence.resolved_model_id,
         "provider_request_id": evidence.provider_request_id,
-        "raw_provider_response_body": evidence.raw_provider_response_body,
-        "raw_response_text": evidence.raw_response_text,
-        "usage": {
-            "text_input_tokens": usage.text_input_tokens,
-            "image_tokens": usage.image_tokens,
-            "output_tokens": usage.output_tokens,
-        },
         "latency_ms": evidence.latency_ms,
         "rate_card_identity": evidence.rate_card_identity,
         "budget_reservation_id": evidence.budget_reservation_id,
         "charged_cny": evidence.charged_cny,
+        **evidence.safe_payload(),
     }
+    return payload
 
 
 def _safe_error_message(error: BaseException, credential: str | None) -> str:
@@ -841,11 +895,22 @@ def _execute_prepared_frozen_slot(
         error_message = _safe_error_message(error, credential)
     else:
         provider_payload = _provider_evidence_payload(evidence)
-        if evidence.resolved_model_id != prepared.provider_spec.model_id:
+        if (
+            isinstance(evidence.resolved_model_id, str)
+            and evidence.resolved_model_id
+            and evidence.resolved_model_id != prepared.provider_spec.model_id
+        ):
             status = "PROVIDER_MODEL_DRIFT"
             accounted = prepared.worst_case_cny
             error_type = "ProviderResolvedModelMismatch"
             error_message = "provider-resolved model differs from frozen authorized model"
+        elif not evidence.provider_response_scoreable:
+            status = "NON_SCOREABLE_PROVIDER_RESPONSE"
+            accounted = prepared.worst_case_cny if evidence.usage is None else _decimal(
+                evidence.charged_cny, "evidence.charged_cny"
+            )
+            error_type = "ProviderFinalContentUnusable"
+            error_message = f"final_content_state={evidence.final_content_state}"
         else:
             actual = _decimal(evidence.charged_cny, "evidence.charged_cny")
             if actual > prepared.worst_case_cny:

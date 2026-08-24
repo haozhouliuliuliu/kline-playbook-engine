@@ -28,6 +28,8 @@ def main() -> int:
     parser.add_argument("--provider", required=True, choices=("KIMI", "DEEPSEEK", "MINIMAX"))
     parser.add_argument("--slot", required=True, type=int, choices=range(1, 6))
     args = parser.parse_args()
+    if args.provider == "DEEPSEEK" and args.slot == 1:
+        parser.error("CARRY_FORWARD_ATTEMPTED__NON_RETRYABLE")
 
     plan = load_verified_frozen_plan()
     state_dir = DEFAULT_STATE_DIR.resolve()
