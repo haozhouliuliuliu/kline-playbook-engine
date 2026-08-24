@@ -26,6 +26,8 @@ jobs:
           python-version: "3.12"
       - name: Compile
         run: python -m compileall -q src tools tests
+      - name: Diagnose deterministic Stage-A budget bounds
+        run: python tools/diagnose_jianghe_stage_a_budget.py
       - name: Build deterministic Stage-A frozen-plan candidate
         run: python tools/build_jianghe_stage_a_frozen_plan.py --output /tmp/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
       - name: Upload frozen-plan candidate
