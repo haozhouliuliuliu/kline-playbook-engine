@@ -11,16 +11,17 @@ ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A__SECURE_CREDENTIAL_HANDOFF_AND_EXISTING_BALANCE_READINESS
-NEXT_NORMAL_PHASE=owner_configures_secure_stage_a_readiness_secrets_then_run_manual_non_billable_readiness_then_execute_stage_a_only_if_existing_funds_suffice
-OWNER_ACTION=CONFIGURE_STAGE_A_READINESS_ENVIRONMENT_AND_PROVIDER_SECRETS__NO_RECHARGE_DECISION_YET
+CURRENT_WORK_PACKAGE=STAGE_A_LIVE_EXECUTION_LANE_PREFLIGHT_AND_DURABILITY
+NEXT_NORMAL_PHASE=integrate_and_review_crash_resilient_remote_write_ahead_lane_before_any_paid_stage_a_call
+OWNER_ACTION=NONE_NOW
 TOOL_DECISION=USE_EXISTING
 ```
 
 ## Current material checkpoint
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=c3ec8fda6331106b3916ea14875e26fc0a0ec640
+LAST_MATERIAL_STATE_COMMIT=07b8159acc47634d5b122d534987981ba8707f96
+PR_26_MERGE_COMMIT=a6f8cc99641a37c628264cb57b30a75c4537aa4a
 STAGE_A_OFFLINE_PREEXECUTION=COMPLETE
 STAGE_A_FROZEN_PLAN_IDENTITY=7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4
 STAGE_A_FROZEN_STIMULUS=36x5m__12x15m__3x1H__JH-FIX-C-001
@@ -31,8 +32,10 @@ STAGE_A_PROVIDER_MODEL_DRIFT_GUARD=INTEGRATED
 PROVIDER_BALANCE_READINESS_CHECKER=INTEGRATED__NON_BILLABLE
 STAGE_A_MANUAL_READINESS_WORKFLOW=INTEGRATED__MANUAL_ONLY__MAIN_ONLY
 STAGE_A_READINESS_INTEGRATION_EVIDENCE=docs/reviews/JIANGHE_STAGE_A_SECURE_CREDENTIAL_READINESS_INTEGRATION_V0_1.md
-STAGE_A_READINESS_GITHUB_ENVIRONMENT=stage-a-readiness__OWNER_CONFIGURATION_PENDING
+STAGE_A_EVIDENCE_EXPORTER=INTEGRATED__SECRET_FAIL_CLOSED__BSP_003_PRESERVED
+STAGE_A_READINESS_GITHUB_ENVIRONMENT=stage-a-readiness__MAIN_RESTRICTED__SECRETS_CONFIGURED
 STAGE_A_RUNTIME_STATE=.runtime/jianghe_stage_a__GIT_IGNORED
+STAGE_A_HOSTED_RUNNER_DURABILITY=BLOCKED__REMOTE_WRITE_AHEAD_REQUIRED_BEFORE_PAID_CALL
 ```
 
 Frozen plan authority: `docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json`.
@@ -52,11 +55,11 @@ Owner credential/funding handoff rule:
 
 ## Latest offline verification
 
-PR #25 / merged tree verification:
+PR #26 / reviewed Linux tree verification:
 
 ```text
-STAGE_A_FOCUSED_TESTS=PASS__49_TESTS
-CANONICAL_FULL_SUITE=PASS__1278_TESTS__27_SKIPPED
+STAGE_A_FOCUSED_TESTS=PASS__70_TESTS
+CANONICAL_FULL_SUITE=PASS__1299_TESTS__27_SKIPPED
 DIFF_HYGIENE=PASS
 FROZEN_PLAN_CHECK=PASS
 FROZEN_PLAN_INDEPENDENT_REBUILD=PASS
@@ -154,20 +157,25 @@ DEEPSEEK=0.775968_CNY
 MINIMAX=1.0885308_CNY
 ```
 
-These are ceilings, not recharge requests. Recharge shortfall remains unknown until existing balance is verified.
+These are ceilings, not recharge requests. Their total is CNY 7.4422188. The Owner-reported CNY 10 wallet balance at each provider covers every provider's frozen five-slot ceiling, so no new Stage-A recharge is required. This statement does not turn the Owner report into machine-verified MiniMax balance evidence and does not claim any recharge transaction history.
 
 ## Credential / existing-balance readiness
 
 The repository has a separate manual-only GitHub Actions boundary so the Owner never needs to paste provider credentials into chat or commit them to Git.
 
 ```text
-MOONSHOT_API_KEY=NOT_CONFIGURED_FOR_STAGE_A_READINESS_WORKFLOW
-DEEPSEEK_API_KEY=NOT_CONFIGURED_FOR_STAGE_A_READINESS_WORKFLOW
-MINIMAX_API_KEY=NOT_CONFIGURED_FOR_STAGE_A_READINESS_WORKFLOW
+MOONSHOT_API_KEY=CONFIGURED_IN_GITHUB_ENVIRONMENT__VALUE_NOT_READ
+DEEPSEEK_API_KEY=CONFIGURED_IN_GITHUB_ENVIRONMENT__VALUE_NOT_READ
+MINIMAX_API_KEY=CONFIGURED_IN_GITHUB_ENVIRONMENT__VALUE_NOT_READ
 CREDENTIAL_VALUE_EXPOSURE=NONE
-EXISTING_PROVIDER_BALANCE=NOT_VERIFIED__BLOCKED_BY_SECRET_CONFIGURATION
-NEW_RECHARGE_REQUIRED=NOT_DETERMINED
-STAGE_A_NETWORK_EXECUTION=BLOCKED_BEFORE_FIRST_REQUEST
+EXISTING_PROVIDER_BALANCE_EVIDENCE_CLASS=OWNER_CONFIRMED__NOT_MACHINE_VERIFIED_ALL_THREE
+OWNER_REPORTED_KIMI_WALLET_BALANCE_CNY=10
+OWNER_REPORTED_DEEPSEEK_WALLET_BALANCE_CNY=10
+OWNER_REPORTED_MINIMAX_WALLET_BALANCE_CNY=10
+FROZEN_STAGE_A_TOTAL_WORST_CASE_CNY=7.4422188
+NEW_RECHARGE_REQUIRED=NO
+NO_MORE_RECHARGE_REQUIRED_FOR_STAGE_A_BY_OWNER_REPORTED_BALANCES=YES
+STAGE_A_NETWORK_EXECUTION=BLOCKED_PENDING_REMOTE_DURABLE_WRITE_AHEAD_LANE
 ```
 
 Manual readiness workflow invariants:
@@ -182,7 +190,7 @@ MODEL_SLOT_RUNNER_PRESENT=NO
 MODEL_ENDPOINT_AS_BALANCE_PROBE=FORBIDDEN
 OUTPUT_ARTIFACT=SANITIZED_JSON__RETENTION_1_DAY
 CREDENTIAL_VALUE_OUTPUT=FORBIDDEN
-READINESS_WORKFLOW_RUN=NOT_YET_RUN
+READINESS_WORKFLOW_RUN=32689271759__SANITIZED_STEPS_SUCCEEDED__FINAL_FAIL_CLOSED_STEP_FAILED_BY_DESIGN
 ```
 
 Integrated non-billable checker behavior:
@@ -240,14 +248,12 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Owner configures the GitHub `stage-a-readiness` environment for `main` and supplies the three existing provider API credentials as secrets; never paste secret values into chat or commit them.
-2. Run the manual `Stage-A Provider Readiness` workflow. It rebuilds/byte-verifies the frozen plan before any balance request.
-3. Query Kimi and DeepSeek existing CNY balance through their official read-only endpoints only.
-4. Keep MiniMax pay-as-you-go readiness unresolved unless an official non-billable read-only balance surface is available; never probe it with a model call.
-5. If any **new** recharge/top-up is actually required, return provider + exact frozen shortfall amount + verified official funding URL + reason to Owner and stop.
-6. If existing credentials/funds suffice, execute Stage A one frozen slot at a time under the persistent journal: max CNY18 / 15 calls / CNY6 per provider / shared CNY100 cap.
-7. Persist durable Stage-A attempt evidence after every attempted slot; never automatically retry a started slot.
-8. Commit Stage-A evidence/ranking before any Stage-B activity.
+1. Integrate and review a repository-native, secret-free remote execution ledger with compare-and-swap protection.
+2. Require a remotely durable and re-read-verified `NETWORK_ATTEMPT_STARTED` reservation before any provider transport can run on a hosted runner.
+3. Preserve incomplete reservations as attempted, non-retryable and charged at the frozen worst-case ceiling after crash, cancellation, timeout, evidence-export failure or terminal-persistence failure.
+4. Keep the first lane explicit single-slot and manual-only; do not invent elimination, ranking or evaluator semantics.
+5. Only after that lane is merged and project-brain closes its review may an authorized operator consider the first paid Stage-A slot.
+6. Persist secret-guarded Stage-A attempt evidence after every attempted slot; commit Stage-A evidence/ranking before any Stage-B activity.
 
 At this checkpoint:
 

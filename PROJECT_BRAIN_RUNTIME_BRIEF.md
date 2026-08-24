@@ -16,7 +16,8 @@ After takeover acceptance, before every substantive project reply:
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=c3ec8fda6331106b3916ea14875e26fc0a0ec640
+LAST_MATERIAL_STATE_COMMIT=07b8159acc47634d5b122d534987981ba8707f96
+PR_26_MERGE_COMMIT=a6f8cc99641a37c628264cb57b30a75c4537aa4a
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -29,9 +30,9 @@ BSP_001_TO_005=CLOSED
 RSP_001_TO_002=CLOSED
 LIMIT_015=RESOLVED
 LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A__SECURE_CREDENTIAL_HANDOFF_AND_EXISTING_BALANCE_READINESS
-NEXT_NORMAL_PHASE=owner_configures_stage_a_readiness_secrets_then_run_manual_non_billable_readiness_then_execute_stage_a_only_if_existing_funds_suffice
-OWNER_ACTION=CONFIGURE_STAGE_A_READINESS_ENVIRONMENT_AND_PROVIDER_SECRETS__NO_RECHARGE_DECISION_YET
+CURRENT_WORK_PACKAGE=STAGE_A_LIVE_EXECUTION_LANE_PREFLIGHT_AND_DURABILITY
+NEXT_NORMAL_PHASE=integrate_and_review_crash_resilient_remote_write_ahead_lane_before_any_paid_stage_a_call
+OWNER_ACTION=NONE_NOW
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -70,12 +71,14 @@ READINESS_WORKFLOW=.github/workflows/stage-a-provider-readiness.yml
 WORKFLOW_REPOSITORY_PERMISSION=contents_read_ONLY
 WORKFLOW_ENVIRONMENT=stage-a-readiness
 MODEL_SLOT_RUNNER_IN_READINESS_WORKFLOW=NO
-MOONSHOT_API_KEY=NOT_CONFIGURED
-DEEPSEEK_API_KEY=NOT_CONFIGURED
-MINIMAX_API_KEY=NOT_CONFIGURED
-EXISTING_PROVIDER_BALANCE=NOT_VERIFIED__BLOCKED_BY_SECRET_CONFIGURATION
-NEW_RECHARGE_REQUIRED=NOT_DETERMINED
-READINESS_WORKFLOW_RUN=NOT_YET_RUN
+MOONSHOT_API_KEY=CONFIGURED__VALUE_NOT_READ
+DEEPSEEK_API_KEY=CONFIGURED__VALUE_NOT_READ
+MINIMAX_API_KEY=CONFIGURED__VALUE_NOT_READ
+EXISTING_PROVIDER_BALANCE_EVIDENCE_CLASS=OWNER_CONFIRMED__NOT_MACHINE_VERIFIED_ALL_THREE
+OWNER_REPORTED_WALLET_BALANCES_CNY=KIMI:10,DEEPSEEK:10,MINIMAX:10
+NEW_RECHARGE_REQUIRED=NO
+NO_MORE_RECHARGE_REQUIRED_FOR_STAGE_A_BY_OWNER_REPORTED_BALANCES=YES
+READINESS_WORKFLOW_RUN=32689271759__SANITIZED_STEPS_SUCCEEDED__FINAL_FAIL_CLOSED_STEP_FAILED_BY_DESIGN
 KIMI_BALANCE=OFFICIAL_GET_/v1/users/me/balance_ONLY
 DEEPSEEK_BALANCE=OFFICIAL_GET_/user/balance_ONLY
 MINIMAX_PAYGO_BALANCE=NO_VERIFIED_READ_ONLY_API__UNKNOWN_WITH_ZERO_NETWORK
@@ -92,13 +95,17 @@ DEEPSEEK=0.775968_CNY
 MINIMAX=1.0885308_CNY
 ```
 
-These are not recharge requests. Existing balance must be verified first.
+These are not recharge requests. The Owner-reported CNY 10 wallet balance at each provider covers these ceilings; the evidence class remains `OWNER_CONFIRMED__NOT_MACHINE_VERIFIED_ALL_THREE`, and no transaction history is inferred.
+
+```text
+STAGE_A_HOSTED_RUNNER_DURABILITY=BLOCKED__REMOTE_WRITE_AHEAD_REQUIRED_BEFORE_PAID_CALL
+```
 
 ## Latest offline verification
 
 ```text
-STAGE_A_FOCUSED_TESTS=PASS__49_TESTS
-CANONICAL_FULL_SUITE=PASS__1278_TESTS__27_SKIPPED
+STAGE_A_FOCUSED_TESTS=PASS__70_TESTS
+CANONICAL_FULL_SUITE=PASS__1299_TESTS__27_SKIPPED
 DIFF_HYGIENE=PASS
 FROZEN_PLAN_CHECK=PASS
 FROZEN_PLAN_INDEPENDENT_REBUILD=PASS
@@ -117,6 +124,9 @@ STAGE_A_PROTOCOL_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULU
 STAGE_A_FROZEN_PLAN_AUTHORITY=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
 STAGE_A_RUNNER=src/jianghe_stage_a_runner.py
 STAGE_A_SINGLE_SLOT_CLI=tools/run_jianghe_stage_a_slot.py
+STAGE_A_EVIDENCE_EXPORTER=src/jianghe_stage_a_evidence.py
+STAGE_A_EVIDENCE_EXPORT_CLI=tools/materialize_jianghe_stage_a_evidence.py
+STAGE_A_EVIDENCE_AND_READINESS_CLOSURE=docs/reviews/JIANGHE_STAGE_A_EVIDENCE_EXPORT_AND_READINESS_CLOSURE_V0_1.md
 PROVIDER_READINESS_CHECKER=src/jianghe_provider_readiness.py
 PROVIDER_READINESS_CLI=tools/check_jianghe_provider_readiness.py
 PROVIDER_READINESS_WORKFLOW=.github/workflows/stage-a-provider-readiness.yml
@@ -128,13 +138,12 @@ CURRENT_PAID_CALL_AUTHORIZATION=docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CU
 
 ## Exact next work
 
-1. Owner configures the GitHub `stage-a-readiness` environment for `main` and stores the three existing provider API credentials as secrets; never paste secret values into chat or commit them.
-2. Run the manual `Stage-A Provider Readiness` workflow; it byte-verifies the frozen plan first.
-3. Kimi and DeepSeek may use only their official read-only balance endpoints. MiniMax remains UNKNOWN unless a verified non-billable read-only balance surface exists.
-4. If a new recharge/top-up is required, return provider + exact frozen shortfall + freshly verified official funding URL + reason to Owner and stop.
-5. If existing credentials/funds suffice, execute Stage A only through the single-slot runner under CNY18 / 15 calls / CNY6 per provider / shared CNY100 cap.
-6. Persist durable evidence after every attempted slot; no automatic retry after durable network-start.
-7. Commit Stage-A evidence/ranking before Stage B.
+1. Integrate and review a repository-native remote write-ahead lane before any hosted-runner paid call.
+2. The lane must durably reserve and re-read-verify a frozen slot with CAS before provider transport.
+3. Crash, cancellation, timeout, evidence-export failure or terminal-persistence failure keeps the slot attempted, non-retryable and fully worst-case-accounted.
+4. Keep the first live lane manual, main-only and explicit single-slot; do not add research-semantic scheduling.
+5. After project-brain review closure, paid Stage A remains governed by CNY18 / 15 calls / CNY6 per provider / shared CNY100 cap and the current expiring authorization.
+6. Commit secret-guarded Stage-A evidence/ranking before Stage B.
 
 ## Locks that remain closed
 
