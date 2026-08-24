@@ -1,7 +1,7 @@
 {
   "artifact": "JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1",
   "artifact_schema_version": "JIANGHE_PROVIDER_PRICING_AUTHORITY_SCHEMA_V0_1",
-  "checked_at": "2026-08-24T12:00:00+08:00",
+  "checked_at": "2026-08-24T08:14:00+08:00",
   "purpose": "PRE_SPEND_WORST_CASE_BUDGET_GUARD_ONLY",
   "hard_project_cap_cny": "100.00",
   "pricing_fallback_policy": "docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md",

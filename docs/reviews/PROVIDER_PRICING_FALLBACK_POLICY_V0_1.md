@@ -1,79 +1,69 @@
 # PROVIDER PRICING FALLBACK POLICY V0.1
 
-Status: OWNER_APPROVED__PRESPEND_COST_POLICY
+Status: `OWNER_APPROVED__PRE_SPEND_BUDGET_GUARD_POLICY`
 Date: 2026-08-24
-Scope: Jianghe real-model fidelity probe spend guard only
-Hard project ceiling: CNY 100 total
-Paid-call authorization: NOT GRANTED by this policy
+Scope: provider/model pricing authority used only for pre-call worst-case budget reservation.
 
-## Decision
+## Purpose
 
-The project must not stall merely because an experimental/new target model lacks a separately indexed exact price page when a sufficiently close same-vendor pricing basis is available.
+A newly released or experimental model must not be excluded from the Jianghe fidelity probe merely because a separately indexed exact tariff page is temporarily unavailable, provided its billing unit and a conservative same-vendor price bound can be established.
 
-Pricing authority selection order is:
+This policy does not authorize any paid call, provider adoption, outcome access, broker action, or real-money trading.
 
-1. exact current first-party target-model tariff;
-2. explicit first-party statement that the target inherits another model/tier tariff;
-3. same-vendor, same-family or sibling-tier public tariff approved by the Owner as a conservative fallback.
+## Owner-approved fallback rule
 
-When a fallback is used, the hard budget guard MUST use the more expensive applicable public tier/rate. Cache-hit discounts, off-peak discounts, temporary launch discounts, promotional credits and optimistic assumptions MUST NOT reduce the reserved worst-case cost.
+When the exact target-model tariff is unavailable or not separately indexed, the spend guard may use a public tariff from the same vendor and same model family or a clearly comparable sibling tier only when all of the following hold:
 
-## Non-negotiable safety boundary
+1. the target model's billing unit is known and executable before network;
+2. the fallback relationship is explicitly documented by the provider or confirmed by the Owner from current provider material;
+3. the guard selects the more expensive applicable rate rather than the cheapest plausible rate;
+4. cache-hit, off-peak, launch, promotional, coupon, prepaid-plan, or other discounts are not credited unless they are unavoidable parts of the published standard tariff;
+5. image or other multimodal billing is independently bounded rather than silently treated as free;
+6. the fallback source, target model, selected rate and rationale are committed to repository evidence with a bounded validity window.
 
-Fallback pricing may substitute for an unavailable exact tariff. It may NOT invent an unknown billing unit.
-
-Before a provider can be spend-eligible, the project must still know enough to upper-bound the charge before network access, for example:
-
-- text/output billed by tokens;
-- image billed as input tokens, or a conservative fixed per-image token ceiling;
-- any required currency conversion basis.
-
-If the billing unit itself cannot be bounded, the request remains fail-closed before network.
-
-Every rate card must bind its repository pricing authority identity, provider/model, endpoint, currency, selected conservative rates, image-billing mode, validity window, authority URLs, and the pricing-basis/fallback rule used.
+If the billing unit itself cannot be bounded, or no defensible same-vendor relationship exists, the request remains fail-closed before network.
 
 ## Current application
 
-### Kimi K3
-
-Use the exact current Kimi K3 CNY tariff already captured by repository authority. Do not credit cache discounts in the hard-cap reservation. Each image is reserved as 1024 input tokens under the captured Kimi image-billing authority.
-
 ### DeepSeek V4 Flash Vision Exp
 
-Owner reconfirmed on 2026-08-24 that `deepseek-v4-flash-vision-exp` directly accepts images, has the same price and base performance as V4 Flash, and adds multimodal capability. This is consistent with the existing project correction authority that records the Vision Exp model and its launch-day V4 Flash pricing relationship.
+Owner reconfirmed that `deepseek-v4-flash-vision-exp` has the same base performance and price as V4 Flash, with multimodal input added. The project therefore uses the V4 Flash peak/cache-miss schedule as the conservative spend guard:
 
-For the spend guard, inherit V4 Flash pricing and deliberately use the expensive peak/cache-miss side:
+```text
+INPUT_CNY_PER_MTOK=3.00
+OUTPUT_CNY_PER_MTOK=9.00
+CACHE_OR_OFFPEAK_DISCOUNT_CREDITED=NO
+IMAGE_INPUT_BOUND=384_INPUT_TOKENS_PER_IMAGE
+```
 
-- input: CNY 3.00 / MTok;
-- output: CNY 9.00 / MTok;
-- image tokens: billed as input tokens;
-- conservative visual ceiling: 384 input tokens per image.
-
-No cache-hit or off-peak discount is credited.
-
-The statement that product/base performance matches Flash and adds multimodality is a provider/Owner-level product fact. It is NOT a project fidelity `VERIFIED` or `ADOPTED` result. Real Jianghe fidelity still requires the later governed probe.
+The performance relationship is a provider/Owner-level fact. It is not a project Jianghe-fidelity `VERIFIED` result.
 
 ### MiniMax M3
 
-Use the current first-party M3 token tariff, but reserve against the more expensive >512K tier even when the actual request is smaller:
+Current first-party pay-as-you-go pricing publishes CNY token rates directly. For the spend guard the project deliberately selects the more expensive standard `>512k` input tier:
 
-- input: CNY 4.20 / MTok;
-- output: CNY 16.80 / MTok.
+```text
+INPUT_CNY_PER_MTOK=4.20
+OUTPUT_CNY_PER_MTOK=16.80
+CACHE_DISCOUNT_CREDITED=NO
+IMAGE_BILLING=INPUT_TOKENS
+```
 
-M3 accepts image input and the language model is token-billed. Because a separate fixed image-token conversion is not required for this mode, the spend guard must cover the exact serialized multimodal request (including base64 image bytes) with the repository's conservative payload-token upper-bound policy. No separate optimistic image discount is allowed.
+The exact serialized multimodal request is already included in the conservative input upper-bound policy, so no invented fixed image-token conversion is introduced.
 
-## Gates unchanged
+### Kimi K3
 
-This policy does NOT:
+Kimi K3 uses its exact current target rate and therefore does not require fallback pricing. Current first-party help also states each vision image is billed as a fixed 1024 input tokens.
 
-- authorize any paid API call;
-- verify or adopt any provider/model;
-- open outcome/PnL access;
-- freeze PRIMARY semantics;
-- open Validation or historical Final;
-- authorize Shadow/Forward, broker access or real money;
-- raise the shared CNY 100 hard cap.
+## Safety invariants
 
-A committed Owner paid-call authorization artifact remains a separate mandatory gate.
+```text
+TOTAL_HARD_SPEND_CAP_CNY=100.00
+AUTOMATIC_SEMANTIC_RETRY=FORBIDDEN
+PROVIDER_LOCAL_BUDGET_BYPASS=FORBIDDEN
+UNKNOWN_BILLING_UNIT=FAIL_CLOSED
+STALE_RATE_AUTHORITY=FAIL_CLOSED
+PAID_CALL_AUTHORIZATION=SEPARATE_OWNER_GATE
+```
 
-TOOL_DECISION=USE_EXISTING
+This policy is a budget-conservatism rule only. It must not be used to infer model quality, fidelity, provider verification, or provider adoption.
