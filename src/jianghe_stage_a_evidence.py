@@ -7,6 +7,7 @@ provider ranks, retries, or provider network activity.
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 import json
@@ -22,8 +23,10 @@ from src.jianghe_stage_a_runner import (
     NETWORK_ATTEMPT_STARTED,
     StageAExecutionJournal,
     VerifiedFrozenStageAPlan,
+    prepare_frozen_slot,
 )
 from src.jianghe_stage_a_runtime import (
+    StageAInputRequest,
     StageAInputTrack,
     StageAProviderInvocationEvidence,
 )
@@ -182,6 +185,7 @@ def _validated_provider_evidence(
     *,
     provider_row: Mapping[str, object],
     slot_row: Mapping[str, object],
+    expected_request: StageAInputRequest,
 ) -> dict[str, object]:
     if not isinstance(raw, Mapping) or frozenset(raw) != _PROVIDER_EVIDENCE_FIELDS:
         raise StageAEvidenceError("provider evidence schema mismatch")
@@ -237,6 +241,12 @@ def _validated_provider_evidence(
         "provider_spec_identity": provider_row.get("provider_spec_identity"),
         "requested_model_id": provider_row.get("model_id"),
         "rate_card_identity": provider_row.get("rate_card_identity"),
+        "source_observation_identity": expected_request.stimulus.observation.identity.identity,
+        "selected_context_identity": expected_request.context.identity,
+        "context_selection_policy_identity": (
+            expected_request.context.context_selection_policy_identity
+        ),
+        "local_structured_observation_identity": expected_request.stimulus.structured.identity,
         "transmitted_structured_observation_identity": slot_row.get(
             "transmitted_structured_observation_identity"
         ),
@@ -245,16 +255,6 @@ def _validated_provider_evidence(
     for name, expected_value in expected.items():
         if raw.get(name) != expected_value:
             raise StageAEvidenceError(f"provider evidence differs from frozen slot: {name}")
-    _require_sha256(raw.get("source_observation_identity"), "source_observation_identity")
-    _require_sha256(raw.get("selected_context_identity"), "selected_context_identity")
-    _require_sha256(
-        raw.get("context_selection_policy_identity"),
-        "context_selection_policy_identity",
-    )
-    _require_sha256(
-        raw.get("local_structured_observation_identity"),
-        "local_structured_observation_identity",
-    )
     return dict(raw)
 
 
@@ -268,6 +268,19 @@ def _attempt_record(
     slot = int(start["slot"])
     provider_row = plan.provider_row(provider_id)
     slot_row = plan.slot_row(provider_id, slot)
+    plan_as_of = plan.payload.get("plan_as_of")
+    if not isinstance(plan_as_of, str):
+        raise StageAEvidenceError("frozen plan_as_of is malformed")
+    try:
+        plan_time = datetime.fromisoformat(plan_as_of)
+    except ValueError as error:
+        raise StageAEvidenceError("frozen plan_as_of is malformed") from error
+    prepared = prepare_frozen_slot(
+        plan,
+        provider_id=provider_id,
+        slot=slot,
+        now=plan_time,
+    )
     worst = _decimal(slot_row.get("worst_case_cny"), "slot.worst_case_cny")
     provider_evidence: dict[str, object] | None = None
     terminal_status: str
@@ -307,6 +320,7 @@ def _attempt_record(
                 terminal["provider_evidence"],
                 provider_row=provider_row,
                 slot_row=slot_row,
+                expected_request=prepared.request,
             )
 
         if terminal_status == "SUCCESS_NORMALIZED":
@@ -391,10 +405,7 @@ def build_stage_a_attempt_evidence(
     if not raw_before:
         raise StageAEvidenceError("Stage-A journal is empty")
     journal = StageAExecutionJournal(path, plan)
-    events = journal.verified_events()
-    raw_after = path.read_bytes()
-    if raw_before != raw_after:
-        raise StageAEvidenceError("Stage-A journal changed during materialization")
+    events, snapshot = journal.verified_state_from_bytes(raw_before)
     if not events:
         raise StageAEvidenceError("Stage-A journal contains no attempts")
 
@@ -413,7 +424,6 @@ def build_stage_a_attempt_evidence(
         _attempt_record(plan=plan, start=start, terminal=terminals.get(key))
         for key, start in starts.items()
     ]
-    snapshot = journal.snapshot()
     artifact: dict[str, object] = {
         "artifact_schema_version": EVIDENCE_SCHEMA_VERSION,
         "artifact_identity": None,
@@ -433,6 +443,8 @@ def build_stage_a_attempt_evidence(
     identity_payload.pop("artifact_identity", None)
     artifact["artifact_identity"] = _identity(identity_payload)
     _scan_forbidden_fields(artifact)
+    if raw_before != path.read_bytes():
+        raise StageAEvidenceError("Stage-A journal changed during materialization")
     return artifact
 
 

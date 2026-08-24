@@ -317,6 +317,45 @@ class StageAAttemptEvidenceTests(unittest.TestCase):
                 with self.assertRaises(StageAEvidenceError):
                     build_stage_a_attempt_evidence(plan=self.plan, journal_path=path)
 
+    def test_provider_provenance_identity_mismatch_fails_closed(self) -> None:
+        mutations = (
+            ("source_observation_identity", "0" * 64),
+            ("selected_context_identity", "0" * 64),
+            ("context_selection_policy_identity", "0" * 64),
+            ("local_structured_observation_identity", "0" * 64),
+            ("transmitted_structured_observation_identity", "0" * 64),
+            ("transmitted_visual_identities", ["0" * 64]),
+        )
+        for field, value in mutations:
+            with self.subTest(field=field):
+                path = self.state_dir / f"provenance-{field}.jsonl"
+                journal = StageAExecutionJournal(path, self.plan)
+                with patch.dict(
+                    os.environ, {KIMI_K3_SPEC.api_key_env: "TEST_ONLY"}, clear=True
+                ):
+                    execute_frozen_slot(
+                        self.plan,
+                        journal,
+                        provider_id="KIMI",
+                        slot=2,
+                        now=NOW,
+                        http_post=lambda *_: _response(),
+                    )
+                events = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+                provider_payload = events[1]["provider_evidence"]
+                events[1]["provider_evidence"] = _provider_payload_with(
+                    provider_payload, **{field: value}
+                )
+                events[1]["event_identity"] = _event_identity(events[1])
+                path.write_text(
+                    "".join(_canonical_compact(event) + "\n" for event in events),
+                    encoding="utf-8",
+                )
+                with self.assertRaisesRegex(
+                    StageAEvidenceError, "differs from frozen slot"
+                ):
+                    build_stage_a_attempt_evidence(plan=self.plan, journal_path=path)
+
     def test_accounted_cost_above_frozen_worst_case_fails_closed(self) -> None:
         prepared, start = self._start()
         self.journal.append_terminal(
@@ -350,6 +389,83 @@ class StageAAttemptEvidenceTests(unittest.TestCase):
         second = self._artifact()
         self.assertNotEqual(first["source_journal_sha256"], second["source_journal_sha256"])
         self.assertNotEqual(first["artifact_identity"], second["artifact_identity"])
+
+    def test_materialization_never_rereads_accounting_from_a_different_journal_state(self) -> None:
+        prepared, _ = self._start()
+        original_events = list(self.journal.verified_events())
+
+        mutated_path = self.state_dir / "mutated-journal.jsonl"
+        mutated_journal = StageAExecutionJournal(mutated_path, self.plan)
+        mutated_start = mutated_journal.append_network_start(
+            now=NOW,
+            provider_id="KIMI",
+            slot=2,
+            request_identity=str(prepared.slot_row["request_identity"]),
+            payload_sha256=str(prepared.slot_row["payload_sha256"]),
+            worst_case_cny=prepared.worst_case_cny,
+        )
+        mutated_journal.append_terminal(
+            now=NOW,
+            start_event=mutated_start,
+            status="TRANSPORT_FAILURE",
+            accounted_cny=Decimal("0"),
+            provider_evidence=None,
+            normalized_decision_identity=None,
+            error_type="InjectedMutation",
+            error_message="must not enter the original snapshot",
+        )
+        mutated_events = list(mutated_journal.verified_events())
+
+        with patch.object(
+            StageAExecutionJournal,
+            "_read_events",
+            side_effect=(original_events, mutated_events),
+        ) as reread:
+            artifact = self._artifact()
+
+        self.assertEqual(0, reread.call_count)
+        self.assertEqual(str(prepared.worst_case_cny), artifact["accounted_cny"])
+        self.assertEqual(
+            artifact["accounted_cny"], artifact["attempts"][0]["accounted_cny"]
+        )
+
+    def test_journal_byte_mutation_during_materialization_fails_closed(self) -> None:
+        prepared, _ = self._start()
+        original_bytes = self.path.read_bytes()
+
+        mutated_path = self.state_dir / "changed-journal.jsonl"
+        mutated_journal = StageAExecutionJournal(mutated_path, self.plan)
+        mutated_start = mutated_journal.append_network_start(
+            now=NOW,
+            provider_id="KIMI",
+            slot=2,
+            request_identity=str(prepared.slot_row["request_identity"]),
+            payload_sha256=str(prepared.slot_row["payload_sha256"]),
+            worst_case_cny=prepared.worst_case_cny,
+        )
+        mutated_journal.append_terminal(
+            now=NOW,
+            start_event=mutated_start,
+            status="TRANSPORT_FAILURE",
+            accounted_cny=Decimal("0"),
+            provider_evidence=None,
+            normalized_decision_identity=None,
+            error_type="InjectedMutation",
+            error_message="journal changed during materialization",
+        )
+        mutated_bytes = mutated_path.read_bytes()
+        real_read_bytes = Path.read_bytes
+        journal_reads = {"count": 0}
+
+        def changing_read_bytes(path: Path) -> bytes:
+            if path == self.path:
+                journal_reads["count"] += 1
+                return original_bytes if journal_reads["count"] == 1 else mutated_bytes
+            return real_read_bytes(path)
+
+        with patch.object(Path, "read_bytes", new=changing_read_bytes):
+            with self.assertRaisesRegex(StageAEvidenceError, "changed during"):
+                self._artifact()
 
     def test_secret_like_value_fails_closed_and_never_reaches_output(self) -> None:
         prepared, start = self._start()

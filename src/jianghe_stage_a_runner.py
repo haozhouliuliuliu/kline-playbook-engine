@@ -18,7 +18,7 @@ from hashlib import sha256
 import json
 import os
 from pathlib import Path
-from typing import Callable, Mapping
+from typing import Callable, Mapping, Sequence
 
 from src.jianghe_prespend_runtime import (
     CnyBudgetLedger,
@@ -262,11 +262,11 @@ class StageAExecutionJournal:
         self.path = Path(path)
         self.plan = plan
 
-    def _read_events(self) -> list[dict[str, object]]:
-        if not self.path.exists():
-            return []
+    def _validated_events_from_bytes(self, raw_bytes: bytes) -> list[dict[str, object]]:
+        if not isinstance(raw_bytes, bytes):
+            raise TypeError("raw_bytes must be bytes")
         try:
-            lines = self.path.read_text(encoding="utf-8").splitlines()
+            lines = raw_bytes.decode("utf-8").splitlines()
         except UnicodeDecodeError as error:
             raise JournalIntegrityError("execution journal is not UTF-8") from error
         events: list[dict[str, object]] = []
@@ -351,19 +351,25 @@ class StageAExecutionJournal:
             events.append(event)
         return events
 
-    def snapshot(self) -> JournalSnapshot:
-        events = self._read_events()
+    def _read_events(self) -> list[dict[str, object]]:
+        if not self.path.exists():
+            return []
+        return self._validated_events_from_bytes(self.path.read_bytes())
+
+    def _snapshot_from_verified_events(
+        self, events: Sequence[Mapping[str, object]]
+    ) -> JournalSnapshot:
         starts: dict[str, dict[str, object]] = {}
         terminals: dict[str, dict[str, object]] = {}
         provider_attempts: dict[str, int] = {}
         for event in events:
             key = str(event["slot_key"])
             if event["event_type"] == NETWORK_ATTEMPT_STARTED:
-                starts[key] = event
+                starts[key] = dict(event)
                 provider = str(event["provider_id"])
                 provider_attempts[provider] = provider_attempts.get(provider, 0) + 1
             else:
-                terminals[key] = event
+                terminals[key] = dict(event)
         provider_spend: dict[str, Decimal] = {}
         total = Decimal("0")
         for key, start in starts.items():
@@ -393,6 +399,18 @@ class StageAExecutionJournal:
             total_attempts=len(starts),
             provider_attempts=dict(provider_attempts),
         )
+
+    def snapshot(self) -> JournalSnapshot:
+        return self._snapshot_from_verified_events(self._read_events())
+
+    def verified_state_from_bytes(
+        self, raw_bytes: bytes
+    ) -> tuple[tuple[Mapping[str, object], ...], JournalSnapshot]:
+        """Validate one byte snapshot and derive events/accounting from only that snapshot."""
+
+        events = self._validated_events_from_bytes(raw_bytes)
+        verified_events = tuple(dict(event) for event in events)
+        return verified_events, self._snapshot_from_verified_events(verified_events)
 
     def verified_events(self) -> tuple[Mapping[str, object], ...]:
         """Return journal events only after the existing integrity checks pass."""
