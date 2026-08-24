@@ -65,48 +65,34 @@ Project API/session denial and material binding were verified for the currently 
 
 ```text
 STATUS=ACTIVE
-PRIORITY=HIGH_FUTURE_AFTER_PRESPEND_REPAIR
+PRIORITY=HIGHEST_CURRENT_MODEL_SELECTION_BLOCKER
 CURRENT_BLOCKER=YES_FOR_MODEL_ADOPTION_AND_PRIMARY_PROMOTION
-REAL_MODEL_PROVIDER_LIVE_TRANSPORT=NOT_IMPLEMENTED_NOT_VERIFIED_NOT_ADOPTED
-REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
+REAL_MODEL_PROVIDER_LIVE_TRANSPORT=IMPLEMENTED_FOR_AUTHORIZED_TARGET_SET__NOT_LIVE_VERIFIED__NOT_ADOPTED
+REAL_MODEL_FIDELITY_EVALUATION=AUTHORIZED__NOT_STARTED
 FIDELITY_CORPUS=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
 FIDELITY_EVALUATION_HARNESS=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__PRELIVE_EVIDENCE_REPAIRED
 VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
 OBSERVATION_REPLAY=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION_IDENTITY_BOUND
-PROVIDER_EVIDENCE_CONTRACT=INTEGRATED_CANDIDATE_LIVE_DISABLED
 RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
-```
-
-The model-selection step must use the integrated non-outcome Jianghe fidelity fixtures. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns. No real provider/model has been called or verified. A future live probe remains Owner-gated for credentials, data egress and paid spend.
-
-## LIMIT-015 — Owner-requested pre-spend assurance audit found unresolved correctness/evidence/cost blockers
-
-```text
-STATUS=ACTIVE_REPAIR_REQUIRED
-PRIORITY=HIGHEST_CURRENT_BEFORE_ANY_LIVE_PROVIDER_CALL
-CURRENT_BLOCKER=YES_FOR_PAID_MODEL_SPEND
-AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
-AUDIT_BASELINE=7d85b41044181ee35ac482ea158898956727f23b
-ROUND_1_ARCHITECTURE_AUDIT=FAIL
-ROUND_2_FINE_GRAINED_AUDIT=FAIL
-BLOCKER_BEFORE_SPEND=5
-REPAIR_RECOMMENDED_BEFORE_SPEND=2
-SPEND_GATE=CLOSED
+STAGE_A_INPUT_PROTOCOL=OWNER_APPROVED__FROZEN_FOR_STAGE_A
+STAGE_A_STATUS=AUTHORIZED__INPUT_PROTOCOL_APPROVED__NOT_STARTED
 LIVE_CALLS=0
-PAID_SPEND=0
+PAID_SPEND_CNY=0
 ```
 
-The five hard blockers are:
+The current first real-model step is the bounded non-outcome Stage-A fidelity funnel. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns.
 
-1. no content-addressed Jianghe knowledge/context artifact is yet bound to and materially sent with a spend-eligible model request;
-2. structured model input is not yet a strict closed-world canonical observation artifact;
-3. model-declared `principle_references` can currently become positive `acknowledged_principles` scoring evidence;
-4. real provider transport remains intentionally unimplemented;
-5. the Owner's RMB 100 total hard cap is not yet enforced by a code-level pre-call/cumulative budget guard.
+Current pre-execution checkpoint:
 
-Two additional concrete runtime repairs are recommended in the same package: authoritative broker-event admission must precede OMS side effects, and same `intent_id` with different content must fail closed rather than silently collapse.
+- `docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md`
+- `docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md`
 
-The finding set and acceptance invariants are frozen; exact implementation design is intentionally left for the next fresh project brain to independently verify against current `main` and choose. Do not restart an open-ended review cycle without new concrete evidence.
+Before the first paid Stage-A request, the project must finish the frozen input-track runtime generalization, generate/freeze the exact `JH-FIX-C-001` synthetic OHLC stimulus and machine-readable Stage-A plan, and pass focused/full-suite/diff-hygiene verification. Then it may check credential presence and existing balance/credits. New recharge/top-up remains separately Owner-gated by exact amount.
+
+`LIMIT-015` is resolved and intentionally absent from this unresolved-only index. Its frozen findings and accepted repair closure remain preserved in:
+
+- `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`
+- `docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md`
 
 ## Current PRIMARY prerequisite
 
@@ -121,7 +107,7 @@ JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 NEXT_GATE=OWNER_FREEZE_DECISION_AFTER_REAL_MODEL_FIDELITY_EVIDENCE
 ```
 
-The V0.5 registry passed its independent fixed-rubric re-audit and the original 27-item pre-live gate passed. Those resolved results remain in their durable review evidence and Git history; they are intentionally not retained as resolved entries in this active limitations index.
+The V0.5 registry passed its independent fixed-rubric re-audit and the original pre-live gate passed. Those resolved results remain in durable review evidence and Git history rather than this active unresolved index.
 
 ## Maintenance rule
 

@@ -22,12 +22,13 @@ Read only this active core first, in order:
 6. `docs/research/JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md` — AI Trader identity / replay / PRIMARY-compatibility / fidelity governance.
 7. `docs/research/jianghe/JIANGHE_CURRENT_VIEW_V1_1.md` — current Jianghe source authority; follow its internal read order only as deeply as needed.
 8. `KNOWN_LIMITATIONS_AND_TECH_DEBT.md` — current unresolved limits only.
-9. `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md` — current frozen pre-spend blocker/evidence/acceptance authority while `LIMIT-015` is active.
-10. `PROJECT_HANDOFF_CURRENT.md` — derived continuity handoff; read last and use only as a cross-check, never as authority over current `main`.
+9. `docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md` — current frozen Stage-A research-design authority while Stage A is active.
+10. `docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md` — current Stage-A pre-execution checkpoint and exact bounded continuation sequence.
+11. `PROJECT_HANDOFF_CURRENT.md` — derived continuity pointer; read last and use only as a cross-check, never as authority over current `main`.
 
 During the takeover turn:
 - fetch current `main` and the active core above;
-- reconstruct current phase, architecture, locks, Jianghe status, active limitations, frozen pre-spend findings and next normal phase;
+- reconstruct current phase, architecture, locks, Jianghe status, active limitations, current Stage-A protocol/checkpoint and next normal phase;
 - report contradictions/missing authority if any;
 - distinguish repository facts from the derived handoff;
 - then stop for Owner acceptance.
@@ -44,8 +45,10 @@ Do not preload these on every fresh conversation merely because they exist:
 - `docs/research/HUMAN_PLAYBOOK_SELECTION_FIREWALL_REQUIREMENTS_V1_0.md` — read when protected outcome access or firewall behavior is in scope.
 - `CROSS_PROJECT_OPERATING_CONTRACT.md` — read for cross-project governance questions.
 - `TOOL_REGISTRY.md` — read only when a tool/plugin/framework admission decision is actually needed.
-- `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_PLAN_V0_1.md` — historical plan/method for the current consolidated findings; its original `PENDING` footer is not current mutable status.
-- `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md` — read for binding Owner provider exclusions/budget scope before provider recommendation/implementation.
+- `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md` — frozen historical finding authority; read only for repair audit/dispute or when another current authority explicitly points to it. `LIMIT-015` is resolved in current mutable state.
+- `docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md` — accepted closure evidence for BSP-001..005 and RSP-001..002.
+- `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_PLAN_V0_1.md` — historical audit plan/method; its original `PENDING` footer is not current mutable status.
+- `docs/reviews/JIANGHE_LIVE_PROBE_OWNER_SCOPE_REVISION_V0_2.md` — read for binding Owner provider exclusions/budget scope when current authority requires it.
 - Historical reviews/evidence — read only when current authority points to them or a dispute/audit requires them.
 
 Important compatibility rule: the frozen Human Playbook protocol predates the Jianghe AI decision-layer migration. For Jianghe AI Trader, its `deterministic operationalization identity/hash` language is specialized by `JIANGHE_AI_TRADER_RESEARCH_PROTOCOL_V0_1.md`: deterministic **identity binding** is required; deterministic fixed-rule market decisions are not.
