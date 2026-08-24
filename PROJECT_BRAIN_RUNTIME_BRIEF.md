@@ -20,13 +20,14 @@ PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=STAGE_A_V0_3_CAPABILITY_FIRST_MODEL_COMPARISON__DESIGN_AND_MINIMAL_IMPLEMENTATION
+CURRENT_WORK_PACKAGE=STAGE_A_V0_3_CAPABILITY_FIRST_MODEL_COMPARISON__PREFLIGHT_BLOCKER_RESOLUTION
 CURRENT_STAGE_A_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md
+CURRENT_PREFLIGHT_AUDIT=docs/reviews/JIANGHE_STAGE_A_V0_3_PREFLIGHT_FAILURE_AUDIT_V0_1.md
 CURRENT_COMPARISON_PLAN=docs/evidence/JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN_V0_3.json
-NEXT_NORMAL_PHASE=V0_3_OFFLINE_CLOSURE__THEN_DEEPSEEK_FIRST_MATCHED_CAPABILITY_CALL
-OWNER_ACTION=NONE_UNTIL_V0_3_OFFLINE_READY
+NEXT_NORMAL_PHASE=V0_3_PREFLIGHT_BLOCKERS_CLOSE__THEN_OFFLINE_CLOSURE__THEN_NEW_PAID_SLOT
+OWNER_ACTION=REQUIRED_ONLY_IF_DEEPSEEK_NATIVE_VISUAL_ROUTE_CANNOT_BE_VERIFIED
 TOOL_DECISION=USE_EXISTING
-LIMIT_012=ACTIVE__NO_FAIR_MATCHED_THREE_MODEL_CAPABILITY_EVIDENCE_YET
+LIMIT_012=ACTIVE__V0_3_PREFLIGHT_BLOCKED__NO_FAIR_MATCHED_THREE_MODEL_CAPABILITY_EVIDENCE_YET
 ```
 
 ## Binding model-selection order
@@ -44,17 +45,18 @@ Do not substitute JSON obedience, integration convenience, uniform token limits,
 
 ```text
 PAID_CALLS_CURRENTLY_PAUSED=YES
-PAUSE_REASON=V0_3_OFFLINE_CLOSURE_NOT_COMPLETE
+PAUSE_REASON=V0_3_PREFLIGHT_BLOCKERS_OPEN
 NEXT_EXPLICIT_PAID_SLOT=NONE
-FIRST_FUTURE_V0_3_PROVIDER=DEEPSEEK
+FIRST_FUTURE_V0_3_PROVIDER=DEEPSEEK__CONDITIONAL_ON_VALID_CURRENT_NATIVE_VISUAL_ROUTE
 FIRST_FUTURE_V0_3_SLOT=NEW_IDENTITY_REQUIRED
+DEEPSEEK_CURRENT_FIRST_PARTY_NATIVE_VISUAL_ROUTE=NOT_VERIFIED__CURRENT_V4_DOCS_TEXT_ONLY
 OLD_KIMI_1=SUPERSEDED__DO_NOT_EXECUTE
 OLD_V0_2_LIVE_WORKFLOW=RETIRED__FAIL_CLOSED_BEFORE_CREDENTIALS
 AUTOMATIC_RETRY=FORBIDDEN
 AUTOMATIC_NEXT_SLOT=FORBIDDEN
 ```
 
-Do not trigger a provider call until current `main` contains a closed, tested V0.3 executable plan and explicit new slot authority.
+Do not trigger a provider call until current `main` contains a closed, tested V0.3 executable plan and explicit new slot authority. A VS Code/Copilot vision proxy must not be scored as native DeepSeek visual reading.
 
 ## Immutable historical attempts
 
@@ -70,7 +72,7 @@ OLD_SLOT=ATTEMPTED__NON_RETRYABLE
 CAPABILITY_FATAL=NO
 ```
 
-Attempt 001 reached 2xx provider JSON, but V0.1 failed to preserve enough safe response-envelope evidence. Never rerun the old slot. The future V0.3 DeepSeek test is a new research/slot identity.
+Attempt 001 reached 2xx provider JSON, but V0.1 failed to preserve enough safe response-envelope evidence. Never rerun the old slot. A future V0.3 DeepSeek test uses a new research/slot identity only if the current required input contract is verified.
 
 ### Attempt 002 — MiniMax V0.2
 
@@ -97,7 +99,7 @@ V0.2 operational elimination remains historical truth inside the old frozen funn
 ## Candidate state
 
 ```text
-DEEPSEEK=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
+DEEPSEEK=CANDIDATE__V0_3_INPUT_COMPATIBILITY_BLOCKER_OPEN
 MINIMAX=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
 KIMI=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
 VERIFIED_PROVIDER=NONE
@@ -117,6 +119,8 @@ PROVIDER_SPECIFIC_SUFFICIENT_COMPLETION_HEADROOM=REQUIRED
 RAW_FINAL_ANSWER_EVIDENCE=REQUIRED__SECRET_SAFE__NO_CHAIN_OF_THOUGHT
 NORMALIZED_EVALUATION_VIEW=REQUIRED__IDENTITY_BOUND
 NORMALIZATION_ADAPTER=FORMAT_ONLY__NO_SEMANTIC_REPAIR
+COMMON_EXAM_IDENTITY=PROVIDER_NEUTRAL__SEPARATE_FROM_INFERENCE_CONFIGURATION
+HISTORICAL_SPEND_CARRY_FORWARD=REQUIRED
 ```
 
 ## Historical execution/accounting checkpoint
@@ -124,6 +128,7 @@ NORMALIZATION_ADAPTER=FORMAT_ONLY__NO_SEMANTIC_REPAIR
 ```text
 HISTORICAL_LIVE_CALLS=2
 CURRENT_PROJECT_ACCOUNTED_CNY=0.270021
+MAX_REMAINING_UNDER_CONSERVATIVE_PROJECT_ACCOUNTING_CNY=99.729979
 V0_2_PLAN_IDENTITY=9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913
 V0_2_REMOTE_REF=refs/heads/stage-a-live-state-v0-2
 V0_2_REMOTE_HEAD_AFTER_ATTEMPT_002=ea1364e04e378781d8cf9f1b43a9ce3f0ef1679e
@@ -147,6 +152,18 @@ NEW_RECHARGE_REQUIRED=NO
 
 Cost/time/token use are comparison measurements, not V0.3 capability failure gates. CNY100 remains the project-wide API hard ceiling.
 
+## GitHub connector 404 rule
+
+```text
+SINGLE_CONNECTOR_404_MEANS_DELETED=NO
+RETRY_AUTHENTICATED_SPECIFIC_READ=REQUIRED
+CORROBORATE_BEFORE_DECLARING_DELETION=REQUIRED
+REFETCH_BLOB_SHA_BEFORE_WRITE_RETRY=REQUIRED
+DISAGREEMENT=FAIL_CLOSED__REPORT_ACCESS_UNCERTAINTY
+```
+
+A 404 can represent a wrong path/ref, permission masking, connector scope/routing, transient API behavior, or actual deletion. Project state must never infer deletion from one connector 404.
+
 ## Locks
 
 ```text
@@ -162,10 +179,11 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Implement the smallest offline V0.3 request/evidence path: provider-specific sufficient completion headroom, safe raw final answer, format-only adapter, separate operational/capability states, and new V0.3 identities/remote ledger.
-2. Bind current first-party provider configurations and conservative cost bounds under CNY100.
-3. Pass zero-network/focused tests and canonical suite.
-4. Only after closure: execute one new V0.3 DeepSeek matched capability slot, then matched MiniMax and Kimi on the same material, with evidence review between paid calls as needed for safety/accounting.
-5. Compare correctness/Jianghe fidelity first, actual CNY second, actual latency third.
+1. Close `docs/reviews/JIANGHE_STAGE_A_V0_3_PREFLIGHT_FAILURE_AUDIT_V0_1.md`; no paid call.
+2. Resolve DeepSeek current native-visual compatibility first. If no current first-party native visual route exists, stop for Owner research-design choice; do not use a proxy vision model.
+3. Then implement the smallest V0.3 request/evidence path: common provider-neutral exam identity; provider inference identity; sufficient output headroom; safe raw final answer without hidden reasoning; format-only adapter; separate operational/capability/output statuses; historical CNY0.270021 carry-forward; current model-resolution and cache-aware cost evidence.
+4. Verify MiniMax's documented exact visual transport and Kimi's documented base64 visual transport.
+5. Use current Node24-capable GitHub Actions majors, pass zero-network/focused tests and canonical suite.
+6. Only after all applicable blockers close may a new V0.3 paid slot be minted. Owner ordering remains DeepSeek first if it satisfies the common required input contract.
 
 Do not reopen a rolling whole-repository audit.
