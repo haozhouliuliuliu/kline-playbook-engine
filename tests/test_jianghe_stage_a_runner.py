@@ -30,7 +30,7 @@ from src.jianghe_stage_a_runner import (
 )
 from src.jianghe_stage_a_runtime import build_stage_a_stimulus
 from src.jianghe_response_normalizer import RESPONSE_SCHEMA_VERSION
-from tools.build_jianghe_stage_a_frozen_plan import build_frozen_plan
+from tools.build_jianghe_stage_a_frozen_plan_v0_2 import build_frozen_plan
 
 NOW = datetime(2026, 8, 24, 2, 30, tzinfo=timezone.utc)
 
@@ -90,7 +90,7 @@ class FrozenPlanGuardTests(unittest.TestCase):
     def test_committed_plan_matches_deterministic_rebuild(self) -> None:
         plan = _plan()
         self.assertEqual(
-            "7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4",
+            "9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913",
             plan.plan_identity,
         )
         self.assertEqual("SEMANTIC", plan.slot_row("KIMI", 2)["track"])
@@ -155,7 +155,10 @@ class JournalTests(unittest.TestCase):
     def test_incomplete_network_start_is_full_cost_and_never_retryable(self) -> None:
         self._start()
         snapshot = self.journal.snapshot()
-        self.assertEqual(self.prepared.worst_case_cny, snapshot.project_accounted_cny)
+        self.assertEqual(
+            Decimal("0.219222") + self.prepared.worst_case_cny,
+            snapshot.project_accounted_cny,
+        )
         self.assertIn("KIMI:2", snapshot.attempted_slots)
         with self.assertRaises(SlotAlreadyAttemptedError):
             self.journal.append_network_start(
@@ -240,7 +243,7 @@ class SingleSlotExecutionTests(unittest.TestCase):
                 http_post=lambda *_: self.fail("network must not be called"),
                 credential_lookup=lambda _: None,
             )
-        self.assertEqual(frozenset(), journal.snapshot().attempted_slots)
+        self.assertEqual(frozenset({"DEEPSEEK:1"}), journal.snapshot().attempted_slots)
 
     def test_success_is_persisted_and_duplicate_slot_is_blocked(self) -> None:
         calls = {"count": 0}
@@ -302,7 +305,8 @@ class SingleSlotExecutionTests(unittest.TestCase):
         self.assertIsNone(result.normalized_decision_identity)
         self.assertEqual(prepared.worst_case_cny, result.accounted_cny)
         self.assertEqual(
-            prepared.worst_case_cny, journal.snapshot().project_accounted_cny
+            Decimal("0.219222") + prepared.worst_case_cny,
+            journal.snapshot().project_accounted_cny,
         )
 
     def test_malformed_semantic_output_is_non_scoreable_without_retry(self) -> None:

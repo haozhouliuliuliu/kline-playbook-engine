@@ -221,7 +221,10 @@ class StageALiveLaneTests(unittest.TestCase):
     def test_started_without_terminal_accounts_full_worst_case(self) -> None:
         prepared = self._reserve_only()
         snapshot = self.store.ledger.snapshot()
-        self.assertEqual(prepared.worst_case_cny, snapshot.stage_accounted_cny)
+        self.assertEqual(
+            Decimal("0.219222") + prepared.worst_case_cny,
+            snapshot.stage_accounted_cny,
+        )
 
     def test_crash_immediately_after_remote_start_never_recalls_slot(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "crash after start"):
@@ -485,7 +488,7 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
                 str(repo),
                 "push",
                 "state",
-                f"{commit}:refs/heads/stage-a-live-state-v0-1",
+                f"{commit}:refs/heads/stage-a-live-state-v0-2",
             ],
             check=True,
             capture_output=True,
@@ -649,7 +652,7 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
                     str(repo),
                     "push",
                     "state",
-                    ":refs/heads/stage-a-live-state-v0-1",
+                    ":refs/heads/stage-a-live-state-v0-2",
                 ],
                 check=True,
                 capture_output=True,
@@ -746,7 +749,7 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
         ledger, filename, evidence = self.fixtures["kimi2"]
         self._assert_state_blocks_provider_network(
             {
-                "stage-a-live-ledger-v0-1.json": ledger.to_bytes(),
+                "stage-a-live-ledger-v0-2.json": ledger.to_bytes(),
                 filename: evidence + b" ",
             }
         )
@@ -754,14 +757,14 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
     def test_missing_terminal_evidence_blocks_network(self) -> None:
         ledger, _filename, _evidence = self.fixtures["kimi2"]
         self._assert_state_blocks_provider_network(
-            {"stage-a-live-ledger-v0-1.json": ledger.to_bytes()}
+            {"stage-a-live-ledger-v0-2.json": ledger.to_bytes()}
         )
 
     def test_orphan_evidence_blocks_network(self) -> None:
         ledger, filename, evidence = self.fixtures["kimi2"]
         self._assert_state_blocks_provider_network(
             {
-                "stage-a-live-ledger-v0-1.json": ledger.to_bytes(),
+                "stage-a-live-ledger-v0-2.json": ledger.to_bytes(),
                 filename: evidence,
                 f"evidence-{'0' * 64}.json": evidence,
             }
@@ -771,7 +774,7 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
         ledger, filename, evidence = self.fixtures["kimi2"]
         self._assert_state_blocks_provider_network(
             {
-                "stage-a-live-ledger-v0-1.json": ledger.to_bytes(),
+                "stage-a-live-ledger-v0-2.json": ledger.to_bytes(),
                 filename: evidence,
                 "unsupported.txt": b"not allowed\n",
             },
@@ -854,7 +857,7 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
                 ledger = self._ledger_rebound_to_evidence(evidence_identity)
                 self._assert_state_blocks_provider_network(
                     {
-                        "stage-a-live-ledger-v0-1.json": ledger.to_bytes(),
+                        "stage-a-live-ledger-v0-2.json": ledger.to_bytes(),
                         f"evidence-{evidence_identity}.json": evidence,
                     }
                 )

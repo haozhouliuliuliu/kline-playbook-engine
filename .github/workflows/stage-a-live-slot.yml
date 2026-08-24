@@ -39,7 +39,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Verify frozen plan before credentials
-        run: python tools/build_jianghe_stage_a_frozen_plan.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
+        run: python tools/build_jianghe_stage_a_frozen_plan_v0_2.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_2.json
+      - name: Reject carried DeepSeek slot 1 before credentials
+        if: inputs.provider == 'DEEPSEEK' && inputs.slot == '1'
+        run: |
+          echo "CARRY_FORWARD_ATTEMPTED__NON_RETRYABLE"
+          exit 1
       - name: Configure state-commit identity
         run: |
           git config user.name "Stage-A Live Lane"

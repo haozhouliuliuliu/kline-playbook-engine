@@ -30,9 +30,9 @@ from src.jianghe_stage_a_runtime import (
     StageAInputTrack,
     StageAProviderInvocationEvidence,
 )
-from tools.build_jianghe_stage_a_frozen_plan import build_frozen_plan
+from tools.build_jianghe_stage_a_frozen_plan_v0_2 import build_frozen_plan
 
-EVIDENCE_SCHEMA_VERSION = "JIANGHE_STAGE_A_ATTEMPT_EVIDENCE_V0_1"
+EVIDENCE_SCHEMA_VERSION = "JIANGHE_STAGE_A_ATTEMPT_EVIDENCE_V0_2"
 EVALUATOR_JUDGMENT_REQUIRED = "EVALUATOR_JUDGMENT_REQUIRED"
 SEMANTIC_SCORE_INELIGIBLE = "INELIGIBLE_CURRENT_ATTEMPT"
 INCOMPLETE_STATUS = "INCOMPLETE_UNCERTAIN"
@@ -71,16 +71,22 @@ _PROVIDER_EVIDENCE_FIELDS = frozenset(
         "requested_model_id",
         "resolved_model_id",
         "provider_request_id",
-        "raw_provider_response_body",
-        "raw_response_text",
         "usage",
         "latency_ms",
         "rate_card_identity",
         "budget_reservation_id",
         "charged_cny",
+        "http_status_class",
+        "finish_reason",
+        "final_content_state",
+        "final_content_sha256",
+        "reasoning_present",
+        "reasoning_length",
+        "reasoning_sha256",
+        "reasoning_token_count",
     }
 )
-_USAGE_FIELDS = frozenset({"text_input_tokens", "image_tokens", "output_tokens"})
+_USAGE_FIELDS = frozenset({"prompt_tokens", "image_tokens", "completion_tokens"})
 _FORBIDDEN_JUDGMENT_FIELDS = frozenset(
     {
         "acknowledged_principles",
@@ -208,20 +214,59 @@ def _validated_provider_evidence(
     if not isinstance(raw, Mapping) or frozenset(raw) != _PROVIDER_EVIDENCE_FIELDS:
         raise StageAEvidenceError("provider evidence schema mismatch")
     usage_raw = raw.get("usage")
-    if not isinstance(usage_raw, Mapping) or frozenset(usage_raw) != _USAGE_FIELDS:
+    if usage_raw is not None and (
+        not isinstance(usage_raw, Mapping) or frozenset(usage_raw) != _USAGE_FIELDS
+    ):
         raise StageAEvidenceError("provider usage schema mismatch")
     try:
-        usage_values = {
-            name: usage_raw[name]
-            for name in ("text_input_tokens", "image_tokens", "output_tokens")
+        usage_values = None if usage_raw is None else {
+            name: usage_raw[name] for name in _USAGE_FIELDS
         }
-        if any(
+        if usage_values is not None and any(
             isinstance(value, bool) or not isinstance(value, int) or value < 0
             for value in usage_values.values()
         ):
             raise ValueError
         latency_ms = raw.get("latency_ms")
         if isinstance(latency_ms, bool) or not isinstance(latency_ms, int) or latency_ms < 0:
+            raise ValueError
+        for name in ("resolved_model_id", "provider_request_id", "finish_reason"):
+            value = raw.get(name)
+            if value is not None and (not isinstance(value, str) or not value):
+                raise ValueError
+        final_state = raw.get("final_content_state")
+        final_hash = raw.get("final_content_sha256")
+        if final_state in {"TEXT_NONEMPTY", "TEXT_EMPTY"}:
+            if not isinstance(final_hash, str) or re.fullmatch(r"[0-9a-f]{64}", final_hash) is None:
+                raise ValueError
+        elif final_hash is not None:
+            raise ValueError
+        reasoning_present = raw.get("reasoning_present")
+        if not isinstance(reasoning_present, bool):
+            raise ValueError
+        reasoning_length = raw.get("reasoning_length")
+        reasoning_hash = raw.get("reasoning_sha256")
+        reasoning_tokens = raw.get("reasoning_token_count")
+        if reasoning_length is not None and (
+            isinstance(reasoning_length, bool)
+            or not isinstance(reasoning_length, int)
+            or reasoning_length < 0
+        ):
+            raise ValueError
+        if reasoning_hash is not None and (
+            not isinstance(reasoning_hash, str)
+            or re.fullmatch(r"[0-9a-f]{64}", reasoning_hash) is None
+        ):
+            raise ValueError
+        if reasoning_tokens is not None and (
+            isinstance(reasoning_tokens, bool)
+            or not isinstance(reasoning_tokens, int)
+            or reasoning_tokens < 0
+        ):
+            raise ValueError
+        if not reasoning_present and any(
+            value is not None for value in (reasoning_length, reasoning_hash, reasoning_tokens)
+        ):
             raise ValueError
         visual_ids = raw.get("transmitted_visual_identities")
         if not isinstance(visual_ids, list) or any(not isinstance(item, str) for item in visual_ids):
@@ -239,15 +284,27 @@ def _validated_provider_evidence(
             transmitted_visual_identities=tuple(visual_ids),
             provider_spec_identity=str(raw.get("provider_spec_identity")),
             requested_model_id=str(raw.get("requested_model_id")),
-            resolved_model_id=str(raw.get("resolved_model_id")),
-            provider_request_id=str(raw.get("provider_request_id")),
-            raw_provider_response_body=str(raw.get("raw_provider_response_body")),
-            raw_response_text=str(raw.get("raw_response_text")),
-            usage=ProviderUsage(**usage_values),
+            resolved_model_id=raw.get("resolved_model_id"),
+            provider_request_id=raw.get("provider_request_id"),
+            raw_provider_response_body="{}",
+            raw_response_text=None,
+            usage=None if usage_values is None else ProviderUsage(
+                text_input_tokens=usage_values["prompt_tokens"],
+                image_tokens=usage_values["image_tokens"],
+                output_tokens=usage_values["completion_tokens"],
+            ),
             latency_ms=latency_ms,
             rate_card_identity=str(raw.get("rate_card_identity")),
             budget_reservation_id=str(raw.get("budget_reservation_id")),
             charged_cny=_decimal_text(_decimal(raw.get("charged_cny"), "provider.charged_cny")),
+            http_status_class=str(raw.get("http_status_class")),
+            finish_reason=raw.get("finish_reason"),
+            final_content_state=str(raw.get("final_content_state")),
+            final_content_sha256=raw.get("final_content_sha256"),
+            reasoning_present=raw.get("reasoning_present"),
+            reasoning_length=raw.get("reasoning_length"),
+            reasoning_sha256=raw.get("reasoning_sha256"),
+            reasoning_token_count=raw.get("reasoning_token_count"),
         )
     except (TypeError, ValueError) as error:
         raise StageAEvidenceError("provider evidence contains invalid values") from error
@@ -353,7 +410,11 @@ def _attempt_record(
             if normalized_identity is not None:
                 raise StageAEvidenceError("non-scoreable attempt cannot claim normalized semantic success")
             semantic_score_status = SEMANTIC_SCORE_INELIGIBLE
-            if terminal_status in {"NON_SCOREABLE_NORMALIZER", "PROVIDER_MODEL_DRIFT"}:
+            if terminal_status in {
+                "NON_SCOREABLE_NORMALIZER",
+                "NON_SCOREABLE_PROVIDER_RESPONSE",
+                "PROVIDER_MODEL_DRIFT",
+            }:
                 if provider_evidence is None:
                     raise StageAEvidenceError(f"{terminal_status} requires provider evidence")
             if terminal_status == "PROVIDER_MODEL_DRIFT":
@@ -518,7 +579,7 @@ def validate_stage_a_attempt_evidence_bytes(
 
     rebuilt_records: list[dict[str, object]] = []
     seen_slots: set[str] = set()
-    total = Decimal("0")
+    total = plan.carry_forward_snapshot().stage_accounted_cny
     for raw_record in attempts:
         if not isinstance(raw_record, Mapping):
             raise StageAEvidenceError("Stage-A evidence attempt must be an object")

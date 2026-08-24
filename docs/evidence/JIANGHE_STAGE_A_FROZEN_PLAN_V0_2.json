@@ -1,0 +1,438 @@
+{
+  "artifact_schema_version": "JIANGHE_STAGE_A_FROZEN_PLAN_V0_2",
+  "automatic_retry": "FORBIDDEN",
+  "caller_selected_remote_ref": "FORBIDDEN",
+  "carry_forward": {
+    "attempt_001_evidence_identity": "d36c1fbbb1cd639e48a6f049f7df1be3bb95d9f346d75bbb85e25451fba9dc55",
+    "attempted_slots": [
+      "DEEPSEEK:1"
+    ],
+    "automatic_retry": "FORBIDDEN",
+    "live_calls": 1,
+    "project_accounted_cny": "0.219222",
+    "provider_accounted_cny": {
+      "DEEPSEEK": "0.219222"
+    },
+    "provider_attempts": {
+      "DEEPSEEK": 1
+    },
+    "replacement_call": "FORBIDDEN",
+    "stage_accounted_cny": "0.219222"
+  },
+  "future_executable_call_count": 14,
+  "max_calls_per_provider": 5,
+  "max_output_tokens_per_call": 1024,
+  "max_total_stage_a_calls": 15,
+  "outcome_access": "NO",
+  "owner_protocol_authority_sha256": "9ba9351dfd40f02984bb19c5403e6a4082c84e1822db46fca2c261f60f706c2c",
+  "paid_call_authorization_sha256": "768ee27973c532e59b046a1c2bdde35a78b499a917cad22e8692b79579f62de2",
+  "plan_as_of": "2026-08-24T09:14:00+00:00",
+  "plan_identity": "9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913",
+  "project_shared_hard_cap_cny": "100",
+  "prompt_identities": {
+    "context_selection_identity": "5fc4c18008cfbdff739d1f4e243c24cdb408053b60eb9cab55548b6eb86823c7",
+    "decision_prompt_identity": "ac291d53c1bae95565cf4d4bff877e0a6aaac14fd0f0187c8dd3943e15dc7b99",
+    "evaluation_extractor_identity": "34786835ce09aa69a8a616e3919f1c2ecc5feb36207cb2dc2cf7854b638402d8",
+    "normalizer_identity": "e0aa2c29da77786a496079fd2b5816206fd1381fd9ad0312a918cee450cca0fc",
+    "prompt_package_identity": "5f1fbdeacd31e96469feb23bcd8029979cdecbbd71c1f61330041e61f6533e95",
+    "response_schema_identity": "60a008ff4e64a74a413f2f198f675dd3e3293ff7b891ed9e466b531d3bb32289",
+    "system_prompt_identity": "cc43823730723f2089267f55cd87594ce4a026ded82b8298a913d11aed9e826a"
+  },
+  "prompt_package_blob_sha256": "7d9c0b9a895378bc16f6ae71d4dd4706f657ab5878aa868717f0b46b5c2ec824",
+  "protocol_version": "JIANGHE_STAGE_A_PROVIDER_RESPONSE_COMPATIBILITY_V0_2",
+  "provider_tools": "DISABLED",
+  "providers": [
+    {
+      "endpoint": "https://api.moonshot.cn/v1/chat/completions",
+      "five_slot_worst_case_cny": "5.97792",
+      "future_executable_worst_case_cny": "5.97792",
+      "model_id": "kimi-k3",
+      "payload_style": "KIMI_OPENAI",
+      "pricing_authority_identity": "86bfea95e040b8d8242d6087d32b1e5de578303fed038177771615acc8f423d6",
+      "provider_id": "KIMI",
+      "provider_spec_identity": "84b8c0825fdba10ea7570af8f0bf1e1364124d0d89c63e960b3fb469aa9089fb",
+      "provider_stage_a_cap_cny": "6",
+      "rate_card_identity": "c8519f4edaf97b8260cc05ebfdc54989d51c8334e23b00397204e72e19bfc964",
+      "slots": [
+        {
+          "bounds": {
+            "max_image_tokens": 1024,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 75234,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "7c7ce3d4ed5fdd23fba9f6906161b24a647d779af7153cf29113cf53b8dc2767",
+          "payload_sha256": "b13b43f551c4fe46b803c55f59d76bcc79d698129475071bcfeb6a20e7f76d45",
+          "request_identity": "df858a0d339885d4dd3e59acd1fecf5c5de75ddd76c3c4900fb757a2fedeb7b6",
+          "slot": 1,
+          "track": "OPERATIONAL_PROVIDER",
+          "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+          "transmitted_visual_identities": [
+            "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+          ],
+          "worst_case_cny": "1.62756"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 22704,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "7c7ce3d4ed5fdd23fba9f6906161b24a647d779af7153cf29113cf53b8dc2767",
+          "payload_sha256": "ca962a478681b02d2659f965e5ca055ef4038a3787042e6ebafd1a3651c61e77",
+          "request_identity": "b52d0e592f41b93916f8a7fa8531ccc5bae835cb20ef3d69c09babd9d9a6f935",
+          "slot": 2,
+          "track": "SEMANTIC",
+          "transmitted_structured_observation_identity": null,
+          "transmitted_visual_identities": [],
+          "worst_case_cny": "0.55648"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 1024,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 41046,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "7c7ce3d4ed5fdd23fba9f6906161b24a647d779af7153cf29113cf53b8dc2767",
+          "payload_sha256": "71728d450b80386f5f3a6089a59bdd5f2795b265aab0608dde11d40c75095381",
+          "request_identity": "c3688c190e39312973803da07c48d8c04d8a5bfcd18c66c7f43eaf6da888e6bd",
+          "slot": 3,
+          "track": "VISUAL",
+          "transmitted_structured_observation_identity": null,
+          "transmitted_visual_identities": [
+            "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+          ],
+          "worst_case_cny": "0.9438"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 56006,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "7c7ce3d4ed5fdd23fba9f6906161b24a647d779af7153cf29113cf53b8dc2767",
+          "payload_sha256": "c3f08e469189ca0c5ec85f612ac9adf230c0c90efc6f0b00d0b2adec8e4fa270",
+          "request_identity": "b3d6f39ae301100c97e33c0cd8e17ab2df29cdd2c9af79817d68d2b92c669279",
+          "slot": 4,
+          "track": "STRUCTURED",
+          "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+          "transmitted_visual_identities": [],
+          "worst_case_cny": "1.22252"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 1024,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 75234,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "7c7ce3d4ed5fdd23fba9f6906161b24a647d779af7153cf29113cf53b8dc2767",
+          "payload_sha256": "b13b43f551c4fe46b803c55f59d76bcc79d698129475071bcfeb6a20e7f76d45",
+          "request_identity": "4b63e4bf60983493cf8038b56d92051bbf12c4c40c78ae330b20c35b3fab4742",
+          "slot": 5,
+          "track": "DUAL_INPUT",
+          "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+          "transmitted_visual_identities": [
+            "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+          ],
+          "worst_case_cny": "1.62756"
+        }
+      ],
+      "total_stage_a_worst_case_including_carry_forward_cny": "5.97792"
+    },
+    {
+      "endpoint": "https://api.deepseek.com/chat/completions",
+      "five_slot_worst_case_cny": "0.810336",
+      "future_executable_worst_case_cny": "0.591114",
+      "model_id": "deepseek-v4-flash-vision-exp",
+      "payload_style": "DEEPSEEK_OPENAI",
+      "pricing_authority_identity": "86bfea95e040b8d8242d6087d32b1e5de578303fed038177771615acc8f423d6",
+      "provider_id": "DEEPSEEK",
+      "provider_spec_identity": "cf8add45a9d59c50d93c0d45417961992f3fcb09256600111f48110db484c900",
+      "provider_stage_a_cap_cny": "6",
+      "rate_card_identity": "eb9a290b439742eaacfddaeeddb78ca93c944b28f6569dbe105db10307e72800",
+      "slots": [
+        {
+          "attempt_evidence_identity": "d36c1fbbb1cd639e48a6f049f7df1be3bb95d9f346d75bbb85e25451fba9dc55",
+          "execution_semantics": "CARRY_FORWARD_V0_1_ATTEMPT__NON_EXECUTABLE__NON_RETRYABLE",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": false,
+          "inference_configuration_identity": "43b34c9a07809b2f758928010a361b157b8e5e6eefb3c964b926ef39d2c56c50",
+          "payload_sha256": "57325ff8a264817050eb006dd7bb86ac6f104f62725ac47f846f76d2bb1f6c68",
+          "request_identity": "acb771b72e1d1d843fb45e70536196e516bf1406c0cca2d043e6e39156ee08f2",
+          "slot": 1,
+          "track": "OPERATIONAL_PROVIDER",
+          "worst_case_cny": "0.219222"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 19952,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "d74177844e8b060913a79e153796de328604a6939c1ed420f255bb41e3ddddb9",
+          "payload_sha256": "17d61e96b340a3db58e4b8e28d4fbb9b8514c2835beec736413f7b858d295fdf",
+          "request_identity": "b52d0e592f41b93916f8a7fa8531ccc5bae835cb20ef3d69c09babd9d9a6f935",
+          "slot": 2,
+          "track": "SEMANTIC",
+          "transmitted_structured_observation_identity": null,
+          "transmitted_visual_identities": [],
+          "worst_case_cny": "0.069072"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 384,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 38294,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "d74177844e8b060913a79e153796de328604a6939c1ed420f255bb41e3ddddb9",
+          "payload_sha256": "7cf8c996fc5edf893d33ccc61a62aa0900b3e440be3068efe271fe99601e55f3",
+          "request_identity": "c3688c190e39312973803da07c48d8c04d8a5bfcd18c66c7f43eaf6da888e6bd",
+          "slot": 3,
+          "track": "VISUAL",
+          "transmitted_structured_observation_identity": null,
+          "transmitted_visual_identities": [
+            "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+          ],
+          "worst_case_cny": "0.12525"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 53254,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "d74177844e8b060913a79e153796de328604a6939c1ed420f255bb41e3ddddb9",
+          "payload_sha256": "1f6fce6d3c17cd9b39b79c61bdb44a07212dbcb016005cd6be7149ff9f6b9927",
+          "request_identity": "b3d6f39ae301100c97e33c0cd8e17ab2df29cdd2c9af79817d68d2b92c669279",
+          "slot": 4,
+          "track": "STRUCTURED",
+          "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+          "transmitted_visual_identities": [],
+          "worst_case_cny": "0.168978"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 384,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 72482,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "d74177844e8b060913a79e153796de328604a6939c1ed420f255bb41e3ddddb9",
+          "payload_sha256": "b722a2bcf62078900d8d88f09f310925fbab2c29fd8c65ab8bd79630b0d6a039",
+          "request_identity": "4b63e4bf60983493cf8038b56d92051bbf12c4c40c78ae330b20c35b3fab4742",
+          "slot": 5,
+          "track": "DUAL_INPUT",
+          "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+          "transmitted_visual_identities": [
+            "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+          ],
+          "worst_case_cny": "0.227814"
+        }
+      ],
+      "total_stage_a_worst_case_including_carry_forward_cny": "0.810336"
+    },
+    {
+      "endpoint": "https://api.minimaxi.com/v1/chat/completions",
+      "five_slot_worst_case_cny": "1.1617368",
+      "future_executable_worst_case_cny": "1.1617368",
+      "model_id": "MiniMax-M3",
+      "payload_style": "MINIMAX_V2",
+      "pricing_authority_identity": "86bfea95e040b8d8242d6087d32b1e5de578303fed038177771615acc8f423d6",
+      "provider_id": "MINIMAX",
+      "provider_spec_identity": "066e4348e12a10f03f878962251018ed5802057ef30d5874bb1cd3766f841d2d",
+      "provider_stage_a_cap_cny": "6",
+      "rate_card_identity": "cef3e0133e42efe9e40216a56e593cae2658456378be6c1c4051acaff2007d07",
+      "slots": [
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 72414,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "e14c4ed4c4e34f75e500c050cacb59295448edd57b07c32a3f94f7f8a28f7bd6",
+          "payload_sha256": "db346c1f49cd766cfa31e3702259bef57139ddccfda7d656df7893fde7a99bf0",
+          "request_identity": "df858a0d339885d4dd3e59acd1fecf5c5de75ddd76c3c4900fb757a2fedeb7b6",
+          "slot": 1,
+          "track": "OPERATIONAL_PROVIDER",
+          "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+          "transmitted_visual_identities": [
+            "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+          ],
+          "worst_case_cny": "0.321342"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 19884,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "e14c4ed4c4e34f75e500c050cacb59295448edd57b07c32a3f94f7f8a28f7bd6",
+          "payload_sha256": "8dcde1e0091ea02a780cc52d90dc6dfd40659e39b56a5836af6cfbb860a6fb44",
+          "request_identity": "b52d0e592f41b93916f8a7fa8531ccc5bae835cb20ef3d69c09babd9d9a6f935",
+          "slot": 2,
+          "track": "SEMANTIC",
+          "transmitted_structured_observation_identity": null,
+          "transmitted_visual_identities": [],
+          "worst_case_cny": "0.100716"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 38226,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "e14c4ed4c4e34f75e500c050cacb59295448edd57b07c32a3f94f7f8a28f7bd6",
+          "payload_sha256": "ee14812f0b795e06c95e6e950228f3191ff69ecfe7c5f64716a03790669d3b5d",
+          "request_identity": "c3688c190e39312973803da07c48d8c04d8a5bfcd18c66c7f43eaf6da888e6bd",
+          "slot": 3,
+          "track": "VISUAL",
+          "transmitted_structured_observation_identity": null,
+          "transmitted_visual_identities": [
+            "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+          ],
+          "worst_case_cny": "0.1777524"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 53186,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "e14c4ed4c4e34f75e500c050cacb59295448edd57b07c32a3f94f7f8a28f7bd6",
+          "payload_sha256": "bdd69318f03f2f399a3fdfdb39c9a44709db98a6a6b53858fa44aef6766b78f5",
+          "request_identity": "b3d6f39ae301100c97e33c0cd8e17ab2df29cdd2c9af79817d68d2b92c669279",
+          "slot": 4,
+          "track": "STRUCTURED",
+          "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+          "transmitted_visual_identities": [],
+          "worst_case_cny": "0.2405844"
+        },
+        {
+          "bounds": {
+            "max_image_tokens": 0,
+            "max_output_tokens": 1024,
+            "max_text_input_tokens": 72414,
+            "transport_retries": 0
+          },
+          "execution_semantics": "FUTURE_UNATTEMPTED",
+          "fixture_id": "JH-FIX-C-001",
+          "future_executable": true,
+          "inference_configuration_identity": "e14c4ed4c4e34f75e500c050cacb59295448edd57b07c32a3f94f7f8a28f7bd6",
+          "payload_sha256": "db346c1f49cd766cfa31e3702259bef57139ddccfda7d656df7893fde7a99bf0",
+          "request_identity": "4b63e4bf60983493cf8038b56d92051bbf12c4c40c78ae330b20c35b3fab4742",
+          "slot": 5,
+          "track": "DUAL_INPUT",
+          "transmitted_structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+          "transmitted_visual_identities": [
+            "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5"
+          ],
+          "worst_case_cny": "0.321342"
+        }
+      ],
+      "total_stage_a_worst_case_including_carry_forward_cny": "1.1617368"
+    }
+  ],
+  "qualification_fixture_id": "JH-FIX-C-001",
+  "runtime_response_json_schema_identity": "b42007a7bb0cc181dc6fd4979a4a4f3fc86495d0ea488efc6f1a9d7fdc22412e",
+  "stage_a_provider_cap_cny": "6",
+  "stage_a_total_cap_cny": "18",
+  "stage_a_total_worst_case_including_carry_forward_cny": "7.9499928",
+  "status": "FROZEN_V0_2_OFFLINE__REMOTE_BOOTSTRAP_PENDING_AFTER_MERGE",
+  "stimulus": {
+    "aggregation": {
+      "15m_group_size": 3,
+      "1H_group_size": 12
+    },
+    "derived_15m_bar_count": 12,
+    "derived_1H_bar_count": 3,
+    "fine_5m_bar_count": 36,
+    "fine_5m_first_open_time": "2026-08-01T14:00:00+08:00",
+    "fine_5m_last_close_time": "2026-08-01T17:00:00+08:00",
+    "observation_identity": "84c054e6ff9889b4662a3ecb94ce5f5259a4b689891cc75ff7c30490cf7c6ce0",
+    "png_sha256": "13a24e67f818df152128439c8bfc263fb720718454e241afdec057f036afed16",
+    "recipe_identity": "a3bff57188b887566f7b4f26d96a091d102225cfbf0f22f9154eae3d915402db",
+    "recipe_materialization": "DETERMINISTIC_COMMITTED_SOURCE_PLUS_RECIPE_IDENTITY",
+    "recipe_source_path": "src/jianghe_stage_a_frozen_stimulus.py",
+    "recipe_source_sha256": "2d73d99945d817d42b7ebbf2eb008301e048074b5848d12ea81b074bb76332d4",
+    "renderer_config_identity": "b7176463e97d76152f7624ba0ae4150bb0bc5076cc2405bd165e7752f29864d9",
+    "renderer_input_identity": "2469e78d8f78fd43f414b4c0c219c9b01e2b41df9f3ad38b2863949cace9f8dd",
+    "renderer_visual_artifact_identity": "9bd5590ed1af1f91f4d8fc563a00088d7bb4bae3e36ffb7676b7d31de2ae22c2",
+    "semantic_anchor": {
+      "other_5m_highs_below": "102",
+      "poke_5m_index": 20,
+      "poke_close": "101.1",
+      "poke_high": "103",
+      "post_poke_5m_count": 15,
+      "pre_poke_5m_count": 20
+    },
+    "stimulus_identity": "1c0de5e0254a3cd5083f39c15e7bc49a13f1219ff576e5aa3f674263c5273235",
+    "structured_observation_identity": "4a9d5a1af238f51fadfc0f5853e98d45ea21ada8f38bdf5feca9911410b279ac",
+    "synthetic_contract": "SYNTH.MKT001",
+    "synthetic_product": "SYNTH",
+    "visual_input_identity": "8f97539159c9dc8063e6daf3631d9741c94bcbfb4228f2be4bda75ae478d7df5",
+    "window_version": "JIANGHE_STAGE_A_VISIBLE_WINDOW_36X5M_V0_1"
+  },
+  "stimulus_version": "JIANGHE_STAGE_A_SYNTHETIC_STIMULUS_V0_1",
+  "track_order": [
+    "OPERATIONAL_PROVIDER",
+    "SEMANTIC",
+    "VISUAL",
+    "STRUCTURED",
+    "DUAL_INPUT"
+  ],
+  "v0_1_plan_blob_sha256": "7ead399ced9baaa8e1e8c9176d7f9cf8133c753c873f3880cce27b01ba60e16a",
+  "v0_1_plan_identity": "7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4",
+  "v0_1_remote_ref": "refs/heads/stage-a-live-state-v0-1",
+  "v0_2_remote_ref": "refs/heads/stage-a-live-state-v0-2",
+  "visible_information_sha256": "cfbfcca8833e077743432c71f78c02d408c0fc6007dc4c3fb87b33007145db68"
+}

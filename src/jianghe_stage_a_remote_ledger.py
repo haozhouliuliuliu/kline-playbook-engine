@@ -39,14 +39,15 @@ from src.jianghe_stage_a_runtime import (
     STAGE_A_TOTAL_CAP_CNY,
 )
 
-LEDGER_SCHEMA_VERSION = "JIANGHE_STAGE_A_REMOTE_EXECUTION_LEDGER_V0_1"
-LEDGER_EVENT_SCHEMA_VERSION = "JIANGHE_STAGE_A_REMOTE_EXECUTION_EVENT_V0_1"
-DEFAULT_REMOTE_REF = "refs/heads/stage-a-live-state-v0-1"
-LEDGER_FILENAME = "stage-a-live-ledger-v0-1.json"
+LEDGER_SCHEMA_VERSION = "JIANGHE_STAGE_A_REMOTE_EXECUTION_LEDGER_V0_2"
+LEDGER_EVENT_SCHEMA_VERSION = "JIANGHE_STAGE_A_REMOTE_EXECUTION_EVENT_V0_2"
+DEFAULT_REMOTE_REF = "refs/heads/stage-a-live-state-v0-2"
+LEDGER_FILENAME = "stage-a-live-ledger-v0-2.json"
 REMOTE_TERMINAL_STATUSES = frozenset(
     {
         "SUCCESS_NORMALIZED",
         "NON_SCOREABLE_NORMALIZER",
+        "NON_SCOREABLE_PROVIDER_RESPONSE",
         "PROVIDER_MODEL_DRIFT",
         "TRANSPORT_FAILURE",
     }
@@ -181,6 +182,7 @@ class RemoteExecutionLedger:
                 "ledger_identity",
                 "plan_identity",
                 "plan_sha256",
+                "carry_forward_identity",
                 "events",
             }
         ):
@@ -189,6 +191,8 @@ class RemoteExecutionLedger:
             raise RemoteLedgerIntegrityError("remote ledger schema version mismatch")
         if payload["plan_identity"] != plan.plan_identity or payload["plan_sha256"] != plan.sha256:
             raise RemoteLedgerIntegrityError("remote ledger is bound to a different frozen plan")
+        if payload["carry_forward_identity"] != _identity(plan.payload.get("carry_forward")):
+            raise RemoteLedgerIntegrityError("remote ledger carry-forward baseline mismatch")
         events = payload["events"]
         if not isinstance(events, list):
             raise RemoteLedgerIntegrityError("remote ledger events must be a list")
@@ -204,6 +208,7 @@ class RemoteExecutionLedger:
             "ledger_identity": None,
             "plan_identity": self.plan.plan_identity,
             "plan_sha256": self.plan.sha256,
+            "carry_forward_identity": _identity(self.plan.payload.get("carry_forward")),
             "events": [dict(event) for event in self.events],
         }
         identity_payload = dict(payload)
@@ -321,8 +326,9 @@ class RemoteExecutionLedger:
                 provider_attempts[provider] = provider_attempts.get(provider, 0) + 1
             else:
                 terminals[key] = event
-        provider_spend: dict[str, Decimal] = {}
-        total = Decimal("0")
+        baseline = self.plan.carry_forward_snapshot()
+        provider_spend: dict[str, Decimal] = dict(baseline.provider_accounted_cny)
+        total = baseline.stage_accounted_cny
         for key, start in starts.items():
             terminal = terminals.get(key)
             amount = _decimal(
@@ -336,17 +342,21 @@ class RemoteExecutionLedger:
             raise RemoteLedgerIntegrityError("remote accounting exceeds an authorized cap")
         if any(amount > STAGE_A_PROVIDER_CAP_CNY for amount in provider_spend.values()):
             raise RemoteLedgerIntegrityError("remote provider accounting exceeds CNY6")
-        if len(starts) > 15 or any(
-            count > STAGE_A_MAX_CALLS_PER_PROVIDER for count in provider_attempts.values()
+        total_attempts = baseline.total_attempts + len(starts)
+        combined_provider_attempts = dict(baseline.provider_attempts)
+        for provider, count in provider_attempts.items():
+            combined_provider_attempts[provider] = combined_provider_attempts.get(provider, 0) + count
+        if total_attempts > 15 or any(
+            count > STAGE_A_MAX_CALLS_PER_PROVIDER for count in combined_provider_attempts.values()
         ):
             raise RemoteLedgerIntegrityError("remote attempt count exceeds Stage-A limits")
         return JournalSnapshot(
-            attempted_slots=frozenset(starts),
+            attempted_slots=frozenset((*baseline.attempted_slots, *starts.keys())),
             project_accounted_cny=total,
             stage_accounted_cny=total,
             provider_accounted_cny=provider_spend,
-            total_attempts=len(starts),
-            provider_attempts=provider_attempts,
+            total_attempts=total_attempts,
+            provider_attempts=combined_provider_attempts,
         )
 
     def append_start(
@@ -468,6 +478,8 @@ class GitRemoteLedgerStore:
         self.repository = Path(repository).resolve()
         self.remote = remote
         self.remote_ref = remote_ref
+        if remote_ref != DEFAULT_REMOTE_REF:
+            raise ValueError("caller-selected Stage-A remote ref is forbidden")
         if not re.fullmatch(r"refs/heads/[A-Za-z0-9._/-]+", remote_ref):
             raise ValueError("remote_ref must be a full heads ref")
         if not re.fullmatch(r"[A-Za-z0-9._-]+", remote):
@@ -577,7 +589,10 @@ class GitRemoteLedgerStore:
             "source_journal_last_event_identity": terminal[
                 "evidence_terminal_event_identity"
             ],
-            "accounted_cny": terminal["accounted_cny"],
+            "accounted_cny": _decimal_text(
+                plan.carry_forward_snapshot().stage_accounted_cny
+                + _decimal(terminal["accounted_cny"], "terminal.accounted_cny")
+            ),
         }
         expected_attempt = {
             "plan_identity": plan.plan_identity,

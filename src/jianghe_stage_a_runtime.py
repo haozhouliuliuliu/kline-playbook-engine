@@ -54,9 +54,10 @@ from src.jianghe_visual_renderer import (
 
 STAGE_A_PROTOCOL_VERSION = "JIANGHE_STAGE_A_INPUT_PROTOCOL_V0_1"
 STAGE_A_STIMULUS_VERSION = "JIANGHE_STAGE_A_SYNTHETIC_STIMULUS_V0_1"
-STAGE_A_REQUEST_VERSION = "JIANGHE_STAGE_A_REQUEST_V0_1"
-STAGE_A_EVIDENCE_VERSION = "JIANGHE_STAGE_A_PROVIDER_EVIDENCE_V0_1"
-STAGE_A_PLAN_VERSION = "JIANGHE_STAGE_A_FROZEN_PLAN_V0_1"
+STAGE_A_REQUEST_VERSION_V0_1 = "JIANGHE_STAGE_A_REQUEST_V0_1"
+STAGE_A_REQUEST_VERSION = "JIANGHE_STAGE_A_REQUEST_V0_2"
+STAGE_A_EVIDENCE_VERSION = "JIANGHE_STAGE_A_PROVIDER_EVIDENCE_V0_2"
+STAGE_A_PLAN_VERSION = "JIANGHE_STAGE_A_FROZEN_PLAN_V0_2"
 QUALIFICATION_FIXTURE_ID = "JH-FIX-C-001"
 STAGE_A_TOTAL_CAP_CNY = Decimal("18.00")
 STAGE_A_PROVIDER_CAP_CNY = Decimal("6.00")
@@ -426,6 +427,7 @@ class StageAInputRequest:
     context: SelectedJiangheContextArtifact
     stimulus: StageAStimulus
     max_output_tokens: int
+    contract_version: str = STAGE_A_REQUEST_VERSION
     identity: str = field(init=False)
 
     def __post_init__(self) -> None:
@@ -441,12 +443,14 @@ class StageAInputRequest:
             raise ValueError("Stage-A output cap must be in 1..2000")
         if dict(self.response_schema) != runtime_response_json_schema():
             raise ValueError("Stage-A response schema must equal the frozen runtime JSON Schema")
+        if self.contract_version not in {STAGE_A_REQUEST_VERSION_V0_1, STAGE_A_REQUEST_VERSION}:
+            raise ValueError("unsupported Stage-A request contract version")
         object.__setattr__(
             self,
             "identity",
             _hash(
                 {
-                    "version": STAGE_A_REQUEST_VERSION,
+                    "version": self.contract_version,
                     "track": self.input_track.value,
                     "system_prompt_sha256": sha256(self.system_prompt.encode("utf-8")).hexdigest(),
                     "decision_prompt_sha256": sha256(self.decision_prompt.encode("utf-8")).hexdigest(),
@@ -569,22 +573,42 @@ class StageAProviderInvocationEvidence:
     transmitted_visual_identities: tuple[str, ...]
     provider_spec_identity: str
     requested_model_id: str
-    resolved_model_id: str
-    provider_request_id: str
+    resolved_model_id: str | None
+    provider_request_id: str | None
     raw_provider_response_body: str
-    raw_response_text: str
-    usage: ProviderUsage
+    raw_response_text: str | None
+    usage: ProviderUsage | None
     latency_ms: int
     rate_card_identity: str
     budget_reservation_id: str
     charged_cny: str
+    http_status_class: str = "2xx"
+    finish_reason: str | None = None
+    final_content_state: str = "TEXT_NONEMPTY"
+    final_content_sha256: str | None = None
+    reasoning_present: bool = False
+    reasoning_length: int | None = None
+    reasoning_sha256: str | None = None
+    reasoning_token_count: int | None = None
     identity: str = field(init=False)
 
     def __post_init__(self) -> None:
         if not isinstance(self.input_track, StageAInputTrack):
             raise TypeError("input_track must be StageAInputTrack")
-        if not self.request_identity or not self.raw_response_text:
+        if not self.request_identity or not self.raw_provider_response_body:
             raise ValueError("Stage-A invocation evidence is incomplete")
+        if self.http_status_class != "2xx":
+            raise ValueError("Stage-A decoded response evidence must be HTTP 2xx")
+        if self.final_content_state not in {
+            "TEXT_NONEMPTY", "TEXT_EMPTY", "NULL", "MISSING", "NON_TEXT"
+        }:
+            raise ValueError("unsupported final content state")
+        if isinstance(self.raw_response_text, str) and self.final_content_sha256 is None:
+            object.__setattr__(
+                self,
+                "final_content_sha256",
+                sha256(self.raw_response_text.encode("utf-8")).hexdigest(),
+            )
         object.__setattr__(
             self,
             "identity",
@@ -603,17 +627,19 @@ class StageAProviderInvocationEvidence:
                     "requested_model_id": self.requested_model_id,
                     "resolved_model_id": self.resolved_model_id,
                     "provider_request_id": self.provider_request_id,
-                    "raw_provider_response_sha256": sha256(
-                        self.raw_provider_response_body.encode("utf-8")
-                    ).hexdigest(),
-                    "raw_response_text_sha256": sha256(
-                        self.raw_response_text.encode("utf-8")
-                    ).hexdigest(),
-                    "usage": {
+                    "raw_response_text_sha256": self.final_content_sha256,
+                    "usage": None if self.usage is None else {
                         "text_input_tokens": self.usage.text_input_tokens,
                         "image_tokens": self.usage.image_tokens,
                         "output_tokens": self.usage.output_tokens,
                     },
+                    "http_status_class": self.http_status_class,
+                    "finish_reason": self.finish_reason,
+                    "final_content_state": self.final_content_state,
+                    "reasoning_present": self.reasoning_present,
+                    "reasoning_length": self.reasoning_length,
+                    "reasoning_sha256": self.reasoning_sha256,
+                    "reasoning_token_count": self.reasoning_token_count,
                     "latency_ms": self.latency_ms,
                     "rate_card_identity": self.rate_card_identity,
                     "budget_reservation_id": self.budget_reservation_id,
@@ -621,6 +647,39 @@ class StageAProviderInvocationEvidence:
                 }
             ),
         )
+
+    @property
+    def provider_response_scoreable(self) -> bool:
+        return (
+            self.final_content_state == "TEXT_NONEMPTY"
+            and self.usage is not None
+            and isinstance(self.resolved_model_id, str)
+            and bool(self.resolved_model_id)
+            and isinstance(self.provider_request_id, str)
+            and bool(self.provider_request_id)
+        )
+
+    def safe_payload(self) -> dict[str, object]:
+        """Return mechanical evidence without raw final or reasoning text."""
+        return {
+            "http_status_class": self.http_status_class,
+            "requested_model_id": self.requested_model_id,
+            "resolved_model_id": self.resolved_model_id,
+            "provider_request_id": self.provider_request_id,
+            "finish_reason": self.finish_reason,
+            "usage": None if self.usage is None else {
+                "prompt_tokens": self.usage.text_input_tokens,
+                "completion_tokens": self.usage.output_tokens,
+                "image_tokens": self.usage.image_tokens,
+            },
+            "latency_ms": self.latency_ms,
+            "final_content_state": self.final_content_state,
+            "final_content_sha256": self.final_content_sha256,
+            "reasoning_present": self.reasoning_present,
+            "reasoning_length": self.reasoning_length,
+            "reasoning_sha256": self.reasoning_sha256,
+            "reasoning_token_count": self.reasoning_token_count,
+        }
 
 
 class StageAProviderTransport(DomesticProviderTransport):
@@ -632,6 +691,73 @@ class StageAProviderTransport(DomesticProviderTransport):
             Decimal(bounds.total_input_tokens) * rate_card.input_per_million
             + Decimal(bounds.max_output_tokens) * rate_card.output_per_million
         ) / Decimal(1_000_000)
+
+    @staticmethod
+    def _mechanical_response(decoded: Mapping[str, object]) -> dict[str, object]:
+        choices = decoded.get("choices")
+        choice = choices[0] if isinstance(choices, list) and choices else None
+        choice = choice if isinstance(choice, Mapping) else {}
+        message = choice.get("message")
+        message = message if isinstance(message, Mapping) else {}
+        if "content" not in message:
+            content, state = None, "MISSING"
+        else:
+            content = message.get("content")
+            if content is None:
+                state = "NULL"
+            elif isinstance(content, str):
+                state = "TEXT_NONEMPTY" if content else "TEXT_EMPTY"
+            else:
+                state = "NON_TEXT"
+        final_text = content if isinstance(content, str) else None
+        reasoning = message.get("reasoning_content")
+        details = message.get("reasoning_details")
+        reasoning_present = bool(reasoning) or bool(details)
+        reasoning_bytes: bytes | None = None
+        if isinstance(reasoning, str) and reasoning:
+            reasoning_bytes = reasoning.encode("utf-8")
+        elif details:
+            reasoning_bytes = _canonical_json(details).encode("utf-8")
+        usage: ProviderUsage | None
+        try:
+            usage = DomesticProviderTransport._extract_usage(decoded)
+        except ProviderResponseError:
+            usage = None
+        usage_raw = decoded.get("usage")
+        details_raw = (
+            usage_raw.get("completion_tokens_details")
+            if isinstance(usage_raw, Mapping)
+            else None
+        )
+        reasoning_tokens = (
+            details_raw.get("reasoning_tokens")
+            if isinstance(details_raw, Mapping)
+            else None
+        )
+        if not isinstance(reasoning_tokens, int) or isinstance(reasoning_tokens, bool) or reasoning_tokens < 0:
+            reasoning_tokens = None
+        if reasoning_tokens is not None and reasoning_tokens > 0:
+            reasoning_present = True
+        resolved = decoded.get("model")
+        request_id = decoded.get("id")
+        finish = choice.get("finish_reason")
+        return {
+            "raw_response_text": final_text,
+            "final_content_state": state,
+            "final_content_sha256": (
+                sha256(final_text.encode("utf-8")).hexdigest()
+                if final_text is not None
+                else None
+            ),
+            "usage": usage,
+            "resolved_model_id": resolved if isinstance(resolved, str) and resolved else None,
+            "provider_request_id": request_id if isinstance(request_id, str) and request_id else None,
+            "finish_reason": finish if isinstance(finish, str) and finish else None,
+            "reasoning_present": reasoning_present,
+            "reasoning_length": None if reasoning_bytes is None else len(reasoning_bytes),
+            "reasoning_sha256": None if reasoning_bytes is None else sha256(reasoning_bytes).hexdigest(),
+            "reasoning_token_count": reasoning_tokens,
+        }
 
     def invoke_stage_a(
         self,
@@ -692,10 +818,11 @@ class StageAProviderTransport(DomesticProviderTransport):
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         started = time.monotonic()
         raw_provider_response_body = ""
-        raw_text = ""
+        raw_text: str | None = None
         usage: ProviderUsage | None = None
-        resolved_model = ""
-        provider_request_id = ""
+        resolved_model: str | None = None
+        provider_request_id: str | None = None
+        mechanical: dict[str, object] = {}
         latency_ms = 0
         try:
             try:
@@ -718,37 +845,29 @@ class StageAProviderTransport(DomesticProviderTransport):
             if not isinstance(decoded, Mapping):
                 budget.consume_full_reservation_on_unknown_usage(reservation.reservation_id)
                 raise ProviderResponseError("provider response top level must be an object")
-            try:
-                raw_text = self._extract_text(decoded)
-                usage = self._extract_usage(decoded)
-                resolved_model_raw = decoded.get("model")
-                provider_request_id_raw = decoded.get("id")
-                if not isinstance(resolved_model_raw, str) or not resolved_model_raw:
-                    raise ProviderResponseError("provider-resolved model identity is missing")
-                if not isinstance(provider_request_id_raw, str) or not provider_request_id_raw:
-                    raise ProviderResponseError("provider request id is missing")
-                resolved_model = resolved_model_raw
-                provider_request_id = provider_request_id_raw
-            except ProviderResponseError:
+            mechanical = self._mechanical_response(decoded)
+            raw_text = mechanical["raw_response_text"]  # type: ignore[assignment]
+            usage = mechanical["usage"]  # type: ignore[assignment]
+            resolved_model = mechanical["resolved_model_id"]  # type: ignore[assignment]
+            provider_request_id = mechanical["provider_request_id"]  # type: ignore[assignment]
+            if usage is None or resolved_model is None or provider_request_id is None:
                 budget.consume_full_reservation_on_unknown_usage(reservation.reservation_id)
-                raise
-            conservative_image_tokens = max(usage.image_tokens, expected_image_tokens)
-            budget.reconcile(
-                reservation.reservation_id,
-                text_input_tokens=usage.text_input_tokens,
-                image_tokens=conservative_image_tokens,
-                output_tokens=usage.output_tokens,
-                rate_card=rate_card,
-                fx=None,
-                now=now,
-            )
+            else:
+                conservative_image_tokens = max(usage.image_tokens, expected_image_tokens)
+                budget.reconcile(
+                    reservation.reservation_id,
+                    text_input_tokens=usage.text_input_tokens,
+                    image_tokens=conservative_image_tokens,
+                    output_tokens=usage.output_tokens,
+                    rate_card=rate_card,
+                    fx=None,
+                    now=now,
+                )
         finally:
             consumed = budget.spent_cny - project_before
             if consumed > 0:
                 stage_budget.record(self.spec.provider_id, consumed)
 
-        if usage is None:
-            raise AssertionError("successful Stage-A invocation must have usage")
         charged = budget.spent_cny - project_before
         return StageAProviderInvocationEvidence(
             input_track=request.input_track,
@@ -770,6 +889,13 @@ class StageAProviderTransport(DomesticProviderTransport):
             rate_card_identity=rate_card.identity,
             budget_reservation_id=reservation.reservation_id,
             charged_cny=_decimal_text(charged),
+            finish_reason=mechanical.get("finish_reason"),
+            final_content_state=str(mechanical["final_content_state"]),
+            final_content_sha256=mechanical.get("final_content_sha256"),
+            reasoning_present=mechanical.get("reasoning_present"),
+            reasoning_length=mechanical.get("reasoning_length"),
+            reasoning_sha256=mechanical.get("reasoning_sha256"),
+            reasoning_token_count=mechanical.get("reasoning_token_count"),
         )
 
 
@@ -800,6 +926,7 @@ def make_stage_a_request(
     decision_prompt: str,
     max_output_tokens: int = 800,
     stimulus: StageAStimulus | None = None,
+    contract_version: str = STAGE_A_REQUEST_VERSION,
 ) -> StageAInputRequest:
     if not isinstance(track, StageAInputTrack):
         raise TypeError("track must be StageAInputTrack")
@@ -813,6 +940,7 @@ def make_stage_a_request(
         context=context,
         stimulus=resolved_stimulus,
         max_output_tokens=max_output_tokens,
+        contract_version=contract_version,
     )
 
 

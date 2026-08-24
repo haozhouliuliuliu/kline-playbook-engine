@@ -74,6 +74,9 @@ def _find_spec(provider_id: str) -> ProviderSpec:
 
 def required_stage_a_cny(plan: VerifiedFrozenStageAPlan, provider_id: str) -> Decimal:
     row = plan.provider_row(provider_id)
+    future = row.get("future_executable_worst_case_cny")
+    if future is not None:
+        return _decimal(future, "future_executable_worst_case_cny")
     return _decimal(row.get("five_slot_worst_case_cny"), "five_slot_worst_case_cny")
 
 

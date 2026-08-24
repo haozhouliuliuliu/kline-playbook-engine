@@ -1407,7 +1407,7 @@ class DomesticProviderTransport:
                 "tools": [],
             }
         if self.spec.payload_style == "DEEPSEEK_OPENAI":
-            return {
+            payload = {
                 "model": self.spec.model_id,
                 "messages": [
                     {"role": "system", "content": request.system_prompt},
@@ -1417,8 +1417,12 @@ class DomesticProviderTransport:
                 "response_format": {"type": "json_object"},
                 "tools": [],
             }
+            if getattr(request, "contract_version", None) != "JIANGHE_STAGE_A_REQUEST_V0_1":
+                payload["thinking"] = {"type": "enabled"}
+                payload["reasoning_effort"] = "max"
+            return payload
         if self.spec.payload_style == "MINIMAX_V2":
-            return {
+            payload = {
                 "model": self.spec.model_id,
                 "messages": [
                     {"role": "system", "content": request.system_prompt},
@@ -1428,6 +1432,10 @@ class DomesticProviderTransport:
                 "stream": False,
                 "tools": [],
             }
+            if getattr(request, "contract_version", None) != "JIANGHE_STAGE_A_REQUEST_V0_1":
+                payload["thinking"] = {"type": "adaptive"}
+                payload["reasoning_split"] = True
+            return payload
         raise AssertionError("unreachable payload style")
 
     def payload_bytes(self, request: SpendEligibleJiangheRequest) -> bytes:
