@@ -13,9 +13,9 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=PRESPEND_REPAIR_CLOSED__PROVIDER_SPECIFIC_PRICING_REFRESH_BEFORE_PAID_AUTHORIZATION
-NEXT_NORMAL_PHASE=zero_cost_refresh_deepseek_minimax_exact_image_billing_then_prepare_rmb100_funnel_and_request_separate_owner_paid_call_authorization
-OWNER_ACTION=NONE_NOW__PAID_CALL_AUTHORIZATION_IS_A_SEPARATE_LATER_GATE
+CURRENT_WORK_PACKAGE=RMB100_REAL_MODEL_FIDELITY_FUNNEL_READY_FOR_OWNER_PAID_DECISION
+NEXT_NORMAL_PHASE=owner_authorize_or_decline_bounded_paid_funnel_then_if_authorized_commit_closed_world_authorization_and_execute_stage_a_only
+OWNER_ACTION=AUTHORIZE_OR_DECLINE_BOUNDED_CNY100_NON_OUTCOME_PAID_MODEL_FUNNEL
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -31,10 +31,12 @@ PRE_SPEND_REPAIR_REAUDIT=PASS
 PRE_SPEND_BLOCKER_BEFORE_SPEND_COUNT=0
 PRE_SPEND_REPAIR_RECOMMENDED_OPEN_COUNT=0
 LIMIT_015=RESOLVED_BY_PRESPEND_BATCHED_REPAIR_CLOSURE_V0_1
-SPEND_GATE=CLOSED_PENDING_OWNER_EXPLICIT_PAID_CALL_AUTHORIZATION_AND_PROVIDER_SPECIFIC_SPEND_ELIGIBILITY
+PROVIDER_SPECIFIC_SPEND_GUARD=READY_ALL_3_OWNER_CONFIRMED_TARGETS
+SPEND_GATE=CLOSED_PENDING_OWNER_EXPLICIT_PAID_CALL_AUTHORIZATION
 LIVE_MODEL_PROVIDER_PROBE=NOT_AUTHORIZED
 PAID_MODEL_SPEND=NOT_AUTHORIZED
-TOTAL_HARD_SPEND_CAP_CNY_IF_LATER_APPROVED=100.00
+ACCOUNT_TOPUP_OR_RECHARGE=NOT_AUTHORIZED
+TOTAL_HARD_API_SPEND_CAP_CNY_IF_APPROVED=100.00
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 OUTCOME_ACCESS=NO
@@ -44,11 +46,11 @@ Current authorities:
 - frozen findings: `docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md`
 - repair closure: `docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md`
 - domestic provider/payment scope: `docs/reviews/DOMESTIC_PROVIDER_SCOPE_AND_PRESPEND_SEQUENCE_V0_1.md`
+- provider pricing authority: `docs/evidence/JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json`
+- pricing fallback policy: `docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md`
+- pricing refresh: `docs/reviews/DOMESTIC_PROVIDER_PRICING_REFRESH_V0_1.md`
 - DeepSeek Vision Exp correction: `docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`
-- pre-live re-audit: `docs/reviews/JIANGHE_PRE_LIVE_FIDELITY_GATE_REAUDIT_V0_1.md`
-- PRIMARY fixed-rubric re-audit: `docs/reviews/JIANGHE_PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT_V0_1.md`
-- SOURCE_ONLY Git-blob identity correction: `docs/reviews/JIANGHE_SOURCE_ONLY_GIT_BLOB_IDENTITY_CORRECTION_V0_1.md`
-- clean main baseline repair: `docs/reviews/MAIN_BASELINE_TEST_DEBT_AND_GIT_BLOB_IDENTITY_REPAIR_V0_1.md`
+- paid-probe funnel: `docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md`
 
 ## Frozen pre-spend finding status
 
@@ -62,9 +64,9 @@ RSP-001=CLOSED__TRADINGSTATE_ADMISSION_PRECEDES_OMS_EVENT_MUTATION
 RSP-002=CLOSED__SAME_INTENT_ID_DIFFERENT_CANONICAL_CONTENT_FAILS_CLOSED
 ```
 
-Closure scope is engineering/evidence only. It does not verify or adopt any provider/model and does not authorize spend, outcome access, PRIMARY freeze, broker access, or real money.
+Closure scope is engineering/evidence only. It does not verify or adopt a provider/model and does not authorize spend, outcome access, PRIMARY freeze, broker access, or real money.
 
-Verification evidence:
+Repair verification remains:
 
 ```text
 REPAIR_PR=21
@@ -74,13 +76,19 @@ FINAL_REPAIR_JOB=97277715870
 FOCUSED_ADVERSARIAL=PASS__162_TESTS
 CANONICAL_FULL_SUITE=PASS__1226_TESTS__27_SKIPPED
 DIFF_HYGIENE=PASS
+```
+
+Provider-pricing refresh integration:
+
+```text
+PRICING_REFRESH_MATERIALIZATION_COMMIT=4c7ad6f6cdc26c634bcb4b99441249e606e8d873
+PRICING_REFRESH_INTEGRATED_MAIN_COMMIT=5fe1f33acf027dbc3a7928b320974f8b52ebd662
+PRICING_REFRESH_GATE=COMPILE_PLUS_FOCUSED_TESTS_PLUS_CANONICAL_FULL_SUITE_PLUS_DIFF_HYGIENE_BEFORE_MATERIALIZATION
 LIVE_CALLS=0
 PAID_SPEND=0
 ```
 
 ## Owner provider / cost scope
-
-Owner-confirmed implementation target set:
 
 ```text
 OWNER_CONFIRMED_PROVIDER_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
@@ -95,14 +103,37 @@ NO_MODEL_OR_PROVIDER_ADOPTED=YES
 Provider implementation / spend-guard state:
 
 ```text
-KIMI_K3=TRANSPORT_IMPLEMENTED__REPOSITORY_RATE_GUARD_CURRENT__NOT_LIVE_VERIFIED__NOT_ADOPTED
-DEEPSEEK_V4_FLASH_VISION_EXP=TRANSPORT_IMPLEMENTED__EXPERIMENTAL__EXACT_VISION_IMAGE_BILLING_AUTHORITY_UNRESOLVED__SPEND_FAIL_CLOSED__NOT_LIVE_VERIFIED__NOT_ADOPTED
-MINIMAX_M3=TRANSPORT_IMPLEMENTED__EXACT_M3_IMAGE_BILLING_AUTHORITY_UNRESOLVED__SPEND_FAIL_CLOSED__NOT_LIVE_VERIFIED__NOT_ADOPTED
+KIMI_K3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__NOT_LIVE_VERIFIED__NOT_ADOPTED
+DEEPSEEK_V4_FLASH_VISION_EXP=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__EXPERIMENTAL__NOT_LIVE_VERIFIED__NOT_ADOPTED
+MINIMAX_M3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__NOT_LIVE_VERIFIED__NOT_ADOPTED
 ```
 
-`BSP-005=CLOSED` means the shared hard-cap enforcement framework is complete; it does not mean every provider currently has a spend-eligible rate card. DeepSeek Vision Exp and MiniMax M3 remain blocked before network until exact current image-billing authority is established.
+Current conservative budget rates:
 
-The Owner's binding future paid-probe ceiling remains **RMB 100 total**, with no automatic extension. No paid call is currently authorized. Production invocation also requires a committed Owner paid-call authorization artifact, which is intentionally absent.
+```text
+KIMI_K3=INPUT_20_CNY_PER_MTOK__OUTPUT_100__IMAGE_1024_INPUT_TOKENS_EACH
+DEEPSEEK_V4_FLASH_VISION_EXP=PEAK_CACHE_MISS_INPUT_3__OUTPUT_9__IMAGE_384_INPUT_TOKENS_EACH
+MINIMAX_M3=CONSERVATIVE_GT512K_INPUT_4_2__OUTPUT_16_8__IMAGE_BILLED_AS_INPUT_TOKENS
+```
+
+The DeepSeek same-price/base-performance relationship to V4 Flash plus added multimodality is a provider/Owner-level fact, not a project fidelity `VERIFIED` result.
+
+## RMB100 fidelity funnel
+
+Authority: `docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md`.
+
+```text
+STAGE_A=3_PROVIDERS_X_MAX_5_CALLS_X_MAX_6_CNY_PER_PROVIDER=18_CNY
+TOP1_STABILITY=MAX_12_CALLS__42_CNY
+TOP2_COMPARISON=MAX_8_CALLS__28_CNY
+TIE_RESERVE=MAX_4_CALLS__12_CNY
+TOTAL_API_SPEND_CAP=100_CNY
+MAX_TOTAL_CALLS=39
+UNUSED_BUDGET=REMAINS_UNSPENT
+NO_AUTO_EXTENSION=YES
+```
+
+Stage A covers `OPERATIONAL_PROVIDER`, `SEMANTIC`, `VISUAL`, `STRUCTURED`, and `DUAL_INPUT`. Only providers passing the fixed qualification gate may receive Stage-B calls. Cost/latency are tie-breakers only after fidelity; PnL/outcome is unavailable.
 
 ## Product / strategy boundary
 
@@ -142,7 +173,7 @@ JIANGHE_AI_FIDELITY_FIXTURE_CORPUS_V0_1=INTEGRATED_NON_OUTCOME
 JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_PROVIDER_NEUTRAL__BSP003_REPAIRED
 JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL
 JIANGHE_AI_RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
-JIANGHE_AI_PRESPEND_RUNTIME=INTEGRATED__SAFE_CONTEXT__CLOSED_WORLD_STRUCTURED_INPUT__PROVIDER_TRANSPORT__SHARED_BUDGET_GUARD
+JIANGHE_AI_PRESPEND_RUNTIME=INTEGRATED__SAFE_CONTEXT__CLOSED_WORLD_STRUCTURED_INPUT__THREE_PROVIDER_TRANSPORTS__THREE_RATE_GUARDS__SHARED_CNY100_LEDGER
 JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
 JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
@@ -172,9 +203,10 @@ OUTCOME_ACCESS=NO
 
 ## Next normal work
 
-1. Zero-cost refresh current first-party pricing/image-billing authority for DeepSeek V4 Flash Vision Exp and MiniMax M3. Unknown/ambiguous billing remains fail-closed.
-2. Reconfirm Kimi K3 rate authority remains current when the future probe is actually prepared.
-3. Build the bounded RMB 100 funnel plan (tiny qualification spend per spend-eligible candidate, immediate elimination of obvious failures, remainder only for top 1–2 stability repeats). No outcome/PnL.
-4. Present the exact provider-specific eligible set, worst-case budget bounds, and funnel allocation to Owner for a **separate explicit paid-call authorization**.
-5. Only after Owner authorization is recorded in committed authority may any real provider request occur.
-6. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
+1. Owner authorizes or declines the bounded CNY100 non-outcome paid-call funnel.
+2. If declined, no external call occurs.
+3. If authorized, first recheck rate-card freshness plus each provider's current recharge/balance requirement; no account top-up occurs without the same explicit cash authorization.
+4. Commit a closed-world Owner paid-call authorization artifact covering only the approved provider models and CNY100 cap.
+5. Execute Stage A only, no automatic retries; write request/response/usage/fidelity evidence after every call.
+6. Stop eliminated providers immediately. Do not begin Stage B until Stage-A evidence and ranking are committed.
+7. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
