@@ -1,0 +1,127 @@
+{
+  "artifact_schema_version": "JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN_V0_3",
+  "status": "OWNER_APPROVED__NON_EXECUTABLE__OFFLINE_CLOSURE_REQUIRED",
+  "owner_decision_authority": "docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md",
+  "tool_decision": "USE_EXISTING",
+  "selection_order": [
+    "JIANGHE_CORRECTNESS_AND_CAPABILITY",
+    "ACTUAL_CNY_COST",
+    "ACTUAL_TIME_LATENCY"
+  ],
+  "fairness": {
+    "same_jianghe_material": true,
+    "same_context_selection_principle": true,
+    "same_question": true,
+    "same_visual_bytes": true,
+    "same_structured_observation": true,
+    "same_visible_history": true,
+    "same_outcome_future_ban": true,
+    "same_tools_search_ban": true,
+    "provider_required_wire_syntax_may_differ": true,
+    "provider_native_recommended_reasoning_may_differ": true
+  },
+  "capability_fixture": {
+    "baseline_fixture_id": "JH-FIX-C-001",
+    "reuse_existing_governed_material_identities": true,
+    "outcome_access": "NO",
+    "expected_answer_access": "NO"
+  },
+  "providers": [
+    {
+      "provider_id": "DEEPSEEK",
+      "model_lineage": "deepseek-v4-flash-vision-exp / current first-party compatible successor must be explicitly bound at offline closure",
+      "capability_status": "CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED",
+      "execution_order": 1,
+      "v0_3_slot_identity": "PENDING_OFFLINE_FREEZE",
+      "completion_headroom": "PROVIDER_SPECIFIC__SUFFICIENT_FOR_COMPLETE_REASONING_PLUS_FINAL__FREEZE_AFTER_FIRST_PARTY_RECHECK"
+    },
+    {
+      "provider_id": "MINIMAX",
+      "model_lineage": "MiniMax-M3",
+      "capability_status": "CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED",
+      "execution_order": 2,
+      "v0_3_slot_identity": "PENDING_OFFLINE_FREEZE",
+      "completion_headroom": "PROVIDER_SPECIFIC__SUFFICIENT_FOR_COMPLETE_REASONING_PLUS_FINAL__FREEZE_AFTER_FIRST_PARTY_RECHECK"
+    },
+    {
+      "provider_id": "KIMI",
+      "model_lineage": "kimi-k3",
+      "capability_status": "CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED",
+      "execution_order": 3,
+      "v0_3_slot_identity": "PENDING_OFFLINE_FREEZE",
+      "completion_headroom": "PROVIDER_SPECIFIC__SUFFICIENT_FOR_COMPLETE_REASONING_PLUS_FINAL__FREEZE_AFTER_FIRST_PARTY_RECHECK"
+    }
+  ],
+  "answer_contract": {
+    "production_json_required_for_capability_score": false,
+    "required_semantics": [
+      "market_interpretation",
+      "setup_or_no_setup",
+      "action",
+      "direction_if_applicable",
+      "evidence",
+      "invalidation_or_uncertainty",
+      "jianghe_principles_used"
+    ],
+    "accepted_representation_classes": [
+      "JSON",
+      "MARKDOWN_WRAPPED_JSON",
+      "PROVIDER_NATIVE_STRUCTURED_OUTPUT",
+      "READABLE_STRUCTURED_TEXT"
+    ],
+    "raw_final_answer_evidence": "REQUIRED__SECRET_SAFE__NO_CHAIN_OF_THOUGHT",
+    "normalized_evaluation_view": "REQUIRED__IDENTITY_BOUND_TO_RAW_FINAL",
+    "adapter_semantics": "FORMAT_ONLY__NO_COMPLETION__NO_CORRECTION__NO_REINTERPRETATION"
+  },
+  "capability_dimensions": [
+    "JIANGHE_PRINCIPLE_ACCURACY",
+    "MARKET_STRUCTURE_UNDERSTANDING",
+    "KLINE_VISUAL_READING",
+    "WAIT_NO_TRADE_DISCIPLINE",
+    "NO_INVENTED_RULES_THRESHOLDS",
+    "UNKNOWN_UNCERTAINTY_HONESTY",
+    "VISUAL_STRUCTURED_CONSISTENCY",
+    "HARD_NEGATIVE_REASONING",
+    "MULTI_QUESTION_STABILITY",
+    "JIANGHE_SUPPORT_FOR_TRADING_CONCLUSION"
+  ],
+  "measurement_fields": [
+    "actual_cny",
+    "latency_ms",
+    "input_tokens",
+    "reasoning_tokens_if_reported",
+    "final_output_tokens_if_reported",
+    "integration_convenience"
+  ],
+  "historical_attempts": {
+    "DEEPSEEK:1": "V0_1_ATTEMPTED__NON_RETRYABLE__NOT_CAPABILITY_FATAL",
+    "MINIMAX:1": "V0_2_ATTEMPTED__NON_RETRYABLE__OPERATIONAL_FATAL_HISTORICALLY__NOT_V0_3_CAPABILITY_FATAL",
+    "KIMI:1": "V0_2_UNATTEMPTED__SUPERSEDED__DO_NOT_EXECUTE"
+  },
+  "budget": {
+    "project_api_hard_cap_cny": "100.00",
+    "historical_v0_1_v0_2_stage_a_cny18_gate_applies": false,
+    "historical_v0_1_v0_2_cny6_per_provider_gate_applies": false,
+    "historical_v0_1_v0_2_fixed_5_calls_per_provider_applies": false,
+    "automatic_recharge": "FORBIDDEN",
+    "unused_budget": "REMAINS_UNSPENT"
+  },
+  "execution": {
+    "paid_calls_paused": true,
+    "next_explicit_paid_slot": null,
+    "first_future_provider_after_offline_closure": "DEEPSEEK",
+    "new_v0_3_slot_identity_required": true,
+    "v0_3_remote_ref": "PENDING_OFFLINE_FREEZE",
+    "automatic_retry": "FORBIDDEN",
+    "automatic_next_slot": "FORBIDDEN"
+  },
+  "locks": {
+    "outcome_access": "NO",
+    "candidate_outcome_backtest": "NOT_AUTHORIZED",
+    "validation_access": "LOCKED",
+    "historical_final_holdout_access": "LOCKED",
+    "prospective_shadow_forward": "NOT_AUTHORIZED",
+    "broker_access": "NOT_AUTHORIZED",
+    "real_money": "NOT_AUTHORIZED"
+  }
+}
