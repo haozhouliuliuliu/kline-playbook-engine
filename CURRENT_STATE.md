@@ -11,34 +11,57 @@ ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A__V0_2_LIVE_FIDELITY_EXECUTION
-NEXT_NORMAL_PHASE=KIMI_OPERATIONAL_PROVIDER_SMOKE__EVIDENCE_REVIEW__THEN_NEXT_DECISION
-OWNER_ACTION=RUN_ONLY_KIMI_SLOT_1_WHEN_REQUESTED_BY_PROJECT_BRAIN
+CURRENT_WORK_PACKAGE=STAGE_A_V0_3_CAPABILITY_FIRST_MODEL_COMPARISON__DESIGN_AND_MINIMAL_IMPLEMENTATION
+NEXT_NORMAL_PHASE=V0_3_OFFLINE_CLOSURE__THEN_DEEPSEEK_FIRST_MATCHED_CAPABILITY_CALL
+OWNER_ACTION=NONE_UNTIL_V0_3_OFFLINE_READY
 TOOL_DECISION=USE_EXISTING
 ```
 
-## Material checkpoint
+Current Stage-A research-design authority:
+`docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md`.
+
+Current non-executable comparison plan:
+`docs/evidence/JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN_V0_3.json`.
+
+## Owner selection objective
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=f26531e52259e82989c1202b55056eb3e282c039
-PR_31_V0_2_MERGE_COMMIT=84fd0da93286801f4fa123a1165dbc84170cadb6
-STAGE_A_V0_2_PLAN_IDENTITY=9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913
-STAGE_A_V0_2_REMOTE_REF=refs/heads/stage-a-live-state-v0-2
-STAGE_A_V0_2_REMOTE_HEAD=ea1364e04e378781d8cf9f1b43a9ce3f0ef1679e
+SELECTION_PRIORITY_1=JIANGHE_CORRECTNESS_AND_CAPABILITY
+SELECTION_PRIORITY_2=ACTUAL_CNY_COST
+SELECTION_PRIORITY_3=ACTUAL_TIME_LATENCY
+FAIRNESS_PRINCIPLE=SAME_MATERIAL__SAME_QUESTION__DIFFERENT_MODEL_BRAIN
 ```
 
-## Stage-A execution state
+Formatting convenience, strict JSON compliance, reasoning-token count, or a uniform completion ceiling are not Jianghe capability substitutes.
+
+## Current paid-call state
 
 ```text
-STAGE_A_STATUS=STARTED__ATTEMPTS_001_AND_002_RECORDED__MINIMAX_ELIMINATED
-LIVE_CALLS=2
-PAID_SPEND_CNY=0.270021
-PAID_SPEND_SEMANTICS=CONSERVATIVE_STAGE_A_ACCOUNTING__NOT_PROVIDER_WALLET_BILLING_PROOF
-PROVIDER_ACTUAL_BILLED_CNY=UNKNOWN
+PAID_CALLS_CURRENTLY_PAUSED=YES__V0_3_OFFLINE_CLOSURE_NOT_COMPLETE
+NEXT_EXPLICIT_PAID_SLOT=NONE
+FUTURE_FIRST_V0_3_PROVIDER=DEEPSEEK
+FUTURE_FIRST_V0_3_SLOT=NEW_IDENTITY_REQUIRED
+OLD_NEXT_KIMI_1=SUPERSEDED__NOT_EXECUTED
+OLD_V0_2_LIVE_WORKFLOW=RETIRED__FAIL_CLOSED_BEFORE_CREDENTIALS
 AUTOMATIC_RETRY=FORBIDDEN
 AUTOMATIC_NEXT_SLOT=FORBIDDEN
-AUTOMATIC_BUDGET_EXTENSION=FORBIDDEN
-ATTEMPTED_SLOTS=DEEPSEEK:1,MINIMAX:1
+```
+
+No V0.3 provider call is authorized for execution merely because the Owner approved the V0.3 research design. The offline request/evidence/adapter path and new V0.3 slot identity must close first.
+
+## Immutable historical live state
+
+V0.1/V0.2 history remains evidence and accounting authority for calls already made:
+
+```text
+HISTORICAL_LIVE_CALLS=2
+HISTORICAL_STAGE_A_ACCOUNTED_CNY=0.270021
+HISTORICAL_DEEPSEEK_ACCOUNTED_CNY=0.219222
+HISTORICAL_MINIMAX_ACCOUNTED_CNY=0.050799
+HISTORICAL_KIMI_ACCOUNTED_CNY=0
+V0_2_PLAN_IDENTITY=9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913
+V0_2_REMOTE_REF=refs/heads/stage-a-live-state-v0-2
+V0_2_REMOTE_HEAD_AFTER_ATTEMPT_002=ea1364e04e378781d8cf9f1b43a9ce3f0ef1679e
 ```
 
 ### Attempt 001 — DeepSeek V0.1
@@ -48,14 +71,15 @@ Authority: `docs/reviews/JIANGHE_STAGE_A_LIVE_ATTEMPT_001_DEEPSEEK_ADJUDICATION_
 ```text
 PROVIDER=DEEPSEEK
 MODEL=deepseek-v4-flash-vision-exp
-SLOT=1
-TRACK=OPERATIONAL_PROVIDER
+OLD_SLOT=1
 ACCOUNTED_CNY=0.219222
 EVIDENCE_IDENTITY=d36c1fbbb1cd639e48a6f049f7df1be3bb95d9f346d75bbb85e25451fba9dc55
-SCOREABILITY=NO__V0_1_PROVIDER_RESPONSE_CONTRACT_DEFECT
-DEEPSEEK_SLOT_1=ATTEMPTED__NON_RETRYABLE__NO_REPLACEMENT_CALL
-DEEPSEEK_FATAL_FAIL=NOT_ADJUDICATED_FROM_ATTEMPT_001
+OLD_SLOT_STATUS=ATTEMPTED__NON_RETRYABLE__NO_REPLACEMENT_CALL
+V0_1_PROVIDER_RESPONSE_CONTRACT_DEFECT=YES
+DEEPSEEK_CAPABILITY_FATAL_FROM_ATTEMPT_001=NO
 ```
+
+The request reached a 2xx provider JSON response, but the V0.1 evidence contract did not retain enough safe response-envelope facts to score the final response. A future V0.3 DeepSeek call uses a new identity; old `DEEPSEEK:1` is never rerun.
 
 ### Attempt 002 — MiniMax V0.2
 
@@ -64,12 +88,9 @@ Authority: `docs/reviews/JIANGHE_STAGE_A_LIVE_ATTEMPT_002_MINIMAX_ADJUDICATION_V
 ```text
 PROVIDER=MINIMAX
 MODEL=MiniMax-M3
-SLOT=1
-TRACK=OPERATIONAL_PROVIDER
-TERMINAL_STATUS=NON_SCOREABLE_NORMALIZER
+OLD_SLOT=1
 HTTP_STATUS_CLASS=2xx
 RESOLVED_MODEL=MiniMax-M3
-PROVIDER_REQUEST_ID=06db5dc323f11955ace313c34f79795a
 FINISH_REASON=length
 FINAL_CONTENT_STATE=TEXT_NONEMPTY
 PROMPT_TOKENS=7999
@@ -77,68 +98,60 @@ COMPLETION_TOKENS=1024
 REASONING_TOKEN_COUNT=914
 LATENCY_MS=10364
 ACCOUNTED_CNY=0.050799
-EVIDENCE_IDENTITY=8a5f9792a9e41c32bcd16ce6121f1c47dade7185848d4386c9750dc002488bb6
-ERROR=raw_response 必须是合法 JSON 对象
-MINIMAX_SLOT_1=ATTEMPTED__NON_RETRYABLE
-MINIMAX_FATAL_FAIL=YES__UNSCOREABLE_NORMALIZED_RESPONSE
-MINIMAX_STAGE_A_STATUS=ELIMINATED
-MINIMAX_FURTHER_STAGE_A_CALLS=FORBIDDEN
-MINIMAX_STAGE_B_BUDGET=NONE
+TERMINAL_STATUS=NON_SCOREABLE_NORMALIZER
+OLD_SLOT_STATUS=ATTEMPTED__NON_RETRYABLE
+MINIMAX_V0_2_OPERATIONAL_FATAL_STOP=HISTORICAL_TRUE
+MINIMAX_V0_3_JIANGHE_CAPABILITY_FAIL=NO_EVIDENCE
 ```
 
-The fatal-stop adjudication is mechanical under `docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md`, which lists an unscoreable normalized response as a Stage-A fatal stop. This does not mean the MiniMax API is unavailable; it means MiniMax-M3 failed the frozen qualification contract and is eliminated from this funnel.
+The V0.2 frozen funnel's elimination remains immutable historical experiment semantics. Under the Owner-approved V0.3 correction, truncation/normalizer failure does not establish Jianghe capability failure.
 
-## Stage-A V0.2 contract
-
-Owner decision authority: `docs/reviews/JIANGHE_STAGE_A_V0_2_PROVIDER_RESPONSE_COMPATIBILITY_OWNER_DECISION.md`.
+## Current capability candidates
 
 ```text
-V0_2_RESEARCH_DESIGN=OWNER_APPROVED
-V0_2_IMPLEMENTATION=INTEGRATED__PROJECT_BRAIN_CLOSURE_PASS
-COMMON_MAX_COMPLETION_TOKENS=1024
-KIMI_K3=reasoning_effort_max__strict_json_schema__1024
-DEEPSEEK_V4_FLASH_VISION_EXP=thinking_enabled__reasoning_effort_max__json_object__1024
-MINIMAX_M3=thinking_adaptive__reasoning_split_true__1024
-SAFE_2XX_MECHANICAL_RESPONSE_EVIDENCE=INTEGRATED
-TERMINAL_SEMANTICS=TRANSPORT_FAILURE__NON_SCOREABLE_PROVIDER_RESPONSE__NON_SCOREABLE_NORMALIZER__SEPARATED
-V0_1_REMOTE_REF_MUTATION=FORBIDDEN
-BSP_003=PRESERVED
+DEEPSEEK_CAPABILITY_STATUS=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
+MINIMAX_CAPABILITY_STATUS=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
+KIMI_CAPABILITY_STATUS=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
+VERIFIED_PROVIDER=NONE
+ADOPTED_PROVIDER=NONE
+FAIR_MATCHED_THREE_MODEL_EVIDENCE=NONE_YET
 ```
 
-The frozen V0.2 plan remains immutable. Provider elimination is an evaluator-side result layered on top of it; it does not rewrite frozen request identities.
+The first future paid V0.3 provider is DeepSeek. Then obtain matched MiniMax and Kimi answers using the same governed fixture/material. This ordering does not give DeepSeek different information.
 
-## Remaining Stage-A candidate slots
+## V0.3 capability contract
 
 ```text
-KIMI_STATUS=CANDIDATE__NO_REAL_ATTEMPT_YET
-KIMI_REMAINING_SLOTS=1,2,3,4,5
-DEEPSEEK_STATUS=CANDIDATE__ATTEMPT_001_UNSCOREABLE_DUE_V0_1_PROTOCOL_DEFECT
-DEEPSEEK_REMAINING_SLOTS=2,3,4,5
-MINIMAX_STATUS=ELIMINATED
-MINIMAX_REMAINING_SLOTS=NONE
-NEXT_EXPLICIT_SLOT=KIMI:1
+NON_SCOREABLE_NORMALIZER_IS_CAPABILITY_FATAL=NO
+UNIFORM_1024_CAPABILITY_GATE=RETIRED
+PRODUCTION_JSON_REQUIRED_FOR_CAPABILITY_SCORE=NO
+PROVIDER_SPECIFIC_SUFFICIENT_COMPLETION_HEADROOM=REQUIRED
+PROVIDER_NATIVE_RECOMMENDED_REASONING=ALLOWED
+RAW_FINAL_ANSWER_EVIDENCE=REQUIRED__SECRET_SAFE__NO_CHAIN_OF_THOUGHT
+NORMALIZED_EVALUATION_VIEW=REQUIRED__IDENTITY_BOUND
+NORMALIZATION_ADAPTER=FORMAT_ONLY__NO_SEMANTIC_REPAIR
 ```
+
+Matched comparison keeps the same Jianghe material, context-selection principle, question, visual bytes, structured observation, visible history, outcome/future ban, no-tools/search rule, and trading-decision task. Only provider-required wire syntax and provider-native reasoning configuration may differ.
+
+Capability scoring covers Jianghe principle accuracy, market structure, visual reading, WAIT/NO_TRADE discipline, no invented rules/thresholds, uncertainty honesty, visual/structured consistency, hard negatives, stability, and source-supported conclusions. Actual CNY and actual latency are compared after answer quality.
 
 ## Authorization and budget
 
 ```text
-OWNER_PAID_CALL_DECISION=AUTHORIZED
+OWNER_PAID_CALL_DECISION=AUTHORIZED_FOR_BOUND_PROJECT_FIDELITY_RESEARCH__EXECUTION_PAUSED_BY_V0_3_OFFLINE_GATE
 PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
 PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
-AUTHORIZED_PROVIDER_MODELS=KIMI:kimi-k3,DEEPSEEK:deepseek-v4-flash-vision-exp,MINIMAX:MiniMax-M3
 TOTAL_API_SPEND_HARD_CAP_CNY=100.00
-STAGE_A_TOTAL_CAP_CNY=18.00
-STAGE_A_TOTAL_MAX_CALLS=15
-MAX_CALLS_PER_PROVIDER=5
-MAX_STAGE_A_SPEND_PER_PROVIDER_CNY=6.00
-CURRENT_STAGE_A_ACCOUNTED_CNY=0.270021
-DEEPSEEK_ACCOUNTED_CNY=0.219222
-MINIMAX_ACCOUNTED_CNY=0.050799
-KIMI_ACCOUNTED_CNY=0
+CURRENT_PROJECT_ACCOUNTED_CNY=0.270021
+V0_3_STAGE_A_CNY18_CAP=NOT_APPLICABLE__HISTORICAL_V0_1_V0_2_DESIGN_ONLY
+V0_3_CNY6_PER_PROVIDER_CAP=NOT_APPLICABLE__HISTORICAL_V0_1_V0_2_DESIGN_ONLY
+V0_3_FIXED_5_CALLS_PER_PROVIDER=NOT_APPLICABLE__HISTORICAL_V0_1_V0_2_DESIGN_ONLY
+AUTOMATIC_RECHARGE=FORBIDDEN
 NEW_RECHARGE_REQUIRED=NO
 ```
 
-Owner-reported balances remain KIMI CNY10 / DEEPSEEK CNY10 / MINIMAX CNY10 with evidence class `OWNER_CONFIRMED__NOT_MACHINE_VERIFIED_ALL_THREE`.
+Cost/time/token use are measurements, not capability gates. CNY100 remains the project-wide API hard ceiling. Any recharge is a separate Owner cash action.
 
 ## Pre-live research / knowledge state
 
@@ -147,7 +160,7 @@ PRE_SPEND_REPAIR_REAUDIT=PASS
 BSP_001_TO_005=CLOSED
 RSP_001_TO_002=CLOSED
 LIMIT_015=RESOLVED
-LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_IN_PROGRESS__NO_SCOREABLE_MODEL_EVIDENCE_YET
+LIMIT_012=ACTIVE__V0_3_CAPABILITY_FIRST_OFFLINE_CLOSURE__NO_FAIR_MATCHED_MODEL_EVIDENCE_YET
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
 JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36
 ```
@@ -167,7 +180,10 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Execute exactly `KIMI:1` through `.github/workflows/stage-a-live-slot.yml` on `main`, once only.
-2. Never rerun DeepSeek:1 or MiniMax:1; never run any further MiniMax Stage-A slot after its fatal stop.
-3. Read durable start, terminal and safe evidence for Kimi:1; project brain adjudicates scoreability/fatal-stop state before any next slot.
-4. Continue only within the unchanged CNY18 / 15-call / CNY6-per-provider envelope; unused eliminated-provider budget remains unspent.
+1. Complete only the minimal V0.3 offline implementation: provider-specific sufficient completion headroom; safe raw-final preservation; format-only normalization; separate operational versus capability status; new V0.3 request/slot/ledger identity; deterministic CNY100 guard.
+2. Recheck all three current first-party provider contracts while freezing those exact configurations.
+3. Run zero-network/focused tests and canonical suite; do not use provider credentials during closure.
+4. After project-brain offline closure, create exactly one explicit new V0.3 DeepSeek capability slot and execute it once.
+5. After evidence review, obtain matched MiniMax and Kimi answers on the same governed material; compare correctness/Jianghe fidelity, actual CNY, and actual time.
+
+Do not reopen a whole-repository rolling audit.
