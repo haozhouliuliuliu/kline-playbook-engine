@@ -1,14 +1,30 @@
 # JIANGHE STAGE-A INPUT AND VISUAL STIMULUS PROTOCOL — OWNER DECISION V0.1
 
-Status: `AWAITING_OWNER_RESEARCH_DESIGN_APPROVAL`
+Status: `OWNER_APPROVED__FROZEN_FOR_STAGE_A`
 Date: 2026-08-24
+Owner approval time: `2026-08-24T09:03:00+08:00`
 Scope: Stage-A real-model Jianghe fidelity qualification only.
 Paid-call authorization: already granted separately under `OWNER-PAID-JIANGHE-FIDELITY-20260824-V01`.
 Live calls before this decision: 0
 Paid spend before this decision: CNY 0
 Outcome/PnL access: NO
 
-## Why this decision is required
+## Owner decision
+
+The Owner explicitly approved this protocol in project chat on 2026-08-24 at 09:03 +08:00:
+
+```text
+APPROVE_JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_V0_1=YES
+TRACK_ISOLATION=YES
+QUALIFICATION_FIXTURE=JH-FIX-C-001
+SYNTHETIC_OHLC_FROM_VISIBLE_INFORMATION_ONLY=YES
+SAME_UNDERLYING_OBSERVATION_FOR_VISUAL_STRUCTURED_DUAL=YES
+FREEZE_ALL_STIMULUS_IDENTITIES_BEFORE_FIRST_PAID_CALL=YES
+```
+
+This is a research-design approval. It freezes the Stage-A modality-isolation and visual-stimulus semantics below. It does not expand the separate paid-call authorization.
+
+## Why this decision was required
 
 The repository already freezes:
 
@@ -18,15 +34,13 @@ The repository already freezes:
 - the structured observation schema;
 - the provider transports and CNY100 hard budget guard.
 
-However, the current fixture corpus expresses each synthetic market situation mainly as `visible_information` prose. It does not freeze the exact OHLC bar recipe used to turn that prose into a K-line image. Different valid-looking OHLC realizations can change what a vision model sees and therefore change its fidelity score.
+However, the fixture corpus expresses each synthetic market situation mainly as `visible_information` prose. It did not previously freeze the exact OHLC bar recipe used to turn that prose into a K-line image. Different valid-looking OHLC realizations can change what a vision model sees and therefore change its fidelity score.
 
-There is a second related issue: the historical fidelity design distinguishes `SEMANTIC`, `VISUAL`, `STRUCTURED`, and `DUAL_INPUT` as separate tracks, but the repaired spend runtime currently requires both a visual artifact and a structured observation on every spend-eligible request. Using that runtime unchanged would make the track labels less interpretable because a nominal VISUAL or STRUCTURED test would still receive both modalities.
+There was a second related issue: the historical fidelity design distinguishes `SEMANTIC`, `VISUAL`, `STRUCTURED`, and `DUAL_INPUT` as separate tracks, while the repaired spend runtime required both a visual artifact and a structured observation on every spend-eligible request. Using that runtime unchanged would make the track labels less interpretable because a nominal VISUAL or STRUCTURED test would still receive both modalities.
 
-These are research-design questions, not merely mechanical coding choices. No paid request should occur until they are frozen once.
+The Owner approval freezes these questions once for Stage A.
 
-## Project-brain recommended protocol
-
-Approve the following design as the Stage-A fidelity-input protocol.
+## Frozen Stage-A protocol
 
 ### 1. Track isolation
 
@@ -65,8 +79,6 @@ Extra answer-bearing modality is forbidden for the isolated track. This makes vi
 
 For the four content tracks in Stage A, use the same predeclared non-outcome fixture situation so the only intended experimental difference is the input modality.
 
-Recommended qualification fixture:
-
 ```text
 FIXTURE_ID=JH-FIX-C-001
 NAME=FALSE_BREAKOUT__WICK_POKE_RETURN_NO_FOLLOW
@@ -80,7 +92,7 @@ Stage B, if later reached, may broaden family coverage under its already approve
 
 ### 3. Deterministic synthetic OHLC construction
 
-The project brain may implement the exact bar recipe mechanically under all of these frozen constraints:
+The exact bar recipe is implemented mechanically under all of these frozen constraints:
 
 1. use only the chosen fixture's `visible_information` and source-authorized Jianghe semantics;
 2. never read or encode `hidden_future_information`, outcome/PnL, later price path, or candidate result;
@@ -132,7 +144,7 @@ The plan must be validated entirely offline. The provider response cannot influe
 
 ### 6. Runtime engineering implication
 
-If approved, the spend request/runtime will be minimally generalized from “visual + structured always required” to a closed-world `input_track` contract:
+The spend request/runtime is minimally generalized from “visual + structured always required” to a closed-world `input_track` contract:
 
 - SEMANTIC requires semantic fixture text and forbids visual/structured artifacts;
 - VISUAL requires visual and forbids answer-bearing semantic fixture text/structured artifact;
@@ -140,9 +152,9 @@ If approved, the spend request/runtime will be minimally generalized from “vis
 - DUAL_INPUT requires visual + structured bound to the same observation;
 - OPERATIONAL_PROVIDER uses its explicitly frozen smoke-input contract.
 
-This change does not weaken the existing content-addressing, provider authorization, budget, no-retry, outcome firewall, or evidence requirements. Unknown or mismatched combinations fail closed.
+This change must not weaken existing content-addressing, provider authorization, budget, no-retry, outcome firewall, or evidence requirements. Unknown or mismatched combinations fail closed.
 
-## What this decision does not authorize
+## What this approval does not authorize
 
 This protocol does not change the existing CNY100 authorization and does not authorize:
 
@@ -154,17 +166,11 @@ This protocol does not change the existing CNY100 authorization and does not aut
 - PRIMARY semantic freeze;
 - model/provider VERIFIED or ADOPTED status before evidence exists.
 
-## Requested Owner decision
-
-Recommended decision:
+## Execution status at approval
 
 ```text
-APPROVE_JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_V0_1=YES
-TRACK_ISOLATION=YES
-QUALIFICATION_FIXTURE=JH-FIX-C-001
-SYNTHETIC_OHLC_FROM_VISIBLE_INFORMATION_ONLY=YES
-SAME_UNDERLYING_OBSERVATION_FOR_VISUAL_STRUCTURED_DUAL=YES
-FREEZE_ALL_STIMULUS_IDENTITIES_BEFORE_FIRST_PAID_CALL=YES
+LIVE_CALLS=0
+PAID_SPEND_CNY=0
+STAGE_A=AUTHORIZED__INPUT_PROTOCOL_APPROVED__NOT_STARTED
+NEXT=RUNTIME_GENERALIZATION__DETERMINISTIC_STIMULUS_FREEZE__OFFLINE_TESTS__CREDENTIAL_FUNDING_READINESS__STAGE_A
 ```
-
-If approved, project brain proceeds directly with the runtime generalization, deterministic stimulus plan, offline tests/full suite, credential/funding readiness check, and then Stage A under the already authorized paid envelope.
