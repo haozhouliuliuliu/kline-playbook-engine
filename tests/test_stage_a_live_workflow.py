@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LIVE_WORKFLOW = ROOT / ".github" / "workflows" / "stage-a-live-slot.yml"
 OFFLINE_WORKFLOW = ROOT / ".github" / "workflows" / "stage-a-offline-ci.yml"
 LIVE_LANE = ROOT / "src" / "jianghe_stage_a_live_lane.py"
+REMOTE_LEDGER = ROOT / "src" / "jianghe_stage_a_remote_ledger.py"
 LIVE_CLI = ROOT / "tools" / "run_jianghe_stage_a_live_slot.py"
 
 
@@ -18,6 +19,7 @@ class StageALiveWorkflowTests(unittest.TestCase):
         cls.offline = OFFLINE_WORKFLOW.read_text(encoding="utf-8")
         cls.lane = LIVE_LANE.read_text(encoding="utf-8")
         cls.cli = LIVE_CLI.read_text(encoding="utf-8")
+        cls.remote = REMOTE_LEDGER.read_text(encoding="utf-8")
 
     def test_workflow_is_manual_only_and_main_only(self) -> None:
         self.assertIn("workflow_dispatch:", self.live)
@@ -41,6 +43,8 @@ class StageALiveWorkflowTests(unittest.TestCase):
         plan_index = self.live.index("Verify frozen plan before credentials")
         secret_index = self.live.index("MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}")
         self.assertLess(plan_index, secret_index)
+        self.assertIn("JIANGHE_STAGE_A_FROZEN_PLAN_V0_2.json", self.live)
+        self.assertNotIn("JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json", self.live)
 
     def test_named_environment_secrets_are_not_echoed(self) -> None:
         for name in ("MOONSHOT_API_KEY", "DEEPSEEK_API_KEY", "MINIMAX_API_KEY"):
@@ -60,6 +64,10 @@ class StageALiveWorkflowTests(unittest.TestCase):
         self.assertIn("state_dir = DEFAULT_STATE_DIR.resolve()", self.cli)
         self.assertIn('remote="origin"', self.cli)
         self.assertIn("remote_ref=DEFAULT_REMOTE_REF", self.cli)
+        self.assertIn('DEFAULT_REMOTE_REF = "refs/heads/stage-a-live-state-v0-2"', self.remote)
+        self.assertNotIn('DEFAULT_REMOTE_REF = "refs/heads/stage-a-live-state-v0-1"', self.remote)
+        self.assertIn("CARRY_FORWARD_ATTEMPTED__NON_RETRYABLE", self.cli)
+        self.assertIn("CARRY_FORWARD_ATTEMPTED__NON_RETRYABLE", self.live)
 
     def test_each_provider_step_receives_only_its_credential(self) -> None:
         providers = {

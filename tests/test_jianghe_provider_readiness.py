@@ -20,7 +20,7 @@ from src.jianghe_provider_readiness import (
     required_stage_a_cny,
 )
 from src.jianghe_stage_a_runner import FROZEN_PLAN_PATH, VerifiedFrozenStageAPlan
-from tools.build_jianghe_stage_a_frozen_plan import build_frozen_plan
+from tools.build_jianghe_stage_a_frozen_plan_v0_2 import build_frozen_plan
 
 
 def _pretty_bytes(value: object) -> bytes:
@@ -242,7 +242,9 @@ class ProviderBalanceReadinessTests(unittest.TestCase):
 
     def test_required_stage_a_amount_is_bound_to_frozen_plan(self) -> None:
         for provider in ("KIMI", "DEEPSEEK", "MINIMAX"):
-            expected = Decimal(str(self.plan.provider_row(provider)["five_slot_worst_case_cny"]))
+            expected = Decimal(
+                str(self.plan.provider_row(provider)["future_executable_worst_case_cny"])
+            )
             self.assertEqual(required_stage_a_cny(self.plan, provider), expected)
             self.assertLessEqual(expected, Decimal("6"))
 

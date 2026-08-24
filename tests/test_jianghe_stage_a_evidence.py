@@ -96,7 +96,7 @@ def _provider_payload_with(
     changed = dict(payload)
     changed.update(changes)
     usage = changed["usage"]
-    assert isinstance(usage, dict)
+    assert usage is None or isinstance(usage, dict)
     evidence = StageAProviderInvocationEvidence(
         input_track=StageAInputTrack(str(changed["input_track"])),
         request_identity=str(changed["request_identity"]),
@@ -112,15 +112,27 @@ def _provider_payload_with(
         transmitted_visual_identities=tuple(changed["transmitted_visual_identities"]),
         provider_spec_identity=str(changed["provider_spec_identity"]),
         requested_model_id=str(changed["requested_model_id"]),
-        resolved_model_id=str(changed["resolved_model_id"]),
-        provider_request_id=str(changed["provider_request_id"]),
-        raw_provider_response_body=str(changed["raw_provider_response_body"]),
-        raw_response_text=str(changed["raw_response_text"]),
-        usage=ProviderUsage(**usage),
+        resolved_model_id=changed["resolved_model_id"],
+        provider_request_id=changed["provider_request_id"],
+        raw_provider_response_body="{}",
+        raw_response_text=None,
+        usage=None if usage is None else ProviderUsage(
+            text_input_tokens=usage["prompt_tokens"],
+            image_tokens=usage["image_tokens"],
+            output_tokens=usage["completion_tokens"],
+        ),
         latency_ms=int(changed["latency_ms"]),
         rate_card_identity=str(changed["rate_card_identity"]),
         budget_reservation_id=str(changed["budget_reservation_id"]),
         charged_cny=str(changed["charged_cny"]),
+        http_status_class=str(changed["http_status_class"]),
+        finish_reason=changed["finish_reason"],
+        final_content_state=str(changed["final_content_state"]),
+        final_content_sha256=changed["final_content_sha256"],
+        reasoning_present=changed["reasoning_present"],
+        reasoning_length=changed["reasoning_length"],
+        reasoning_sha256=changed["reasoning_sha256"],
+        reasoning_token_count=changed["reasoning_token_count"],
     )
     changed["identity"] = evidence.identity
     return changed
@@ -195,7 +207,11 @@ class StageAAttemptEvidenceTests(unittest.TestCase):
         self.assertEqual("SUCCESS_NORMALIZED", attempt["terminal_status"])
         self.assertEqual(EVALUATOR_JUDGMENT_REQUIRED, attempt["semantic_score_status"])
         self.assertEqual(result.normalized_decision_identity, attempt["normalized_decision_identity"])
-        self.assertEqual(_content(), attempt["provider_evidence"]["raw_response_text"])
+        self.assertNotIn("raw_response_text", attempt["provider_evidence"])
+        self.assertEqual(
+            sha256(_content().encode("utf-8")).hexdigest(),
+            attempt["provider_evidence"]["final_content_sha256"],
+        )
         encoded = canonical_json_bytes(artifact).decode("utf-8")
         for field in forbidden_judgment_fields():
             self.assertNotIn(f'"{field}"', encoded)
@@ -424,9 +440,13 @@ class StageAAttemptEvidenceTests(unittest.TestCase):
             artifact = self._artifact()
 
         self.assertEqual(0, reread.call_count)
-        self.assertEqual(str(prepared.worst_case_cny), artifact["accounted_cny"])
+        expected_total = (
+            self.plan.carry_forward_snapshot().stage_accounted_cny
+            + prepared.worst_case_cny
+        )
+        self.assertEqual(str(expected_total), artifact["accounted_cny"])
         self.assertEqual(
-            artifact["accounted_cny"], artifact["attempts"][0]["accounted_cny"]
+            str(prepared.worst_case_cny), artifact["attempts"][0]["accounted_cny"]
         )
 
     def test_journal_byte_mutation_during_materialization_fails_closed(self) -> None:
