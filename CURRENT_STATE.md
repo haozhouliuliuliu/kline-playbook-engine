@@ -11,8 +11,8 @@ ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A__OFFLINE_PREEXECUTION_COMPLETE__CREDENTIAL_BALANCE_READINESS
-NEXT_NORMAL_PHASE=secure_credential_presence_then_read_only_existing_balance_check_then_execute_stage_a_only_if_funds_suffice
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A__CREDENTIAL_EXISTING_BALANCE_READINESS
+NEXT_NORMAL_PHASE=secure_credential_presence_then_run_non_billable_readiness_checker_then_execute_stage_a_only_if_funds_suffice
 OWNER_ACTION=NO_NEW_RECHARGE_DECISION_NOW__EXISTING_CREDENTIALS_ARE_NOT_AVAILABLE_IN_CURRENT_PROJECT_BRAIN_RUNTIME
 TOOL_DECISION=USE_EXISTING
 ```
@@ -20,7 +20,7 @@ TOOL_DECISION=USE_EXISTING
 ## Current material checkpoint
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=6f5c97d1d2d74096e873b1c4a73f2bda5cc21e22
+LAST_MATERIAL_STATE_COMMIT=744c79dab19d8ac5ddb4e941dcd24bee4fa82895
 STAGE_A_OFFLINE_PREEXECUTION=COMPLETE
 STAGE_A_FROZEN_PLAN_IDENTITY=7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4
 STAGE_A_FROZEN_STIMULUS=36x5m__12x15m__3x1H__JH-FIX-C-001
@@ -28,6 +28,7 @@ STAGE_A_SINGLE_SLOT_RUNNER=INTEGRATED
 STAGE_A_PERSISTENT_HASH_CHAIN_JOURNAL=INTEGRATED
 STAGE_A_CRASH_RECOVERY_NO_RETRY=INTEGRATED
 STAGE_A_PROVIDER_MODEL_DRIFT_GUARD=INTEGRATED
+PROVIDER_BALANCE_READINESS_CHECKER=INTEGRATED__NON_BILLABLE
 STAGE_A_RUNTIME_STATE=.runtime/jianghe_stage_a__GIT_IGNORED
 ```
 
@@ -40,6 +41,11 @@ Execution boundary:
 - `src/jianghe_stage_a_runner.py`
 - `tools/run_jianghe_stage_a_slot.py`
 
+Read-only readiness boundary:
+
+- `src/jianghe_provider_readiness.py`
+- `tools/check_jianghe_provider_readiness.py`
+
 Owner-approved Stage-A protocol:
 
 - `docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md`
@@ -49,19 +55,19 @@ Current paid-call authorization:
 - `docs/evidence/JIANGHE_OWNER_PAID_CALL_DECISION_20260824_V0_1.md`
 - `docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json`
 
-## Offline verification after runner integration
+## Latest offline verification
 
-PR #23 / merged tree verification:
+PR #24 / merged tree verification:
 
 ```text
-STAGE_A_FOCUSED_TESTS=PASS__33_TESTS
-CANONICAL_FULL_SUITE=PASS__1262_TESTS__27_SKIPPED
+STAGE_A_FOCUSED_TESTS=PASS__44_TESTS
+CANONICAL_FULL_SUITE=PASS__1273_TESTS__27_SKIPPED
 DIFF_HYGIENE=PASS
 LIVE_CALLS=0
 PAID_SPEND_CNY=0
 ```
 
-The focused suite includes frozen-plan byte equality, 36-bar frozen stimulus enforcement, journal tamper rejection, stale-lock fail-closed behavior, crash/incomplete-attempt worst-case accounting, persistent cap enforcement, duplicate-slot rejection, missing-credential zero-network behavior, provider-model drift handling, malformed-output NON_SCOREABLE handling and terminal HTTP failure with no automatic retry.
+The focused suite includes frozen-plan byte equality, 36-bar frozen stimulus enforcement, journal tamper rejection, stale-lock fail-closed behavior, crash/incomplete-attempt worst-case accounting, persistent cap enforcement, duplicate-slot rejection, missing-credential zero-network behavior, provider-model drift handling, malformed-output NON_SCOREABLE handling, terminal HTTP failure without automatic retry, Kimi/DeepSeek official read-only balance-only routing, MiniMax paygo zero-network unresolved behavior, exact frozen shortfall computation, auth/readiness failure handling and credential non-exposure.
 
 ## Pre-live / pre-spend closure state
 
@@ -130,7 +136,7 @@ DUAL_INPUT=SAME_OBSERVATION_IMAGE_PLUS_STRUCTURED__NO_ANSWER_BEARING_PROSE
 UNKNOWN_OR_MISMATCHED_MODALITY_COMBINATION=FAIL_CLOSED
 ```
 
-The exact numeric stimulus is now frozen and deterministically rebuildable. It uses normalized synthetic prices around 100, no real/canonical candidate market data, no hidden future, no PnL/outcome/result labels, and one identical underlying observation for visual/structured/dual tracks.
+The exact numeric stimulus is frozen and deterministically rebuildable. It uses normalized synthetic prices around 100, no real/canonical candidate market data, no hidden future, no PnL/outcome/result labels, and one identical underlying observation for visual/structured/dual tracks.
 
 ## Provider / pricing state
 
@@ -164,16 +170,22 @@ NEW_RECHARGE_REQUIRED=NOT_DETERMINED
 STAGE_A_NETWORK_EXECUTION=BLOCKED_BEFORE_FIRST_REQUEST
 ```
 
-Read-only balance capability:
+Integrated non-billable readiness behavior:
 
 ```text
-KIMI=OFFICIAL_READ_ONLY_BALANCE_API_AVAILABLE__GET_/v1/users/me/balance
-DEEPSEEK=OFFICIAL_READ_ONLY_BALANCE_API_AVAILABLE__GET_/user/balance
-MINIMAX_PAYGO=NO_DOCUMENTED_READ_ONLY_BALANCE_API_FOUND_IN_CURRENT_OFFICIAL_API_INDEX__FAIL_CLOSED
-MINIMAX_TOKEN_PLAN=OFFICIAL_CLI_QUOTA_EXISTS_BUT_IS_NOT_EQUIVALENT_TO_PAYGO_BALANCE
+KIMI=OFFICIAL_READ_ONLY_BALANCE_API_ONLY__GET_/v1/users/me/balance
+DEEPSEEK=OFFICIAL_READ_ONLY_BALANCE_API_ONLY__GET_/user/balance
+MINIMAX_PAYGO=NO_VERIFIED_READ_ONLY_BALANCE_API__RETURN_UNKNOWN_WITH_ZERO_NETWORK
+MISSING_CREDENTIAL=RETURN_CREDENTIAL_MISSING_WITH_ZERO_NETWORK
+BALANCE_REQUEST_RETRY=FORBIDDEN
+MODEL_ENDPOINT_AS_BALANCE_PROBE=FORBIDDEN
+DEEPSEEK_NON_CNY_ONLY=UNKNOWN__NO_FX_GUESS
+CREDENTIAL_VALUE_OUTPUT=FORBIDDEN
+SHORTFALL=COMPUTED_ONLY_FROM_EXISTING_CNY_BALANCE_VS_FROZEN_FIVE_SLOT_WORST_CASE
+FUNDING_ACTION=NONE
 ```
 
-Absence of credentials is **not** evidence that a recharge is required. No balance probe may be implemented by sending a billable model request.
+Absence of credentials is **not** evidence that a recharge is required.
 
 ## RMB100 fidelity funnel
 
@@ -216,10 +228,10 @@ REAL_MONEY=NOT_AUTHORIZED
 ## Exact next work
 
 1. Make the already-existing provider credentials available to the secure execution environment without committing or printing them.
-2. Rebuild and verify the frozen plan before any credential use.
-3. Query Kimi and DeepSeek existing balance through their official read-only balance APIs only.
-4. For MiniMax pay-as-you-go, use only an official non-billable account/quota surface; if no machine-readable read-only surface is available, keep readiness unresolved rather than probing with a model call.
-5. If any **new** recharge/top-up is actually required, return the exact amount to Owner and stop.
+2. Run `tools/check_jianghe_provider_readiness.py`; it first rebuilds and byte-verifies the frozen plan.
+3. Let the checker query Kimi and DeepSeek existing CNY balance through their official read-only endpoints only.
+4. Keep MiniMax pay-as-you-go readiness unresolved unless an official non-billable read-only balance surface becomes available; never probe it with a model call.
+5. If any **new** recharge/top-up is actually required, return provider + exact frozen shortfall amount + reason to Owner and stop.
 6. If existing credentials/funds suffice, execute Stage A one frozen slot at a time under the persistent journal: max CNY18 / 15 calls / CNY6 per provider / shared CNY100 cap.
 7. Persist evidence after every attempted slot; never automatically retry a started slot.
 8. Commit Stage-A evidence/ranking before any Stage-B activity.
