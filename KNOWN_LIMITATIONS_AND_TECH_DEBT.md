@@ -61,33 +61,40 @@ LOCAL_PRIVATE_STATE_TAMPER_PROOFING=NOT_PROVEN_NOT_CLAIMED
 
 Project API/session denial and material binding were verified for the currently bound bundle, but this does not prove OS sandboxing, resistance to malicious local introspection, cryptographic tamper protection, or absence of latent model knowledge.
 
-## LIMIT-012 — Real-model Jianghe fidelity evaluation has not been run
+## LIMIT-012 — Real-model Jianghe fidelity qualification is in progress and no model is yet qualified
 
 ```text
 STATUS=ACTIVE
 PRIORITY=HIGHEST_CURRENT_MODEL_SELECTION_BLOCKER
 CURRENT_BLOCKER=YES_FOR_MODEL_ADOPTION_AND_PRIMARY_PROMOTION
-REAL_MODEL_PROVIDER_LIVE_TRANSPORT=IMPLEMENTED_FOR_AUTHORIZED_TARGET_SET__NOT_LIVE_VERIFIED__NOT_ADOPTED
-REAL_MODEL_FIDELITY_EVALUATION=AUTHORIZED__NOT_STARTED
-FIDELITY_CORPUS=INTEGRATED_NON_OUTCOME__CURRENT_IDENTITY_METADATA_REBOUND
-FIDELITY_EVALUATION_HARNESS=INTEGRATED_OFFLINE_PROVIDER_NEUTRAL__PRELIVE_EVIDENCE_REPAIRED
-VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL__ADVERSARIAL_80_OF_80_PASS
-OBSERVATION_REPLAY=INTEGRATED_SYNTHETIC_NON_OUTCOME__OBSERVATION_IDENTITY_BOUND
-RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
-STAGE_A_INPUT_PROTOCOL=OWNER_APPROVED__FROZEN_FOR_STAGE_A
-STAGE_A_STATUS=AUTHORIZED__INPUT_PROTOCOL_APPROVED__NOT_STARTED
-LIVE_CALLS=0
-PAID_SPEND_CNY=0
+REAL_MODEL_FIDELITY_EVALUATION=STARTED__STAGE_A_V0_2_ACTIVE
+STAGE_A_PLAN_IDENTITY=9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913
+LIVE_CALLS=2
+STAGE_A_ACCOUNTED_CNY=0.270021
+SCOREABLE_MODEL_EVIDENCE=NONE_YET
+KIMI_STATUS=CANDIDATE__NO_REAL_ATTEMPT_YET
+DEEPSEEK_STATUS=CANDIDATE__ATTEMPT_001_UNSCOREABLE_DUE_V0_1_PROTOCOL_DEFECT__SLOT_1_NON_RETRYABLE
+MINIMAX_STATUS=ELIMINATED__ATTEMPT_002_FATAL_STOP__NO_FURTHER_STAGE_A_CALLS
+NEXT_EXPLICIT_SLOT=KIMI:1
+AUTOMATIC_RETRY=FORBIDDEN
+AUTOMATIC_NEXT_SLOT=FORBIDDEN
 ```
 
-The current first real-model step is the bounded non-outcome Stage-A fidelity funnel. Provider/model choice is based on Jianghe fidelity, stability, UNKNOWN honesty and no-invention behavior — not candidate returns.
+Current authorities:
 
-Current pre-execution checkpoint:
+- `docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md`
+- `docs/reviews/JIANGHE_STAGE_A_V0_2_PROVIDER_RESPONSE_COMPATIBILITY_OWNER_DECISION.md`
+- `docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_2.json`
+- `docs/reviews/JIANGHE_STAGE_A_LIVE_ATTEMPT_001_DEEPSEEK_ADJUDICATION_V0_1.md`
+- `docs/reviews/JIANGHE_STAGE_A_LIVE_ATTEMPT_002_MINIMAX_ADJUDICATION_V0_1.md`
 
-- `docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md`
-- `docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md`
+Attempt 001 reached the DeepSeek provider but V0.1 did not preserve enough safe 2xx response-envelope evidence to score the final response. The slot is immutable/non-retryable, but that attempt was not adjudicated as a DeepSeek provider fatal fail because the project-side V0.1 provider-response contract was defective. The Owner approved V0.2 to correct future response-contract handling without erasing Attempt 001.
 
-Before the first paid Stage-A request, the project must finish the frozen input-track runtime generalization, generate/freeze the exact `JH-FIX-C-001` synthetic OHLC stimulus and machine-readable Stage-A plan, and pass focused/full-suite/diff-hygiene verification. Then it may check credential presence and existing balance/credits. New recharge/top-up remains separately Owner-gated by exact amount.
+Attempt 002 reached MiniMax-M3 successfully at the API level (`2xx`, exact resolved model and usage preserved) but terminated at the 1024-token completion ceiling with an unscoreable normalized response. The pre-existing funnel explicitly lists an unscoreable normalized response as a Stage-A fatal stop, so MiniMax is eliminated from this funnel and receives no further Stage-A/Stage-B budget.
+
+The next bounded work is not another infrastructure project: execute exactly one unattempted `KIMI:1` operational-provider smoke under the current authorization, then read durable evidence and adjudicate before any later call.
+
+Provider/model choice remains based on Jianghe fidelity, stability, UNKNOWN honesty, no-invention behavior and operational validity — never candidate returns/PnL.
 
 `LIMIT-015` is resolved and intentionally absent from this unresolved-only index. Its frozen findings and accepted repair closure remain preserved in:
 
