@@ -9,6 +9,7 @@ venv/
 *.sqlite
 *.sqlite3
 *.parquet
+.runtime/
 /data/raw/historical/
 /data/raw/scale_probe/
 /data/revalidation_repair_v01/
