@@ -9,7 +9,18 @@ Before every substantive project reply after takeover:
 2. fetch this file from current `main`;
 3. do not use chat memory as mutable project authority;
 4. for state/architecture/locks/next work/worker/model/provider/tool questions, refresh `CURRENT_STATE.md` and named authority;
-5. fresh conversations follow `00_READ_FIRST.md` read-only takeover.
+5. for live Stage-A state, also refresh `refs/heads/stage-a-live-state-v0-2` before stating attempted slots/current remote head/accounting;
+6. fresh conversations read `00_READ_FIRST.md` first and complete its read-only takeover; `PROJECT_HANDOFF_CURRENT.md` is read last.
+
+## Handoff readiness
+
+```text
+FRESH_CONVERSATION_HANDOFF=READY
+TAKEOVER_BOOTSTRAP=00_READ_FIRST.md
+HANDOFF_CONTINUITY_POINTER=PROJECT_HANDOFF_CURRENT.md__READ_LAST
+CHAT_MEMORY_AS_AUTHORITY=FORBIDDEN
+FIRST_TAKEOVER_TURN=READ_ONLY__REPORT_THEN_WAIT_FOR_OWNER_ACCEPTANCE
+```
 
 ## Current live pointer
 
@@ -26,6 +37,8 @@ TOOL_DECISION=USE_EXISTING
 LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_IN_PROGRESS__NO_SCOREABLE_MODEL_EVIDENCE_YET
 ```
 
+`LAST_MATERIAL_STATE_COMMIT` points to the latest substantive attempt/evidence adjudication. Later handoff/governance-only commits may advance `main` without changing that marker.
+
 ## Stage-A V0.2 execution state
 
 ```text
@@ -39,6 +52,8 @@ PAID_SPEND_SEMANTICS=CONSERVATIVE_ACCOUNTING__ACTUAL_PROVIDER_WALLET_BILL_UNKNOW
 AUTOMATIC_RETRY=FORBIDDEN
 AUTOMATIC_NEXT_SLOT=FORBIDDEN
 ```
+
+The remote head above was current after Attempt 002 at handoff preparation. A fresh conversation must still reread the remote ref before treating that SHA as current.
 
 ## Attempt 001 — DeepSeek immutable history
 
@@ -56,6 +71,8 @@ AUTOMATIC_RETRY=FORBIDDEN
 REPLACEMENT_CALL=FORBIDDEN
 DEEPSEEK_FATAL_FAIL=NOT_ADJUDICATED_FROM_ATTEMPT_001
 ```
+
+Do not reinterpret Attempt 001 as proof that the DeepSeek model/route is unavailable. The request reached 2xx provider JSON, but V0.1 failed to preserve enough safe response-envelope evidence for adjudication.
 
 ## Attempt 002 — MiniMax fatal stop
 
@@ -87,7 +104,7 @@ MINIMAX_STAGE_B_BUDGET=NONE
 AUTOMATIC_RETRY=FORBIDDEN
 ```
 
-The provider route itself worked. The fatal stop follows the pre-existing funnel rule that an unscoreable normalized response eliminates the provider from Stage A. This is not a claim that the MiniMax API is unavailable.
+MiniMax transport/model resolution worked. Elimination is specifically the frozen Stage-A funnel consequence of an unscoreable normalized response; it is not a claim that the MiniMax API is unavailable.
 
 ## Remaining provider state
 
@@ -99,6 +116,8 @@ DEEPSEEK_REMAINING_SLOTS=2,3,4,5
 MINIMAX_M3=ELIMINATED__NO_FURTHER_STAGE_A_CALLS
 NEXT_EXPLICIT_SLOT=KIMI:1
 ```
+
+No provider/model is `VERIFIED` or `ADOPTED` yet. No scoreable real-model Jianghe fidelity evidence exists yet.
 
 ## Authorization / caps
 
@@ -118,6 +137,19 @@ KIMI_ACCOUNTED_CNY=0
 NEW_RECHARGE_REQUIRED=NO
 ```
 
+Owner-reported wallet balances at the latest funded checkpoint were CNY10 each for Kimi/DeepSeek/MiniMax. Do not confuse wallet funding with API-consumption accounting and do not request recharge without current evidence that it is needed.
+
+## Closed pre-spend work
+
+```text
+PRE_SPEND_REPAIR_REAUDIT=PASS
+BSP_001_TO_005=CLOSED
+RSP_001_TO_002=CLOSED
+LIMIT_015=RESOLVED
+```
+
+Do not reopen a rolling whole-repo audit by default.
+
 ## Locks
 
 ```text
@@ -131,8 +163,10 @@ BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
 ```
 
-## Exact next work
+## Exact next work after takeover acceptance
 
-1. Owner manually dispatches `.github/workflows/stage-a-live-slot.yml` on `main` for `KIMI` slot `1`, exactly once.
-2. Never rerun DeepSeek:1 or MiniMax:1, and never dispatch another MiniMax Stage-A slot.
-3. Project brain reads Kimi:1 durable ledger/evidence and adjudicates before any next paid call.
+1. Refresh current `main`, this brief, `CURRENT_STATE.md`, the V0.2 frozen plan and the live V0.2 remote ledger.
+2. Confirm no newer authority supersedes `NEXT_EXPLICIT_SLOT=KIMI:1`.
+3. If unchanged, Owner manually dispatches `.github/workflows/stage-a-live-slot.yml` on `main` for `KIMI` slot `1`, exactly once.
+4. Never rerun DeepSeek:1 or MiniMax:1; never dispatch another MiniMax Stage-A slot.
+5. Project brain reads Kimi:1 durable ledger/evidence and adjudicates before any later paid call.
