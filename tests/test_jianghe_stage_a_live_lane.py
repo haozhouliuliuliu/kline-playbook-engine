@@ -567,6 +567,10 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
                     capture_output=True,
                 )
                 stores.append(GitRemoteLedgerStore(repository=repo, remote="state"))
+            bootstrap_head = stores[0].compare_and_swap(
+                expected_head=None,
+                ledger_bytes=RemoteExecutionLedger.empty(self.plan).to_bytes(),
+            )
             observed = [store.load(self.plan) for store in stores]
             prepared_three = prepare_frozen_slot(self.plan, provider_id="KIMI", slot=3, now=NOW)
 
@@ -584,12 +588,14 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
             stale = reserve(observed[1].ledger, prepared_three, 3)
             terminal, evidence_filename, evidence_bytes = self.fixtures["kimi2"]
             terminal_head = stores[0].compare_and_swap(
-                expected_head=None,
+                expected_head=bootstrap_head,
                 ledger_bytes=terminal.to_bytes(),
                 evidence_artifacts={evidence_filename: evidence_bytes},
             )
             with self.assertRaises(RemoteLedgerConflictError):
-                stores[1].compare_and_swap(expected_head=None, ledger_bytes=stale.to_bytes())
+                stores[1].compare_and_swap(
+                    expected_head=bootstrap_head, ledger_bytes=stale.to_bytes()
+                )
             refreshed = stores[1].load(self.plan)
             next_ledger = reserve(refreshed.ledger, prepared_three, 3)
             next_head = stores[1].compare_and_swap(
@@ -602,6 +608,139 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
                 capture_output=True,
             ).stdout
             self.assertEqual(evidence_bytes, retained)
+
+    def test_missing_remote_state_ref_blocks_provider_network(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            store, _repo = self._make_store(root)
+            network_calls = {"count": 0}
+
+            def forbidden_network(*_args, **_kwargs):
+                network_calls["count"] += 1
+                return _response()
+
+            with self.assertRaises(RemoteLedgerUnavailableError):
+                execute_remote_reserved_slot(
+                    plan=self.plan,
+                    store=store,
+                    state_dir=root / "runtime",
+                    provider_id="KIMI",
+                    slot=2,
+                    now=NOW,
+                    http_post=forbidden_network,
+                    credential_lookup=lambda _name: "TEST_ONLY",
+                )
+            self.assertEqual(0, network_calls["count"])
+
+    def test_deleted_remote_state_ref_cannot_become_empty_history(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            store, repo = self._make_store(root)
+            ledger, evidence_filename, evidence_bytes = self.fixtures["kimi2"]
+            store.compare_and_swap(
+                expected_head=None,
+                ledger_bytes=ledger.to_bytes(),
+                evidence_artifacts={evidence_filename: evidence_bytes},
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repo),
+                    "push",
+                    "state",
+                    ":refs/heads/stage-a-live-state-v0-1",
+                ],
+                check=True,
+                capture_output=True,
+            )
+            network_calls = {"count": 0}
+
+            def forbidden_network(*_args, **_kwargs):
+                network_calls["count"] += 1
+                return _response()
+
+            with self.assertRaises(RemoteLedgerUnavailableError):
+                execute_remote_reserved_slot(
+                    plan=self.plan,
+                    store=store,
+                    state_dir=root / "runtime",
+                    provider_id="KIMI",
+                    slot=2,
+                    now=NOW,
+                    http_post=forbidden_network,
+                    credential_lookup=lambda _name: "TEST_ONLY",
+                )
+            self.assertEqual(0, network_calls["count"])
+
+    def test_preexisting_empty_remote_ledger_permits_first_legal_slot(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            store, _repo = self._make_store(root)
+            store.compare_and_swap(
+                expected_head=None,
+                ledger_bytes=RemoteExecutionLedger.empty(self.plan).to_bytes(),
+            )
+            network_calls = {"count": 0}
+
+            def offline_network(*_args, **_kwargs):
+                network_calls["count"] += 1
+                return _response()
+
+            with patch.dict(
+                os.environ, {KIMI_K3_SPEC.api_key_env: "TEST_ONLY"}, clear=False
+            ):
+                result = execute_remote_reserved_slot(
+                    plan=self.plan,
+                    store=store,
+                    state_dir=root / "runtime",
+                    provider_id="KIMI",
+                    slot=2,
+                    now=NOW,
+                    http_post=offline_network,
+                    credential_lookup=lambda _name: "TEST_ONLY",
+                )
+            self.assertEqual("SUCCESS_NORMALIZED", result.slot_result.status)
+            self.assertEqual(1, network_calls["count"])
+
+    def test_git_subprocess_environment_strips_all_provider_credentials(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            store, _repo = self._make_store(root)
+            observed_environments: list[dict[str, str]] = []
+            original_run = subprocess.run
+
+            def capture_environment(*args, **kwargs):
+                observed_environments.append(dict(kwargs["env"]))
+                return original_run(*args, **kwargs)
+
+            injected = {
+                "MOONSHOT_API_KEY": "MOONSHOT_TEST_SECRET",
+                "DEEPSEEK_API_KEY": "DEEPSEEK_TEST_SECRET",
+                "MINIMAX_API_KEY": "MINIMAX_TEST_SECRET",
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
+                "GIT_CONFIG_VALUE_0": "AUTHORIZATION: basic CHECKOUT_AUTH_TEST",
+            }
+            with patch.dict(os.environ, injected, clear=False):
+                with patch(
+                    "src.jianghe_stage_a_remote_ledger.subprocess.run",
+                    side_effect=capture_environment,
+                ):
+                    self.assertIsNone(store._remote_head())
+            self.assertTrue(observed_environments)
+            for environment in observed_environments:
+                for credential in (
+                    "MOONSHOT_API_KEY",
+                    "DEEPSEEK_API_KEY",
+                    "MINIMAX_API_KEY",
+                ):
+                    self.assertNotIn(credential, environment)
+                self.assertEqual("1", environment["GIT_CONFIG_COUNT"])
+                self.assertEqual(
+                    "AUTHORIZATION: basic CHECKOUT_AUTH_TEST",
+                    environment["GIT_CONFIG_VALUE_0"],
+                )
 
     def test_modified_evidence_bytes_with_unchanged_ledger_block_network(self) -> None:
         ledger, filename, evidence = self.fixtures["kimi2"]

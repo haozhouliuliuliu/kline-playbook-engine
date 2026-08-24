@@ -19,7 +19,10 @@ import re
 import subprocess
 from typing import Mapping, Sequence
 
-from src.jianghe_prespend_runtime import HARD_PROJECT_CAP_CNY
+from src.jianghe_prespend_runtime import (
+    HARD_PROJECT_CAP_CNY,
+    IMPLEMENTATION_TARGET_SPECS,
+)
 from src.jianghe_stage_a_evidence import (
     StageAEvidenceError,
     validate_stage_a_attempt_evidence_bytes,
@@ -50,6 +53,9 @@ REMOTE_TERMINAL_STATUSES = frozenset(
 )
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _GIT_OID = re.compile(r"[0-9a-f]{40}(?:[0-9a-f]{24})?\Z")
+_PROVIDER_CREDENTIAL_ENV_NAMES = frozenset(
+    spec.api_key_env for spec in IMPLEMENTATION_TARGET_SPECS
+)
 _EVENT_FIELDS = frozenset(
     {
         "artifact_schema_version",
@@ -469,6 +475,8 @@ class GitRemoteLedgerStore:
 
     def _run(self, args: Sequence[str], *, input_bytes: bytes | None = None) -> bytes:
         environment = dict(os.environ)
+        for credential_name in _PROVIDER_CREDENTIAL_ENV_NAMES:
+            environment.pop(credential_name, None)
         environment.setdefault("GIT_AUTHOR_NAME", "Stage-A Live Lane")
         environment.setdefault("GIT_AUTHOR_EMAIL", "stage-a-live@invalid.local")
         environment.setdefault("GIT_COMMITTER_NAME", environment["GIT_AUTHOR_NAME"])
@@ -600,7 +608,7 @@ class GitRemoteLedgerStore:
     def load(self, plan: VerifiedFrozenStageAPlan) -> RemoteLedgerObservedState:
         head = self._remote_head()
         if head is None:
-            return RemoteLedgerObservedState(None, RemoteExecutionLedger.empty(plan))
+            raise RemoteLedgerUnavailableError("remote state ref is missing")
         self._run(["fetch", "--no-tags", self.remote, f"{self.remote_ref}:refs/stage-a-live/observed"])
         entries = self._tree_entries_at(head)
         raw = self._read_file_at(head, LEDGER_FILENAME)

@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LIVE_WORKFLOW = ROOT / ".github" / "workflows" / "stage-a-live-slot.yml"
 OFFLINE_WORKFLOW = ROOT / ".github" / "workflows" / "stage-a-offline-ci.yml"
 LIVE_LANE = ROOT / "src" / "jianghe_stage_a_live_lane.py"
+LIVE_CLI = ROOT / "tools" / "run_jianghe_stage_a_live_slot.py"
 
 
 class StageALiveWorkflowTests(unittest.TestCase):
@@ -16,6 +17,7 @@ class StageALiveWorkflowTests(unittest.TestCase):
         cls.live = LIVE_WORKFLOW.read_text(encoding="utf-8")
         cls.offline = OFFLINE_WORKFLOW.read_text(encoding="utf-8")
         cls.lane = LIVE_LANE.read_text(encoding="utf-8")
+        cls.cli = LIVE_CLI.read_text(encoding="utf-8")
 
     def test_workflow_is_manual_only_and_main_only(self) -> None:
         self.assertIn("workflow_dispatch:", self.live)
@@ -47,6 +49,39 @@ class StageALiveWorkflowTests(unittest.TestCase):
         self.assertNotIn("Authorization", self.live)
         self.assertNotIn("curl ", self.live)
         self.assertNotIn("wget ", self.live)
+
+    def test_production_cli_exposes_only_provider_and_slot(self) -> None:
+        self.assertEqual(2, self.cli.count("parser.add_argument("))
+        self.assertIn('parser.add_argument("--provider"', self.cli)
+        self.assertIn('parser.add_argument("--slot"', self.cli)
+        for forbidden in ("--state-dir", "--remote", "--remote-ref"):
+            self.assertNotIn(forbidden, self.cli)
+            self.assertNotIn(forbidden, self.live)
+        self.assertIn("state_dir = DEFAULT_STATE_DIR.resolve()", self.cli)
+        self.assertIn('remote="origin"', self.cli)
+        self.assertIn("remote_ref=DEFAULT_REMOTE_REF", self.cli)
+
+    def test_each_provider_step_receives_only_its_credential(self) -> None:
+        providers = {
+            "KIMI": "MOONSHOT_API_KEY",
+            "DEEPSEEK": "DEEPSEEK_API_KEY",
+            "MINIMAX": "MINIMAX_API_KEY",
+        }
+        for provider, credential in providers.items():
+            start = self.live.index(
+                f"- name: Execute one {provider} remotely reserved frozen slot"
+            )
+            next_starts = [
+                self.live.find("      - name:", start + 1),
+                len(self.live),
+            ]
+            end = min(position for position in next_starts if position != -1)
+            step = self.live[start:end]
+            self.assertIn(f"if: inputs.provider == '{provider}'", step)
+            self.assertIn(f"{credential}: ${{{{ secrets.{credential} }}}}", step)
+            self.assertIn(f'--provider "{provider}"', step)
+            for unrelated in set(providers.values()) - {credential}:
+                self.assertNotIn(unrelated, step)
 
     def test_offline_pr_ci_has_empty_provider_credentials(self) -> None:
         for name in ("MOONSHOT_API_KEY", "DEEPSEEK_API_KEY", "MINIMAX_API_KEY"):

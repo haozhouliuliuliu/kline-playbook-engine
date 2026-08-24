@@ -27,17 +27,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--provider", required=True, choices=("KIMI", "DEEPSEEK", "MINIMAX"))
     parser.add_argument("--slot", required=True, type=int, choices=range(1, 6))
-    parser.add_argument("--state-dir", type=Path, default=DEFAULT_STATE_DIR)
-    parser.add_argument("--remote", default="origin")
-    parser.add_argument("--remote-ref", default=DEFAULT_REMOTE_REF)
     args = parser.parse_args()
 
     plan = load_verified_frozen_plan()
-    state_dir = args.state_dir.resolve()
+    state_dir = DEFAULT_STATE_DIR.resolve()
     store = GitRemoteLedgerStore(
         repository=ROOT,
-        remote=args.remote,
-        remote_ref=args.remote_ref,
+        remote="origin",
+        remote_ref=DEFAULT_REMOTE_REF,
     )
     with StageAExecutionLock(state_dir / "execution.lock"):
         result = execute_remote_reserved_slot(
