@@ -37,7 +37,7 @@ jobs:
           path: /tmp/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
           if-no-files-found: error
       - name: Stage-A focused tests
-        run: python -m unittest tests.test_jianghe_stage_a_runtime tests.test_jianghe_stage_a_frozen_stimulus tests.test_jianghe_stage_a_runner tests.test_jianghe_stage_a_evidence tests.test_jianghe_provider_readiness tests.test_stage_a_readiness_workflow -v
+        run: python -m unittest tests.test_jianghe_stage_a_runtime tests.test_jianghe_stage_a_frozen_stimulus tests.test_jianghe_stage_a_runner tests.test_jianghe_stage_a_evidence tests.test_jianghe_provider_readiness tests.test_stage_a_readiness_workflow tests.test_jianghe_stage_a_live_lane tests.test_stage_a_live_workflow -v
       - name: Canonical full suite
         run: python -m unittest discover -s tests -v
       - name: Diff hygiene

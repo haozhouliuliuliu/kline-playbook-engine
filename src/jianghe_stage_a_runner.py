@@ -755,20 +755,19 @@ def _safe_error_message(error: BaseException, credential: str | None) -> str:
     return text[:500]
 
 
-def execute_frozen_slot(
+def _preflight_frozen_slot(
     plan: VerifiedFrozenStageAPlan,
-    journal: StageAExecutionJournal,
     *,
     provider_id: str,
     slot: int,
     now: datetime,
+    snapshot: JournalSnapshot,
     http_post=None,
     credential_lookup: Callable[[str], str | None] = os.environ.get,
-) -> StageASlotResult:
+) -> tuple[PreparedFrozenSlot, object, str]:
     prepared = prepare_frozen_slot(
         plan, provider_id=provider_id, slot=slot, now=now, http_post=http_post
     )
-    snapshot = journal.snapshot()
     key = _slot_key(provider_id, slot)
     if key in snapshot.attempted_slots:
         raise SlotAlreadyAttemptedError("frozen Stage-A slot has already been attempted")
@@ -787,10 +786,25 @@ def execute_frozen_slot(
         raise CredentialUnavailableError(
             f"credential is unavailable for {prepared.provider_spec.provider_id}"
         )
+    return prepared, authorization, credential
+
+
+def _execute_prepared_frozen_slot(
+    plan: VerifiedFrozenStageAPlan,
+    journal: StageAExecutionJournal,
+    *,
+    prepared: PreparedFrozenSlot,
+    authorization: object,
+    credential: str,
+    baseline_snapshot: JournalSnapshot,
+    now: datetime,
+) -> StageASlotResult:
+    provider_id = prepared.provider_spec.provider_id
+    slot = int(prepared.slot_row["slot"])
 
     stage_budget = StageABudgetEnvelope(
-        spent_cny=snapshot.stage_accounted_cny,
-        provider_spent_cny=dict(snapshot.provider_accounted_cny),
+        spent_cny=baseline_snapshot.stage_accounted_cny,
+        provider_spent_cny=dict(baseline_snapshot.provider_accounted_cny),
     )
     # One slot per process. Persistent cumulative accounting is enforced above;
     # the audited in-memory CNY100 ledger still guards this individual call.
@@ -873,6 +887,37 @@ def execute_frozen_slot(
         ),
         normalized_decision_identity=normalized_identity,
         terminal_event_identity=str(terminal["event_identity"]),
+    )
+
+
+def execute_frozen_slot(
+    plan: VerifiedFrozenStageAPlan,
+    journal: StageAExecutionJournal,
+    *,
+    provider_id: str,
+    slot: int,
+    now: datetime,
+    http_post=None,
+    credential_lookup: Callable[[str], str | None] = os.environ.get,
+) -> StageASlotResult:
+    snapshot = journal.snapshot()
+    prepared, authorization, credential = _preflight_frozen_slot(
+        plan,
+        provider_id=provider_id,
+        slot=slot,
+        now=now,
+        snapshot=snapshot,
+        http_post=http_post,
+        credential_lookup=credential_lookup,
+    )
+    return _execute_prepared_frozen_slot(
+        plan,
+        journal,
+        prepared=prepared,
+        authorization=authorization,
+        credential=credential,
+        baseline_snapshot=snapshot,
+        now=now,
     )
 
 

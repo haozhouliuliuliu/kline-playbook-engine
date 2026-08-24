@@ -38,6 +38,24 @@ SEMANTIC_SCORE_INELIGIBLE = "INELIGIBLE_CURRENT_ATTEMPT"
 INCOMPLETE_STATUS = "INCOMPLETE_UNCERTAIN"
 DEFAULT_JOURNAL_NAME = "journal.jsonl"
 
+_ARTIFACT_FIELDS = frozenset(
+    {
+        "artifact_schema_version",
+        "artifact_identity",
+        "plan_identity",
+        "plan_sha256",
+        "source_journal_sha256",
+        "source_journal_event_count",
+        "source_journal_last_event_identity",
+        "attempt_count",
+        "accounted_cny",
+        "automatic_retry",
+        "outcome_access",
+        "evaluator_boundary",
+        "attempts",
+    }
+)
+
 _PROVIDER_EVIDENCE_FIELDS = frozenset(
     {
         "identity",
@@ -448,6 +466,111 @@ def build_stage_a_attempt_evidence(
     return artifact
 
 
+def validate_stage_a_attempt_evidence_bytes(
+    *,
+    plan: VerifiedFrozenStageAPlan,
+    raw_bytes: bytes,
+) -> dict[str, object]:
+    """Validate one previously materialized artifact without journal or network access."""
+
+    if not isinstance(raw_bytes, bytes):
+        raise TypeError("raw_bytes must be bytes")
+    try:
+        artifact = json.loads(raw_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise StageAEvidenceError("Stage-A evidence is not valid UTF-8 JSON") from error
+    if not isinstance(artifact, dict) or frozenset(artifact) != _ARTIFACT_FIELDS:
+        raise StageAEvidenceError("Stage-A evidence top-level schema mismatch")
+    if canonical_json_bytes(artifact) != raw_bytes:
+        raise StageAEvidenceError("Stage-A evidence bytes are not canonical")
+    if artifact["artifact_schema_version"] != EVIDENCE_SCHEMA_VERSION:
+        raise StageAEvidenceError("Stage-A evidence schema version mismatch")
+    if (
+        artifact["plan_identity"] != plan.plan_identity
+        or artifact["plan_sha256"] != plan.sha256
+    ):
+        raise StageAEvidenceError("Stage-A evidence is bound to a different frozen plan")
+    _require_sha256(artifact["source_journal_sha256"], "source_journal_sha256")
+    _require_sha256(
+        artifact["source_journal_last_event_identity"],
+        "source_journal_last_event_identity",
+    )
+    event_count = artifact["source_journal_event_count"]
+    attempt_count = artifact["attempt_count"]
+    if (
+        isinstance(event_count, bool)
+        or not isinstance(event_count, int)
+        or event_count <= 0
+        or isinstance(attempt_count, bool)
+        or not isinstance(attempt_count, int)
+        or attempt_count <= 0
+    ):
+        raise StageAEvidenceError("Stage-A evidence counts must be positive integers")
+    attempts = artifact["attempts"]
+    if not isinstance(attempts, list) or len(attempts) != attempt_count:
+        raise StageAEvidenceError("Stage-A evidence attempt count mismatch")
+    if event_count < attempt_count:
+        raise StageAEvidenceError("Stage-A evidence journal event count is impossible")
+    if artifact["automatic_retry"] != "FORBIDDEN" or artifact["outcome_access"] != "NO":
+        raise StageAEvidenceError("Stage-A evidence safety invariant mismatch")
+    if artifact["evaluator_boundary"] != "EXPLICIT_EVALUATOR_SIDE_ADJUDICATION_REQUIRED":
+        raise StageAEvidenceError("Stage-A evidence evaluator boundary mismatch")
+
+    rebuilt_records: list[dict[str, object]] = []
+    seen_slots: set[str] = set()
+    total = Decimal("0")
+    for raw_record in attempts:
+        if not isinstance(raw_record, Mapping):
+            raise StageAEvidenceError("Stage-A evidence attempt must be an object")
+        try:
+            provider_id = raw_record["provider_id"]
+            slot = raw_record["slot"]
+            terminal_identity = raw_record["terminal_event_identity"]
+            start = {
+                "provider_id": provider_id,
+                "slot": slot,
+                "slot_key": raw_record["slot_key"],
+                "request_identity": raw_record["request_identity"],
+                "payload_sha256": raw_record["payload_sha256"],
+                "event_identity": raw_record["network_start_event_identity"],
+            }
+            terminal = None
+            if terminal_identity is not None:
+                terminal = {
+                    "status": raw_record["terminal_status"],
+                    "event_identity": terminal_identity,
+                    "accounted_cny": raw_record["accounted_cny"],
+                    "normalized_decision_identity": raw_record[
+                        "normalized_decision_identity"
+                    ],
+                    "error_type": raw_record["error_type"],
+                    "error_message": raw_record["error_message"],
+                    "provider_evidence": raw_record["provider_evidence"],
+                }
+        except KeyError as error:
+            raise StageAEvidenceError("Stage-A evidence attempt schema mismatch") from error
+        rebuilt = _attempt_record(plan=plan, start=start, terminal=terminal)
+        if dict(raw_record) != rebuilt:
+            raise StageAEvidenceError("Stage-A evidence attempt differs from mechanical rebuild")
+        slot_key = str(rebuilt["slot_key"])
+        if slot_key in seen_slots:
+            raise StageAEvidenceError("Stage-A evidence contains a duplicate frozen slot")
+        seen_slots.add(slot_key)
+        total += _decimal(rebuilt["accounted_cny"], "attempt.accounted_cny")
+        rebuilt_records.append(rebuilt)
+
+    if artifact["accounted_cny"] != _decimal_text(total):
+        raise StageAEvidenceError("Stage-A evidence aggregate accounting mismatch")
+    identity_payload = dict(artifact)
+    declared_identity = _require_sha256(
+        identity_payload.pop("artifact_identity"), "artifact_identity"
+    )
+    if declared_identity != _identity(identity_payload):
+        raise StageAEvidenceError("Stage-A evidence identity does not match content")
+    _scan_forbidden_fields(artifact)
+    return dict(artifact)
+
+
 def materialize_stage_a_attempt_evidence(
     *,
     state_dir: Path,
@@ -494,4 +617,5 @@ __all__ = [
     "forbidden_judgment_fields",
     "load_verified_frozen_plan",
     "materialize_stage_a_attempt_evidence",
+    "validate_stage_a_attempt_evidence_bytes",
 ]
