@@ -13,9 +13,9 @@ RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=RMB100_REAL_MODEL_FIDELITY_FUNNEL_READY_FOR_OWNER_PAID_DECISION
-NEXT_NORMAL_PHASE=owner_authorize_or_decline_bounded_paid_funnel_then_if_authorized_commit_closed_world_authorization_and_execute_stage_a_only
-OWNER_ACTION=AUTHORIZE_OR_DECLINE_BOUNDED_CNY100_NON_OUTCOME_PAID_MODEL_FUNNEL
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A_AUTHORIZED__PRECALL_READINESS_AND_EXECUTION
+NEXT_NORMAL_PHASE=build_and_verify_stage_a_runner_then_check_credentials_and_existing_balance_then_execute_stage_a_only
+OWNER_ACTION=NONE_NOW__RETURN_ONLY_IF_NEW_RECHARGE_OR_TOPUP_WITH_SPECIFIC_AMOUNT_IS_REQUIRED
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -32,11 +32,14 @@ PRE_SPEND_BLOCKER_BEFORE_SPEND_COUNT=0
 PRE_SPEND_REPAIR_RECOMMENDED_OPEN_COUNT=0
 LIMIT_015=RESOLVED_BY_PRESPEND_BATCHED_REPAIR_CLOSURE_V0_1
 PROVIDER_SPECIFIC_SPEND_GUARD=READY_ALL_3_OWNER_CONFIRMED_TARGETS
-SPEND_GATE=CLOSED_PENDING_OWNER_EXPLICIT_PAID_CALL_AUTHORIZATION
-LIVE_MODEL_PROVIDER_PROBE=NOT_AUTHORIZED
-PAID_MODEL_SPEND=NOT_AUTHORIZED
-ACCOUNT_TOPUP_OR_RECHARGE=NOT_AUTHORIZED
-TOTAL_HARD_API_SPEND_CAP_CNY_IF_APPROVED=100.00
+SPEND_GATE=OPEN_ONLY_FOR_CLOSED_WORLD_OWNER_AUTHORIZED_RMB100_NON_OUTCOME_FUNNEL__STAGE_A_FIRST
+LIVE_MODEL_PROVIDER_PROBE=AUTHORIZED_WITHIN_CURRENT_CLOSED_WORLD_ARTIFACT
+PAID_MODEL_SPEND=AUTHORIZED_UP_TO_CNY100_TOTAL_API_CONSUMPTION_WITHIN_CURRENT_CLOSED_WORLD_ARTIFACT
+ACCOUNT_TOPUP_OR_RECHARGE=NOT_AUTHORIZED_WITHOUT_SPECIFIC_AMOUNT_OWNER_CONFIRMATION
+TOTAL_HARD_API_SPEND_CAP_CNY=100.00
+PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
+PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
+STAGE_A_STATUS=AUTHORIZED__NOT_STARTED
 CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 OUTCOME_ACCESS=NO
@@ -51,6 +54,8 @@ Current authorities:
 - pricing refresh: `docs/reviews/DOMESTIC_PROVIDER_PRICING_REFRESH_V0_1.md`
 - DeepSeek Vision Exp correction: `docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`
 - paid-probe funnel: `docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md`
+- Owner paid-call decision: `docs/evidence/JIANGHE_OWNER_PAID_CALL_DECISION_20260824_V0_1.md`
+- closed-world current authorization: `docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json`
 
 ## Frozen pre-spend finding status
 
@@ -64,7 +69,7 @@ RSP-001=CLOSED__TRADINGSTATE_ADMISSION_PRECEDES_OMS_EVENT_MUTATION
 RSP-002=CLOSED__SAME_INTENT_ID_DIFFERENT_CANONICAL_CONTENT_FAILS_CLOSED
 ```
 
-Closure scope is engineering/evidence only. It does not verify or adopt a provider/model and does not authorize spend, outcome access, PRIMARY freeze, broker access, or real money.
+Closure scope is engineering/evidence only. It does not verify or adopt a provider/model and does not authorize outcome access, PRIMARY freeze, broker access, or real money.
 
 Repair verification remains:
 
@@ -84,9 +89,26 @@ Provider-pricing refresh integration:
 PRICING_REFRESH_MATERIALIZATION_COMMIT=4c7ad6f6cdc26c634bcb4b99441249e606e8d873
 PRICING_REFRESH_INTEGRATED_MAIN_COMMIT=5fe1f33acf027dbc3a7928b320974f8b52ebd662
 PRICING_REFRESH_GATE=COMPILE_PLUS_FOCUSED_TESTS_PLUS_CANONICAL_FULL_SUITE_PLUS_DIFF_HYGIENE_BEFORE_MATERIALIZATION
+```
+
+## Owner paid-call authorization
+
+```text
+OWNER_PAID_CALL_DECISION=AUTHORIZED
+OWNER_PAID_CALL_DECISION_TIME=2026-08-24T08:36:00+08:00
+PAID_CALL_AUTHORIZATION_ARTIFACT=docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json
+PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
+AUTHORIZED_PROVIDER_MODELS=KIMI:kimi-k3,DEEPSEEK:deepseek-v4-flash-vision-exp,MINIMAX:MiniMax-M3
+AUTHORIZED_API_SPEND_HARD_CAP_CNY=100.00
+AUTHORIZED_EXECUTION_ORDER=STAGE_A_FIRST
+AUTOMATIC_SEMANTIC_RETRY=FORBIDDEN
+AUTOMATIC_BUDGET_EXTENSION=FORBIDDEN
+NEW_RECHARGE_OR_TOPUP=NOT_AUTHORIZED_WITHOUT_SPECIFIC_AMOUNT_OWNER_CONFIRMATION
 LIVE_CALLS=0
 PAID_SPEND=0
 ```
+
+Existing funded balance or granted credits may be consumed only through the authorized API funnel and remain subject to the same CNY100 API-spend hard cap. A new recharge, prepaid purchase, subscription, or other cash funding action requires the exact amount to be returned to the Owner before execution.
 
 ## Owner provider / cost scope
 
@@ -174,7 +196,7 @@ JIANGHE_AI_FIDELITY_EVALUATION_HARNESS_V0_1=INTEGRATED_PROVIDER_NEUTRAL__BSP003_
 JIANGHE_AI_VISUAL_RENDERER=INTEGRATED_V0_1_DETERMINISTIC_PROVIDER_NEUTRAL
 JIANGHE_AI_RUNTIME_NORMALIZER=INTEGRATED_V0_1_STRICT_VERSIONED_DETERMINISTIC
 JIANGHE_AI_PRESPEND_RUNTIME=INTEGRATED__SAFE_CONTEXT__CLOSED_WORLD_STRUCTURED_INPUT__THREE_PROVIDER_TRANSPORTS__THREE_RATE_GUARDS__SHARED_CNY100_LEDGER
-JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=NOT_STARTED
+JIANGHE_AI_REAL_MODEL_FIDELITY_EVALUATION=AUTHORIZED_NOT_STARTED
 JIANGHE_AI_REAL_MODEL_FIDELITY_REQUIRED_TRACKS=SEMANTIC,VISUAL,STRUCTURED,DUAL_INPUT,OPERATIONAL_PROVIDER
 JIANGHE_AI_REPLAY_HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
 JIANGHE_AI_SUB_MINUTE_LIVE_CAPABILITY=NOT_VALIDATED_NOT_EQUIVALENT_TO_1M_REPLAY
@@ -199,14 +221,14 @@ PAID_SPEND=0
 OUTCOME_ACCESS=NO
 ```
 
-`LIMIT-012` remains active because no real-model Jianghe fidelity evaluation has occurred.
+`LIMIT-012` remains active because no real-model Jianghe fidelity evaluation has occurred yet.
 
 ## Next normal work
 
-1. Owner authorizes or declines the bounded CNY100 non-outcome paid-call funnel.
-2. If declined, no external call occurs.
-3. If authorized, first recheck rate-card freshness plus each provider's current recharge/balance requirement; no account top-up occurs without the same explicit cash authorization.
-4. Commit a closed-world Owner paid-call authorization artifact covering only the approved provider models and CNY100 cap.
-5. Execute Stage A only, no automatic retries; write request/response/usage/fidelity evidence after every call.
-6. Stop eliminated providers immediately. Do not begin Stage B until Stage-A evidence and ranking are committed.
+1. Build and fully offline-test a deterministic Stage-A runner using the already frozen five qualification tracks and the non-outcome fixture corpus.
+2. Check only credential presence and existing provider balance/funding readiness; never print or commit credentials.
+3. If a provider requires a new recharge/top-up, return the specific required cash amount to the Owner before any funding action.
+4. If credentials and existing balance/credits suffice, execute Stage A only under the CNY18 Stage-A envelope and shared CNY100 hard ledger.
+5. Write request/response/usage/fidelity evidence after every call and stop eliminated providers immediately.
+6. Commit Stage-A evidence and ranking before any Stage-B call.
 7. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
