@@ -15,18 +15,23 @@ from decimal import Decimal
 from hashlib import sha256
 import json
 from pathlib import Path
+import sys
 from typing import Mapping
 
-from src.jianghe_prespend_runtime import (
-    DEEPSEEK_VISION_SPEC,
+ROOT_BOOTSTRAP = Path(__file__).resolve().parents[1]
+if str(ROOT_BOOTSTRAP) not in sys.path:
+    sys.path.insert(0, str(ROOT_BOOTSTRAP))
+
+from src.jianghe_prespend_runtime import (  # noqa: E402
     IMPLEMENTATION_TARGET_SPECS,
-    KIMI_K3_SPEC,
-    MINIMAX_M3_SPEC,
     PAID_CALL_AUTHORITY_PATH,
     load_current_repository_rate_card,
 )
-from src.jianghe_source_only_verification import ROOT as REPOSITORY_ROOT, _repository_blob_bytes
-from src.jianghe_stage_a_runtime import (
+from src.jianghe_source_only_verification import (  # noqa: E402
+    ROOT as REPOSITORY_ROOT,
+    _repository_blob_bytes,
+)
+from src.jianghe_stage_a_runtime import (  # noqa: E402
     ALL_TRACKS,
     QUALIFICATION_FIXTURE_ID,
     STAGE_A_MAX_CALLS_PER_PROVIDER,
