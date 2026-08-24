@@ -1,11 +1,12 @@
 """Frozen Stage-A synthetic stimulus and compact visual presentation.
 
 The Owner-approved protocol leaves the exact numeric bar recipe/window as an
-implementation detail until the first paid call. This module freezes a 48 x 5m
+implementation detail until the first paid call. This module freezes a 36 x 5m
 window (plus exact 15m/1H aggregations) selected only from the already generated
-non-outcome JH-FIX-C-001 visible-information stimulus. It contains the prior
-range, the upper-boundary wick/poke, the close back inside, and subsequent lack
-of follow-through while avoiding unnecessary repeated JSON cost.
+non-outcome JH-FIX-C-001 visible-information stimulus. It contains 20 pre-poke
+5m bars expressing the prior range, the upper-boundary wick/poke, the close back
+inside, and 15 subsequent 5m bars with no follow-through, while avoiding
+unnecessary repeated JSON cost.
 
 The visual uses the integrated deterministic renderer at 768x576. All providers
 receive the same observation/PNG/structured bytes for the applicable tracks.
@@ -37,15 +38,15 @@ from src.jianghe_visual_renderer import (
 )
 
 
-FROZEN_STAGE_A_FINE_BAR_COUNT = 48
-FROZEN_STAGE_A_15M_BAR_COUNT = 16
-FROZEN_STAGE_A_1H_BAR_COUNT = 4
+FROZEN_STAGE_A_FINE_BAR_COUNT = 36
+FROZEN_STAGE_A_15M_BAR_COUNT = 12
+FROZEN_STAGE_A_1H_BAR_COUNT = 3
 FROZEN_STAGE_A_CANVAS_WIDTH = 768
 FROZEN_STAGE_A_CANVAS_HEIGHT = 576
 FROZEN_STAGE_A_CANDLE_BODY_WIDTH = 4
 FROZEN_STAGE_A_CANDLE_GAP = 2
 FROZEN_STAGE_A_PRICE_LABEL_GUTTER = 72
-FROZEN_STAGE_A_WINDOW_VERSION = "JIANGHE_STAGE_A_VISIBLE_WINDOW_48X5M_V0_1"
+FROZEN_STAGE_A_WINDOW_VERSION = "JIANGHE_STAGE_A_VISIBLE_WINDOW_36X5M_V0_1"
 
 
 def _canonical_json(value: object) -> str:
@@ -69,7 +70,7 @@ def frozen_stage_a_renderer_config() -> RendererConfig:
 
 
 def build_frozen_stage_a_stimulus() -> StageAStimulus:
-    """Freeze the last 48 visible 5m bars and exact derived 15m/1H bars."""
+    """Freeze the last 36 visible 5m bars and exact derived 15m/1H bars."""
     base = build_stage_a_stimulus()
     base_fine = tuple(
         sorted(
@@ -88,6 +89,14 @@ def build_frozen_stage_a_stimulus() -> StageAStimulus:
         FROZEN_STAGE_A_1H_BAR_COUNT,
     ):
         raise ValueError("frozen Stage-A aggregation counts drifted")
+
+    # The frozen 36-bar window is base fine indices 60..95. The sole deliberate
+    # upper-boundary wick/poke remains original index 80 -> frozen index 20.
+    poke = fine[20]
+    if poke.high_price != "103" or poke.close_price != "101.1":
+        raise ValueError("frozen Stage-A wick/poke anchor drifted")
+    if any(float(bar.high_price) >= 102 for bar in fine[:20] + fine[21:]):
+        raise ValueError("frozen Stage-A window contains an unintended second upper-boundary poke")
 
     as_of = fine[-1].close_time
     mapping_identity = _hash(
