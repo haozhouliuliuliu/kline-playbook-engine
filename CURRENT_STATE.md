@@ -11,8 +11,8 @@ ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=STAGE_A_LIVE_EXECUTION_LANE_PREFLIGHT_AND_DURABILITY
-NEXT_NORMAL_PHASE=integrate_and_review_crash_resilient_remote_write_ahead_lane_before_any_paid_stage_a_call
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A__FIRST_LIVE_SLOT_EXECUTION_AND_EVIDENCE_REVIEW
+NEXT_NORMAL_PHASE=bootstrap_empty_remote_state_then_execute_one_explicit_authorized_stage_a_slot
 OWNER_ACTION=NONE_NOW
 TOOL_DECISION=USE_EXISTING
 ```
@@ -20,8 +20,9 @@ TOOL_DECISION=USE_EXISTING
 ## Current material checkpoint
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=07b8159acc47634d5b122d534987981ba8707f96
+LAST_MATERIAL_STATE_COMMIT=72f96d200f8ed8d3f6da042597344f828b54ae25
 PR_26_MERGE_COMMIT=a6f8cc99641a37c628264cb57b30a75c4537aa4a
+PR_29_MERGE_COMMIT=72f96d200f8ed8d3f6da042597344f828b54ae25
 STAGE_A_OFFLINE_PREEXECUTION=COMPLETE
 STAGE_A_FROZEN_PLAN_IDENTITY=7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4
 STAGE_A_FROZEN_STIMULUS=36x5m__12x15m__3x1H__JH-FIX-C-001
@@ -35,7 +36,17 @@ STAGE_A_READINESS_INTEGRATION_EVIDENCE=docs/reviews/JIANGHE_STAGE_A_SECURE_CREDE
 STAGE_A_EVIDENCE_EXPORTER=INTEGRATED__SECRET_FAIL_CLOSED__BSP_003_PRESERVED
 STAGE_A_READINESS_GITHUB_ENVIRONMENT=stage-a-readiness__MAIN_RESTRICTED__SECRETS_CONFIGURED
 STAGE_A_RUNTIME_STATE=.runtime/jianghe_stage_a__GIT_IGNORED
-STAGE_A_HOSTED_RUNNER_DURABILITY=BLOCKED__REMOTE_WRITE_AHEAD_REQUIRED_BEFORE_PAID_CALL
+STAGE_A_LIVE_LANE=INTEGRATED__PROJECT_BRAIN_ACCEPTED
+STAGE_A_REMOTE_LEDGER=INTEGRATED
+STAGE_A_REMOTE_CAS=INTEGRATED
+STAGE_A_REMOTE_REREAD_VERIFICATION=INTEGRATED
+STAGE_A_CRASH_ACCOUNTING=INTEGRATED
+STAGE_A_SINGLE_SLOT_LIVE_WORKFLOW=INTEGRATED
+STAGE_A_FIXED_REMOTE_REF=refs/heads/stage-a-live-state-v0-1
+STAGE_A_HOSTED_RUNNER_DURABILITY=INTEGRATED__REMOTE_STATE_BOOTSTRAP_PENDING
+REMOTE_STATE_BOOTSTRAP=REQUIRED_ONCE_BEFORE_FIRST_CALL
+REMOTE_STATE_BOOTSTRAP_METHOD=GitRemoteLedgerStore.compare_and_swap(expected_head=None,ledger_bytes=RemoteExecutionLedger.empty(plan).to_bytes())__THEN_store.load(plan)__AND_EXACT_EMPTY_LEDGER_VERIFICATION
+NAMED_initialize_empty_state_WRAPPER=NOT_REQUIRED
 ```
 
 Frozen plan authority: `docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json`.
@@ -55,12 +66,13 @@ Owner credential/funding handoff rule:
 
 ## Latest offline verification
 
-PR #26 / reviewed Linux tree verification:
+PR #29 / reviewed Linux tree verification:
 
 ```text
-STAGE_A_FOCUSED_TESTS=PASS__70_TESTS
-CANONICAL_FULL_SUITE=PASS__1299_TESTS__27_SKIPPED
-DIFF_HYGIENE=PASS
+HEAD_SHA=1d74e60bb857bc593887f2121fd2df516331914c
+STAGE_A_FOCUSED_TESTS=PASS__114_OF_114__LINUX_CI_PASS
+CANONICAL_FULL_SUITE=PASS__RUN_32703991488__1343_TESTS__27_SKIPPED
+DIFF_HYGIENE=PASS__ORIGIN_MAIN_TO_HEAD
 FROZEN_PLAN_CHECK=PASS
 FROZEN_PLAN_INDEPENDENT_REBUILD=PASS
 LIVE_CALLS=0
@@ -120,7 +132,7 @@ TRACK_ISOLATION=YES
 SYNTHETIC_OHLC_FROM_VISIBLE_INFORMATION_ONLY=YES
 SAME_UNDERLYING_OBSERVATION_FOR_VISUAL_STRUCTURED_DUAL=YES
 FREEZE_ALL_STIMULUS_IDENTITIES_BEFORE_FIRST_PAID_CALL=YES
-STAGE_A_STATUS=AUTHORIZED__OFFLINE_PREEXECUTION_COMPLETE__NOT_STARTED
+STAGE_A_STATUS=AUTHORIZED__LIVE_LANE_INTEGRATED__REMOTE_STATE_BOOTSTRAP_PENDING__NOT_STARTED
 ```
 
 Frozen tracks:
@@ -175,7 +187,7 @@ OWNER_REPORTED_MINIMAX_WALLET_BALANCE_CNY=10
 FROZEN_STAGE_A_TOTAL_WORST_CASE_CNY=7.4422188
 NEW_RECHARGE_REQUIRED=NO
 NO_MORE_RECHARGE_REQUIRED_FOR_STAGE_A_BY_OWNER_REPORTED_BALANCES=YES
-STAGE_A_NETWORK_EXECUTION=BLOCKED_PENDING_REMOTE_DURABLE_WRITE_AHEAD_LANE
+STAGE_A_NETWORK_EXECUTION=AUTHORIZED_FOR_ONE_EXPLICIT_SLOT_AFTER_SUCCESSFUL_EMPTY_REMOTE_STATE_BOOTSTRAP__NO_AUTOMATIC_NEXT_SLOT
 ```
 
 Manual readiness workflow invariants:
@@ -248,12 +260,12 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Integrate and review a repository-native, secret-free remote execution ledger with compare-and-swap protection.
-2. Require a remotely durable and re-read-verified `NETWORK_ATTEMPT_STARTED` reservation before any provider transport can run on a hosted runner.
-3. Preserve incomplete reservations as attempted, non-retryable and charged at the frozen worst-case ceiling after crash, cancellation, timeout, evidence-export failure or terminal-persistence failure.
-4. Keep the first lane explicit single-slot and manual-only; do not invent elimination, ranking or evaluator semantics.
-5. Only after that lane is merged and project-brain closes its review may an authorized operator consider the first paid Stage-A slot.
-6. Persist secret-guarded Stage-A attempt evidence after every attempted slot; commit Stage-A evidence/ranking before any Stage-B activity.
+1. Bootstrap the fixed remote state ref exactly once with the verified frozen plan and an empty remote ledger.
+2. Re-read the remote state and verify the exact head, empty ledger bytes, zero events, zero attempts and zero accounted spend.
+3. Execute only one explicit authorized Stage-A slot through the main-only GitHub workflow; no automatic next slot.
+4. Read the durable start, terminal and safe evidence mechanically; do not perform evaluator judgment or provider ranking in the execution lane.
+5. Preserve incomplete reservations as attempted, non-retryable and charged at the frozen worst-case ceiling after crash, cancellation, timeout, evidence-export failure or terminal-persistence failure.
+6. Commit secret-guarded Stage-A evidence/ranking before any Stage-B activity.
 
 At this checkpoint:
 
