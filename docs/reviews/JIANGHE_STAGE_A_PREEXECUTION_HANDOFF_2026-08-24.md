@@ -1,12 +1,12 @@
 # JIANGHE STAGE-A PRE-EXECUTION HANDOFF — 2026-08-24
 
 > Status: `CURRENT_PREEXECUTION_CHECKPOINT`
-> Canonical authority remains current GitHub `main`. This file is the compact execution handoff immediately before credential/balance readiness and the first paid Stage-A call.
+> Canonical authority remains current GitHub `main`. This file is the compact execution handoff immediately before credential/existing-balance readiness and the first paid Stage-A call.
 
 ## 1. Current material checkpoint
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=6f5c97d1d2d74096e873b1c4a73f2bda5cc21e22
+LAST_MATERIAL_STATE_COMMIT=744c79dab19d8ac5ddb4e941dcd24bee4fa82895
 OWNER_PAID_CALL_DECISION=AUTHORIZED
 PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
 PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
@@ -93,21 +93,46 @@ RUNTIME_STATE=.runtime/jianghe_stage_a__GIT_IGNORED
 
 No second evaluation stack was introduced.
 
-## 4. Offline verification is complete
+## 4. Non-billable provider readiness boundary is integrated
 
-Runner integration was verified before merge:
+Current implementation:
+
+- `src/jianghe_provider_readiness.py`
+- `tools/check_jianghe_provider_readiness.py`
+
+Behavior:
 
 ```text
-STAGE_A_FOCUSED_TESTS=PASS__33_TESTS
-CANONICAL_FULL_SUITE=PASS__1262_TESTS__27_SKIPPED
+FROZEN_PLAN_REBUILD_AND_BYTE_VERIFY=BEFORE_READINESS_CHECK
+MISSING_CREDENTIAL=ZERO_NETWORK
+KIMI=OFFICIAL_GET_/v1/users/me/balance_ONLY
+DEEPSEEK=OFFICIAL_GET_/user/balance_ONLY
+MINIMAX_PAYGO=NO_VERIFIED_READ_ONLY_BALANCE_API__UNKNOWN_WITH_ZERO_NETWORK
+BALANCE_REQUEST_RETRY=FORBIDDEN
+MODEL_ENDPOINT_AS_BALANCE_PROBE=FORBIDDEN
+DEEPSEEK_NON_CNY_ONLY=UNKNOWN__NO_FX_GUESS
+CREDENTIAL_VALUE_SERIALIZATION_OR_OUTPUT=FORBIDDEN
+INSUFFICIENT_CNY_BALANCE=REPORT_EXACT_FROZEN_STAGE_A_SHORTFALL_ONLY
+RECHARGE_OR_FUNDING_ACTION=NONE
+```
+
+The checker is deliberately separate from the model transport. It cannot convert a readiness probe into a model completion request.
+
+## 5. Offline verification is complete
+
+PR #24 / merged tree verification:
+
+```text
+STAGE_A_FOCUSED_TESTS=PASS__44_TESTS
+CANONICAL_FULL_SUITE=PASS__1273_TESTS__27_SKIPPED
 DIFF_HYGIENE=PASS
 LIVE_CALLS=0
 PAID_SPEND_CNY=0
 ```
 
-Coverage includes plan-byte drift, wrong 96→36 stimulus materialization, journal tampering, stale locks, crash recovery, persistent cap accounting, duplicate frozen-slot prevention, missing-credential zero-network behavior, provider-model drift, malformed model output and terminal HTTP failure without retry.
+Coverage includes plan-byte drift, wrong 96→36 stimulus materialization, journal tampering, stale locks, crash recovery, persistent cap accounting, duplicate frozen-slot prevention, missing-credential zero-network behavior, provider-model drift, malformed model output, terminal HTTP failure without retry, Kimi/DeepSeek read-only endpoint routing, MiniMax zero-network unresolved behavior, auth/readiness failure handling, exact frozen shortfall computation and credential non-exposure.
 
-## 5. Credential / balance readiness is now the only normal pre-network step
+## 6. Credential / existing-balance readiness is now the only normal pre-network step
 
 The current project-brain execution environment was checked without printing secret values:
 
@@ -122,33 +147,33 @@ NEW_RECHARGE_REQUIRED=NOT_DETERMINED
 
 This does **not** imply any provider requires funding. It means this execution environment cannot authenticate the required read-only checks.
 
-Official read-only/non-billable readiness surfaces currently established:
+Current read-only/non-billable readiness policy:
 
 ```text
 KIMI=GET https://api.moonshot.cn/v1/users/me/balance
 DEEPSEEK=GET https://api.deepseek.com/user/balance
-MINIMAX_PAYGO=NO_DOCUMENTED_READ_ONLY_BALANCE_API_FOUND_IN_CURRENT_OFFICIAL_API_INDEX__KEEP_UNRESOLVED
+MINIMAX_PAYGO=NO_VERIFIED_READ_ONLY_BALANCE_API__KEEP_UNRESOLVED_WITH_ZERO_NETWORK
 MINIMAX_TOKEN_PLAN=mmx quota EXISTS__NOT_EQUIVALENT_TO_PAYGO_BALANCE
 ```
 
 Never send a billable MiniMax model request merely to infer whether funds exist.
 
-## 6. Exact next execution sequence
+## 7. Exact next execution sequence
 
 ```text
 1. Fetch current main HEAD and refresh runtime brief/current state.
 2. Make the already-existing provider credentials available to the secure execution environment without committing or printing them.
-3. Rebuild the committed frozen plan and require byte equality before credential use.
-4. Query Kimi existing balance through the official read-only balance endpoint.
-5. Query DeepSeek existing balance through the official read-only balance endpoint.
+3. Run tools/check_jianghe_provider_readiness.py; it rebuilds and byte-verifies the committed frozen plan before credential use.
+4. Query Kimi existing CNY balance through the official read-only balance endpoint only.
+5. Query DeepSeek existing CNY balance through the official read-only balance endpoint only.
 6. Resolve MiniMax pay-as-you-go funding only through an official non-billable account/quota surface; if none is machine-accessible, keep MiniMax balance readiness UNKNOWN rather than probing with a model call.
-7. If any NEW recharge/top-up is genuinely required, return provider + exact amount + reason to Owner and stop funding action.
+7. If any NEW recharge/top-up is genuinely required, return provider + exact frozen shortfall amount + reason to Owner and stop funding action.
 8. If existing credentials/funds suffice, execute Stage A only through the frozen single-slot runner: max 5 calls/provider, max CNY6/provider, max CNY18 Stage A, shared CNY100 total ledger.
 9. Persist evidence after every attempted slot; a durable NETWORK_ATTEMPT_STARTED event forbids automatic retry.
 10. Commit Stage-A evidence and ranking before any Stage-B call.
 ```
 
-## 7. Existing pre-spend closures remain binding
+## 8. Existing pre-spend closures remain binding
 
 ```text
 BSP-001..005=CLOSED
@@ -160,7 +185,7 @@ LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
 
 Do not weaken content-addressed Jianghe context, closed-world observations, evaluator-side scoring, exact model authorization, budget caps, raw response/usage evidence, outcome firewall or credential secrecy.
 
-## 8. Tool decision
+## 9. Tool decision
 
 ```text
 TOOL_DECISION=USE_EXISTING
@@ -168,10 +193,10 @@ TOOL_DECISION=USE_EXISTING
 
 No new framework is required. Credential availability is an execution-environment boundary, not a reason to introduce another provider abstraction or model-evaluation stack.
 
-## 9. Safety checkpoint
+## 10. Safety checkpoint
 
 ```text
-STAGE_A=AUTHORIZED__OFFLINE_PREEXECUTION_COMPLETE__BLOCKED_BEFORE_NETWORK_ON_CREDENTIAL_BALANCE_READINESS
+STAGE_A=AUTHORIZED__OFFLINE_PREEXECUTION_COMPLETE__BLOCKED_BEFORE_NETWORK_ON_CREDENTIAL_EXISTING_BALANCE_READINESS
 LIVE_CALLS=0
 PAID_SPEND_CNY=0
 OUTCOME_ACCESS=NO
