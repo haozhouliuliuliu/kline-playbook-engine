@@ -559,7 +559,7 @@ def _find_provider_spec(provider_id: str) -> ProviderSpec:
 
 
 def _prompt_strings(plan: VerifiedFrozenStageAPlan) -> tuple[str, str]:
-    blob = PROMPT_PACKAGE_PATH.read_bytes().replace(b"\r\n", b"\n")
+    blob = _repository_blob_bytes(PROMPT_PACKAGE_PATH)
     if sha256(blob).hexdigest() != plan.payload.get("prompt_package_blob_sha256"):
         raise FrozenPlanMismatchError("prompt package bytes differ from the frozen plan")
     try:
