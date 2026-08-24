@@ -1,75 +1,39 @@
-name: Stage-A Live Single Slot
+name: Stage-A V0.2 Live Slot — RETIRED
 
 on:
   workflow_dispatch:
     inputs:
       provider:
-        description: Frozen provider
+        description: Historical V0.2 provider selection; execution is retired
         required: true
         type: choice
         options: [KIMI, DEEPSEEK, MINIMAX]
       slot:
-        description: Frozen slot number
+        description: Historical V0.2 slot; execution is retired
         required: true
         type: choice
         options: ["1", "2", "3", "4", "5"]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: stage-a-live-single-slot
+  group: stage-a-v0-2-retired
   cancel-in-progress: false
 
 jobs:
-  execute-one-frozen-slot:
+  retired-v0-2-lane:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: stage-a-readiness
+    timeout-minutes: 2
     steps:
-      - name: Checkout exact main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-          persist-credentials: true
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify frozen plan before credentials
-        run: python tools/build_jianghe_stage_a_frozen_plan_v0_2.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_2.json
-      - name: Reject carried DeepSeek slot 1 before credentials
-        if: inputs.provider == 'DEEPSEEK' && inputs.slot == '1'
+      - name: Fail closed before credentials or provider transport
+        shell: bash
         run: |
-          echo "CARRY_FORWARD_ATTEMPTED__NON_RETRYABLE"
+          echo "STAGE_A_V0_2_LIVE_EXECUTION=RETIRED"
+          echo "OWNER_DECISION=JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION"
+          echo "PAID_CALLS=PAUSED_UNTIL_V0_3_OFFLINE_CLOSURE"
+          echo "OLD_KIMI_1=SUPERSEDED_DO_NOT_EXECUTE"
+          echo "OLD_DEEPSEEK_1=HISTORICAL_DO_NOT_RERUN"
+          echo "OLD_MINIMAX_1=HISTORICAL_DO_NOT_RERUN"
           exit 1
-      - name: Configure state-commit identity
-        run: |
-          git config user.name "Stage-A Live Lane"
-          git config user.email "stage-a-live@users.noreply.github.com"
-      - name: Execute one KIMI remotely reserved frozen slot
-        if: inputs.provider == 'KIMI'
-        env:
-          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
-        run: >-
-          python tools/run_jianghe_stage_a_live_slot.py
-          --provider "KIMI"
-          --slot "${{ inputs.slot }}"
-      - name: Execute one DEEPSEEK remotely reserved frozen slot
-        if: inputs.provider == 'DEEPSEEK'
-        env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: >-
-          python tools/run_jianghe_stage_a_live_slot.py
-          --provider "DEEPSEEK"
-          --slot "${{ inputs.slot }}"
-      - name: Execute one MINIMAX remotely reserved frozen slot
-        if: inputs.provider == 'MINIMAX'
-        env:
-          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
-        run: >-
-          python tools/run_jianghe_stage_a_live_slot.py
-          --provider "MINIMAX"
-          --slot "${{ inputs.slot }}"
