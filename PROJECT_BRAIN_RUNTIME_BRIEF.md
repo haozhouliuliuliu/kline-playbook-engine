@@ -4,21 +4,20 @@
 
 ## Mandatory runtime rule
 
-After takeover acceptance, before every **substantive project reply**:
+After takeover acceptance, before every substantive project reply:
 
 1. fetch current `main` HEAD;
 2. fetch this file from current `main`;
 3. do not use chat memory as authority for mutable project facts;
-4. if the question concerns state / architecture / locks / next work / worker prompts / model or tool adoption, or if material state moved beyond `LAST_MATERIAL_STATE_COMMIT`, refresh `CURRENT_STATE.md` and the authority it names.
+4. if state / architecture / locks / next work / worker prompts / model / provider / tool are involved, refresh `CURRENT_STATE.md` and the named current authorities;
+5. fresh conversations follow the read-only takeover in `00_READ_FIRST.md`.
 
-`LAST_MATERIAL_STATE_COMMIT` tracks the latest substantive code/research-state change. Later documentation/state commits do not make it stale.
-
-Fresh conversations follow the read-only takeover in `00_READ_FIRST.md`.
+`LAST_MATERIAL_STATE_COMMIT` tracks the latest substantive code/research-state change. Later state/handoff commits do not make it stale.
 
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=55cc3b0313c43895af36c5f85ad91398e5aac97a
+LAST_MATERIAL_STATE_COMMIT=3ef91f4a036383fa65c527c24eb4b04c9e48c5cd
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -27,75 +26,76 @@ CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e0718
 JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
 SOURCE_ONLY_REPOSITORY_BYTE_AUTHORITY=EXACT_COMMITTED_GIT_BLOB_BYTES
-JIANGHE_PRIMARY_ELIGIBLE=NO
-JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
-PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
 PRE_SPEND_REPAIR_REAUDIT=PASS
-BSP_001=CLOSED
-BSP_002=CLOSED
-BSP_003=CLOSED
-BSP_004=CLOSED
-BSP_005=CLOSED
-RSP_001=CLOSED
-RSP_002=CLOSED
+BSP_001_TO_005=CLOSED
+RSP_001_TO_002=CLOSED
 LIMIT_015=RESOLVED
 LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A_AUTHORIZED__PRECALL_READINESS_AND_EXECUTION
-NEXT_NORMAL_PHASE=build_and_verify_stage_a_runner_then_check_credentials_and_existing_balance_then_execute_stage_a_only
-OWNER_ACTION=NONE_NOW__RETURN_ONLY_IF_NEW_RECHARGE_OR_TOPUP_WITH_SPECIFIC_AMOUNT_IS_REQUIRED
-OWNER_CONFIRMED_PROVIDER_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
-KIMI_K3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__CANDIDATE
-DEEPSEEK_V4_FLASH_VISION_EXP=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__EXPERIMENTAL__CANDIDATE
-MINIMAX_M3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__CANDIDATE
-FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
-NO_MODEL_OR_PROVIDER_VERIFIED_BY_PROJECT_LIVE_CALL=YES
-NO_MODEL_OR_PROVIDER_ADOPTED=YES
-SPEND_GATE=OPEN_ONLY_FOR_CLOSED_WORLD_OWNER_AUTHORIZED_RMB100_NON_OUTCOME_FUNNEL__STAGE_A_FIRST
-PAID_MODEL_SPEND=AUTHORIZED_UP_TO_CNY100_TOTAL_API_CONSUMPTION_WITHIN_CURRENT_CLOSED_WORLD_ARTIFACT
-ACCOUNT_TOPUP_OR_RECHARGE=NOT_AUTHORIZED_WITHOUT_SPECIFIC_AMOUNT_OWNER_CONFIRMATION
-PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
-PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
-TOTAL_HARD_API_SPEND_CAP_CNY=100.00
-STAGE_A_STATUS=AUTHORIZED__NOT_STARTED
-LIVE_CALLS=0
-PAID_SPEND=0
-OUTCOME_ACCESS=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED
-HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
-PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
-BROKER_ACCESS=NOT_AUTHORIZED
-REAL_MONEY=NOT_AUTHORIZED
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A_AUTHORIZED__INPUT_PROTOCOL_APPROVED__OFFLINE_PREEXECUTION_IMPLEMENTATION
+NEXT_NORMAL_PHASE=generalize_input_tracks_freeze_synthetic_stimulus_and_machine_plan_run_offline_tests_then_check_credentials_and_existing_balance_then_execute_stage_a_only
+OWNER_ACTION=NONE_NOW__RETURN_ONLY_IF_NEW_RECHARGE_OR_TOPUP_WITH_SPECIFIC_AMOUNT_IS_REQUIRED_OR_NEW_MAJOR_DECISION_ARISES
 TOOL_DECISION=USE_EXISTING
 ```
 
-## Current authorities
+## Current authorization
 
 ```text
-PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
-PRE_SPEND_REPAIR_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md
-DEEPSEEK_CORRECTION_AUTHORITY=docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md
-PROVIDER_PRICING_AUTHORITY=docs/evidence/JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json
-PROVIDER_PRICING_FALLBACK_AUTHORITY=docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md
-PROVIDER_PRICING_REFRESH_AUTHORITY=docs/reviews/DOMESTIC_PROVIDER_PRICING_REFRESH_V0_1.md
-RMB100_FUNNEL_AUTHORITY=docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md
-OWNER_PAID_CALL_DECISION_AUTHORITY=docs/evidence/JIANGHE_OWNER_PAID_CALL_DECISION_20260824_V0_1.md
-CURRENT_PAID_CALL_AUTHORIZATION=docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json
+OWNER_PAID_CALL_DECISION=AUTHORIZED
+PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
+PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
+AUTHORIZED_PROVIDER_MODELS=KIMI:kimi-k3,DEEPSEEK:deepseek-v4-flash-vision-exp,MINIMAX:MiniMax-M3
+TOTAL_HARD_API_SPEND_CAP_CNY=100.00
+STAGE_A_MAX_SPEND_CNY=18.00
+STAGE_A_MAX_CALLS=15
+MAX_STAGE_A_CALLS_PER_PROVIDER=5
+MAX_STAGE_A_SPEND_PER_PROVIDER_CNY=6.00
+AUTOMATIC_SEMANTIC_RETRY=FORBIDDEN
+AUTOMATIC_BUDGET_EXTENSION=FORBIDDEN
+NEW_RECHARGE_OR_TOPUP=NOT_AUTHORIZED_WITHOUT_SPECIFIC_AMOUNT_OWNER_CONFIRMATION
+LIVE_CALLS=0
+PAID_SPEND_CNY=0
 ```
 
-## Current provider spend guard
+## Owner-approved Stage-A protocol
 
 ```text
+STAGE_A_INPUT_PROTOCOL=OWNER_APPROVED__FROZEN_FOR_STAGE_A
+QUALIFICATION_FIXTURE=JH-FIX-C-001
+TRACK_ISOLATION=YES
+SYNTHETIC_OHLC_FROM_VISIBLE_INFORMATION_ONLY=YES
+SAME_UNDERLYING_OBSERVATION_FOR_VISUAL_STRUCTURED_DUAL=YES
+FREEZE_ALL_STIMULUS_IDENTITIES_BEFORE_FIRST_PAID_CALL=YES
+STAGE_A_STATUS=AUTHORIZED__INPUT_PROTOCOL_APPROVED__NOT_STARTED
+```
+
+Frozen tracks:
+
+```text
+SEMANTIC=VISIBLE_INFORMATION_TEXT_ONLY__NO_IMAGE__NO_STRUCTURED
+VISUAL=DETERMINISTIC_KLINE_IMAGE_ONLY__NO_ANSWER_BEARING_PROSE__NO_STRUCTURED
+STRUCTURED=GOVERNED_STRUCTURED_OBSERVATION_ONLY__NO_IMAGE__NO_ANSWER_BEARING_PROSE
+DUAL_INPUT=SAME_OBSERVATION_IMAGE_PLUS_STRUCTURED__NO_ANSWER_BEARING_PROSE
+OPERATIONAL_PROVIDER=MINIMUM_GOVERNED_MODEL_API_SCHEMA_USAGE_EVIDENCE_SMOKE
+UNKNOWN_OR_MISMATCHED_MODALITY_COMBINATION=FAIL_CLOSED
+```
+
+The exact numeric synthetic OHLC recipe is not yet frozen. It must be mechanically generated from `JH-FIX-C-001` visible information only, with normalized synthetic prices around 100, no real/canonical candidate market data, no hidden future, no PnL/outcome, no answer labels, and identical underlying bars for visual/structured/dual inputs.
+
+## Provider spend guards
+
+```text
+KIMI_K3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__CANDIDATE__NOT_VERIFIED__NOT_ADOPTED
+DEEPSEEK_V4_FLASH_VISION_EXP=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__EXPERIMENTAL__CANDIDATE__NOT_VERIFIED__NOT_ADOPTED
+MINIMAX_M3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__CANDIDATE__NOT_VERIFIED__NOT_ADOPTED
 KIMI_K3_BUDGET_RATE=INPUT_20_CNY_PER_MTOK__OUTPUT_100__IMAGE_1024_INPUT_TOKENS_EACH
 DEEPSEEK_V4_FLASH_VISION_EXP_BUDGET_RATE=PEAK_CACHE_MISS_INPUT_3__OUTPUT_9__IMAGE_384_INPUT_TOKENS_EACH
 MINIMAX_M3_BUDGET_RATE=CONSERVATIVE_GT512K_INPUT_4_2__OUTPUT_16_8__IMAGE_BILLED_AS_INPUT_TOKENS
 SHARED_HARD_CAP_CNY=100.00
-AUTOMATIC_SEMANTIC_RETRY=FORBIDDEN
-PROVIDER_LOCAL_BUDGET_BYPASS=FORBIDDEN
 ```
 
-DeepSeek's same-price/base-performance relationship to V4 Flash with multimodality added is a provider/Owner-level product fact, not a project Jianghe-fidelity `VERIFIED` result.
+Owner pricing fallback: exact rate unavailable -> conservative same-provider same-family/sibling-tier rate; choose more expensive applicable tier; no cache/off-peak/promo assumptions; unknown billing unit still fails closed.
+
+DeepSeek's same-price/base-performance relationship to V4 Flash plus added multimodality is provider/Owner-level product information, not project fidelity `VERIFIED` evidence.
 
 ## RMB100 funnel
 
@@ -110,17 +110,49 @@ UNUSED_BUDGET=REMAINS_UNSPENT
 NO_AUTO_EXTENSION=YES
 ```
 
-Stage A covers `OPERATIONAL_PROVIDER`, `SEMANTIC`, `VISUAL`, `STRUCTURED`, and `DUAL_INPUT`. Only providers passing the fixed qualification gate may receive Stage-B calls. Cost/latency are tie-breakers only after Jianghe fidelity. PnL/outcome evidence remains unavailable.
+No Stage-B call before Stage-A evidence/ranking is committed.
 
-## Current gates / next work
+## Current authorities
 
-1. Build and offline-test a deterministic Stage-A runner using only the existing non-outcome fixture corpus and the five already-approved qualification tracks.
-2. Check credential presence and existing balance/funding readiness without printing secrets.
-3. If any provider requires a new recharge/top-up, return the specific required amount to the Owner before funding.
-4. If credentials and existing balance/credits suffice, execute Stage A only under the CNY18 Stage-A envelope and shared CNY100 hard ledger.
-5. Write request/response/usage/fidelity evidence after every call; stop eliminated providers immediately.
-6. Commit Stage-A evidence/ranking before any Stage-B call.
-7. Outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access and real money remain separately locked.
+```text
+CURRENT_STATE_AUTHORITY=CURRENT_STATE.md
+PREEXECUTION_HANDOFF=docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md
+STAGE_A_PROTOCOL_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md
+PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
+PRE_SPEND_REPAIR_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md
+PROVIDER_PRICING_AUTHORITY=docs/evidence/JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json
+PROVIDER_PRICING_FALLBACK_AUTHORITY=docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md
+PROVIDER_PRICING_REFRESH_AUTHORITY=docs/reviews/DOMESTIC_PROVIDER_PRICING_REFRESH_V0_1.md
+DEEPSEEK_CORRECTION_AUTHORITY=docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md
+RMB100_FUNNEL_AUTHORITY=docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md
+OWNER_PAID_CALL_DECISION_AUTHORITY=docs/evidence/JIANGHE_OWNER_PAID_CALL_DECISION_20260824_V0_1.md
+CURRENT_PAID_CALL_AUTHORIZATION=docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json
+```
+
+## Exact next work
+
+1. Read `docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md`.
+2. Minimally generalize the spend runtime to the frozen closed-world `input_track` contract without weakening any BSP/RSP closure.
+3. Mechanically generate/freeze exact `JH-FIX-C-001` synthetic OHLC bars; derive structured observation and deterministic PNG from identical bars.
+4. Commit a machine-readable Stage-A plan binding all providers, slots, tracks, input identities, prompt/context/schema/config identities and budget envelopes before first paid call.
+5. Run focused adversarial tests + canonical full suite + diff hygiene offline.
+6. Check only credential presence and existing provider balance/credits without printing secrets.
+7. If any new recharge/top-up is required, return the exact amount to Owner; do not fund automatically.
+8. If existing credentials/funds suffice, execute Stage A only: max CNY18 / 15 calls, shared CNY100 ledger.
+9. Persist evidence after every call; stop eliminated providers; commit Stage-A ranking before Stage B.
+
+## Locks that remain closed
+
+```text
+OUTCOME_ACCESS=NO
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
+VALIDATION_ACCESS=LOCKED
+HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
+PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
+BROKER_ACCESS=NOT_AUTHORIZED
+REAL_MONEY=NOT_AUTHORIZED
+```
 
 ## Product behavior that must survive handoff
 
@@ -135,14 +167,13 @@ HISTORICAL_REPLAY_BASELINE=COMPLETED_1_MINUTE_BAR
 SUB_MINUTE_LIVE_IF_ADDED=SEPARATE_VERSION_NOT_1M_EQUIVALENT
 ```
 
-## Local worker relay facts
+## Worker/tool relay
 
 ```text
+TOOL_DECISION=USE_EXISTING
 WORKBUDDY=LOCAL_ONLY_NO_GITHUB_IN_CURRENT_SETUP
 DS_FLASH=AVAILABLE_FOR_ORDINARY_MECHANICAL_ENGINEERING_REVIEW_AND_GIT_INTEGRATION
 CODEX=RESERVE_FOR_HIGH_VALUE_ARCHITECTURE_RESEARCH_OR_COMPLEX_INTEGRATION
 PARALLEL_WORKERS_MUST_USE_DIFFERENT_WORKTREES=YES
 MAIN_INTEGRATION_LANE=ONE_ONLY
 ```
-
-Before every WorkBuddy prompt, tell the Owner the exact local folder/worktree and currently recommended model, then provide one complete copy-paste prompt.
