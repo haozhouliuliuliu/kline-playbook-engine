@@ -1,18 +1,21 @@
 # JIANGHE STAGE-A PRE-EXECUTION HANDOFF — 2026-08-24
 
 > Status: `CURRENT_PREEXECUTION_CHECKPOINT`
-> Purpose: durable handoff for a fresh project-brain conversation before the first paid Stage-A model call.
-> Canonical authority remains current GitHub `main`; this file is a compact execution checkpoint, not a substitute for `CURRENT_STATE.md` or `PROJECT_BRAIN_RUNTIME_BRIEF.md`.
+> Canonical authority remains current GitHub `main`. This file is the compact execution handoff immediately before credential/balance readiness and the first paid Stage-A call.
 
 ## 1. Current material checkpoint
 
 ```text
+LAST_MATERIAL_STATE_COMMIT=6f5c97d1d2d74096e873b1c4a73f2bda5cc21e22
 OWNER_PAID_CALL_DECISION=AUTHORIZED
 PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
+PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
 AUTHORIZED_PROVIDER_MODELS=KIMI:kimi-k3,DEEPSEEK:deepseek-v4-flash-vision-exp,MINIMAX:MiniMax-M3
 TOTAL_HARD_API_SPEND_CAP_CNY=100.00
 STAGE_A_MAX_SPEND_CNY=18.00
 STAGE_A_MAX_CALLS=15
+MAX_STAGE_A_CALLS_PER_PROVIDER=5
+MAX_STAGE_A_SPEND_PER_PROVIDER_CNY=6.00
 NEW_RECHARGE_OR_TOPUP=NOT_AUTHORIZED_WITHOUT_SPECIFIC_AMOUNT_OWNER_CONFIRMATION
 LIVE_CALLS=0
 PAID_SPEND_CNY=0
@@ -24,192 +27,154 @@ BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
 ```
 
-The paid-call authorization is already recorded in:
-
-- `docs/evidence/JIANGHE_OWNER_PAID_CALL_DECISION_20260824_V0_1.md`
-- `docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json`
-
-The current authorization expires at `2026-08-31T00:00:00+08:00` unless superseded.
-
 No provider/model is project `VERIFIED` or `ADOPTED` yet. `LIMIT-012` remains active until real-model Jianghe fidelity evidence exists.
 
-## 2. Owner-approved Stage-A research design
+## 2. Owner-approved Stage-A protocol is implemented and frozen
 
-Owner approved the Stage-A input/modality and synthetic visual-stimulus protocol on 2026-08-24.
-
-Binding authority:
+Binding design authority:
 
 - `docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md`
 
-The approval freezes:
+Frozen machine plan:
+
+- `docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json`
+- `plan_identity=7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4`
+
+Frozen design:
 
 ```text
 QUALIFICATION_FIXTURE=JH-FIX-C-001
 TRACK_ISOLATION=YES
 SYNTHETIC_OHLC_FROM_VISIBLE_INFORMATION_ONLY=YES
+SYNTHETIC_OHLC=FROZEN__36x5m__12x15m__3x1H
 SAME_UNDERLYING_OBSERVATION_FOR_VISUAL_STRUCTURED_DUAL=YES
 FREEZE_ALL_STIMULUS_IDENTITIES_BEFORE_FIRST_PAID_CALL=YES
 ```
 
-Stage-A content-track semantics:
+Tracks:
 
 ```text
+OPERATIONAL_PROVIDER = minimum governed smoke request for exact model/API/schema/usage/evidence verification
 SEMANTIC = fixture visible-information text only; no image; no structured market artifact
 VISUAL = deterministic K-line image only; no answer-bearing fixture prose; no structured artifact
 STRUCTURED = governed structured observation only; no image; no answer-bearing fixture prose
 DUAL_INPUT = same-observation deterministic image + governed structured observation
-OPERATIONAL_PROVIDER = minimum governed smoke request for exact model/API/schema/usage/evidence verification
 ```
 
-All three providers must receive semantically identical governed content for a given track; provider-specific syntax changes are allowed only where required by the API contract.
+All three providers receive semantically identical governed content for a given track; provider-specific syntax differs only where their API contracts require it.
 
-## 3. Synthetic visual stimulus boundary
+The frozen synthetic stimulus uses normalized prices around 100 and contains no real/canonical candidate market data, hidden future, PnL/outcome/result labels or answer-revealing chart labels. Visual, structured and dual tracks bind one identical underlying observation.
 
-Stage-A uses the already-existing non-outcome fixture:
+## 3. Persistent single-slot execution boundary is integrated
+
+Current implementation:
+
+- `src/jianghe_stage_a_runner.py`
+- `tools/run_jianghe_stage_a_slot.py`
+
+Operational guarantees:
 
 ```text
-FIXTURE_ID=JH-FIX-C-001
-PATTERN=FALSE_BREAKOUT__WICK_POKE_RETURN_NO_FOLLOW
+ONE_PROCESS=ONE_FROZEN_PROVIDER_SLOT
+FROZEN_PLAN_BYTE_REBUILD_CHECK=REQUIRED_BEFORE_CREDENTIAL_LOOKUP
+REQUEST_IDENTITY_PAYLOAD_STIMULUS_RATE_CARD_BOUNDS=EXACT_FROZEN_SLOT_MATCH_REQUIRED
+PERSISTENT_JOURNAL=HASH_CHAINED_JSONL
+NETWORK_ATTEMPT_STARTED=FSYNC_BEFORE_TRANSPORT_INVOCATION
+AUTOMATIC_RETRY_AFTER_NETWORK_START=FORBIDDEN
+STARTED_SLOT=PERMANENTLY_NON_RETRYABLE_AUTOMATICALLY
+CRASH_OR_INCOMPLETE_ATTEMPT=FULL_FROZEN_WORST_CASE_ACCOUNTING_ON_RESTART
+PERSISTED_CAPS=CNY100_PROJECT__CNY18_STAGE_A__CNY6_PROVIDER__15_TOTAL_CALLS__5_PROVIDER_CALLS
+STALE_EXECUTION_LOCK=FAIL_CLOSED__MANUAL_INSPECTION_REQUIRED
+PROVIDER_RESOLVED_MODEL_DRIFT=TERMINAL_NON_SCOREABLE__FULL_WORST_CASE_ACCOUNTED
+NORMALIZER_FAILURE=NON_SCOREABLE__NO_RETRY
+CREDENTIAL_SERIALIZATION=FORBIDDEN
+RUNTIME_STATE=.runtime/jianghe_stage_a__GIT_IGNORED
 ```
 
-The exact numeric OHLC bars have **not yet been frozen** at this checkpoint. They must be generated mechanically from only the fixture's visible information and source-authorized Jianghe semantics.
+No second evaluation stack was introduced.
 
-Hard constraints before first network call:
+## 4. Offline verification is complete
 
-1. normalized synthetic price scale around 100;
-2. no real/canonical candidate market data;
-3. no hidden-future information;
-4. no outcome/PnL/result access;
-5. encode only prior range + upper-boundary wick/poke + return/close into range + lack of follow-through;
-6. no chart labels that reveal the answer/family/trade direction;
-7. image and structured artifact must derive from the exact same synthetic bars;
-8. use the existing deterministic Jianghe visual renderer;
-9. freeze synthetic observation identity, structured identity, renderer/config identity and PNG SHA-256 before any paid call;
-10. once the first provider response exists, the bars/stimulus/prompt/expected/scoring rules may not be silently changed.
-
-Do not invent a different fixture or visually tune bars after seeing provider output.
-
-## 4. Engineering work still required before first paid call
-
-The current spend runtime was repaired for safe paid use but historically assumed visual + structured artifacts together. The approved Stage-A protocol requires a minimal closed-world generalization to explicit `input_track` semantics.
-
-Required implementation:
+Runner integration was verified before merge:
 
 ```text
-SEMANTIC -> require semantic fixture text; forbid visual/structured artifacts
-VISUAL -> require visual artifact; forbid answer-bearing fixture text and structured artifact
-STRUCTURED -> require structured artifact; forbid visual and answer-bearing fixture text
-DUAL_INPUT -> require visual + structured bound to the same observation
-OPERATIONAL_PROVIDER -> explicit frozen smoke-input contract
-UNKNOWN/MISMATCHED_COMBINATION -> FAIL_CLOSED
+STAGE_A_FOCUSED_TESTS=PASS__33_TESTS
+CANONICAL_FULL_SUITE=PASS__1262_TESTS__27_SKIPPED
+DIFF_HYGIENE=PASS
+LIVE_CALLS=0
+PAID_SPEND_CNY=0
 ```
 
-This change must preserve all already-closed pre-spend guarantees:
+Coverage includes plan-byte drift, wrong 96→36 stimulus materialization, journal tampering, stale locks, crash recovery, persistent cap accounting, duplicate frozen-slot prevention, missing-credential zero-network behavior, provider-model drift, malformed model output and terminal HTTP failure without retry.
 
-- content-addressed Jianghe context;
-- closed-world structured observation;
-- evaluator-side scoring authority;
-- exact provider/model authorization;
-- CNY100 shared executable hard cap;
-- no automatic semantic retry;
-- raw response / usage / identity evidence;
-- outcome firewall;
-- credential secrecy.
+## 5. Credential / balance readiness is now the only normal pre-network step
 
-## 5. Stage-A runner requirements
-
-Build one deterministic, resumable runner; do not create a second semantic/evaluation stack.
-
-Before the first paid request it must commit/freeze a machine-readable plan containing at least:
+The current project-brain execution environment was checked without printing secret values:
 
 ```text
-3 provider/model identities
-5 Stage-A call slots per provider
-track for every slot
-JH-FIX-C-001 for content slots
-synthetic observation identity
-visual artifact identity / PNG SHA-256 where applicable
-structured artifact identity where applicable
-prompt/context/schema identities
-inference configuration identities
-CNY6 per-provider Stage-A envelope
-CNY18 total Stage-A envelope
-CNY100 shared project hard cap
+MOONSHOT_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+DEEPSEEK_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+MINIMAX_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+CREDENTIAL_VALUE_EXPOSURE=NONE
+EXISTING_PROVIDER_BALANCE=NOT_VERIFIED__BLOCKED_BY_MISSING_CREDENTIALS
+NEW_RECHARGE_REQUIRED=NOT_DETERMINED
 ```
 
-Operational requirements:
+This does **not** imply any provider requires funding. It means this execution environment cannot authenticate the required read-only checks.
 
-- one shared persistent budget ledger across all providers;
-- evidence persisted after every call;
-- safe restart without repeating a successfully billable request;
-- no semantic retry;
-- provider eliminated immediately on fixed severe-failure conditions;
-- no Stage-B call until Stage-A evidence and ranking are committed.
-
-## 6. Provider/cost state
-
-Current conservative spend guards:
+Official read-only/non-billable readiness surfaces currently established:
 
 ```text
-KIMI_K3: input 20 CNY/MTok; output 100 CNY/MTok; 1024 input tokens/image
-DEEPSEEK_V4_FLASH_VISION_EXP: peak cache-miss input 3 CNY/MTok; output 9 CNY/MTok; <=384 input tokens/image
-MINIMAX_M3: conservative >512K tier input 4.2 CNY/MTok; output 16.8 CNY/MTok; image billed through input-token accounting
+KIMI=GET https://api.moonshot.cn/v1/users/me/balance
+DEEPSEEK=GET https://api.deepseek.com/user/balance
+MINIMAX_PAYGO=NO_DOCUMENTED_READ_ONLY_BALANCE_API_FOUND_IN_CURRENT_OFFICIAL_API_INDEX__KEEP_UNRESOLVED
+MINIMAX_TOKEN_PLAN=mmx quota EXISTS__NOT_EQUIVALENT_TO_PAYGO_BALANCE
 ```
 
-Owner pricing fallback rule is adopted:
+Never send a billable MiniMax model request merely to infer whether funds exist.
 
-- if exact price is unavailable, use same-provider same-family / sibling-tier public pricing conservatively;
-- choose the more expensive applicable tier;
-- do not assume cache, off-peak or promotional discounts;
-- an unknown billing unit/semantics still fails closed rather than being guessed.
+## 6. Exact next execution sequence
 
-DeepSeek Vision Exp remains an approved direct-visual candidate. Its same-price/base-performance relationship to V4 Flash plus added multimodality is provider/Owner-level product information; it is not project fidelity `VERIFIED` evidence.
+```text
+1. Fetch current main HEAD and refresh runtime brief/current state.
+2. Make the already-existing provider credentials available to the secure execution environment without committing or printing them.
+3. Rebuild the committed frozen plan and require byte equality before credential use.
+4. Query Kimi existing balance through the official read-only balance endpoint.
+5. Query DeepSeek existing balance through the official read-only balance endpoint.
+6. Resolve MiniMax pay-as-you-go funding only through an official non-billable account/quota surface; if none is machine-accessible, keep MiniMax balance readiness UNKNOWN rather than probing with a model call.
+7. If any NEW recharge/top-up is genuinely required, return provider + exact amount + reason to Owner and stop funding action.
+8. If existing credentials/funds suffice, execute Stage A only through the frozen single-slot runner: max 5 calls/provider, max CNY6/provider, max CNY18 Stage A, shared CNY100 total ledger.
+9. Persist evidence after every attempted slot; a durable NETWORK_ATTEMPT_STARTED event forbids automatic retry.
+10. Commit Stage-A evidence and ranking before any Stage-B call.
+```
 
-## 7. Existing verification baseline
-
-Pre-spend repair is already closed and integrated:
+## 7. Existing pre-spend closures remain binding
 
 ```text
 BSP-001..005=CLOSED
 RSP-001..002=CLOSED
 PRE_SPEND_REPAIR_REAUDIT=PASS
-FOCUSED_ADVERSARIAL=PASS__162_TESTS
-CANONICAL_FULL_SUITE=PASS__1226_TESTS__27_SKIPPED
+LIMIT_015=RESOLVED
+LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
 ```
 
-Provider pricing refresh was subsequently integrated and offline-gated. Do not reopen those findings absent concrete current-repo correctness evidence.
+Do not weaken content-addressed Jianghe context, closed-world observations, evaluator-side scoring, exact model authorization, budget caps, raw response/usage evidence, outcome firewall or credential secrecy.
 
-## 8. Exact next sequence for a fresh conversation
-
-```text
-1. Fetch current main HEAD.
-2. Read 00_READ_FIRST.md and PROJECT_BRAIN_RUNTIME_BRIEF.md.
-3. Refresh CURRENT_STATE.md.
-4. Read this handoff and JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md.
-5. Implement the minimal input_track runtime generalization.
-6. Mechanically generate and freeze the exact JH-FIX-C-001 synthetic OHLC stimulus + machine-readable Stage-A plan.
-7. Run focused adversarial tests + canonical full suite + diff hygiene.
-8. Check only credential presence and existing balance/credits without exposing secrets.
-9. If any new recharge/top-up is required, return the exact amount to Owner; do not fund automatically.
-10. If existing credentials/funds suffice, execute Stage A only: max 5 calls/provider, max CNY6/provider, max CNY18 Stage A, shared CNY100 total ledger.
-11. Persist evidence after every call and commit Stage-A ranking before any Stage-B activity.
-```
-
-## 9. Tool decision
+## 8. Tool decision
 
 ```text
 TOOL_DECISION=USE_EXISTING
 ```
 
-No new framework/tool is required for this work. Codex is optional only if the runtime generalization or integration becomes genuinely complex; it is not currently a blocker.
+No new framework is required. Credential availability is an execution-environment boundary, not a reason to introduce another provider abstraction or model-evaluation stack.
 
-## 10. Safety checkpoint
-
-At this handoff:
+## 9. Safety checkpoint
 
 ```text
+STAGE_A=AUTHORIZED__OFFLINE_PREEXECUTION_COMPLETE__BLOCKED_BEFORE_NETWORK_ON_CREDENTIAL_BALANCE_READINESS
 LIVE_CALLS=0
 PAID_SPEND_CNY=0
-STAGE_A=AUTHORIZED__PROTOCOL_APPROVED__NOT_STARTED
-OWNER_ACTION=NONE_NOW__RETURN_ONLY_FOR_SPECIFIC_NEW_RECHARGE_TOPUP_AMOUNT_OR_NEW_MAJOR_DECISION
+OUTCOME_ACCESS=NO
+BROKER_ACCESS=NOT_AUTHORIZED
+REAL_MONEY=NOT_AUTHORIZED
 ```

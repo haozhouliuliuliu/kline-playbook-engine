@@ -17,7 +17,7 @@ After takeover acceptance, before every substantive project reply:
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=3ef91f4a036383fa65c527c24eb4b04c9e48c5cd
+LAST_MATERIAL_STATE_COMMIT=6f5c97d1d2d74096e873b1c4a73f2bda5cc21e22
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -31,9 +31,9 @@ BSP_001_TO_005=CLOSED
 RSP_001_TO_002=CLOSED
 LIMIT_015=RESOLVED
 LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A_AUTHORIZED__INPUT_PROTOCOL_APPROVED__OFFLINE_PREEXECUTION_IMPLEMENTATION
-NEXT_NORMAL_PHASE=generalize_input_tracks_freeze_synthetic_stimulus_and_machine_plan_run_offline_tests_then_check_credentials_and_existing_balance_then_execute_stage_a_only
-OWNER_ACTION=NONE_NOW__RETURN_ONLY_IF_NEW_RECHARGE_OR_TOPUP_WITH_SPECIFIC_AMOUNT_IS_REQUIRED_OR_NEW_MAJOR_DECISION_ARISES
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A__OFFLINE_PREEXECUTION_COMPLETE__CREDENTIAL_BALANCE_READINESS
+NEXT_NORMAL_PHASE=secure_existing_credentials_then_read_only_balance_check_then_execute_stage_a_only_if_existing_funds_suffice
+OWNER_ACTION=NO_RECHARGE_DECISION_NOW__CURRENT_PROJECT_BRAIN_RUNTIME_HAS_NO_PROVIDER_CREDENTIALS
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -56,16 +56,22 @@ LIVE_CALLS=0
 PAID_SPEND_CNY=0
 ```
 
-## Owner-approved Stage-A protocol
+## Stage-A frozen execution state
 
 ```text
 STAGE_A_INPUT_PROTOCOL=OWNER_APPROVED__FROZEN_FOR_STAGE_A
 QUALIFICATION_FIXTURE=JH-FIX-C-001
 TRACK_ISOLATION=YES
-SYNTHETIC_OHLC_FROM_VISIBLE_INFORMATION_ONLY=YES
+SYNTHETIC_OHLC=FROZEN__36x5m__12x15m__3x1H
 SAME_UNDERLYING_OBSERVATION_FOR_VISUAL_STRUCTURED_DUAL=YES
-FREEZE_ALL_STIMULUS_IDENTITIES_BEFORE_FIRST_PAID_CALL=YES
-STAGE_A_STATUS=AUTHORIZED__INPUT_PROTOCOL_APPROVED__NOT_STARTED
+STAGE_A_FROZEN_PLAN_IDENTITY=7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4
+STAGE_A_PLAN_SLOTS=3_PROVIDERS_X_5_TRACKS=15
+STAGE_A_SINGLE_SLOT_RUNNER=INTEGRATED
+PERSISTENT_ATTEMPT_JOURNAL=HASH_CHAINED__FSYNC_BEFORE_NETWORK
+AUTOMATIC_RETRY_AFTER_NETWORK_START=FORBIDDEN
+CRASH_OR_INCOMPLETE_ATTEMPT=ACCOUNT_FULL_FROZEN_WORST_CASE
+PROVIDER_RESOLVED_MODEL_DRIFT=TERMINAL_NON_SCOREABLE
+STAGE_A_STATUS=AUTHORIZED__OFFLINE_PREEXECUTION_COMPLETE__NOT_STARTED
 ```
 
 Frozen tracks:
@@ -79,7 +85,38 @@ OPERATIONAL_PROVIDER=MINIMUM_GOVERNED_MODEL_API_SCHEMA_USAGE_EVIDENCE_SMOKE
 UNKNOWN_OR_MISMATCHED_MODALITY_COMBINATION=FAIL_CLOSED
 ```
 
-The exact numeric synthetic OHLC recipe is not yet frozen. It must be mechanically generated from `JH-FIX-C-001` visible information only, with normalized synthetic prices around 100, no real/canonical candidate market data, no hidden future, no PnL/outcome, no answer labels, and identical underlying bars for visual/structured/dual inputs.
+## Latest offline verification
+
+```text
+STAGE_A_FOCUSED_TESTS=PASS__33_TESTS
+CANONICAL_FULL_SUITE=PASS__1262_TESTS__27_SKIPPED
+DIFF_HYGIENE=PASS
+LIVE_CALLS=0
+PAID_SPEND_CNY=0
+```
+
+## Credential / balance readiness
+
+Checked without exposing values in the current project-brain execution environment:
+
+```text
+MOONSHOT_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+DEEPSEEK_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+MINIMAX_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+EXISTING_PROVIDER_BALANCE=NOT_VERIFIED__BLOCKED_BY_MISSING_CREDENTIALS
+NEW_RECHARGE_REQUIRED=NOT_DETERMINED
+```
+
+Current official read-only capability:
+
+```text
+KIMI_BALANCE=GET_/v1/users/me/balance__OFFICIAL_READ_ONLY_API
+DEEPSEEK_BALANCE=GET_/user/balance__OFFICIAL_READ_ONLY_API
+MINIMAX_PAYGO_BALANCE=NO_DOCUMENTED_READ_ONLY_API_FOUND_IN_CURRENT_OFFICIAL_API_INDEX__FAIL_CLOSED
+MINIMAX_TOKEN_PLAN_QUOTA=OFFICIAL_MMX_CLI_QUOTA__NOT_EQUIVALENT_TO_PAYGO_BALANCE
+```
+
+Never use a billable model request as a balance probe.
 
 ## Provider spend guards
 
@@ -94,8 +131,6 @@ SHARED_HARD_CAP_CNY=100.00
 ```
 
 Owner pricing fallback: exact rate unavailable -> conservative same-provider same-family/sibling-tier rate; choose more expensive applicable tier; no cache/off-peak/promo assumptions; unknown billing unit still fails closed.
-
-DeepSeek's same-price/base-performance relationship to V4 Flash plus added multimodality is provider/Owner-level product information, not project fidelity `VERIFIED` evidence.
 
 ## RMB100 funnel
 
@@ -118,28 +153,27 @@ No Stage-B call before Stage-A evidence/ranking is committed.
 CURRENT_STATE_AUTHORITY=CURRENT_STATE.md
 PREEXECUTION_HANDOFF=docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md
 STAGE_A_PROTOCOL_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md
+STAGE_A_FROZEN_PLAN_AUTHORITY=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
+STAGE_A_RUNNER=src/jianghe_stage_a_runner.py
+STAGE_A_SINGLE_SLOT_CLI=tools/run_jianghe_stage_a_slot.py
 PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
 PRE_SPEND_REPAIR_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md
 PROVIDER_PRICING_AUTHORITY=docs/evidence/JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json
 PROVIDER_PRICING_FALLBACK_AUTHORITY=docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md
-PROVIDER_PRICING_REFRESH_AUTHORITY=docs/reviews/DOMESTIC_PROVIDER_PRICING_REFRESH_V0_1.md
-DEEPSEEK_CORRECTION_AUTHORITY=docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md
 RMB100_FUNNEL_AUTHORITY=docs/reviews/JIANGHE_RMB100_REAL_MODEL_FIDELITY_FUNNEL_V0_1.md
-OWNER_PAID_CALL_DECISION_AUTHORITY=docs/evidence/JIANGHE_OWNER_PAID_CALL_DECISION_20260824_V0_1.md
 CURRENT_PAID_CALL_AUTHORIZATION=docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json
 ```
 
 ## Exact next work
 
-1. Read `docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md`.
-2. Minimally generalize the spend runtime to the frozen closed-world `input_track` contract without weakening any BSP/RSP closure.
-3. Mechanically generate/freeze exact `JH-FIX-C-001` synthetic OHLC bars; derive structured observation and deterministic PNG from identical bars.
-4. Commit a machine-readable Stage-A plan binding all providers, slots, tracks, input identities, prompt/context/schema/config identities and budget envelopes before first paid call.
-5. Run focused adversarial tests + canonical full suite + diff hygiene offline.
-6. Check only credential presence and existing provider balance/credits without printing secrets.
-7. If any new recharge/top-up is required, return the exact amount to Owner; do not fund automatically.
-8. If existing credentials/funds suffice, execute Stage A only: max CNY18 / 15 calls, shared CNY100 ledger.
-9. Persist evidence after every call; stop eliminated providers; commit Stage-A ranking before Stage B.
+1. Make existing provider credentials available to the secure execution environment without committing or printing them.
+2. Rebuild/verify the frozen Stage-A plan before credential use.
+3. Query Kimi and DeepSeek existing balance using only official read-only endpoints.
+4. Keep MiniMax pay-as-you-go balance readiness unresolved unless an official non-billable read-only surface is available; do not probe via a model request.
+5. If a **new** recharge/top-up is required, return the exact amount to Owner; do not fund automatically.
+6. If existing credentials/funds suffice, execute Stage A only through the single-slot runner: max CNY18 / 15 calls / CNY6 per provider / shared CNY100 ledger.
+7. Persist evidence after every attempted slot; no automatic retry after durable network-start.
+8. Commit Stage-A evidence/ranking before Stage B.
 
 ## Locks that remain closed
 

@@ -1,6 +1,6 @@
 # CURRENT_STATE
 
-> Mutable project-state authority. Keep this file current and compact. Current GitHub `main` is the only dynamic project fact source.
+> Mutable project-state authority. Current GitHub `main` is the only dynamic project fact source.
 
 ## Current phase
 
@@ -10,36 +10,65 @@ CURRENT_ADOPTED_ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER
 ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
-STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A_AUTHORIZED__INPUT_PROTOCOL_APPROVED__OFFLINE_PREEXECUTION_IMPLEMENTATION
-NEXT_NORMAL_PHASE=generalize_input_tracks_freeze_synthetic_stimulus_and_machine_plan_run_offline_tests_then_check_credentials_and_existing_balance_then_execute_stage_a_only
-OWNER_ACTION=NONE_NOW__RETURN_ONLY_IF_NEW_RECHARGE_OR_TOPUP_WITH_SPECIFIC_AMOUNT_IS_REQUIRED_OR_NEW_MAJOR_DECISION_ARISES
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A__OFFLINE_PREEXECUTION_COMPLETE__CREDENTIAL_BALANCE_READINESS
+NEXT_NORMAL_PHASE=secure_credential_presence_then_read_only_existing_balance_check_then_execute_stage_a_only_if_funds_suffice
+OWNER_ACTION=NO_NEW_RECHARGE_DECISION_NOW__EXISTING_CREDENTIALS_ARE_NOT_AVAILABLE_IN_CURRENT_PROJECT_BRAIN_RUNTIME
 TOOL_DECISION=USE_EXISTING
 ```
 
-## Current authoritative checkpoint
+## Current material checkpoint
 
-Durable fresh-conversation execution handoff:
+```text
+LAST_MATERIAL_STATE_COMMIT=6f5c97d1d2d74096e873b1c4a73f2bda5cc21e22
+STAGE_A_OFFLINE_PREEXECUTION=COMPLETE
+STAGE_A_FROZEN_PLAN_IDENTITY=7d6a1838962345c36dd3449f27adfd6c7d18c4988b5e3e2cb4bc65acb52b2fd4
+STAGE_A_FROZEN_STIMULUS=36x5m__12x15m__3x1H__JH-FIX-C-001
+STAGE_A_SINGLE_SLOT_RUNNER=INTEGRATED
+STAGE_A_PERSISTENT_HASH_CHAIN_JOURNAL=INTEGRATED
+STAGE_A_CRASH_RECOVERY_NO_RETRY=INTEGRATED
+STAGE_A_PROVIDER_MODEL_DRIFT_GUARD=INTEGRATED
+STAGE_A_RUNTIME_STATE=.runtime/jianghe_stage_a__GIT_IGNORED
+```
 
-- `docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md`
+Frozen plan authority:
 
-Owner-approved Stage-A research design:
+- `docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json`
+
+Execution boundary:
+
+- `src/jianghe_stage_a_runner.py`
+- `tools/run_jianghe_stage_a_slot.py`
+
+Owner-approved Stage-A protocol:
 
 - `docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULUS_PROTOCOL_OWNER_DECISION_V0_1.md`
 
-Paid-call decision and closed-world authorization:
+Current paid-call authorization:
 
 - `docs/evidence/JIANGHE_OWNER_PAID_CALL_DECISION_20260824_V0_1.md`
 - `docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json`
 
-## Pre-live / pre-spend repair state
+## Offline verification after runner integration
+
+PR #23 / merged tree verification:
+
+```text
+STAGE_A_FOCUSED_TESTS=PASS__33_TESTS
+CANONICAL_FULL_SUITE=PASS__1262_TESTS__27_SKIPPED
+DIFF_HYGIENE=PASS
+LIVE_CALLS=0
+PAID_SPEND_CNY=0
+```
+
+The focused suite includes frozen-plan byte equality, 36-bar frozen stimulus enforcement, journal tamper rejection, stale-lock fail-closed behavior, crash/incomplete-attempt worst-case accounting, persistent cap enforcement, duplicate-slot rejection, missing-credential zero-network behavior, provider-model drift handling, malformed-output NON_SCOREABLE handling and terminal HTTP failure with no automatic retry.
+
+## Pre-live / pre-spend closure state
 
 ```text
 PRE_LIVE_FIDELITY_GATE_REAUDIT=PASS
 PRIMARY_CURATED_QUALITY_FIXED_RUBRIC_REAUDIT=PASS
-MAIN_BASELINE_PORTABLE_CI=PASS_AFTER_REPAIR
-SOURCE_ONLY_GIT_BLOB_IDENTITY_CORRECTION=PASS
+SOURCE_ONLY_REPOSITORY_BYTE_AUTHORITY=EXACT_COMMITTED_GIT_BLOB_BYTES
 PRE_SPEND_REPAIR_REAUDIT=PASS
 BSP-001=CLOSED
 BSP-002=CLOSED
@@ -50,15 +79,6 @@ RSP-001=CLOSED
 RSP-002=CLOSED
 LIMIT_015=RESOLVED
 LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
-```
-
-Repair integration/evidence baseline:
-
-```text
-INTEGRATED_REPAIR_COMMIT=63428d4270a690e9fc660272c8220cb156b0fe52
-FOCUSED_ADVERSARIAL=PASS__162_TESTS
-CANONICAL_FULL_SUITE=PASS__1226_TESTS__27_SKIPPED
-DIFF_HYGIENE=PASS
 ```
 
 Do not reopen frozen findings without concrete current-repo correctness/evidence/security/cost evidence.
@@ -73,6 +93,10 @@ PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
 AUTHORIZED_PROVIDER_MODELS=KIMI:kimi-k3,DEEPSEEK:deepseek-v4-flash-vision-exp,MINIMAX:MiniMax-M3
 AUTHORIZED_API_SPEND_HARD_CAP_CNY=100.00
 AUTHORIZED_EXECUTION_ORDER=STAGE_A_FIRST
+STAGE_A_MAX_SPEND_CNY=18.00
+STAGE_A_MAX_CALLS=15
+MAX_STAGE_A_CALLS_PER_PROVIDER=5
+MAX_STAGE_A_SPEND_PER_PROVIDER_CNY=6.00
 AUTOMATIC_SEMANTIC_RETRY=FORBIDDEN
 AUTOMATIC_BUDGET_EXTENSION=FORBIDDEN
 NEW_RECHARGE_OR_TOPUP=NOT_AUTHORIZED_WITHOUT_SPECIFIC_AMOUNT_OWNER_CONFIRMATION
@@ -81,9 +105,9 @@ LIVE_CALLS=0
 PAID_SPEND_CNY=0
 ```
 
-Existing funded balance or granted credits may be consumed only through the authorized API funnel and remain subject to the same CNY100 hard cap. New recharge/prepaid purchase/subscription/payment action requires the exact amount to be returned to Owner first.
+Existing funded balance or granted credits may be consumed only through the authorized funnel. A new recharge/prepaid purchase/subscription/payment action still requires the exact amount to be returned to Owner first.
 
-## Owner-approved Stage-A input / visual protocol
+## Stage-A frozen input protocol
 
 ```text
 STAGE_A_INPUT_PROTOCOL=OWNER_APPROVED__FROZEN_FOR_STAGE_A
@@ -92,55 +116,64 @@ TRACK_ISOLATION=YES
 SYNTHETIC_OHLC_FROM_VISIBLE_INFORMATION_ONLY=YES
 SAME_UNDERLYING_OBSERVATION_FOR_VISUAL_STRUCTURED_DUAL=YES
 FREEZE_ALL_STIMULUS_IDENTITIES_BEFORE_FIRST_PAID_CALL=YES
-STAGE_A_STATUS=AUTHORIZED__INPUT_PROTOCOL_APPROVED__NOT_STARTED
+STAGE_A_STATUS=AUTHORIZED__OFFLINE_PREEXECUTION_COMPLETE__NOT_STARTED
 ```
 
-Track semantics:
+Frozen tracks:
 
 ```text
-SEMANTIC=fixture_visible_information_text_only__NO_IMAGE__NO_STRUCTURED
-VISUAL=DETERMINISTIC_KLINE_IMAGE_ONLY__NO_ANSWER_BEARING_FIXTURE_PROSE__NO_STRUCTURED
-STRUCTURED=GOVERNED_STRUCTURED_OBSERVATION_ONLY__NO_IMAGE__NO_ANSWER_BEARING_FIXTURE_PROSE
-DUAL_INPUT=SAME_OBSERVATION_IMAGE_PLUS_STRUCTURED__NO_ANSWER_BEARING_FIXTURE_PROSE
-OPERATIONAL_PROVIDER=MINIMUM_GOVERNED_SMOKE_FOR_MODEL_API_SCHEMA_USAGE_EVIDENCE
+OPERATIONAL_PROVIDER=MINIMUM_GOVERNED_MODEL_API_SCHEMA_USAGE_EVIDENCE_SMOKE
+SEMANTIC=VISIBLE_INFORMATION_TEXT_ONLY__NO_IMAGE__NO_STRUCTURED
+VISUAL=DETERMINISTIC_KLINE_IMAGE_ONLY__NO_ANSWER_BEARING_PROSE__NO_STRUCTURED
+STRUCTURED=GOVERNED_STRUCTURED_OBSERVATION_ONLY__NO_IMAGE__NO_ANSWER_BEARING_PROSE
+DUAL_INPUT=SAME_OBSERVATION_IMAGE_PLUS_STRUCTURED__NO_ANSWER_BEARING_PROSE
 UNKNOWN_OR_MISMATCHED_MODALITY_COMBINATION=FAIL_CLOSED
 ```
 
-The exact numeric synthetic OHLC bars are **not yet frozen**. They must be mechanically generated from `JH-FIX-C-001` visible information only, on a normalized synthetic scale around 100, with no real market data, hidden future, outcome/PnL or answer labels. Image and structured observation must derive from identical bars. Freeze all identities/hashes before first network call.
+The exact numeric stimulus is now frozen and deterministically rebuildable. It uses normalized synthetic prices around 100, no real/canonical candidate market data, no hidden future, no PnL/outcome/result labels, and one identical underlying observation for visual/structured/dual tracks.
 
 ## Provider / pricing state
 
 ```text
-OWNER_CONFIRMED_PROVIDER_IMPLEMENTATION_TARGET_SET=KIMI_K3,DEEPSEEK_V4_FLASH_VISION_EXP,MINIMAX_M3
 KIMI_K3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__CANDIDATE__NOT_VERIFIED__NOT_ADOPTED
 DEEPSEEK_V4_FLASH_VISION_EXP=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__EXPERIMENTAL__CANDIDATE__NOT_VERIFIED__NOT_ADOPTED
 MINIMAX_M3=TRANSPORT_IMPLEMENTED__RATE_GUARD_READY__DIRECT_VISUAL__CANDIDATE__NOT_VERIFIED__NOT_ADOPTED
 FINAL_APPROVED_PROVIDER_SET=NOT_DECIDED
 ```
 
-Conservative budget rates:
-
-```text
-KIMI_K3=INPUT_20_CNY_PER_MTOK__OUTPUT_100__IMAGE_1024_INPUT_TOKENS_EACH
-DEEPSEEK_V4_FLASH_VISION_EXP=PEAK_CACHE_MISS_INPUT_3__OUTPUT_9__IMAGE_384_INPUT_TOKENS_EACH
-MINIMAX_M3=CONSERVATIVE_GT512K_INPUT_4_2__OUTPUT_16_8__IMAGE_BILLED_AS_INPUT_TOKENS
-```
-
-Owner pricing fallback rule:
-
-- exact rate unavailable -> same-provider same-family/sibling-tier public rate may be used conservatively;
-- choose the more expensive applicable tier;
-- no cache/off-peak/promotional assumptions;
-- unknown billing unit/semantics still fails closed.
-
-DeepSeek Vision Exp direct visual capability and same-price/base-performance relationship to V4 Flash plus added multimodality are provider/Owner-level facts, not project Jianghe-fidelity `VERIFIED` results.
-
-Pricing authorities:
+Conservative budget rates remain governed by:
 
 - `docs/evidence/JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json`
 - `docs/reviews/PROVIDER_PRICING_FALLBACK_POLICY_V0_1.md`
 - `docs/reviews/DOMESTIC_PROVIDER_PRICING_REFRESH_V0_1.md`
 - `docs/reviews/DEEPSEEK_V4_FLASH_VISION_EXP_FIRST_PARTY_CORRECTION_V0_1.md`
+
+No cache/off-peak/promotional assumption is permitted. Unknown billing semantics fail closed.
+
+## Credential / existing-balance readiness
+
+Current project-brain execution environment was checked without printing secret values:
+
+```text
+MOONSHOT_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+DEEPSEEK_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+MINIMAX_API_KEY=NOT_AVAILABLE_IN_CURRENT_RUNTIME
+CREDENTIAL_VALUE_EXPOSURE=NONE
+EXISTING_PROVIDER_BALANCE=NOT_VERIFIED__BLOCKED_BY_MISSING_CREDENTIALS
+NEW_RECHARGE_REQUIRED=NOT_DETERMINED
+STAGE_A_NETWORK_EXECUTION=BLOCKED_BEFORE_FIRST_REQUEST
+```
+
+Read-only balance capability:
+
+```text
+KIMI=OFFICIAL_READ_ONLY_BALANCE_API_AVAILABLE__GET_/v1/users/me/balance
+DEEPSEEK=OFFICIAL_READ_ONLY_BALANCE_API_AVAILABLE__GET_/user/balance
+MINIMAX_PAYGO=NO_DOCUMENTED_READ_ONLY_BALANCE_API_FOUND_IN_CURRENT_OFFICIAL_API_INDEX__FAIL_CLOSED
+MINIMAX_TOKEN_PLAN=OFFICIAL_CLI_QUOTA_EXISTS_BUT_IS_NOT_EQUIVALENT_TO_PAYGO_BALANCE
+```
+
+Absence of credentials is **not** evidence that a recharge is required. No balance probe may be implemented by sending a billable model request.
 
 ## RMB100 fidelity funnel
 
@@ -159,34 +192,20 @@ NO_AUTO_EXTENSION=YES
 
 No Stage-B call is permitted until Stage-A evidence and ranking are committed.
 
-## Jianghe knowledge / PRIMARY
+## Jianghe knowledge / product locks
 
 ```text
 JIANGHE_SOURCE_DISTILLATION=V1_1_EXHAUSTIVE_SECOND_PASS_COMPLETE
-SOURCE_ONLY_REPOSITORY_BYTE_AUTHORITY=EXACT_COMMITTED_GIT_BLOB_BYTES
 KNOWLEDGE_PACK_VERSION=JIANGHE_V1_1
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
 JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36
 JIANGHE_PRIMARY_CLAIM_MANIFEST_RECORDS=352
-JIANGHE_PRIMARY_V0_5_IDENTITY_REBIND=COMPLETE__SEMANTIC_CHANGE_COUNT_0
 JIANGHE_PRIMARY_PROJECT_BRAIN_ACCEPTED_READY_COUNT=340
 JIANGHE_PRIMARY_REGISTRY_STOP_COUNT=12
 JIANGHE_PRIMARY_ELIGIBLE=NO
 JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-```
-
-## Product / safety boundary
-
-```text
-AI_ROLE=JIANGHE_STYLE_MARKET_READING_AND_TRADE_DECISION
-MECHANICAL_ROLE=HARD_RISK_ORDER_EXECUTION_RECONCILIATION_SAFETY
-AI_ALLOWED_FAMILIES=A,B,C,D,NONE
-UNKNOWN_OR_UNFAMILIAR=WAIT_OR_NO_TRADE
-AI_MAY_NOT_CHANGE_HARD_RISK_LIMITS=YES
-INITIAL_MODEL_SELECTION_TARGET=JIANGHE_FIDELITY_NOT_PROFIT
-REAL_MODEL_SELECTION_MUST_INCLUDE_VISUAL_KLINE_EYES=YES
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 OUTCOME_ACCESS=NO
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
 VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
 HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
 PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
@@ -194,30 +213,18 @@ BROKER_ACCESS=NOT_AUTHORIZED
 REAL_MONEY=NOT_AUTHORIZED
 ```
 
-Canonical historical corpus remains locked from candidate use:
-
-```text
-CANONICAL_PRODUCTS=cu,al,ni,au,ag,rb
-CANONICAL_COVERAGE=2024-01-01..2025-12-31
-CANONICAL_GRANULARITY=1-minute
-CANONICAL_CORPUS_IDENTITY=1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8
-CANDIDATE_USE_OF_CURRENT_CANONICAL_CORPUS=NOT_AUTHORIZED
-PERFORMANCE_RESEARCH_STARTED=NO
-```
-
 ## Exact next work
 
-1. Read `docs/reviews/JIANGHE_STAGE_A_PREEXECUTION_HANDOFF_2026-08-24.md`.
-2. Minimally generalize spend runtime to the frozen closed-world `input_track` contract without weakening existing BSP closures.
-3. Generate the exact deterministic `JH-FIX-C-001` synthetic OHLC bars from visible information only; create structured observation and PNG from identical bars.
-4. Freeze a machine-readable Stage-A plan with all request/input/prompt/context/schema/config/budget identities before first paid call.
-5. Run focused adversarial tests + canonical full suite + diff hygiene offline.
-6. Check only credential presence and existing balance/credits without printing secrets.
-7. If new recharge/top-up is required, return the exact amount to Owner and stop funding action.
-8. If existing credentials/funds suffice, execute Stage A only under max CNY18 / 15 calls and shared CNY100 ledger.
-9. Persist evidence after every call; stop eliminated provider immediately; commit Stage-A evidence/ranking before any Stage-B activity.
+1. Make the already-existing provider credentials available to the secure execution environment without committing or printing them.
+2. Rebuild and verify the frozen plan before any credential use.
+3. Query Kimi and DeepSeek existing balance through their official read-only balance APIs only.
+4. For MiniMax pay-as-you-go, use only an official non-billable account/quota surface; if no machine-readable read-only surface is available, keep readiness unresolved rather than probing with a model call.
+5. If any **new** recharge/top-up is actually required, return the exact amount to Owner and stop.
+6. If existing credentials/funds suffice, execute Stage A one frozen slot at a time under the persistent journal: max CNY18 / 15 calls / CNY6 per provider / shared CNY100 cap.
+7. Persist evidence after every attempted slot; never automatically retry a started slot.
+8. Commit Stage-A evidence/ranking before any Stage-B activity.
 
-At this state checkpoint:
+At this checkpoint:
 
 ```text
 LIVE_CALLS=0
