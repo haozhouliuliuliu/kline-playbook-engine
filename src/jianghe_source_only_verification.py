@@ -11,6 +11,7 @@ import csv
 import io
 import json
 import re
+import shutil
 import subprocess
 from hashlib import sha256
 from pathlib import Path
@@ -35,6 +36,7 @@ SESSION_ID = "JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_GATE_V0_1_20260823"
 MODEL_IDENTITY = "CODEX_GPT_5_DESKTOP_AGENT__MODEL_VERSION_NOT_EXPOSED"
 PROMPT_SPEC_IDENTITY = "JIANGHE_V1_1_SOURCE_ONLY_VERIFICATION_GATE_V0_1"
 TOOL_RETRIEVAL_MODE = "REPOSITORY_BOUND_JIANGHE_SOURCE_MANIFESTS_ONLY__NO_MARKET_OR_OUTCOME_TOOLS"
+_GIT_EXECUTABLE = shutil.which("git") or "git"
 
 
 def _canonical_hash(value: object) -> str:
@@ -63,7 +65,7 @@ def _repository_blob_bytes(path: Path) -> bytes:
         raise ValueError(f"repository material missing: {_relative(path)}")
     relative = _relative(path)
     process = subprocess.run(
-        ["git", "show", f"HEAD:{relative}"],
+        [_GIT_EXECUTABLE, "show", f"HEAD:{relative}"],
         cwd=ROOT,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

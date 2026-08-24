@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from src.jianghe_prespend_runtime import HttpResponse, KIMI_K3_SPEC
+from src.jianghe_source_only_verification import _repository_blob_bytes
 from src.jianghe_stage_a_runner import (
     CredentialUnavailableError,
     ExecutionLockError,
@@ -17,10 +18,12 @@ from src.jianghe_stage_a_runner import (
     FrozenPlanMismatchError,
     JournalIntegrityError,
     JournalSnapshot,
+    PROMPT_PACKAGE_PATH,
     SlotAlreadyAttemptedError,
     StageAExecutionJournal,
     StageAExecutionLock,
     VerifiedFrozenStageAPlan,
+    _prompt_strings,
     enforce_persistent_caps,
     execute_frozen_slot,
     prepare_frozen_slot,
@@ -99,6 +102,24 @@ class FrozenPlanGuardTests(unittest.TestCase):
                 committed_path=FROZEN_PLAN_PATH,
                 deterministic_rebuild_bytes=rebuilt,
             )
+
+    def test_crlf_worktree_cannot_redefine_prompt_repository_byte_authority(self) -> None:
+        plan = _plan()
+        committed_blob = _repository_blob_bytes(PROMPT_PACKAGE_PATH)
+        crlf_worktree_bytes = committed_blob.replace(b"\n", b"\r\n")
+        self.assertNotEqual(committed_blob, crlf_worktree_bytes)
+
+        with patch(
+            "src.jianghe_stage_a_runner._repository_blob_bytes",
+            return_value=committed_blob,
+        ) as repository_blob_bytes, patch.object(
+            Path, "read_bytes", return_value=crlf_worktree_bytes
+        ):
+            system_prompt, decision_prompt = _prompt_strings(plan)
+
+        repository_blob_bytes.assert_called_once_with(PROMPT_PACKAGE_PATH)
+        self.assertTrue(system_prompt)
+        self.assertTrue(decision_prompt)
 
     def test_runtime_must_materialize_frozen_36_bar_stimulus(self) -> None:
         plan = _plan()
