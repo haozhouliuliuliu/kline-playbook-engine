@@ -1,0 +1,44 @@
+name: Stage-A Offline CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  offline-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MOONSHOT_API_KEY: ""
+      DEEPSEEK_API_KEY: ""
+      MINIMAX_API_KEY: ""
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: python -m compileall -q src tools tests
+      - name: Check committed Stage-A frozen plan
+        run: python tools/build_jianghe_stage_a_frozen_plan.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
+      - name: Rebuild Stage-A frozen plan independently
+        run: python tools/build_jianghe_stage_a_frozen_plan.py --output /tmp/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
+      - name: Upload rebuilt frozen plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-a-frozen-plan-rebuild
+          path: /tmp/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
+          if-no-files-found: error
+      - name: Stage-A focused tests
+        run: python -m unittest tests.test_jianghe_stage_a_runtime tests.test_jianghe_stage_a_frozen_stimulus -v
+      - name: Canonical full suite
+        run: python -m unittest discover -s tests -v
+      - name: Diff hygiene
+        run: git diff --check origin/main...HEAD
