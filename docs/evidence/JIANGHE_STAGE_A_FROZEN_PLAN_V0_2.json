@@ -22,11 +22,12 @@
   "future_executable_call_count": 14,
   "max_calls_per_provider": 5,
   "max_output_tokens_per_call": 1024,
+  "max_total_stage_a_calls": 15,
   "outcome_access": "NO",
   "owner_protocol_authority_sha256": "9ba9351dfd40f02984bb19c5403e6a4082c84e1822db46fca2c261f60f706c2c",
   "paid_call_authorization_sha256": "768ee27973c532e59b046a1c2bdde35a78b499a917cad22e8692b79579f62de2",
   "plan_as_of": "2026-08-24T09:14:00+00:00",
-  "plan_identity": "12ca94a99c295873eb1fbe67398f453b5b41afa25eda3db060c805dd9aec848f",
+  "plan_identity": "9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913",
   "project_shared_hard_cap_cny": "100",
   "prompt_identities": {
     "context_selection_identity": "5fc4c18008cfbdff739d1f4e243c24cdb408053b60eb9cab55548b6eb86823c7",
