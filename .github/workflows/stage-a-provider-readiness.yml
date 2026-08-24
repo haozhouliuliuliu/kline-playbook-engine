@@ -1,0 +1,87 @@
+name: Stage-A Provider Readiness
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stage-a-provider-readiness
+  cancel-in-progress: false
+
+jobs:
+  readiness:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: stage-a-readiness
+    env:
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen plan
+        run: python tools/build_jianghe_stage_a_frozen_plan.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
+
+      - name: Run non-billable provider readiness
+        id: readiness
+        shell: bash
+        run: |
+          set +e
+          python tools/check_jianghe_provider_readiness.py > /tmp/stage-a-provider-readiness.json
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          test -s /tmp/stage-a-provider-readiness.json
+
+      - name: Validate sanitized readiness artifact
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('/tmp/stage-a-provider-readiness.json')
+          payload = json.loads(path.read_text(encoding='utf-8'))
+          if payload.get('model_endpoint_called') is not False:
+              raise SystemExit('readiness artifact claims a model endpoint was called')
+          if payload.get('credential_value_exposed') is not False:
+              raise SystemExit('readiness artifact claims credential exposure')
+          providers = payload.get('providers')
+          if not isinstance(providers, list) or len(providers) != 3:
+              raise SystemExit('readiness artifact must contain exactly three providers')
+          for item in providers:
+              if item.get('model_endpoint_called') is not False:
+                  raise SystemExit('provider readiness record claims a model endpoint was called')
+              if item.get('credential_value_exposed') is not False:
+                  raise SystemExit('provider readiness record claims credential exposure')
+          statuses = ', '.join(f"{item.get('provider_id')}={item.get('status')}" for item in providers)
+          print(f'Stage-A readiness statuses: {statuses}')
+          PY
+
+      - name: Upload sanitized readiness report
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-a-provider-readiness
+          path: /tmp/stage-a-provider-readiness.json
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Preserve fail-closed readiness result
+        if: steps.readiness.outputs.exit_code != '0'
+        run: |
+          echo "Provider readiness is not fully resolved from existing funds. No model call was made."
+          exit 2
