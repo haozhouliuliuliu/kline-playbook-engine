@@ -1,0 +1,56 @@
+name: Stage-A Live State Init Once
+
+on:
+  push:
+    branches:
+      - integration/stage-a-live-state-init-v01
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stage-a-live-state-init-once
+  cancel-in-progress: false
+
+jobs:
+  initialize-empty-state:
+    if: github.ref == 'refs/heads/integration/stage-a-live-state-init-v01'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact init branch
+        uses: actions/checkout@v4
+        with:
+          ref: integration/stage-a-live-state-init-v01
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify frozen plan
+        run: python tools/build_jianghe_stage_a_frozen_plan.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
+      - name: Initialize and verify empty remote Stage-A state
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from src.jianghe_stage_a_evidence import load_verified_frozen_plan
+          from src.jianghe_stage_a_remote_ledger import DEFAULT_REMOTE_REF, GitRemoteLedgerStore
+
+          plan = load_verified_frozen_plan()
+          store = GitRemoteLedgerStore(repository=Path('.'), remote='origin')
+          head = store.initialize_empty_state(plan)
+          observed = store.load(plan)
+          if observed.head_sha != head:
+              raise SystemExit('remote Stage-A state head verification failed')
+          if observed.ledger.events:
+              raise SystemExit('remote Stage-A state is not empty after initialization')
+          if observed.ledger.snapshot().total_attempts != 0:
+              raise SystemExit('remote Stage-A state contains an attempted slot')
+          print(f'REMOTE_STATE_REF={DEFAULT_REMOTE_REF}')
+          print(f'REMOTE_STATE_HEAD={head}')
+          print('REMOTE_STATE_EMPTY=YES')
+          print('PROVIDER_CREDENTIALS_INJECTED=NO')
+          print('LIVE_CALLS=0')
+          print('PAID_SPEND_CNY=0')
+          PY
