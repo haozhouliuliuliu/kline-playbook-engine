@@ -30,6 +30,7 @@ from src.jianghe_prespend_runtime import (
     load_owner_paid_call_authorization,
 )
 from src.jianghe_response_normalizer import JiangheResponseNormalizer
+from src.jianghe_source_only_verification import _repository_blob_bytes
 from src.jianghe_stage_a_frozen_stimulus import build_frozen_stage_a_stimulus
 from src.jianghe_stage_a_runtime import (
     STAGE_A_MAX_CALLS_PER_PROVIDER,
@@ -167,7 +168,7 @@ class VerifiedFrozenStageAPlan:
     def load(
         cls, *, committed_path: Path, deterministic_rebuild_bytes: bytes
     ) -> "VerifiedFrozenStageAPlan":
-        committed = committed_path.read_bytes()
+        committed = _repository_blob_bytes(committed_path)
         if committed != deterministic_rebuild_bytes:
             raise FrozenPlanMismatchError(
                 "committed Stage-A frozen plan differs from deterministic rebuild"
@@ -393,6 +394,11 @@ class StageAExecutionJournal:
             provider_attempts=dict(provider_attempts),
         )
 
+    def verified_events(self) -> tuple[Mapping[str, object], ...]:
+        """Return journal events only after the existing integrity checks pass."""
+
+        return tuple(dict(event) for event in self._read_events())
+
     def _append(self, event: dict[str, object]) -> dict[str, object]:
         existing = self._read_events()
         event["sequence"] = len(existing) + 1
@@ -553,7 +559,7 @@ def _find_provider_spec(provider_id: str) -> ProviderSpec:
 
 
 def _prompt_strings(plan: VerifiedFrozenStageAPlan) -> tuple[str, str]:
-    blob = PROMPT_PACKAGE_PATH.read_bytes()
+    blob = PROMPT_PACKAGE_PATH.read_bytes().replace(b"\r\n", b"\n")
     if sha256(blob).hexdigest() != plan.payload.get("prompt_package_blob_sha256"):
         raise FrozenPlanMismatchError("prompt package bytes differ from the frozen plan")
     try:

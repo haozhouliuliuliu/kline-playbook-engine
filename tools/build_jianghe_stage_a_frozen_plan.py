@@ -53,7 +53,7 @@ def build_frozen_plan() -> dict[str, object]:
         raise ValueError("Stage-A frozen semantic anchor drifted")
 
     source_path = ROOT / FROZEN_STIMULUS_SOURCE_RELATIVE_PATH
-    source_bytes = source_path.read_bytes()
+    repository_source_bytes = base._repository_blob_bytes(source_path)
     stimulus.update(
         {
             "window_version": FROZEN_STAGE_A_WINDOW_VERSION,
@@ -71,7 +71,7 @@ def build_frozen_plan() -> dict[str, object]:
                 "other_5m_highs_below": "102",
             },
             "recipe_source_path": FROZEN_STIMULUS_SOURCE_RELATIVE_PATH,
-            "recipe_source_sha256": sha256(source_bytes).hexdigest(),
+            "recipe_source_sha256": sha256(repository_source_bytes).hexdigest(),
             "recipe_materialization": "DETERMINISTIC_COMMITTED_SOURCE_PLUS_RECIPE_IDENTITY",
         }
     )
