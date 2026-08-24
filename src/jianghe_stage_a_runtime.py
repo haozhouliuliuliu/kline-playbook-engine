@@ -46,7 +46,6 @@ from src.jianghe_response_normalizer import RESPONSE_SCHEMA_VERSION
 from src.jianghe_source_only_verification import ROOT as REPOSITORY_ROOT, _repository_blob_bytes
 from src.jianghe_visual_renderer import (
     JiangheVisualRenderer,
-    RENDERER_VERSION,
     RendererConfig,
     VisualObservationSpec,
     VisualPanel,
@@ -65,7 +64,7 @@ STAGE_A_MAX_CALLS_PER_PROVIDER = 5
 SYNTHETIC_TIMEZONE = ZoneInfo("Asia/Shanghai")
 SYNTHETIC_START = datetime(2026, 8, 1, 9, 0, tzinfo=SYNTHETIC_TIMEZONE)
 SYNTHETIC_PRODUCT = "SYNTH"
-SYNTHETIC_CONTRACT = "SYNTH.JH-C001"
+SYNTHETIC_CONTRACT = "SYNTH.MKT001"
 FIDELITY_CORPUS_PATH = (
     REPOSITORY_ROOT / "docs" / "evidence" / "JIANGHE_AI_FIDELITY_FIXTURES_V0_1.json"
 )
@@ -382,7 +381,7 @@ def build_stage_a_stimulus() -> StageAStimulus:
     )
     visual = VisualInputArtifact(
         source_observation_identity=observation.identity.identity,
-        renderer_identity=RENDERER_VERSION,
+        renderer_identity=rendered.renderer_config_identity,
         png_bytes=rendered.png_bytes,
     )
     recipe_identity = _hash(
@@ -495,7 +494,6 @@ class StageAInputRequest:
         payload: dict[str, object] = {
             "jianghe_context": self.context.model_payload(),
             "decision_instruction": self.decision_prompt,
-            "stage_a_input_track": self.input_track.value,
         }
         if self.input_track is StageAInputTrack.SEMANTIC:
             payload["visible_information"] = qualification_visible_information()
