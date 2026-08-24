@@ -17,7 +17,7 @@ After takeover acceptance, before every substantive project reply:
 ## Current live pointer
 
 ```text
-LAST_MATERIAL_STATE_COMMIT=6f5c97d1d2d74096e873b1c4a73f2bda5cc21e22
+LAST_MATERIAL_STATE_COMMIT=744c79dab19d8ac5ddb4e941dcd24bee4fa82895
 PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
@@ -31,8 +31,8 @@ BSP_001_TO_005=CLOSED
 RSP_001_TO_002=CLOSED
 LIMIT_015=RESOLVED
 LIMIT_012=ACTIVE__REAL_MODEL_JIANGHE_FIDELITY_NOT_YET_RUN
-CURRENT_WORK_PACKAGE=RMB100_STAGE_A__OFFLINE_PREEXECUTION_COMPLETE__CREDENTIAL_BALANCE_READINESS
-NEXT_NORMAL_PHASE=secure_existing_credentials_then_read_only_balance_check_then_execute_stage_a_only_if_existing_funds_suffice
+CURRENT_WORK_PACKAGE=RMB100_STAGE_A__CREDENTIAL_EXISTING_BALANCE_READINESS
+NEXT_NORMAL_PHASE=secure_existing_credentials_then_run_non_billable_readiness_checker_then_execute_stage_a_only_if_existing_funds_suffice
 OWNER_ACTION=NO_RECHARGE_DECISION_NOW__CURRENT_PROJECT_BRAIN_RUNTIME_HAS_NO_PROVIDER_CREDENTIALS
 TOOL_DECISION=USE_EXISTING
 ```
@@ -71,6 +71,7 @@ PERSISTENT_ATTEMPT_JOURNAL=HASH_CHAINED__FSYNC_BEFORE_NETWORK
 AUTOMATIC_RETRY_AFTER_NETWORK_START=FORBIDDEN
 CRASH_OR_INCOMPLETE_ATTEMPT=ACCOUNT_FULL_FROZEN_WORST_CASE
 PROVIDER_RESOLVED_MODEL_DRIFT=TERMINAL_NON_SCOREABLE
+PROVIDER_BALANCE_READINESS_CHECKER=INTEGRATED__NON_BILLABLE
 STAGE_A_STATUS=AUTHORIZED__OFFLINE_PREEXECUTION_COMPLETE__NOT_STARTED
 ```
 
@@ -88,8 +89,8 @@ UNKNOWN_OR_MISMATCHED_MODALITY_COMBINATION=FAIL_CLOSED
 ## Latest offline verification
 
 ```text
-STAGE_A_FOCUSED_TESTS=PASS__33_TESTS
-CANONICAL_FULL_SUITE=PASS__1262_TESTS__27_SKIPPED
+STAGE_A_FOCUSED_TESTS=PASS__44_TESTS
+CANONICAL_FULL_SUITE=PASS__1273_TESTS__27_SKIPPED
 DIFF_HYGIENE=PASS
 LIVE_CALLS=0
 PAID_SPEND_CNY=0
@@ -107,16 +108,21 @@ EXISTING_PROVIDER_BALANCE=NOT_VERIFIED__BLOCKED_BY_MISSING_CREDENTIALS
 NEW_RECHARGE_REQUIRED=NOT_DETERMINED
 ```
 
-Current official read-only capability:
+Integrated readiness behavior:
 
 ```text
-KIMI_BALANCE=GET_/v1/users/me/balance__OFFICIAL_READ_ONLY_API
-DEEPSEEK_BALANCE=GET_/user/balance__OFFICIAL_READ_ONLY_API
-MINIMAX_PAYGO_BALANCE=NO_DOCUMENTED_READ_ONLY_API_FOUND_IN_CURRENT_OFFICIAL_API_INDEX__FAIL_CLOSED
-MINIMAX_TOKEN_PLAN_QUOTA=OFFICIAL_MMX_CLI_QUOTA__NOT_EQUIVALENT_TO_PAYGO_BALANCE
+READINESS_CHECKER=src/jianghe_provider_readiness.py
+READINESS_CLI=tools/check_jianghe_provider_readiness.py
+KIMI_BALANCE=OFFICIAL_GET_/v1/users/me/balance_ONLY
+DEEPSEEK_BALANCE=OFFICIAL_GET_/user/balance_ONLY
+MINIMAX_PAYGO_BALANCE=NO_VERIFIED_READ_ONLY_API__UNKNOWN_WITH_ZERO_NETWORK
+MISSING_CREDENTIAL=ZERO_NETWORK
+BALANCE_REQUEST_RETRY=FORBIDDEN
+MODEL_ENDPOINT_AS_BALANCE_PROBE=FORBIDDEN
+DEEPSEEK_NON_CNY_ONLY=UNKNOWN__NO_FX_GUESS
+CREDENTIAL_VALUE_OUTPUT=FORBIDDEN
+FUNDING_ACTION=NONE
 ```
-
-Never use a billable model request as a balance probe.
 
 ## Provider spend guards
 
@@ -156,6 +162,8 @@ STAGE_A_PROTOCOL_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_INPUT_AND_VISUAL_STIMULU
 STAGE_A_FROZEN_PLAN_AUTHORITY=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_1.json
 STAGE_A_RUNNER=src/jianghe_stage_a_runner.py
 STAGE_A_SINGLE_SLOT_CLI=tools/run_jianghe_stage_a_slot.py
+PROVIDER_READINESS_CHECKER=src/jianghe_provider_readiness.py
+PROVIDER_READINESS_CLI=tools/check_jianghe_provider_readiness.py
 PRE_SPEND_FINDINGS_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_DOUBLE_AUDIT_CONSOLIDATED_FINDINGS_V0_1.md
 PRE_SPEND_REPAIR_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_PRE_SPEND_BATCHED_REPAIR_CLOSURE_V0_1.md
 PROVIDER_PRICING_AUTHORITY=docs/evidence/JIANGHE_PROVIDER_PRICING_AUTHORITY_V0_1.json
@@ -167,10 +175,10 @@ CURRENT_PAID_CALL_AUTHORIZATION=docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CU
 ## Exact next work
 
 1. Make existing provider credentials available to the secure execution environment without committing or printing them.
-2. Rebuild/verify the frozen Stage-A plan before credential use.
-3. Query Kimi and DeepSeek existing balance using only official read-only endpoints.
-4. Keep MiniMax pay-as-you-go balance readiness unresolved unless an official non-billable read-only surface is available; do not probe via a model request.
-5. If a **new** recharge/top-up is required, return the exact amount to Owner; do not fund automatically.
+2. Run the integrated non-billable readiness CLI; it first rebuilds/byte-verifies the frozen Stage-A plan.
+3. Query Kimi and DeepSeek existing CNY balance through official read-only endpoints only.
+4. Keep MiniMax pay-as-you-go balance readiness unresolved unless an official non-billable read-only surface is available; never probe via a model request.
+5. If a **new** recharge/top-up is required, return provider + exact frozen shortfall amount + reason to Owner; do not fund automatically.
 6. If existing credentials/funds suffice, execute Stage A only through the single-slot runner: max CNY18 / 15 calls / CNY6 per provider / shared CNY100 ledger.
 7. Persist evidence after every attempted slot; no automatic retry after durable network-start.
 8. Commit Stage-A evidence/ranking before Stage B.
