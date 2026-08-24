@@ -1,0 +1,75 @@
+name: Stage-A V0.2 State Init Once
+
+on:
+  push:
+    branches:
+      - integration/stage-a-v02-state-init-once
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stage-a-v02-state-init-once
+  cancel-in-progress: false
+
+jobs:
+  initialize:
+    if: github.repository == 'haozhouliuliuliu/kline-playbook-engine'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact init branch
+        uses: actions/checkout@v4
+        with:
+          ref: integration/stage-a-v02-state-init-once
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify V0.2 frozen plan
+        run: python tools/build_jianghe_stage_a_frozen_plan_v0_2.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_2.json
+      - name: Verify fixed V0.2 ref absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$(git ls-remote --heads origin refs/heads/stage-a-live-state-v0-2)" ]; then
+            echo 'V0.2 remote state ref already exists; refusing bootstrap.'
+            exit 2
+          fi
+      - name: Initialize and re-read V0.2 remote ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from decimal import Decimal
+          from pathlib import Path
+          from src.jianghe_stage_a_evidence import load_verified_frozen_plan
+          from src.jianghe_stage_a_remote_ledger import (
+              DEFAULT_REMOTE_REF,
+              GitRemoteLedgerStore,
+              RemoteExecutionLedger,
+          )
+
+          root = Path('.').resolve()
+          plan = load_verified_frozen_plan()
+          assert DEFAULT_REMOTE_REF == 'refs/heads/stage-a-live-state-v0-2'
+          store = GitRemoteLedgerStore(repository=root, remote='origin', remote_ref=DEFAULT_REMOTE_REF)
+          empty = RemoteExecutionLedger.empty(plan)
+          created_head = store.compare_and_swap(expected_head=None, ledger_bytes=empty.to_bytes())
+          observed = store.load(plan)
+          snapshot = observed.ledger.snapshot()
+          assert observed.head_sha == created_head
+          assert observed.ledger.to_bytes() == empty.to_bytes()
+          assert observed.ledger.events == ()
+          assert snapshot.total_attempts == 1
+          assert snapshot.attempted_slots == frozenset({'DEEPSEEK:1'})
+          assert snapshot.stage_accounted_cny == Decimal('0.219222')
+          assert snapshot.project_accounted_cny == Decimal('0.219222')
+          assert snapshot.provider_accounted_cny.get('DEEPSEEK') == Decimal('0.219222')
+          assert snapshot.provider_attempts.get('DEEPSEEK') == 1
+          print(f'V0_2_REMOTE_STATE_INIT=PASS head={created_head}')
+          print('V0_2_NEW_EVENTS=0')
+          print('CARRY_FORWARD_ATTEMPTS=1')
+          print('CARRY_FORWARD_CNY=0.219222')
+          PY
