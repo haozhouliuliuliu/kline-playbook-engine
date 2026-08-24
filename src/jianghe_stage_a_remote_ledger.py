@@ -20,6 +20,10 @@ import subprocess
 from typing import Mapping, Sequence
 
 from src.jianghe_prespend_runtime import HARD_PROJECT_CAP_CNY
+from src.jianghe_stage_a_evidence import (
+    StageAEvidenceError,
+    validate_stage_a_attempt_evidence_bytes,
+)
 from src.jianghe_stage_a_runner import (
     ATTEMPT_TERMINAL,
     NETWORK_ATTEMPT_STARTED,
@@ -66,6 +70,8 @@ _EVENT_FIELDS = frozenset(
         "status",
         "accounted_cny",
         "evidence_identity",
+        "evidence_network_start_event_identity",
+        "evidence_terminal_event_identity",
         "event_identity",
     }
 )
@@ -205,6 +211,7 @@ class RemoteExecutionLedger:
     def _validate_events(self) -> None:
         starts: dict[str, Mapping[str, object]] = {}
         terminals: set[str] = set()
+        evidence_identities: set[str] = set()
         previous: str | None = None
         for sequence, event in enumerate(self.events, start=1):
             if frozenset(event) != _EVENT_FIELDS:
@@ -257,6 +264,8 @@ class RemoteExecutionLedger:
                         "status",
                         "accounted_cny",
                         "evidence_identity",
+                        "evidence_network_start_event_identity",
+                        "evidence_terminal_event_identity",
                     )
                 ):
                     raise RemoteLedgerIntegrityError("remote start contains terminal fields")
@@ -268,7 +277,22 @@ class RemoteExecutionLedger:
                     raise RemoteLedgerIntegrityError("remote terminal does not bind its start")
                 if event["status"] not in REMOTE_TERMINAL_STATUSES:
                     raise RemoteLedgerIntegrityError("remote terminal status is unsupported")
-                _validate_sha(event["evidence_identity"], "evidence_identity")
+                evidence_identity = _validate_sha(
+                    event["evidence_identity"], "evidence_identity"
+                )
+                _validate_sha(
+                    event["evidence_network_start_event_identity"],
+                    "evidence_network_start_event_identity",
+                )
+                _validate_sha(
+                    event["evidence_terminal_event_identity"],
+                    "evidence_terminal_event_identity",
+                )
+                if evidence_identity in evidence_identities:
+                    raise RemoteLedgerIntegrityError(
+                        "remote terminals cannot share an evidence identity"
+                    )
+                evidence_identities.add(evidence_identity)
                 if _decimal(event["accounted_cny"], "accounted_cny") > _decimal(
                     event["worst_case_cny"], "worst_case_cny"
                 ):
@@ -346,6 +370,8 @@ class RemoteExecutionLedger:
             status=None,
             accounted_cny=None,
             evidence_identity=None,
+            evidence_network_start_event_identity=None,
+            evidence_terminal_event_identity=None,
         )
         return RemoteExecutionLedger(self.plan, (*self.events, event))
 
@@ -358,6 +384,8 @@ class RemoteExecutionLedger:
         status: str,
         accounted_cny: Decimal,
         evidence_identity: str,
+        evidence_network_start_event_identity: str,
+        evidence_terminal_event_identity: str,
     ) -> "RemoteExecutionLedger":
         key = f"{provider_id}:{slot}"
         starts = [e for e in self.events if e["slot_key"] == key and e["event_type"] == NETWORK_ATTEMPT_STARTED]
@@ -378,6 +406,8 @@ class RemoteExecutionLedger:
             status=status,
             accounted_cny=accounted_cny,
             evidence_identity=evidence_identity,
+            evidence_network_start_event_identity=evidence_network_start_event_identity,
+            evidence_terminal_event_identity=evidence_terminal_event_identity,
         )
         return RemoteExecutionLedger(self.plan, (*self.events, event))
 
@@ -405,6 +435,12 @@ class RemoteExecutionLedger:
                 else _decimal_text(_decimal(values["accounted_cny"], "accounted_cny"))
             ),
             "evidence_identity": values["evidence_identity"],
+            "evidence_network_start_event_identity": values[
+                "evidence_network_start_event_identity"
+            ],
+            "evidence_terminal_event_identity": values[
+                "evidence_terminal_event_identity"
+            ],
             "event_identity": None,
         }
         identity_payload = dict(event)
@@ -468,13 +504,137 @@ class GitRemoteLedgerStore:
     def _read_file_at(self, commit_sha: str, filename: str) -> bytes:
         return self._run(["show", f"{commit_sha}:{filename}"])
 
+    def _tree_entries_at(self, commit_sha: str) -> dict[str, str]:
+        entries: dict[str, str] = {}
+        for row in self._run(["ls-tree", commit_sha]).decode("utf-8").splitlines():
+            try:
+                metadata, filename = row.split("\t", 1)
+            except ValueError as error:
+                raise RemoteLedgerVerificationError(
+                    "remote state tree entry is malformed"
+                ) from error
+            parts = metadata.split()
+            if (
+                len(parts) != 3
+                or parts[0] != "100644"
+                or parts[1] != "blob"
+                or _GIT_OID.fullmatch(parts[2]) is None
+                or (
+                    filename != LEDGER_FILENAME
+                    and re.fullmatch(r"evidence-[0-9a-f]{64}\.json", filename) is None
+                )
+                or filename in entries
+            ):
+                raise RemoteLedgerVerificationError(
+                    "remote state tree contains an unsupported or duplicate entry"
+                )
+            entries[filename] = parts[2]
+        if LEDGER_FILENAME not in entries:
+            raise RemoteLedgerVerificationError("remote state tree is missing its ledger")
+        return entries
+
+    @staticmethod
+    def _validate_terminal_evidence_binding(
+        *,
+        plan: VerifiedFrozenStageAPlan,
+        ledger: RemoteExecutionLedger,
+        terminal: Mapping[str, object],
+        artifact: Mapping[str, object],
+    ) -> None:
+        key = str(terminal["slot_key"])
+        starts = [
+            event
+            for event in ledger.events
+            if event["slot_key"] == key
+            and event["event_type"] == NETWORK_ATTEMPT_STARTED
+        ]
+        attempts = artifact.get("attempts")
+        if (
+            len(starts) != 1
+            or not isinstance(attempts, list)
+            or len(attempts) != 1
+            or not isinstance(attempts[0], Mapping)
+            or artifact.get("attempt_count") != 1
+            or artifact.get("source_journal_event_count") != 2
+        ):
+            raise RemoteLedgerIntegrityError(
+                "remote evidence does not represent exactly one terminal attempt"
+            )
+        start = starts[0]
+        attempt = attempts[0]
+        expected_artifact = {
+            "artifact_identity": terminal["evidence_identity"],
+            "plan_identity": plan.plan_identity,
+            "plan_sha256": plan.sha256,
+            "source_journal_last_event_identity": terminal[
+                "evidence_terminal_event_identity"
+            ],
+            "accounted_cny": terminal["accounted_cny"],
+        }
+        expected_attempt = {
+            "plan_identity": plan.plan_identity,
+            "plan_sha256": plan.sha256,
+            "provider_id": terminal["provider_id"],
+            "requested_model_id": terminal["model_id"],
+            "slot": terminal["slot"],
+            "slot_key": key,
+            "request_identity": terminal["request_identity"],
+            "payload_sha256": terminal["payload_sha256"],
+            "frozen_worst_case_cny": terminal["worst_case_cny"],
+            "accounted_cny": terminal["accounted_cny"],
+            "network_start_event_identity": terminal[
+                "evidence_network_start_event_identity"
+            ],
+            "terminal_event_identity": terminal["evidence_terminal_event_identity"],
+            "terminal_status": terminal["status"],
+        }
+        if any(artifact.get(name) != value for name, value in expected_artifact.items()):
+            raise RemoteLedgerIntegrityError(
+                "remote evidence artifact differs from its terminal binding"
+            )
+        if any(attempt.get(name) != value for name, value in expected_attempt.items()):
+            raise RemoteLedgerIntegrityError(
+                "remote evidence attempt differs from its start/terminal binding"
+            )
+
     def load(self, plan: VerifiedFrozenStageAPlan) -> RemoteLedgerObservedState:
         head = self._remote_head()
         if head is None:
             return RemoteLedgerObservedState(None, RemoteExecutionLedger.empty(plan))
         self._run(["fetch", "--no-tags", self.remote, f"{self.remote_ref}:refs/stage-a-live/observed"])
+        entries = self._tree_entries_at(head)
         raw = self._read_file_at(head, LEDGER_FILENAME)
-        return RemoteLedgerObservedState(head, RemoteExecutionLedger.from_bytes(plan, raw))
+        ledger = RemoteExecutionLedger.from_bytes(plan, raw)
+        terminals = [
+            event for event in ledger.events if event["event_type"] == ATTEMPT_TERMINAL
+        ]
+        expected_evidence_names = {
+            f'evidence-{event["evidence_identity"]}.json' for event in terminals
+        }
+        actual_evidence_names = set(entries) - {LEDGER_FILENAME}
+        if actual_evidence_names != expected_evidence_names:
+            raise RemoteLedgerIntegrityError(
+                "remote evidence file set differs from terminal identities"
+            )
+        for terminal in terminals:
+            filename = f'evidence-{terminal["evidence_identity"]}.json'
+            evidence_bytes = self._read_file_at(head, filename)
+            try:
+                artifact = validate_stage_a_attempt_evidence_bytes(
+                    plan=plan,
+                    raw_bytes=evidence_bytes,
+                )
+            except StageAEvidenceError as error:
+                raise RemoteLedgerIntegrityError(
+                    "remote terminal evidence failed artifact validation"
+                ) from error
+            self._validate_terminal_evidence_binding(
+                plan=plan,
+                ledger=ledger,
+                terminal=terminal,
+                artifact=artifact,
+            )
+        return RemoteLedgerObservedState(head, ledger)
 
     def compare_and_swap(
         self,
@@ -489,17 +649,7 @@ class GitRemoteLedgerStore:
         files = {LEDGER_FILENAME: ledger_bytes, **artifacts}
         retained_entries: dict[str, str] = {}
         if expected_head is not None:
-            for row in self._run(["ls-tree", expected_head]).decode("utf-8").splitlines():
-                metadata, filename = row.split("\t", 1)
-                parts = metadata.split()
-                if (
-                    len(parts) != 3
-                    or parts[0] != "100644"
-                    or parts[1] != "blob"
-                    or (filename != LEDGER_FILENAME and re.fullmatch(r"evidence-[0-9a-f]{64}\.json", filename) is None)
-                ):
-                    raise RemoteLedgerVerificationError("remote state tree contains an unsupported entry")
-                retained_entries[filename] = parts[2]
+            retained_entries.update(self._tree_entries_at(expected_head))
         for filename, content in sorted(files.items()):
             if filename != LEDGER_FILENAME and re.fullmatch(r"evidence-[0-9a-f]{64}\.json", filename) is None:
                 raise RemoteLedgerVerificationError("remote evidence filename is invalid")

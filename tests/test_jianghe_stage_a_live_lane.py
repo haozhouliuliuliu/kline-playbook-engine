@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from hashlib import sha256
 import json
 import os
 from pathlib import Path
@@ -11,9 +10,18 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from src.jianghe_prespend_runtime import HttpResponse, KIMI_K3_SPEC, PaidCallNotAuthorizedError
+from src.jianghe_prespend_runtime import (
+    DEEPSEEK_VISION_SPEC,
+    HttpResponse,
+    KIMI_K3_SPEC,
+    PaidCallNotAuthorizedError,
+)
 from src.jianghe_response_normalizer import RESPONSE_SCHEMA_VERSION
-from src.jianghe_stage_a_evidence import SecretExposureError, load_verified_frozen_plan
+from src.jianghe_stage_a_evidence import (
+    SecretExposureError,
+    canonical_json_bytes,
+    load_verified_frozen_plan,
+)
 from src.jianghe_stage_a_live_lane import LiveLaneError, execute_remote_reserved_slot
 from src.jianghe_stage_a_remote_ledger import (
     GitRemoteLedgerStore,
@@ -22,6 +30,7 @@ from src.jianghe_stage_a_remote_ledger import (
     RemoteLedgerIntegrityError,
     RemoteLedgerObservedState,
     RemoteLedgerUnavailableError,
+    RemoteLedgerVerificationError,
     _identity,
 )
 from src.jianghe_stage_a_runner import (
@@ -56,13 +65,17 @@ def _content() -> str:
 
 
 def _response(*_args, **_kwargs) -> HttpResponse:
+    return _response_for_model(KIMI_K3_SPEC.model_id)
+
+
+def _response_for_model(model_id: str) -> HttpResponse:
     return HttpResponse(
         200,
         {},
         json.dumps(
             {
                 "id": "live-lane-offline-test",
-                "model": KIMI_K3_SPEC.model_id,
+                "model": model_id,
                 "choices": [{"message": {"content": _content()}}],
                 "usage": {
                     "prompt_tokens": 100,
@@ -259,6 +272,14 @@ class StageALiveLaneTests(unittest.TestCase):
                 status=result.slot_result.status,
                 accounted_cny=result.slot_result.accounted_cny,
                 evidence_identity=result.evidence_identity,
+                evidence_network_start_event_identity=str(
+                    self.store.ledger.events[-1][
+                        "evidence_network_start_event_identity"
+                    ]
+                ),
+                evidence_terminal_event_identity=str(
+                    self.store.ledger.events[-1]["evidence_terminal_event_identity"]
+                ),
             )
 
     def test_state_hash_tamper_fails_closed(self) -> None:
@@ -384,6 +405,152 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.plan = load_verified_frozen_plan()
+        cls.fixtures = {
+            "kimi2": cls._completed_fixture("KIMI", KIMI_K3_SPEC, 2),
+            "kimi3": cls._completed_fixture("KIMI", KIMI_K3_SPEC, 3),
+            "deepseek2": cls._completed_fixture(
+                "DEEPSEEK", DEEPSEEK_VISION_SPEC, 2
+            ),
+        }
+
+    @classmethod
+    def _completed_fixture(cls, provider_id, spec, slot):
+        with tempfile.TemporaryDirectory() as temporary:
+            store = FakeStore(cls.plan)
+            with patch.dict(os.environ, {spec.api_key_env: "TEST_ONLY"}, clear=True):
+                result = execute_remote_reserved_slot(
+                    plan=cls.plan,
+                    store=store,
+                    state_dir=Path(temporary) / "state",
+                    provider_id=provider_id,
+                    slot=slot,
+                    now=NOW,
+                    http_post=lambda *_args, **_kwargs: _response_for_model(spec.model_id),
+                    credential_lookup=lambda _name: "TEST_ONLY",
+                )
+        filename = f"evidence-{result.evidence_identity}.json"
+        return store.ledger, filename, store.artifacts[filename]
+
+    def _make_store(self, root: Path):
+        bare = root / "state.git"
+        repo = root / "repo"
+        subprocess.run(
+            ["git", "init", "--bare", str(bare)], check=True, capture_output=True
+        )
+        subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
+        subprocess.run(
+            ["git", "-C", str(repo), "remote", "add", "state", str(bare)],
+            check=True,
+            capture_output=True,
+        )
+        return GitRemoteLedgerStore(repository=repo, remote="state"), repo
+
+    def _write_state(self, repo: Path, files: dict[str, bytes]) -> None:
+        entries = []
+        environment = dict(os.environ)
+        environment.update(
+            {
+                "GIT_AUTHOR_NAME": "Offline Test",
+                "GIT_AUTHOR_EMAIL": "offline@invalid.local",
+                "GIT_COMMITTER_NAME": "Offline Test",
+                "GIT_COMMITTER_EMAIL": "offline@invalid.local",
+            }
+        )
+        for filename, content in sorted(files.items()):
+            blob = subprocess.run(
+                ["git", "-C", str(repo), "hash-object", "-w", "--stdin"],
+                input=content,
+                check=True,
+                capture_output=True,
+                env=environment,
+            ).stdout.decode("ascii").strip()
+            entries.append(f"100644 blob {blob}\t{filename}\n")
+        tree = subprocess.run(
+            ["git", "-C", str(repo), "mktree"],
+            input="".join(entries).encode("utf-8"),
+            check=True,
+            capture_output=True,
+            env=environment,
+        ).stdout.decode("ascii").strip()
+        commit = subprocess.run(
+            ["git", "-C", str(repo), "commit-tree", tree, "-m", "offline tamper fixture"],
+            check=True,
+            capture_output=True,
+            env=environment,
+        ).stdout.decode("ascii").strip()
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repo),
+                "push",
+                "state",
+                f"{commit}:refs/heads/stage-a-live-state-v0-1",
+            ],
+            check=True,
+            capture_output=True,
+            env=environment,
+        )
+
+    def _assert_state_blocks_provider_network(
+        self, files: dict[str, bytes], expected_error=RemoteLedgerIntegrityError
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            store, repo = self._make_store(root)
+            self._write_state(repo, files)
+            network_calls = {"count": 0}
+
+            def forbidden_network(*_args, **_kwargs):
+                network_calls["count"] += 1
+                return _response()
+
+            with patch.dict(
+                os.environ, {KIMI_K3_SPEC.api_key_env: "TEST_ONLY"}, clear=False
+            ):
+                with self.assertRaises(expected_error):
+                    execute_remote_reserved_slot(
+                        plan=self.plan,
+                        store=store,
+                        state_dir=root / "runtime",
+                        provider_id="KIMI",
+                        slot=4,
+                        now=NOW,
+                        http_post=forbidden_network,
+                        credential_lookup=lambda _name: "TEST_ONLY",
+                    )
+            self.assertEqual(0, network_calls["count"])
+
+    def _ledger_rebound_to_evidence(
+        self, evidence_identity: str
+    ) -> RemoteExecutionLedger:
+        source = self.fixtures["kimi2"][0]
+        events = [dict(event) for event in source.events]
+        events[-1]["evidence_identity"] = evidence_identity
+        terminal_payload = dict(events[-1])
+        terminal_payload.pop("event_identity")
+        events[-1]["event_identity"] = _identity(terminal_payload)
+        return RemoteExecutionLedger(self.plan, events)
+
+    def _artifact_with_fact(self, field: str, value: object) -> bytes:
+        artifact = json.loads(self.fixtures["kimi2"][2])
+        attempt = artifact["attempts"][0]
+        attempt[field] = value
+        if field in {"network_start_event_identity", "terminal_event_identity"}:
+            attempt["attempt_identity"] = _identity(
+                {
+                    "network_start_event_identity": attempt[
+                        "network_start_event_identity"
+                    ],
+                    "terminal_event_identity": attempt["terminal_event_identity"],
+                }
+            )
+        if field == "terminal_event_identity":
+            artifact["source_journal_last_event_identity"] = value
+        identity_payload = dict(artifact)
+        identity_payload.pop("artifact_identity")
+        artifact["artifact_identity"] = _identity(identity_payload)
+        return canonical_json_bytes(artifact)
 
     def test_real_git_non_force_cas_rejects_stale_observer_and_retains_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -401,7 +568,6 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
                 )
                 stores.append(GitRemoteLedgerStore(repository=repo, remote="state"))
             observed = [store.load(self.plan) for store in stores]
-            prepared_two = prepare_frozen_slot(self.plan, provider_id="KIMI", slot=2, now=NOW)
             prepared_three = prepare_frozen_slot(self.plan, provider_id="KIMI", slot=3, now=NOW)
 
             def reserve(base, prepared, slot):
@@ -415,29 +581,15 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
                     worst_case_cny=prepared.worst_case_cny,
                 )
 
-            first = reserve(observed[0].ledger, prepared_two, 2)
             stale = reserve(observed[1].ledger, prepared_three, 3)
-            first_head = stores[0].compare_and_swap(
-                expected_head=None, ledger_bytes=first.to_bytes()
+            terminal, evidence_filename, evidence_bytes = self.fixtures["kimi2"]
+            terminal_head = stores[0].compare_and_swap(
+                expected_head=None,
+                ledger_bytes=terminal.to_bytes(),
+                evidence_artifacts={evidence_filename: evidence_bytes},
             )
             with self.assertRaises(RemoteLedgerConflictError):
                 stores[1].compare_and_swap(expected_head=None, ledger_bytes=stale.to_bytes())
-
-            evidence_bytes = b'{"secret_free":true}\n'
-            evidence_identity = sha256(evidence_bytes).hexdigest()
-            terminal = first.append_terminal(
-                now=NOW,
-                provider_id="KIMI",
-                slot=2,
-                status="TRANSPORT_FAILURE",
-                accounted_cny=prepared_two.worst_case_cny,
-                evidence_identity=evidence_identity,
-            )
-            terminal_head = stores[0].compare_and_swap(
-                expected_head=first_head,
-                ledger_bytes=terminal.to_bytes(),
-                evidence_artifacts={f"evidence-{evidence_identity}.json": evidence_bytes},
-            )
             refreshed = stores[1].load(self.plan)
             next_ledger = reserve(refreshed.ledger, prepared_three, 3)
             next_head = stores[1].compare_and_swap(
@@ -445,11 +597,128 @@ class GitRemoteLedgerStoreTests(unittest.TestCase):
                 ledger_bytes=next_ledger.to_bytes(),
             )
             retained = subprocess.run(
-                ["git", "-C", str(repos[1]), "show", f"{next_head}:evidence-{evidence_identity}.json"],
+                ["git", "-C", str(repos[1]), "show", f"{next_head}:{evidence_filename}"],
                 check=True,
                 capture_output=True,
             ).stdout
             self.assertEqual(evidence_bytes, retained)
+
+    def test_modified_evidence_bytes_with_unchanged_ledger_block_network(self) -> None:
+        ledger, filename, evidence = self.fixtures["kimi2"]
+        self._assert_state_blocks_provider_network(
+            {
+                "stage-a-live-ledger-v0-1.json": ledger.to_bytes(),
+                filename: evidence + b" ",
+            }
+        )
+
+    def test_missing_terminal_evidence_blocks_network(self) -> None:
+        ledger, _filename, _evidence = self.fixtures["kimi2"]
+        self._assert_state_blocks_provider_network(
+            {"stage-a-live-ledger-v0-1.json": ledger.to_bytes()}
+        )
+
+    def test_orphan_evidence_blocks_network(self) -> None:
+        ledger, filename, evidence = self.fixtures["kimi2"]
+        self._assert_state_blocks_provider_network(
+            {
+                "stage-a-live-ledger-v0-1.json": ledger.to_bytes(),
+                filename: evidence,
+                f"evidence-{'0' * 64}.json": evidence,
+            }
+        )
+
+    def test_unsupported_state_artifact_blocks_network(self) -> None:
+        ledger, filename, evidence = self.fixtures["kimi2"]
+        self._assert_state_blocks_provider_network(
+            {
+                "stage-a-live-ledger-v0-1.json": ledger.to_bytes(),
+                filename: evidence,
+                "unsupported.txt": b"not allowed\n",
+            },
+            expected_error=RemoteLedgerVerificationError,
+        )
+
+    def test_duplicate_terminal_evidence_identity_fails_closed(self) -> None:
+        prepared_two = prepare_frozen_slot(
+            self.plan, provider_id="KIMI", slot=2, now=NOW
+        )
+        prepared_three = prepare_frozen_slot(
+            self.plan, provider_id="KIMI", slot=3, now=NOW
+        )
+        shared_identity = "a" * 64
+        ledger = RemoteExecutionLedger.empty(self.plan).append_start(
+            now=NOW,
+            provider_id="KIMI",
+            slot=2,
+            model_id=prepared_two.provider_spec.model_id,
+            request_identity=str(prepared_two.slot_row["request_identity"]),
+            payload_sha256=str(prepared_two.slot_row["payload_sha256"]),
+            worst_case_cny=prepared_two.worst_case_cny,
+        ).append_terminal(
+            now=NOW,
+            provider_id="KIMI",
+            slot=2,
+            status="TRANSPORT_FAILURE",
+            accounted_cny=prepared_two.worst_case_cny,
+            evidence_identity=shared_identity,
+            evidence_network_start_event_identity="b" * 64,
+            evidence_terminal_event_identity="c" * 64,
+        ).append_start(
+            now=NOW,
+            provider_id="KIMI",
+            slot=3,
+            model_id=prepared_three.provider_spec.model_id,
+            request_identity=str(prepared_three.slot_row["request_identity"]),
+            payload_sha256=str(prepared_three.slot_row["payload_sha256"]),
+            worst_case_cny=prepared_three.worst_case_cny,
+        )
+        with self.assertRaises(RemoteLedgerIntegrityError):
+            ledger.append_terminal(
+                now=NOW,
+                provider_id="KIMI",
+                slot=3,
+                status="TRANSPORT_FAILURE",
+                accounted_cny=prepared_three.worst_case_cny,
+                evidence_identity=shared_identity,
+                evidence_network_start_event_identity="d" * 64,
+                evidence_terminal_event_identity="e" * 64,
+            )
+
+    def test_plan_provider_slot_start_and_terminal_mismatch_block_network(self) -> None:
+        cases: list[tuple[str, bytes]] = []
+        plan_artifact = json.loads(self.fixtures["kimi2"][2])
+        plan_artifact["plan_identity"] = "0" * 64
+        plan_identity_payload = dict(plan_artifact)
+        plan_identity_payload.pop("artifact_identity")
+        plan_artifact["artifact_identity"] = _identity(plan_identity_payload)
+        cases.append(("plan", canonical_json_bytes(plan_artifact)))
+        cases.append(("provider", self.fixtures["deepseek2"][2]))
+        cases.append(("slot", self.fixtures["kimi3"][2]))
+        cases.append(
+            (
+                "start",
+                self._artifact_with_fact("network_start_event_identity", "0" * 64),
+            )
+        )
+        cases.append(
+            (
+                "terminal",
+                self._artifact_with_fact("terminal_event_identity", "1" * 64),
+            )
+        )
+
+        for name, evidence in cases:
+            with self.subTest(name=name):
+                artifact = json.loads(evidence)
+                evidence_identity = str(artifact["artifact_identity"])
+                ledger = self._ledger_rebound_to_evidence(evidence_identity)
+                self._assert_state_blocks_provider_network(
+                    {
+                        "stage-a-live-ledger-v0-1.json": ledger.to_bytes(),
+                        f"evidence-{evidence_identity}.json": evidence,
+                    }
+                )
 
 
 if __name__ == "__main__":

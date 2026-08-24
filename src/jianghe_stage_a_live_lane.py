@@ -129,6 +129,10 @@ def execute_remote_reserved_slot(
         status=result.status,
         accounted_cny=result.accounted_cny,
         evidence_identity=evidence_identity,
+        evidence_network_start_event_identity=str(
+            attempts[0]["network_start_event_identity"]
+        ),
+        evidence_terminal_event_identity=str(attempts[0]["terminal_event_identity"]),
     )
     evidence_bytes = canonical_json_bytes(artifact)
     terminal_bytes = terminal.to_bytes()
