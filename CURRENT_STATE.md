@@ -11,14 +11,17 @@ ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=STAGE_A_V0_3_CAPABILITY_FIRST_MODEL_COMPARISON__DESIGN_AND_MINIMAL_IMPLEMENTATION
-NEXT_NORMAL_PHASE=V0_3_OFFLINE_CLOSURE__THEN_DEEPSEEK_FIRST_MATCHED_CAPABILITY_CALL
-OWNER_ACTION=NONE_UNTIL_V0_3_OFFLINE_READY
+CURRENT_WORK_PACKAGE=STAGE_A_V0_3_CAPABILITY_FIRST_MODEL_COMPARISON__PREFLIGHT_BLOCKER_RESOLUTION
+NEXT_NORMAL_PHASE=V0_3_PREFLIGHT_BLOCKERS_CLOSE__THEN_OFFLINE_CLOSURE__THEN_NEW_PAID_SLOT
+OWNER_ACTION=REQUIRED_ONLY_IF_DEEPSEEK_NATIVE_VISUAL_ROUTE_CANNOT_BE_VERIFIED
 TOOL_DECISION=USE_EXISTING
 ```
 
 Current Stage-A research-design authority:
 `docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md`.
+
+Current preflight failure audit:
+`docs/reviews/JIANGHE_STAGE_A_V0_3_PREFLIGHT_FAILURE_AUDIT_V0_1.md`.
 
 Current non-executable comparison plan:
 `docs/evidence/JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN_V0_3.json`.
@@ -37,17 +40,18 @@ Formatting convenience, strict JSON compliance, reasoning-token count, or a unif
 ## Current paid-call state
 
 ```text
-PAID_CALLS_CURRENTLY_PAUSED=YES__V0_3_OFFLINE_CLOSURE_NOT_COMPLETE
+PAID_CALLS_CURRENTLY_PAUSED=YES__V0_3_PREFLIGHT_BLOCKED
 NEXT_EXPLICIT_PAID_SLOT=NONE
-FUTURE_FIRST_V0_3_PROVIDER=DEEPSEEK
+FUTURE_FIRST_V0_3_PROVIDER=DEEPSEEK__CONDITIONAL_ON_VALID_CURRENT_NATIVE_VISUAL_ROUTE
 FUTURE_FIRST_V0_3_SLOT=NEW_IDENTITY_REQUIRED
+DEEPSEEK_CURRENT_FIRST_PARTY_NATIVE_VISUAL_ROUTE=NOT_VERIFIED__CURRENT_V4_DOCS_TEXT_ONLY
 OLD_NEXT_KIMI_1=SUPERSEDED__NOT_EXECUTED
 OLD_V0_2_LIVE_WORKFLOW=RETIRED__FAIL_CLOSED_BEFORE_CREDENTIALS
 AUTOMATIC_RETRY=FORBIDDEN
 AUTOMATIC_NEXT_SLOT=FORBIDDEN
 ```
 
-No V0.3 provider call is authorized for execution merely because the Owner approved the V0.3 research design. The offline request/evidence/adapter path and new V0.3 slot identity must close first.
+No V0.3 provider call may execute until the preflight audit blockers are closed. In particular, do not use a VS Code/Copilot vision proxy and score that output as native DeepSeek K-line visual reading.
 
 ## Immutable historical live state
 
@@ -79,7 +83,7 @@ V0_1_PROVIDER_RESPONSE_CONTRACT_DEFECT=YES
 DEEPSEEK_CAPABILITY_FATAL_FROM_ATTEMPT_001=NO
 ```
 
-The request reached a 2xx provider JSON response, but the V0.1 evidence contract did not retain enough safe response-envelope facts to score the final response. A future V0.3 DeepSeek call uses a new identity; old `DEEPSEEK:1` is never rerun.
+The request reached a 2xx provider JSON response, but the V0.1 evidence contract did not retain enough safe response-envelope facts to score the final response. A future V0.3 DeepSeek call, if a valid current route is verified, uses a new identity; old `DEEPSEEK:1` is never rerun.
 
 ### Attempt 002 — MiniMax V0.2
 
@@ -109,7 +113,7 @@ The V0.2 frozen funnel's elimination remains immutable historical experiment sem
 ## Current capability candidates
 
 ```text
-DEEPSEEK_CAPABILITY_STATUS=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
+DEEPSEEK_CAPABILITY_STATUS=CANDIDATE__V0_3_INPUT_COMPATIBILITY_BLOCKER_OPEN
 MINIMAX_CAPABILITY_STATUS=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
 KIMI_CAPABILITY_STATUS=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
 VERIFIED_PROVIDER=NONE
@@ -117,7 +121,7 @@ ADOPTED_PROVIDER=NONE
 FAIR_MATCHED_THREE_MODEL_EVIDENCE=NONE_YET
 ```
 
-The first future paid V0.3 provider is DeepSeek. Then obtain matched MiniMax and Kimi answers using the same governed fixture/material. This ordering does not give DeepSeek different information.
+Owner ordering remains DeepSeek first **only if** the exact current DeepSeek model brain can receive the governed common exam inputs. Current first-party V4 docs do not verify native image input, so no DeepSeek paid slot exists yet.
 
 ## V0.3 capability contract
 
@@ -132,18 +136,19 @@ NORMALIZED_EVALUATION_VIEW=REQUIRED__IDENTITY_BOUND
 NORMALIZATION_ADAPTER=FORMAT_ONLY__NO_SEMANTIC_REPAIR
 ```
 
-Matched comparison keeps the same Jianghe material, context-selection principle, question, visual bytes, structured observation, visible history, outcome/future ban, no-tools/search rule, and trading-decision task. Only provider-required wire syntax and provider-native reasoning configuration may differ.
+Matched comparison keeps the same Jianghe material, context-selection principle, question, visual bytes, structured observation, visible history, outcome/future ban, no-tools/search rule, and trading-decision task. Only provider-required wire syntax and provider-native reasoning configuration may differ. A second model used as a vision proxy is not provider-required wire syntax and is not allowed to masquerade as the tested model brain.
 
 Capability scoring covers Jianghe principle accuracy, market structure, visual reading, WAIT/NO_TRADE discipline, no invented rules/thresholds, uncertainty honesty, visual/structured consistency, hard negatives, stability, and source-supported conclusions. Actual CNY and actual latency are compared after answer quality.
 
 ## Authorization and budget
 
 ```text
-OWNER_PAID_CALL_DECISION=AUTHORIZED_FOR_BOUND_PROJECT_FIDELITY_RESEARCH__EXECUTION_PAUSED_BY_V0_3_OFFLINE_GATE
+OWNER_PAID_CALL_DECISION=AUTHORIZED_FOR_BOUND_PROJECT_FIDELITY_RESEARCH__EXECUTION_PAUSED_BY_V0_3_PREFLIGHT_GATE
 PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
 PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
 TOTAL_API_SPEND_HARD_CAP_CNY=100.00
 CURRENT_PROJECT_ACCOUNTED_CNY=0.270021
+MAX_REMAINING_UNDER_CONSERVATIVE_PROJECT_ACCOUNTING_CNY=99.729979
 V0_3_STAGE_A_CNY18_CAP=NOT_APPLICABLE__HISTORICAL_V0_1_V0_2_DESIGN_ONLY
 V0_3_CNY6_PER_PROVIDER_CAP=NOT_APPLICABLE__HISTORICAL_V0_1_V0_2_DESIGN_ONLY
 V0_3_FIXED_5_CALLS_PER_PROVIDER=NOT_APPLICABLE__HISTORICAL_V0_1_V0_2_DESIGN_ONLY
@@ -151,7 +156,7 @@ AUTOMATIC_RECHARGE=FORBIDDEN
 NEW_RECHARGE_REQUIRED=NO
 ```
 
-Cost/time/token use are measurements, not capability gates. CNY100 remains the project-wide API hard ceiling. Any recharge is a separate Owner cash action.
+Cost/time/token use are measurements, not capability gates. CNY100 remains the project-wide API hard ceiling. V0.3 must carry historical CNY0.270021 into its project ledger rather than resetting project spend to zero. Any recharge is a separate Owner cash action.
 
 ## Pre-live research / knowledge state
 
@@ -160,7 +165,7 @@ PRE_SPEND_REPAIR_REAUDIT=PASS
 BSP_001_TO_005=CLOSED
 RSP_001_TO_002=CLOSED
 LIMIT_015=RESOLVED
-LIMIT_012=ACTIVE__V0_3_CAPABILITY_FIRST_OFFLINE_CLOSURE__NO_FAIR_MATCHED_MODEL_EVIDENCE_YET
+LIMIT_012=ACTIVE__V0_3_PREFLIGHT_BLOCKED__NO_FAIR_MATCHED_MODEL_EVIDENCE_YET
 CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
 JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36
 ```
@@ -180,10 +185,11 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Complete only the minimal V0.3 offline implementation: provider-specific sufficient completion headroom; safe raw-final preservation; format-only normalization; separate operational versus capability status; new V0.3 request/slot/ledger identity; deterministic CNY100 guard.
-2. Recheck all three current first-party provider contracts while freezing those exact configurations.
-3. Run zero-network/focused tests and canonical suite; do not use provider credentials during closure.
-4. After project-brain offline closure, create exactly one explicit new V0.3 DeepSeek capability slot and execute it once.
-5. After evidence review, obtain matched MiniMax and Kimi answers on the same governed material; compare correctness/Jianghe fidelity, actual CNY, and actual time.
+1. Close the bounded findings in `docs/reviews/JIANGHE_STAGE_A_V0_3_PREFLIGHT_FAILURE_AUDIT_V0_1.md`; do not start paid execution.
+2. Resolve PF-001/PF-002 first: verify a current first-party DeepSeek route that natively accepts the governed K-line visual bytes. If none exists, stop and obtain Owner research-design choice rather than using a proxy vision model.
+3. Build the minimal V0.3 request/evidence/adapter/ledger path only after the common exam is technically valid: no capability JSON bias, sufficient provider-specific headroom, safe raw-final persistence without hidden reasoning, provider-neutral exam identity plus provider inference identity, historical project-spend carry-forward, cache-aware cost semantics, explicit output/operational statuses, and current model-resolution checks.
+4. Verify MiniMax's exact governed visual transport against current first-party documentation and use Kimi's documented base64 visual transport.
+5. Use current Node24-capable GitHub Actions majors in the new workflow, run zero-network/focused tests and the canonical suite, and prove no credential/provider path is touched by offline closure.
+6. Only after all applicable blockers close may a new V0.3 paid slot identity be minted. Owner ordering remains DeepSeek first if DeepSeek satisfies the common required input contract.
 
 Do not reopen a whole-repository rolling audit.
