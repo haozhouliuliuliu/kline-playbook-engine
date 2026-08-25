@@ -6,8 +6,8 @@ import { Context } from '@deepseek-ai/cordis'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import * as agentCore from './packages/examples/agent-spine-demo/src/index.ts'
-import { MockAdapter, textResponse, toolCallResponse } from './packages/core/agent-loop/tests/mock-adapter.ts'
+import * as agentCore from '../src/index.ts'
+import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 const roots: string[] = []
 
@@ -36,41 +36,20 @@ async function projectRuntime(memoryPath: string, auditPath: string, adapter: Mo
   ctx.tools.register(defineTool({
     name: 'jianghe_kline_snapshot',
     description: 'Read the project-owned causal K-line snapshot for one futures symbol.',
-    parameters: {
-      symbol: { type: 'string', required: true },
-    },
-    output: {
-      schema: { type: 'string' },
-      render: (_args, value) => [{ type: 'text', text: value }],
-    },
+    parameters: { symbol: { type: 'string', required: true } },
+    output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value }] },
     async execute(args) {
       const before = JSON.parse(readFileSync(memoryPath, 'utf8')) as Record<string, unknown>
-      const after = {
-        ...before,
-        last_symbol: args.symbol,
-        last_close: 3130,
-        watch_region: '3125-3135',
-      }
+      const after = { ...before, last_symbol: args.symbol, last_close: 3130, watch_region: '3125-3135' }
       writeFileSync(memoryPath, JSON.stringify(after), 'utf8')
-      appendFileSync(auditPath, JSON.stringify({
-        kind: 'memory_mutation',
-        source: 'jianghe_kline_snapshot',
-        before,
-        after,
-      }) + '\n', 'utf8')
+      appendFileSync(auditPath, JSON.stringify({ kind: 'memory_mutation', source: 'jianghe_kline_snapshot', before, after }) + '\n', 'utf8')
       return `${args.symbol}|close=3130|source=PROJECT_CAUSAL_FIXTURE`
     },
   }))
 
   ctx.on('tools/result', (exec, result) => {
-    appendFileSync(auditPath, JSON.stringify({
-      kind: 'tool_result',
-      call_id: String(exec.callId),
-      tool: exec.name,
-      is_error: result.isError,
-    }) + '\n', 'utf8')
+    appendFileSync(auditPath, JSON.stringify({ kind: 'tool_result', call_id: String(exec.callId), tool: exec.name, is_error: result.isError }) + '\n', 'utf8')
   })
-
   return ctx
 }
 
@@ -80,11 +59,7 @@ describe('kline-playbook-engine Harness dynamic admission', () => {
     roots.push(root)
     const memoryPath = join(root, 'working-memory.json')
     const auditPath = join(root, 'audit.jsonl')
-    writeFileSync(memoryPath, JSON.stringify({
-      last_symbol: null,
-      last_close: null,
-      watch_region: null,
-    }), 'utf8')
+    writeFileSync(memoryPath, JSON.stringify({ last_symbol: null, last_close: null, watch_region: null }), 'utf8')
     writeFileSync(auditPath, '', 'utf8')
 
     const adapter = new MockAdapter([
@@ -97,11 +72,7 @@ describe('kline-playbook-engine Harness dynamic admission', () => {
       meta: { cwd: process.cwd() },
       agentOptions: { provider: 'project-mock', model: 'project-model' },
     })
-
-    handle.agent.followup(createUserMessage({
-      content: [{ type: 'text', text: 'Evaluate the current project fixture.' }],
-      source: { kind: 'user' },
-    }))
+    handle.agent.followup(createUserMessage({ content: [{ type: 'text', text: 'Evaluate the current project fixture.' }], source: { kind: 'user' } }))
     await handle.agent.whenIdle()
 
     expect(adapter.requests).toHaveLength(2)
