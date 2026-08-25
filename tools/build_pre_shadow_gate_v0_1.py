@@ -6,6 +6,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 
+from src.jianghe_source_only_verification import _repository_blob_bytes
 from src.pre_shadow_gate import PreShadowGate, PreShadowGateInputs
 
 
@@ -32,7 +33,9 @@ def build_payload() -> dict[str, object]:
     ))
     return {
         "artifact": "PRE_SHADOW_GATE_V0_1",
-        "gate_module_sha256": sha256((ROOT / "src" / "pre_shadow_gate.py").read_bytes()).hexdigest(),
+        "gate_module_sha256": sha256(
+            _repository_blob_bytes(ROOT / "src" / "pre_shadow_gate.py")
+        ).hexdigest(),
         "decision": {
             "technically_ready": decision.technically_ready,
             "authorized_to_start": decision.authorized_to_start,

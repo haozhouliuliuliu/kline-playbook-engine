@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from src.jianghe_source_only_verification import _repository_blob_bytes
 from src.source_governed_mapping import (
     MappingProvenance,
     SourceGovernedMappingRecord,
@@ -40,7 +41,7 @@ RESEARCH_SYMBOLS = {
 
 
 def _file_hash(path: Path) -> str:
-    return sha256(path.read_bytes()).hexdigest()
+    return sha256(_repository_blob_bytes(path)).hexdigest()
 
 
 def _at_open(day: date) -> datetime:

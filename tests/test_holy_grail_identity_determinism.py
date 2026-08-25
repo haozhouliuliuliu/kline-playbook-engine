@@ -37,6 +37,7 @@ from src.playbook_contract import (
     PlaybookContract,
     bridge_to_strategy_identity,
 )
+from src.jianghe_source_only_verification import _repository_blob_bytes
 from src.pre_shadow_gate import PreShadowGateV02Inputs, PreShadowTechnicalGateV02
 from tools.build_holy_grail_primary_freeze_v0_1 import build_payload as freeze_payload
 from tools.build_pre_shadow_gate_v0_1 import build_payload as gate_v01_payload
@@ -72,7 +73,9 @@ AUTHORITATIVE = {
     "parameter_hash": "aa41f53232f44255e9a012b93e1890d889bf4a0a986dc5e4f754dbb1c46d1659",
 }
 
-PRE_SHADOW_GATE_SHA256 = hashlib.sha256(PRE_SHADOW_GATE_MODULE.read_bytes()).hexdigest()
+PRE_SHADOW_GATE_SHA256 = hashlib.sha256(
+    _repository_blob_bytes(PRE_SHADOW_GATE_MODULE)
+).hexdigest()
 
 
 def _cwd_independent_key() -> tuple:
@@ -272,6 +275,17 @@ class HolyGrailIdentityDeterminismTests(unittest.TestCase):
                 cwd=str(copy_root),
                 capture_output=True,
                 text=True,
+                env={
+                    **os.environ,
+                    "GIT_DIR": subprocess.run(
+                        ["git", "rev-parse", "--absolute-git-dir"],
+                        cwd=REPO_ROOT,
+                        capture_output=True,
+                        check=True,
+                        text=True,
+                    ).stdout.strip(),
+                    "GIT_WORK_TREE": str(copy_root),
+                },
             )
             self.assertEqual(0, result.returncode, result.stderr)
             moved_key = result.stdout.strip().split("=", 1)[1]
