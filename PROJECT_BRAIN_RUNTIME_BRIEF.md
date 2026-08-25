@@ -20,7 +20,7 @@ PROJECT_PHASE=RESEARCH_FOUNDATION
 ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_PASS__AWAITING_REVIEW
+CURRENT_WORK_PACKAGE=JIANGHE_STAGE_A_V0_3_DEEPSEEK_CAPABILITY_PASS
 CURRENT_STAGE_A_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md
 CURRENT_PREFLIGHT_AUDIT=docs/reviews/JIANGHE_STAGE_A_V0_3_PREFLIGHT_FAILURE_AUDIT_V0_1.md
 V0_3_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
@@ -28,11 +28,36 @@ CURRENT_COMPARISON_PLAN=docs/evidence/JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN
 CURRENT_FROZEN_PLAN=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_3.json
 V0_3_REMOTE_REF=refs/heads/stage-a-live-state-v0-3
 DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
-NEXT_NORMAL_PHASE=project_brain_review_then_mint_V0_3_DEEPSEEK_matched_capability_slot
-OWNER_ACTION=REVIEW_INTEGRATION_STAGE_A_V0_3_ONE_SHOT
+NEXT_NORMAL_PHASE=owner_review_then_run_V0_3_MINIMAX_matched_capability_slot
+OWNER_ACTION=REVIEW_DEEPSEEK_V0_3_PAID_RESULT
 TOOL_DECISION=USE_EXISTING
-LIMIT_012=ACTIVE__OFFLINE_CLOSURE_COMPLETE__NO_FAIR_MATCHED_THREE_MODEL_CAPABILITY_EXECUTION_YET
+LIMIT_012=ACTIVE__DEEPSEEK_MATCHED_EVIDENCE_PASS__MINIMAX_AND_KIMI_NOT_YET_RUN
 ```
+
+## Latest paid result
+
+```text
+PROVIDER=DEEPSEEK
+MODEL=deepseek-v4-flash-vision-exp
+SLOT_ID=V0_3:DEEPSEEK:CAPABILITY_MATCHED_002
+TERMINAL_STATUS=CAPABILITY_SCOREABLE
+CAPABILITY_ADJUDICATION=PASS
+FAMILY=NONE
+ACTION=NO_TRADE
+DIRECTION=NONE
+ATTEMPT_ACCOUNTED_CNY=0.110874
+PROJECT_ACCOUNTED_CNY_AFTER=1.770069
+EVIDENCE_IDENTITY=dd6c10adf138b6bad5babbca4ac675c749b4888680a91bcb108f29f01fbc600d
+NORMALIZED_VIEW_IDENTITY=e17058ef8cc9557c232f9574ceba874f71324ae3a438a6ac7ddb9090432ea6df
+V0_3_REMOTE_HEAD=d0ff1a727e276691bac2a63b8367cf73e5a8d438
+NEXT_RECOMMENDATION=RUN_MINIMAX_NEXT
+```
+
+Adjudication authority:
+`docs/reviews/JIANGHE_STAGE_A_V0_3_DEEPSEEK_CAPABILITY_MATCHED_002_ADJUDICATION_V0_1.md`.
+MiniMax and Kimi were not run. Attempt `...MATCHED_001` is an immutable,
+conservatively charged transport failure caused by the repaired runner terminal
+write defect; it is not a capability judgment and must not be rerun.
 
 ## Binding model-selection order
 
@@ -49,20 +74,19 @@ Do not substitute JSON obedience, integration convenience, uniform token limits,
 
 ```text
 PAID_CALLS_CURRENTLY_PAUSED=YES
-PAUSE_REASON=AWAITING_PROJECT_BRAIN_REVIEW_OF_V0_3_OFFLINE_CLOSURE
-NEXT_EXPLICIT_PAID_SLOT=NONE_UNTIL_REVIEW
-FIRST_FUTURE_V0_3_PROVIDER=DEEPSEEK
-FIRST_FUTURE_V0_3_SLOT=V0_3:DEEPSEEK:CAPABILITY_MATCHED_001
+PAUSE_REASON=DEEPSEEK_PASS_RECORDED__AWAITING_OWNER_NEXT_PROVIDER_DECISION
+NEXT_EXPLICIT_PAID_SLOT=NONE_UNTIL_OWNER_DIRECTS_MINIMAX
+COMPLETED_FIRST_V0_3_PROVIDER=DEEPSEEK
+COMPLETED_SUCCESSFUL_V0_3_SLOT=V0_3:DEEPSEEK:CAPABILITY_MATCHED_002
 DEEPSEEK_CURRENT_FIRST_PARTY_NATIVE_VISUAL_ROUTE=VERIFIED__VISION_EXP_DIRECT_IMAGE_INPUT
 DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
 OLD_KIMI_1=SUPERSEDED__DO_NOT_EXECUTE
 OLD_V0_2_LIVE_WORKFLOW=RETIRED__FAIL_CLOSED_BEFORE_CREDENTIALS
-AUTOMATIC_RETRY=FORBIDDEN
+AUTOMATIC_RETRY=ZERO_USED
 AUTOMATIC_NEXT_SLOT=FORBIDDEN
 ```
 
-Do not trigger a provider call until the project brain reviews/merges
-`integration/stage-a-v0-3-one-shot`. The V0.3 path sends the canonical PNG bytes
+Do not trigger the next provider call until the Owner directs it. The V0.3 path sends the canonical PNG bytes
 directly via the first-party image_url/base64 contract; a VS Code/Copilot vision
 proxy must never be scored as native DeepSeek visual reading.
 
@@ -107,10 +131,10 @@ V0.2 operational elimination remains historical truth inside the old frozen funn
 ## Candidate state
 
 ```text
-DEEPSEEK=CANDIDATE__READY_FOR_FIRST_V0_3_MATCHED_CAPABILITY_CALL
+DEEPSEEK=CANDIDATE__V0_3_CAPABILITY_PASS
 MINIMAX=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
 KIMI=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
-VERIFIED_PROVIDER=NONE
+VERIFIED_PROVIDER=DEEPSEEK
 ADOPTED_PROVIDER=NONE
 ```
 
@@ -134,9 +158,8 @@ HISTORICAL_SPEND_CARRY_FORWARD=REQUIRED
 ## Historical execution/accounting checkpoint
 
 ```text
-HISTORICAL_LIVE_CALLS=2
-CURRENT_PROJECT_ACCOUNTED_CNY=0.270021
-MAX_REMAINING_UNDER_CONSERVATIVE_PROJECT_ACCOUNTING_CNY=99.729979
+HISTORICAL_V0_1_V0_2_LIVE_CALLS=2
+HISTORICAL_PROJECT_ACCOUNTED_CNY_AT_V0_3_START=0.270021
 V0_2_PLAN_IDENTITY=9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913
 V0_2_REMOTE_REF=refs/heads/stage-a-live-state-v0-2
 V0_2_REMOTE_HEAD_AFTER_ATTEMPT_002=ea1364e04e378781d8cf9f1b43a9ce3f0ef1679e
@@ -150,7 +173,8 @@ These facts are historical carry-forward accounting, not current V0.3 slot autho
 PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
 PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
 TOTAL_HARD_API_SPEND_CAP_CNY=100.00
-CURRENT_PROJECT_ACCOUNTED_CNY=0.270021
+CURRENT_PROJECT_ACCOUNTED_CNY=1.770069
+MAX_REMAINING_UNDER_CONSERVATIVE_PROJECT_ACCOUNTING_CNY=98.229931
 V0_1_V0_2_STAGE_A_CNY18_LIMIT=HISTORICAL_ONLY_FOR_V0_3
 V0_1_V0_2_CNY6_PER_PROVIDER_LIMIT=HISTORICAL_ONLY_FOR_V0_3
 V0_1_V0_2_FIVE_CALLS_PER_PROVIDER=HISTORICAL_ONLY_FOR_V0_3
@@ -187,11 +211,9 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Close `docs/reviews/JIANGHE_STAGE_A_V0_3_PREFLIGHT_FAILURE_AUDIT_V0_1.md`; no paid call.
-2. Resolve DeepSeek current native-visual compatibility first. If no current first-party native visual route exists, stop for Owner research-design choice; do not use a proxy vision model.
-3. Then implement the smallest V0.3 request/evidence path: common provider-neutral exam identity; provider inference identity; sufficient output headroom; safe raw final answer without hidden reasoning; format-only adapter; separate operational/capability/output statuses; historical CNY0.270021 carry-forward; current model-resolution and cache-aware cost evidence.
-4. Verify MiniMax's documented exact visual transport and Kimi's documented base64 visual transport.
-5. Use current Node24-capable GitHub Actions majors, pass zero-network/focused tests and canonical suite.
-6. Only after all applicable blockers close may a new V0.3 paid slot be minted. Owner ordering remains DeepSeek first if it satisfies the common required input contract.
+1. Review the DeepSeek V0.3 adjudication and remote evidence binding.
+2. If the Owner continues the comparison, run MiniMax next on the same common exam; never rerun DeepSeek attempt 001 or 002.
+3. Stop for explicit review before Kimi unless separately directed.
+4. Adopt no provider until Jianghe correctness is compared before actual CNY and latency.
 
 Do not reopen a rolling whole-repository audit.

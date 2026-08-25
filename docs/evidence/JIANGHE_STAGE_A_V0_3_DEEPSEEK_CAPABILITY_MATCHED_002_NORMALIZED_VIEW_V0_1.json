@@ -1,0 +1,30 @@
+{
+  "artifact_schema_version": "JIANGHE_STAGE_A_V0_3_NORMALIZED_EVALUATION_VIEW_V0_1",
+  "provider_id": "DEEPSEEK",
+  "requested_model_id": "deepseek-v4-flash-vision-exp",
+  "resolved_model_id": "deepseek-v4-flash-vision-exp",
+  "slot_identity": "V0_3:DEEPSEEK:CAPABILITY_MATCHED_002",
+  "attempt_identity": "9ca1ff0aec0ef4f7d73da43ea03cc5fbab2f20975d060ee21bb97c64164d016a",
+  "common_exam_identity": "7521af411b5df17d27ced17c27a2db34e776ba85a97070f7634e3a197bf3c4e8",
+  "provider_evidence_identity": "dd6c10adf138b6bad5babbca4ac675c749b4888680a91bcb108f29f01fbc600d",
+  "raw_final_answer_sha256": "f5f21d6d90455361f02819635a92b860d4bb843abc3f5bfb69d798a7243970ac",
+  "adapter_identity": "1a1040a2c27a6f91e895df44c40e9310a5c810ee974734005974bd7ed0798374",
+  "normalized_identity": "e17058ef8cc9557c232f9574ceba874f71324ae3a438a6ac7ddb9090432ea6df",
+  "scoreable": true,
+  "family": "NONE",
+  "action": "NO_TRADE",
+  "direction": "NONE",
+  "missing_headings": [],
+  "duplicate_headings": [],
+  "invalid_enum_fields": [],
+  "truncated": false,
+  "declared_unknown_markers": [
+    "DECLARED_UNKNOWN_TOKEN",
+    "uncertain",
+    "不确定",
+    "无法判定",
+    "无法判断"
+  ],
+  "normalization_scope": "FORMAT_ONLY__NO_SEMANTIC_INFERENCE",
+  "raw_answer_authority": "refs/heads/stage-a-live-state-v0-3:evidence-dd6c10adf138b6bad5babbca4ac675c749b4888680a91bcb108f29f01fbc600d.json"
+}

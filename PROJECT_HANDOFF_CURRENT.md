@@ -6,11 +6,11 @@
 
 Read `00_READ_FIRST.md` first, complete its read-only takeover order, and read this file **last**. Report understanding/contradictions and stop for Owner acceptance before executing new work.
 
-## Handoff checkpoint — 2026-08-25 V0.3 offline closure complete (awaiting review)
+## Handoff checkpoint — 2026-08-25 DeepSeek V0.3 paid capability pass
 
 ```text
 PROJECT_PHASE=RESEARCH_FOUNDATION
-CURRENT_WORK_PACKAGE=JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_COMPLETE__AWAITING_REVIEW
+CURRENT_WORK_PACKAGE=JIANGHE_STAGE_A_V0_3_DEEPSEEK_CAPABILITY_PASS
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 CURRENT_STAGE_A_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md
@@ -19,20 +19,28 @@ CURRENT_FROZEN_PLAN=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_3.json
 V0_3_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
 INTEGRATION_BRANCH=integration/stage-a-v0-3-one-shot
 V0_3_OFFLINE_CLOSURE=PASS
-PAID_CALLS_MADE_DURING_CLOSURE=0
-PAID_CALLS_CURRENTLY_PAUSED=YES__AWAITING_PROJECT_BRAIN_REMOTE_REVIEW_MERGE
-NEXT_EXPLICIT_PAID_SLOT=V0_3:DEEPSEEK:CAPABILITY_MATCHED_001
-FIRST_FUTURE_V0_3_PROVIDER=DEEPSEEK
-FIRST_FUTURE_V0_3_SLOT=V0_3:DEEPSEEK:CAPABILITY_MATCHED_001
+NETWORK_PROVIDER_CALLS_MADE=2
+PAID_CALLS_CURRENTLY_PAUSED=YES__DEEPSEEK_PASS_RECORDED
+NEXT_EXPLICIT_PAID_SLOT=NONE_UNTIL_OWNER_DIRECTS_MINIMAX
+COMPLETED_PROVIDER=DEEPSEEK
+COMPLETED_SUCCESSFUL_SLOT=V0_3:DEEPSEEK:CAPABILITY_MATCHED_002
 DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
 V0_3_REMOTE_REF=refs/heads/stage-a-live-state-v0-3
 TOOL_DECISION=USE_EXISTING
-LIMIT_012=ACTIVE__OFFLINE_CLOSURE_COMPLETE__NO_FAIR_MATCHED_THREE_MODEL_CAPABILITY_EXECUTION_YET
+LIMIT_012=ACTIVE__DEEPSEEK_MATCHED_EVIDENCE_PASS__MINIMAX_AND_KIMI_NOT_YET_RUN
 ```
-`V0_3_OFFLINE_CLOSURE=PASS` authorizes the project brain to execute the new
-`V0_3:DEEPSEEK:CAPABILITY_MATCHED_001` slot after remote review/merge. It does **not**
-authorize this worker to run a paid call; the V0.3 one-shot worker made zero paid
-calls and did not trigger the live workflow.
+
+DeepSeek's successful result is `CAPABILITY_SCOREABLE` and substantively adjudicated
+`PASS`: `FAMILY=NONE`, `ACTION=NO_TRADE`, `DIRECTION=NONE`. Its attempt cost is
+CNY0.110874 and project accounted total is CNY1.770069. Evidence identity is
+`dd6c10adf138b6bad5babbca4ac675c749b4888680a91bcb108f29f01fbc600d`;
+the remote ledger head is `d0ff1a727e276691bac2a63b8367cf73e5a8d438`.
+
+The first real call (`...MATCHED_001`) is an immutable transport failure caused by
+the repaired terminal-write defect and was conservatively charged CNY1.389174.
+The successful independent call is `...MATCHED_002`. There were no automatic
+retries. MiniMax and Kimi were not run. See
+`docs/reviews/JIANGHE_STAGE_A_V0_3_DEEPSEEK_CAPABILITY_MATCHED_002_ADJUDICATION_V0_1.md`.
 
 ## Binding Owner objective
 
@@ -81,10 +89,10 @@ V0.3 restarts the matched comparison **with DeepSeek first**, but only with a ne
 ## Current capability candidates
 
 ```text
-DEEPSEEK=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
+DEEPSEEK=CANDIDATE__V0_3_CAPABILITY_PASS
 MINIMAX=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
 KIMI=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
-VERIFIED_PROVIDER=NONE
+VERIFIED_PROVIDER=DEEPSEEK
 ADOPTED_PROVIDER=NONE
 ```
 
@@ -96,7 +104,11 @@ The historical `.github/workflows/stage-a-live-slot.yml` V0.2 paid lane has been
 
 V0.3 preserves the valuable infrastructure: Jianghe knowledge identities, same-material identities, visual/structured observation, outcome firewall, paid-call ledger, duplicate prevention, secret protection, request/evidence identities, cost accounting, provider adapters, and latency/usage evidence.
 
-The current V0.3 plan is intentionally `NON_EXECUTABLE`. The remaining minimal offline implementation must add provider-specific sufficient completion headroom, safe raw-final-answer evidence, an identity-bound format-only normalized evaluation view, separation of operational versus capability status, and new V0.3 slot/remote-ledger identities. No large unrelated engineering program is authorized.
+The V0.3 plan is executable and the DeepSeek matched capability pass is complete.
+Its provider-specific completion headroom, safe raw-final-answer evidence,
+identity-bound format-only normalized evaluation view, separated statuses, and
+remote-ledger identities are now evidenced. No large unrelated engineering program
+is authorized.
 
 ## Fair exam contract
 
@@ -113,8 +125,9 @@ Score Jianghe principle accuracy, market structure, K-line visual reading, WAIT/
 ## Budget / historical accounting
 
 ```text
-HISTORICAL_LIVE_CALLS=2
-CURRENT_PROJECT_ACCOUNTED_CNY=0.270021
+HISTORICAL_V0_1_V0_2_LIVE_CALLS=2
+V0_3_NETWORK_CALLS=2
+CURRENT_PROJECT_ACCOUNTED_CNY=1.770069
 TOTAL_API_HARD_CAP_CNY=100.00
 V0_1_V0_2_STAGE_A_CNY18_LIMIT=HISTORICAL_ONLY_FOR_V0_3
 V0_1_V0_2_CNY6_PER_PROVIDER_LIMIT=HISTORICAL_ONLY_FOR_V0_3
@@ -148,10 +161,9 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Finish the small V0.3 offline request/evidence implementation and bind current first-party provider configurations/cost bounds.
-2. Pass zero-network focused tests and the canonical test suite.
-3. Freeze new V0.3 plan/slot/remote-state identities; only then may an explicit paid slot exist.
-4. First paid V0.3 call: new DeepSeek matched-capability slot exactly once.
-5. Then obtain matched MiniMax and Kimi answers on the same governed material and compare correctness/Jianghe fidelity, actual CNY and actual latency.
+1. Review the completed DeepSeek V0.3 adjudication and evidence binding.
+2. If the Owner continues the comparison, execute MiniMax next on the same governed material.
+3. Stop for explicit review before Kimi unless separately directed.
+4. Compare correctness/Jianghe fidelity first, then actual CNY and latency, before provider adoption.
 
 Do not reopen the closed pre-spend whole-repository rolling audit.
