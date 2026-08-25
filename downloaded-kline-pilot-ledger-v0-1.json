@@ -1,0 +1,19 @@
+{
+  "events": [
+    {
+      "attempt_slot": "DOWNLOADED_KLINE_V0_1:DEEPSEEK:DKL-DS-001:001",
+      "event_identity": "e17ca4df535c5f102161dd8288f888e4d07cb6eb574f99d2a5ad7480166c8c80",
+      "event_type": "NETWORK_ATTEMPT_STARTED",
+      "precall_conservative_reservation_cny": "1.394328",
+      "previous_event_identity": null,
+      "recorded_at": "2026-08-25T04:20:19.240125+00:00",
+      "request_identity": "8cdd5401441eaba2b807f956d7ad8474ffb972cf1df9cee22df7949c6cd63f4b",
+      "sample_id": "DKL-DS-001",
+      "sequence": 1
+    }
+  ],
+  "historical_project_accounted_cny": "2.4886842",
+  "pilot_id": "JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1",
+  "pilot_plan_identity": "e4dd70c8938995ec57715abc28bcf1784d9a1e4d2c6bd7e61add83a224d8582a",
+  "schema_version": "downloaded-kline-pilot-remote-ledger-v0.1"
+}
