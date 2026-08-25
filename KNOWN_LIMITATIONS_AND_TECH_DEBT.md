@@ -14,15 +14,17 @@ Status: `IMPLEMENTED__AWAITING_CI`
 
 The runtime normalizer uses exact enum construction with no case-folding, trimming, prefix matching or prose extraction. The current cleanup branch adds explicit regression coverage rejecting verbose, lowercase and whitespace-padded machine enum values.
 
-## 2. 4H volume reasoning guard not fully hardened
+## 2. 4H volume reasoning guard
 
 DeepSeek must not perform exact reconciliation between 4H volume and overlapping lower-timeframe volume.
 
-Required fix:
+Guard:
 
 `NO_4H_EXACT_VOLUME_RECONCILIATION`
 
-Status: `OPEN`
+Status: `IMPLEMENTED__AWAITING_CI`
+
+Raw per-timeframe OHLCV remains legal. The project-owned context guard rejects derived exact 4H cross-timeframe volume reconciliation/equality payloads while leaving lower-timeframe semantics unchanged. The obsolete downloaded-Kline comparison contract that could derive such comparisons has been physically removed from the active tree.
 
 ## 3. Persistent trader memory is not implemented yet
 
