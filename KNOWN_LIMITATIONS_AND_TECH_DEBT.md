@@ -2,19 +2,13 @@
 
 As of: `2026-08-26`
 
-## 1. Persistent trader prototype is not implemented yet
+## 1. Persistent chronological replay is not implemented end-to-end
 
-Still required:
+The minimal persistent DeepSeek trader prototype is complete and locally accepted, but one life-like chronological replay of the persistent trader has not yet been implemented or executed end-to-end.
 
-- durable project-owned `DS_WORKING_MEMORY`;
-- `DS_JOURNAL` persistence;
-- `DS_HYPOTHESIS_MEMORY` persistence;
-- bounded Jianghe retrieval;
-- project-owned K-line/market tools;
-- complete request/retrieval/tool/memory audit;
-- restart continuity in the actual project composition.
+A future replay package must preserve causal availability, persistent memory, trader identity, bounded context/retrieval, auditable wake decisions and the existing mechanical guards. It must not be confused with mass independent stateless prompt exams.
 
-Status: `OPEN__NEXT_WORK_PACKAGE`
+Status: `OPEN_FUTURE_WORK_PACKAGE`
 
 ## 2. Harness patch is project-required
 
@@ -24,26 +18,32 @@ Do not replace it with an unpatched upstream build without a new admission verif
 
 Status: `CONTROLLED_DEPENDENCY`
 
-## 3. Persistent chronological replay is not implemented end-to-end
+## 3. Windows rejected-constructor SQLite cleanup remains imperfect
 
-The accepted historical corpus exists, but broad life-like replay of one persistent trader must wait until the prototype identity and memory/runtime semantics are stable.
+A deliberately rejected mismatched-trader `PersistentTraderStore` constructor can leave its SQLite connection open until Python cleanup/GC. On Windows, same-process immediate deletion of that temporary database may therefore receive `WinError 32`.
 
-Status: `OPEN_AFTER_PROTOTYPE`
+The identity mismatch itself remains fail-closed. Native Windows prototype acceptance and the real offline CLI probe both pass. This is cleanup/resource-lifetime technical debt, not a failed prototype objective.
+
+Status: `OPEN_TECH_DEBT__NON_ACCEPTANCE_BLOCKING`
 
 ## 4. Experience-derived policy promotion pipeline is not implemented
 
 Still required later:
 
-- hypothesis identity;
-- falsification/counterexample search;
+- governed hypothesis identity/lineage at replay scale;
+- falsification/counterexample search workflow;
 - discovery-exposure lineage;
 - independent validation;
 - policy promotion/versioning.
+
+`DS_HYPOTHESIS_MEMORY` remains non-executable and may not self-promote into active policy.
 
 Status: `OPEN_FUTURE_WORK`
 
 ## 5. Protected lanes are locked
 
+- paid provider calls: `PAUSED`;
+- `NEXT_EXPLICIT_PAID_SLOT = NONE`;
 - validation/holdout: locked;
 - shadow: locked;
 - broker/account: locked;
@@ -51,8 +51,10 @@ Status: `OPEN_FUTURE_WORK`
 
 Status: `LOCKED_BY_CURRENT_AUTHORITY`
 
-## 6. Long-run stability/profitability is not demonstrated
+## 6. Long-run stability and profitability are not demonstrated
 
-No current evidence establishes long-horizon runtime stability, production reliability or profitability. Those require later protected evidence after the persistent trader identity is stable.
+Prototype completion proves the governed local runtime/memory/retrieval/tool/audit composition, not long-horizon trading quality, production reliability or profitability.
+
+No current evidence establishes profitable historical performance, robust generalization, live/shadow performance, or production readiness. Those require later explicitly governed research/protected evidence.
 
 Status: `OPEN_FUTURE_EVIDENCE`
