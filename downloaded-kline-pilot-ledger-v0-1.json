@@ -23,6 +23,17 @@
       "sample_id": "DKL-DS-001",
       "sequence": 2,
       "terminal_status": "CAPABILITY_SCOREABLE"
+    },
+    {
+      "attempt_slot": "DOWNLOADED_KLINE_V0_1:DEEPSEEK:DKL-DS-002:001",
+      "event_identity": "61fdaebfb79bfcf83c38a4a0c6038988c5c231a4e1a50ad48dfe35573f89d8e4",
+      "event_type": "NETWORK_ATTEMPT_STARTED",
+      "precall_conservative_reservation_cny": "1.393152",
+      "previous_event_identity": "3d76670a6a8ba6de0b7080495f333b1f856f35b5815dc94d91624f295a5ec0b1",
+      "recorded_at": "2026-08-25T04:22:14.890979+00:00",
+      "request_identity": "1661f6396961234eb3d3e993fdabca0dacd561496db167369e0aa26ef8be5cc8",
+      "sample_id": "DKL-DS-002",
+      "sequence": 3
     }
   ],
   "historical_project_accounted_cny": "2.4886842",
