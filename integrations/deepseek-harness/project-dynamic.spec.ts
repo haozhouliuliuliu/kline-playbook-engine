@@ -82,10 +82,10 @@ describe('kline-playbook-engine Harness dynamic admission', () => {
     expect(requestText(adapter.requests[1] as never)).toContain('"watch_region":"3125-3135"')
 
     const eventTypes = handle.agent.session.events.map(event => event.type)
-    expect(eventTypes.filter(type => type === 'request/header')).toHaveLength(2)
+    expect(eventTypes.filter(type => type === 'request/header')).toHaveLength(1)
+    expect(eventTypes.filter(type => type === 'assistant/message')).toHaveLength(2)
     expect(eventTypes).toContain('tool/call')
     expect(eventTypes).toContain('tool/result')
-    expect(eventTypes).toContain('assistant/message')
 
     const audit = readFileSync(auditPath, 'utf8').trim().split('\n').map(line => JSON.parse(line))
     expect(audit).toEqual(expect.arrayContaining([
