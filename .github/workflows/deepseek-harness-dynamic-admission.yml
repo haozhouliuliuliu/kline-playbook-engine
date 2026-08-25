@@ -12,6 +12,8 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   project-dynamic-admission:
@@ -86,3 +88,12 @@ jobs:
           pnpm exec vitest run
           packages/llm/llm-deepseek/tests/serialize.spec.ts
           packages/llm/llm-deepseek/tests/dynamic-config.spec.ts
+
+      - name: Record project admission success on PR
+        if: success() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: >-
+          gh pr comment "${{ github.event.pull_request.number }}"
+          --body "KPE_HARNESS_DYNAMIC_ADMISSION_PASS head=${{ github.event.pull_request.head.sha }} run=${{ github.run_id }} attempt=${{ github.run_attempt }} pinned=b150a551b8d465e31e418e1b2eaf5e79bbb7d28e"
