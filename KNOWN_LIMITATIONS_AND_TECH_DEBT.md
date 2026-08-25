@@ -63,7 +63,7 @@ CURRENT_PLAN=docs/evidence/JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN_V0_3.json
 CURRENT_FROZEN_PLAN=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_3.json
 V0_3_OFFLINE_CLOSURE=COMPLETE
 V0_3_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
-PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_PILOT_REVIEW
+PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
 FAIR_MATCHED_THREE_MODEL_EVIDENCE=COMPLETE
 DEEPSEEK_STATUS=CURRENT_LEADING_PROVIDER__NO_PERMANENT_ADOPTION
 MINIMAX_STATUS=CANDIDATE__PASS_WITH_MATERIAL_QUALITY_DEFECTS
@@ -77,6 +77,22 @@ therefore resolved; the current blocker is instead the separate downloaded-Kline
 pilot review recorded in current state.
 
 The Owner corrected a research-design error in V0.1/V0.2: output-format/normalizer compatibility and a uniform 1024-token completion ceiling had become too entangled with model-capability elimination.
+
+## LIMIT-013 — Downloaded-Kline V0.2 input protocol still needs an Owner scope decision
+
+```text
+STATUS=OPEN__OWNER_DECISION_REQUIRED
+CURRENT_BLOCKER=NO_FOR_OFFLINE_FORENSIC_CLOSURE
+ACTIVATE_BEFORE=ANY_FRESH_DOWNLOADED_KLINE_V0_2_PAID_PILOT
+AUTHORITY=docs/reviews/JIANGHE_DOWNLOADED_KLINE_DKL_DS_003_FORENSIC_REVIEW_V0_1.md
+TIMEFRAME_AUTHORITY=docs/reviews/JIANGHE_TIMEFRAME_INPUT_SCOPE_EVIDENCE_REVIEW_V0_1.md
+```
+
+The generic V0.2 contract explicitly marks bar order/latest closed bars and exact
+cross-timeframe volume buckets. It has no paid validation yet. Source-backed Jianghe
+material contains 4H examples, while the PRIMARY semantic freeze remains unrequested;
+the Owner must decide the next input scope before a fresh small pilot. No rerun and no
+large batch are authorized.
 
 Current anti-regression rule:
 

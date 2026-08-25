@@ -11,9 +11,9 @@ ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_COMPLETE
-NEXT_NORMAL_PHASE=DOWNLOADED_KLINE_PILOT_REVIEW
-OWNER_ACTION=REVIEW_DEEPSEEK_PILOT_DEFECTS
+CURRENT_WORK_PACKAGE=JIANGHE_DOWNLOADED_KLINE_PILOT_DEFECT_REVIEW_COMPLETE
+NEXT_NORMAL_PHASE=DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
+OWNER_ACTION=DECIDE_V0_2_INPUT_SCOPE_THEN_AUTHORIZE_OR_DECLINE_FRESH_SMALL_PILOT
 TOOL_DECISION=USE_EXISTING
 ```
 
@@ -45,7 +45,32 @@ Authority: `docs/reviews/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1.md` and
 All five calls completed and were scoreable with no model mismatch, truncation,
 automatic retry or invented Jianghe rule. DKL-DS-003 made two mechanically
 confirmed data errors: it treated the penultimate 5m bar as the final bar and
-then fabricated a volume mismatch. Review is required before any larger batch.
+then fabricated a volume mismatch. The historical pilot verdict remains immutable;
+the V0.2 interface repair is ready for a new independent small pilot only, never a
+rerun or larger batch.
+
+## Downloaded-Kline DKL-DS-003 closure (2026-08-25)
+
+```text
+FORENSIC_VERDICT=MULTI_CAUSAL_DEFECTS_FIXED
+FORENSIC_AUTHORITY=docs/reviews/JIANGHE_DOWNLOADED_KLINE_DKL_DS_003_FORENSIC_REVIEW_V0_1.md
+TIMEFRAME_REVIEW_AUTHORITY=docs/reviews/JIANGHE_TIMEFRAME_INPUT_SCOPE_EVIDENCE_REVIEW_V0_1.md
+NEW_INPUT_CONTRACT_VERSION=DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2
+NEW_INPUT_CONTRACT_SCHEMA_IDENTITY=0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a
+HISTORICAL_PILOT_VERDICT_UNCHANGED=YES
+PILOT_REVIEW_RESOLUTION=READY_FOR_FRESH_PILOT_V0_2
+LARGE_BATCH_AUTHORIZED=NO
+THIS_CLOSURE_NETWORK_CALLS=0
+THIS_CLOSURE_PAID_PROVIDER_CALLS=0
+PROJECT_ACCOUNTED_CNY_AFTER=3.1609662
+JIANGHE_HIGHER_TIMEFRAME_EVIDENCE_STATUS=UNRESOLVED_IN_CURRENT_PRIMARY_EVIDENCE
+```
+
+Canonical data, session aggregation, structured artifact, renderer and evaluator
+are correct. The model made factual errors while V0.1 also lacked explicit
+order/latest-bar/exact-bucket semantics; V0.2 repairs only those generic input
+semantics. Current source-backed evidence includes 4H usage, but PRIMARY freeze is
+not requested, so no 4H/daily input is added in this closure.
 
 ## Stage-A V0.3 three-provider matched comparison (2026-08-25)
 
@@ -206,7 +231,7 @@ Formatting convenience, strict JSON compliance, reasoning-token count, or a unif
 ## Current paid-call state
 
 ```text
-PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_PILOT_REVIEW
+PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
 NEXT_EXPLICIT_PAID_SLOT=NONE__NO_FOURTH_PROVIDER
 COMPLETED_PROVIDERS=DEEPSEEK__MINIMAX__KIMI
 PENDING_PROVIDER=NONE
