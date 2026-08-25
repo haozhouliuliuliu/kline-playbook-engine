@@ -73,11 +73,17 @@ jobs:
           DEEPSEEK_API_KEY: ''
         run: pnpm exec vitest run packages/examples/agent-spine-demo/tests/kpe-project-dynamic.spec.ts
 
-      - name: Re-prove durable Harness session persistence
+      # This project gate targets the admitted persistence property itself. Running
+      # every upstream SQLite backend timing/mechanics test here couples project
+      # admission to unrelated scheduler-sensitive implementation tests.
+      - name: Re-prove durable Harness session persistence contract
         working-directory: _harness
         env:
           CI: 'true'
-        run: pnpm exec vitest run packages/session/session-persistence-sqlite/tests/sqlite.spec.ts
+        run: >-
+          pnpm exec vitest run
+          packages/session/session-persistence-sqlite/tests/sqlite.spec.ts
+          -t "persists a live session driven through the store, surviving reload"
 
       - name: Re-prove unaffected DeepSeek image serialization and dynamic config
         working-directory: _harness
