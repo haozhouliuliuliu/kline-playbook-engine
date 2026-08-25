@@ -438,12 +438,17 @@ class PersistentTraderStore:
         self._connection.commit()
         return JournalEntry(entry_id, created_at, self.trader_identity, observation_identity, body, normalized_tags, identity)
 
-    def list_journal(self, *, limit: int = 20) -> tuple[JournalEntry, ...]:
-        if not 1 <= limit <= 100:
-            raise ValueError("journal limit must be 1..100")
-        rows = self._connection.execute(
-            "SELECT * FROM journal ORDER BY created_at DESC, entry_id DESC LIMIT ?", (limit,)
-        ).fetchall()
+    def list_journal(self, *, limit: int | None = 20) -> tuple[JournalEntry, ...]:
+        if limit is not None and not 1 <= limit <= 100:
+            raise ValueError("journal limit must be 1..100 or None for complete export")
+        if limit is None:
+            rows = self._connection.execute(
+                "SELECT * FROM journal ORDER BY created_at DESC, entry_id DESC"
+            ).fetchall()
+        else:
+            rows = self._connection.execute(
+                "SELECT * FROM journal ORDER BY created_at DESC, entry_id DESC LIMIT ?", (limit,)
+            ).fetchall()
         return tuple(
             JournalEntry(
                 row["entry_id"],
@@ -519,12 +524,17 @@ class PersistentTraderStore:
             statement, falsifier, status, refs, identity,
         )
 
-    def list_hypotheses(self, *, limit: int = 50) -> tuple[HypothesisRecord, ...]:
-        if not 1 <= limit <= 200:
-            raise ValueError("hypothesis limit must be 1..200")
-        rows = self._connection.execute(
-            "SELECT * FROM hypotheses ORDER BY updated_at DESC, hypothesis_id DESC LIMIT ?", (limit,)
-        ).fetchall()
+    def list_hypotheses(self, *, limit: int | None = 50) -> tuple[HypothesisRecord, ...]:
+        if limit is not None and not 1 <= limit <= 200:
+            raise ValueError("hypothesis limit must be 1..200 or None for complete export")
+        if limit is None:
+            rows = self._connection.execute(
+                "SELECT * FROM hypotheses ORDER BY updated_at DESC, hypothesis_id DESC"
+            ).fetchall()
+        else:
+            rows = self._connection.execute(
+                "SELECT * FROM hypotheses ORDER BY updated_at DESC, hypothesis_id DESC LIMIT ?", (limit,)
+            ).fetchall()
         return tuple(
             HypothesisRecord(
                 row["hypothesis_id"],
@@ -609,10 +619,10 @@ class PersistentTraderStore:
         )
 
     def portable_export(self) -> dict[str, Any]:
-        """Return Harness-independent state suitable for deterministic migration."""
+        """Return complete Harness-independent state for deterministic migration."""
         memory = self.load_working_memory()
-        journal = self.list_journal(limit=100)
-        hypotheses = self.list_hypotheses(limit=200)
+        journal = self.list_journal(limit=None)
+        hypotheses = self.list_hypotheses(limit=None)
         audit = self.list_audit()
         return {
             "export_version": PORTABLE_EXPORT_VERSION,
