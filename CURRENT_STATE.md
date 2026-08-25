@@ -27,23 +27,17 @@ The provider-neutral lower-stack clarification contract remains frozen as:
 - `DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`
 - schema identity `0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a`
 
-## V0.2 final-chance protocol
+## V0.2 final-chance protocol and execution closure
 
 Owner decision authority:
 
 `docs/reviews/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_OWNER_DECISION_V0_2.md`
 
-Bounded higher-timeframe evidence review:
-
-`docs/reviews/JIANGHE_HIGHER_TIMEFRAME_BOUNDED_EVIDENCE_REVIEW_V0_2.md`
-
 Frozen test stack:
 
 `4H / 1H / 15m / 5m`
 
-4H remains authorized only as background / state / key-zone / location / remaining-space context. It is not an automatic trigger or permanent Jianghe doctrine.
-
-4H representation:
+4H remains background / state / key-zone / location / remaining-space context only and uses:
 
 `SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1`
 
@@ -54,11 +48,7 @@ Materialized plan:
 - `PILOT_PLAN_IDENTITY = 34640cd6de7dd9f5069ad902e0e7c125b78aa7a5400475b4531ba318f3469340`
 - `PLAN_FILE_SHA256 = f72d16567b0f481551eda85cda3f5e67ba7c31a5504943e80e148540830cecbc`
 
-## V0.2 live execution closure
-
-The final-chance round was actually executed through the fail-closed GitHub Actions single-slot lane.
-
-Remote ledger:
+Remote live ledger:
 
 `refs/heads/final-chance-live-state-v0-2`
 
@@ -86,48 +76,47 @@ The original frozen three-provider PK remains:
 
 `THREE_PROVIDER_PK_VERDICT = NOT_FINALIZABLE`
 
-because Kimi's fourth capability answer does not exist. Historical attempt identities must not be rerun or rewritten.
+Historical attempt identities remain immutable.
 
-## Owner post-execution provider scope and adjudication
+## Current model selection
 
-Formal post-execution review:
+Historical adjudication:
 
 `docs/reviews/JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`
 
-Owner narrowed current provider selection to DeepSeek vs MiniMax and excluded Kimi from the current selection. No Kimi retry is requested.
+Later binding Owner decision:
 
-Independent two-provider correctness adjudication using the already-frozen correctness dimensions concludes:
+`docs/reviews/JIANGHE_DEEPSEEK_SOLE_ACTIVE_MODEL_OWNER_DECISION_V0_1.md`
 
-- DeepSeek `deepseek-v4-flash-vision-exp` = `SELECTED_FOR_NEXT_RESEARCH_LANE`
-- MiniMax `MiniMax-M3` = `VERIFIED_RUNNER_UP_RESERVE`
-- Kimi `kimi-k3` = `EXCLUDED_FROM_CURRENT_SELECTION`
-- `PERMANENT_PROVIDER_ADOPTION = NOT_FROZEN`
+Current state:
 
-Reason: DeepSeek was substantively stronger on the new 4H-context semantics and real-market interpretation. Its observed weaknesses are narrower and mechanically hardenable: one invalid 4H cross-timeframe volume reconciliation and one strict-enum output-format failure. MiniMax repeatedly introduced higher-timeframe/session semantic errors, including completed-4H maturity confusion, unsupported session/liquidity claims, and inappropriate 4H-volume inference.
+- DeepSeek `deepseek-v4-flash-vision-exp` = `SOLE_ACTIVE_MODEL_CANDIDATE_FOR_JIANGHE`
+- MiniMax `MiniMax-M3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
+- Kimi `kimi-k3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
+- MiniMax is no longer a reserve/fallback candidate.
+- No further MiniMax/Kimi selection-testing budget is authorized under the current direction.
+
+This freezes the current Jianghe model-selection direction. It does not by itself authorize production, shadow, broker, account, or real-money use of DeepSeek.
 
 ## Current work package
 
 `CURRENT_WORK_PACKAGE = JIANGHE_DEEPSEEK_SELECTED_LANE_HARDENING_V0_1`
-
-This is an engineering hardening continuation, not a new Jianghe research design.
 
 Required narrow hardening:
 
 1. exact output enum enforcement;
 2. explicit prohibition / validation against 4H exact cross-timeframe volume reconciliation.
 
-No additional paid provider call is required for the selection decision.
+No additional paid provider call is required for model selection.
 
 ## Paid-call state
 
 - `PAID_CALLS = PAUSED`
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`
 - no current executable paid slot exists;
-- historical final-chance attempts are immutable and may not be retried under their consumed identities.
+- historical final-chance attempts may not be retried under consumed identities.
 
 ## Locks
-
-Unchanged unless a later explicit authority says otherwise:
 
 - outcome access: `LOCKED`
 - future access: `LOCKED`
@@ -140,7 +129,6 @@ Unchanged unless a later explicit authority says otherwise:
 ## Exact next work
 
 1. harden the selected DeepSeek lane against the two observed mechanical failure modes;
-2. run focused regression tests only for those hardening changes plus normal repository CI;
-3. keep MiniMax as the verified reserve candidate;
-4. do not run more provider calls merely to re-litigate this selection;
-5. any new broader validation/research design remains a separate Owner gate.
+2. run focused regression tests plus normal repository CI;
+3. do not run more provider calls merely to re-litigate model selection;
+4. any new broader validation/research design, including a persistent DeepSeek trading workspace/harness direction, remains a separate Owner product/research gate until explicitly approved.
