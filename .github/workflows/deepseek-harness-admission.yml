@@ -1,0 +1,76 @@
+name: DeepSeek Harness Admission
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/deepseek-harness-admission.yml'
+      - 'docs/reviews/DEEPSEEK_HARNESS_ADMISSION_V0_1.md'
+      - 'tools/verify_deepseek_harness_admission_v0_1.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pinned-static-and-upstream-focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned DeepSeek Harness
+        uses: actions/checkout@v4
+        with:
+          repository: deepseek-ai/deepseek-harness
+          ref: b150a551b8d465e31e418e1b2eaf5e79bbb7d28e
+          path: _harness
+          persist-credentials: false
+
+      - name: Verify pinned admission facts offline
+        run: python tools/verify_deepseek_harness_admission_v0_1.py --harness-root _harness
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+
+      - name: Install pinned pnpm
+        run: npm install --global pnpm@11.7.0
+
+      - name: Install pinned Harness workspace
+        working-directory: _harness
+        env:
+          CI: 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Run retry-policy gate
+        working-directory: _harness
+        env:
+          CI: 'true'
+          DEEPSEEK_API_KEY: ''
+        run: pnpm exec vitest run packages/llm/llm/tests/retry-policy.spec.ts
+
+      - name: Run exact DeepSeek model and vision gates
+        working-directory: _harness
+        env:
+          CI: 'true'
+          DEEPSEEK_API_KEY: ''
+        run: >-
+          pnpm exec vitest run
+          packages/llm/llm-deepseek/tests/adapter.spec.ts
+          packages/llm/llm-deepseek/tests/serialize.spec.ts
+          packages/llm/llm-deepseek/tests/dynamic-config.spec.ts
+
+      - name: Run durable SQLite session gate
+        working-directory: _harness
+        env:
+          CI: 'true'
+        run: pnpm exec vitest run packages/session/session-persistence-sqlite/tests/sqlite.spec.ts
+
+      - name: Run agent tool and audit-spine gate
+        working-directory: _harness
+        env:
+          CI: 'true'
+          DEEPSEEK_API_KEY: ''
+        run: pnpm exec vitest run packages/examples/agent-spine-demo/tests/agent-core.spec.ts
