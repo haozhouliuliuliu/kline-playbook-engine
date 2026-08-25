@@ -220,6 +220,46 @@ class V03GitStoreTests(unittest.TestCase):
             observed = store.load()
             self.assertEqual(slot, list(observed.ledger.snapshot().attempted_slots)[0])
 
+    def test_terminal_without_provider_evidence_round_trips(self) -> None:
+        plan, plan_sha256, _ = _plan()
+        with tempfile.TemporaryDirectory() as tmp:
+            local = os.path.join(tmp, "local")
+            remote = self._make_remote(tmp)
+            os.makedirs(local)
+            subprocess.run(["git", "init", "-q"], cwd=local, check=True)
+            subprocess.run(["git", "remote", "add", "origin", remote], cwd=local, check=True)
+            store = V03GitRemoteLedgerStore(repository=local, remote="origin")
+            slot = v03_slot_identity("DEEPSEEK")
+            started = V03RemoteExecutionLedger(plan, plan_sha256).append_start(
+                now=NOW,
+                provider_id="DEEPSEEK",
+                slot_identity=slot,
+                request_identity="request",
+                worst_case_cny=Decimal("1.389174"),
+            )
+            start_head = store.compare_and_swap(
+                expected_head=None,
+                ledger_bytes=started.to_bytes(),
+            )
+            terminal = started.append_terminal(
+                now=NOW,
+                provider_id="DEEPSEEK",
+                slot_identity=slot,
+                status=V03TerminalStatus.TRANSPORT_FAILURE.value,
+                accounted_cny=Decimal("1.389174"),
+                evidence_identity="0" * 64,
+                evidence_network_start_event_identity="0" * 64,
+                evidence_terminal_event_identity="0" * 64,
+            )
+            store.compare_and_swap(
+                expected_head=start_head,
+                ledger_bytes=terminal.to_bytes(),
+            )
+
+            observed = store.load()
+            self.assertEqual(1, observed.ledger.snapshot().total_attempts)
+            self.assertEqual(2, len(observed.ledger.events))
+
 
 if __name__ == "__main__":
     unittest.main()

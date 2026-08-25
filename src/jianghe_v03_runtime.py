@@ -310,11 +310,13 @@ V03_PROVIDER_CONFIGS = (DEEPSEEK_V03_CONFIG, MINIMAX_V03_CONFIG, KIMI_V03_CONFIG
 V03_EXECUTION_ORDER = ("DEEPSEEK", "MINIMAX", "KIMI")
 
 
-def v03_slot_identity(provider_id: str) -> str:
+def v03_slot_identity(provider_id: str, sequence: int = 1) -> str:
     _require_text(provider_id, "provider_id")
     if provider_id not in V03_EXECUTION_ORDER:
         raise ValueError("unsupported V0.3 provider slot")
-    return f"V0_3:{provider_id}:CAPABILITY_MATCHED_001"
+    if type(sequence) is not int or sequence < 1 or sequence > 999:
+        raise ValueError("V0.3 slot sequence must be an integer from 1 to 999")
+    return f"V0_3:{provider_id}:CAPABILITY_MATCHED_{sequence:03d}"
 
 
 def v03_capability_answer_contract_payload() -> dict[str, object]:

@@ -81,6 +81,7 @@ def _build_request(
     provider_id: str,
     plan: dict[str, object],
     now: datetime,
+    slot_identity: str | None = None,
 ) -> tuple[V03Request, V03ProviderInferenceConfig, V03BudgetLedger, object, object]:
     config = CONFIG_BY_PROVIDER[provider_id]
     spec = SPEC_BY_PROVIDER[provider_id]
@@ -105,7 +106,7 @@ def _build_request(
     attempt = V03AttemptIdentity(
         common_exam_identity=common_exam.identity,
         provider_inference_config_identity=config.identity,
-        slot_identity=v03_slot_identity(provider_id),
+        slot_identity=slot_identity or v03_slot_identity(provider_id),
         model_request_at=now.isoformat(),
     )
     request = V03Request(
@@ -132,12 +133,19 @@ def main() -> int:
     now = datetime.now(timezone.utc)
     plan = build_v03_frozen_plan()
     plan_sha256 = hashlib.sha256(pretty_plan_bytes(plan)).hexdigest()
-    slot_identity = v03_slot_identity(args.provider)
-    request, config, budget, rate_card, spec = _build_request(args.provider, plan, now)
-    transport = V03ProviderTransport(config)
-
     store = V03GitRemoteLedgerStore(repository=ROOT, remote="origin", remote_ref=DEFAULT_REMOTE_REF)
     observed = store.load()
+    slot_identity = _next_slot_identity(
+        args.provider,
+        observed.ledger.snapshot().attempted_slots,
+    )
+    request, config, budget, rate_card, spec = _build_request(
+        args.provider,
+        plan,
+        now,
+        slot_identity,
+    )
+    transport = V03ProviderTransport(config)
     if slot_identity in observed.ledger.snapshot().attempted_slots:
         raise SystemExit("V0.3 remote slot has already been attempted; automatic retry forbidden")
 
@@ -173,7 +181,10 @@ def main() -> int:
     except Exception as error:
         terminal_status = V03TerminalStatus.TRANSPORT_FAILURE.value
         error_type = type(error).__name__
-        print(json.dumps({"error_type": error_type, "status": terminal_status}, sort_keys=True))
+        print(
+            json.dumps({"error_type": error_type, "status": terminal_status}, sort_keys=True),
+            flush=True,
+        )
     else:
         terminal_status = evidence.terminal_status
         accounted = Decimal(evidence.accounted_cny_for_hard_cap)
@@ -203,7 +214,7 @@ def main() -> int:
     else:
         evidence_bytes = None
 
-    terminal = ledger.append_terminal(
+    terminal = reserved.append_terminal(
         now=now,
         provider_id=args.provider,
         slot_identity=slot_identity,
@@ -234,6 +245,19 @@ def main() -> int:
         "credential_value_exposed": False,
     }, ensure_ascii=False, sort_keys=True))
     return 1 if terminal_status in RED_EXIT_STATUSES else 0
+
+
+def _next_slot_identity(provider_id: str, attempted_slots: object) -> str:
+    prefix = f"V0_3:{provider_id}:CAPABILITY_MATCHED_"
+    sequences: list[int] = []
+    for slot in attempted_slots:
+        if not isinstance(slot, str) or not slot.startswith(prefix):
+            continue
+        suffix = slot.removeprefix(prefix)
+        if len(suffix) != 3 or not suffix.isdigit():
+            raise ValueError("existing V0.3 provider slot identity is malformed")
+        sequences.append(int(suffix))
+    return v03_slot_identity(provider_id, max(sequences, default=0) + 1)
 
 
 def _worst_case_from_plan(plan: dict[str, object], provider_id: str) -> Decimal:

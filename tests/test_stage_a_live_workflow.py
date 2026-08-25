@@ -94,6 +94,8 @@ class StageAV03WorkflowTests(unittest.TestCase):
         self.assertIn("DEFAULT_REMOTE_REF", self.lane)
         self.assertIn("refs/heads/stage-a-live-state-v0-3", self.lane)
         self.assertIn("caller-selected V0.3 remote ref is forbidden", self.lane)
+        self.assertIn("terminal = reserved.append_terminal(", self.cli)
+        self.assertNotIn("terminal = ledger.append_terminal(", self.cli)
 
     def test_v0_3_plan_frozen_identities_present(self) -> None:
         self.assertIn("JIANGHE_STAGE_A_FROZEN_PLAN_V0_3", self.plan)

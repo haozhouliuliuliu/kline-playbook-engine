@@ -498,7 +498,9 @@ class V03GitRemoteLedgerStore:
             event for event in ledger.events if event["event_type"] == ATTEMPT_TERMINAL
         ]
         expected_evidence_names = {
-            f'evidence-{event["evidence_identity"]}.json' for event in terminals
+            f'evidence-{event["evidence_identity"]}.json'
+            for event in terminals
+            if event["evidence_identity"] != "0" * 64
         }
         actual_evidence_names = set(entries) - {LEDGER_FILENAME}
         if actual_evidence_names != expected_evidence_names:

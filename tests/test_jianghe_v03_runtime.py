@@ -133,10 +133,13 @@ class V03IdentityTests(unittest.TestCase):
 
     def test_slot_identity_is_v03_namespace(self) -> None:
         self.assertEqual("V0_3:DEEPSEEK:CAPABILITY_MATCHED_001", v03_slot_identity("DEEPSEEK"))
+        self.assertEqual("V0_3:DEEPSEEK:CAPABILITY_MATCHED_002", v03_slot_identity("DEEPSEEK", 2))
         self.assertEqual("V0_3:MINIMAX:CAPABILITY_MATCHED_001", v03_slot_identity("MINIMAX"))
         self.assertEqual("V0_3:KIMI:CAPABILITY_MATCHED_001", v03_slot_identity("KIMI"))
         with self.assertRaises(ValueError):
             v03_slot_identity("DEEPSEEK:1")
+        with self.assertRaises(ValueError):
+            v03_slot_identity("DEEPSEEK", 0)
 
     def test_v03_configs_have_sufficient_headroom_and_timeout(self) -> None:
         for config in (DEEPSEEK_V03_CONFIG, MINIMAX_V03_CONFIG, KIMI_V03_CONFIG):
