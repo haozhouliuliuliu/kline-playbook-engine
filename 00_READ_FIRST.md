@@ -17,6 +17,7 @@ Read in this order:
 7. `CROSS_PROJECT_OPERATING_CONTRACT.md`
 8. `TOOL_REGISTRY.md`
 9. current work-package authorities:
+   - `docs/reviews/JIANGHE_DEEPSEEK_SOLE_ACTIVE_MODEL_OWNER_DECISION_V0_1.md`
    - `docs/reviews/JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`
    - `docs/reviews/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_OWNER_DECISION_V0_2.md`
    - `docs/reviews/JIANGHE_HIGHER_TIMEFRAME_BOUNDED_EVIDENCE_REVIEW_V0_2.md`
@@ -43,14 +44,13 @@ Execution closure:
 - Kimi slot 12 ended in a preserved infrastructure failure;
 - original three-provider frozen PK therefore remains `NOT_FINALIZABLE`.
 
-The Owner then narrowed the current provider selection to DeepSeek vs MiniMax and excluded Kimi from the current selection without retry.
+Post-execution provider selection is now frozen as:
 
-Post-execution adjudication:
+- DeepSeek `deepseek-v4-flash-vision-exp` = `SOLE_ACTIVE_MODEL_CANDIDATE_FOR_JIANGHE`
+- MiniMax `MiniMax-M3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
+- Kimi `kimi-k3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
 
-- DeepSeek `deepseek-v4-flash-vision-exp` = `SELECTED_FOR_NEXT_RESEARCH_LANE`
-- MiniMax `MiniMax-M3` = `VERIFIED_RUNNER_UP_RESERVE`
-- Kimi `kimi-k3` = `EXCLUDED_FROM_CURRENT_SELECTION`
-- permanent provider adoption is not frozen.
+MiniMax is no longer a reserve/fallback candidate. Do not reopen the provider-selection question without a new explicit Owner decision.
 
 Current work package:
 
@@ -67,7 +67,9 @@ Current paid state:
 
 `NEXT_EXPLICIT_PAID_SLOT = NONE`
 
-No more provider call is required merely to choose DeepSeek vs MiniMax.
+No more provider call is required for model selection.
+
+Any persistent DeepSeek trading workspace/harness or broader historical replay program is a new product/research stage until explicitly approved.
 
 ## Fresh-conversation first report
 
@@ -77,7 +79,7 @@ On a brand-new conversation, perform a read-only takeover first and report:
 - current phase/state;
 - current locks;
 - final-chance live-attempt closure;
-- current provider selection status;
+- current model-selection status;
 - exact next explicit slot, if any;
 - contradictions found.
 

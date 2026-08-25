@@ -23,19 +23,15 @@ Before answering a substantive question about current status, architecture, perm
 
 ## Frozen V0.2 protocol
 
-Original Owner decision:
-
-`docs/reviews/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_OWNER_DECISION_V0_2.md`
-
 Frozen stack:
 
 `4H / 1H / 15m / 5m`
 
-4H role remains background/state/key-zone/location/remaining-space only and uses:
+4H remains background/state/key-zone/location/remaining-space only and uses:
 
 `SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1`
 
-Lower-stack contract remains:
+Lower-stack contract:
 
 `DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`
 
@@ -69,33 +65,38 @@ Remote ledger head:
 - hard cap: `100.00 CNY`;
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`.
 
-The original three-provider frozen PK is `NOT_FINALIZABLE` because Kimi slot 12 ended in a preserved infrastructure failure with no capability answer.
+The original frozen three-provider PK remains `NOT_FINALIZABLE` because Kimi slot 12 ended in a preserved infrastructure failure with no capability answer.
 
-## Current provider selection
+## Current model selection
 
-Post-execution Owner scope decision and project-brain adjudication:
+Historical correctness adjudication:
 
 `docs/reviews/JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`
 
-Current selection state:
+Binding later Owner decision:
 
-- DeepSeek `deepseek-v4-flash-vision-exp` = `SELECTED_FOR_NEXT_RESEARCH_LANE`
-- MiniMax `MiniMax-M3` = `VERIFIED_RUNNER_UP_RESERVE`
-- Kimi `kimi-k3` = `EXCLUDED_FROM_CURRENT_SELECTION`
-- `PERMANENT_PROVIDER_ADOPTION = NOT_FROZEN`
+`docs/reviews/JIANGHE_DEEPSEEK_SOLE_ACTIVE_MODEL_OWNER_DECISION_V0_1.md`
 
-The two-provider verdict is correctness-first. DeepSeek's observed defects are narrow mechanical hardening targets; MiniMax showed repeated higher-timeframe/session semantic defects under the new 4H protocol.
+Current state:
+
+- DeepSeek `deepseek-v4-flash-vision-exp` = `SOLE_ACTIVE_MODEL_CANDIDATE_FOR_JIANGHE`
+- MiniMax `MiniMax-M3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
+- Kimi `kimi-k3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
+- MiniMax is not a reserve/fallback candidate.
+- Do not spend further selection budget on MiniMax or Kimi under the current direction.
+
+DeepSeek is the sole active model candidate, but production/shadow/broker/real-money adoption is not thereby authorized.
 
 ## Exact next work
 
-Engineering hardening only:
+Current authorized engineering continuation:
 
 1. enforce exact action/direction/family enum values;
 2. forbid / validate against 4H exact cross-timeframe volume reconciliation;
 3. run focused tests and normal CI;
-4. do not make more provider calls merely to repeat the selection.
+4. do not make more provider calls merely to repeat model selection.
 
-A new broader validation/research design remains a separate Owner gate.
+A persistent DeepSeek trading workspace/harness or a broader historical replay program is a new product/research stage and requires an explicit Owner direction before implementation/large-scale execution.
 
 ## Paid state
 
@@ -114,6 +115,8 @@ A new broader validation/research design remains a separate Owner gate.
 
 ## Tool decision
 
+For the current narrow hardening package:
+
 `USE_EXISTING`
 
-No new tool is required for the current hardening work package.
+DeepSeek Harness exists in `TOOL_REGISTRY.md` as a `CANDIDATE`; it is not yet verified or adopted by this project. Any harness prototype requires a fresh tool-admission decision and pin/review because it changes the runtime boundary.
