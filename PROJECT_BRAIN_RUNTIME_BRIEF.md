@@ -19,7 +19,7 @@ Before answering a substantive question about current status, architecture, perm
 - `PHASE = RESEARCH_FOUNDATION`
 - `RESEARCH_DIRECTION = HUMAN_PLAYBOOK_FIRST`
 - `JIANGHE = sole current trading-knowledge source`
-- `CURRENT_WORK_PACKAGE = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_V0_2_OFFLINE_PREPARATION`
+- `CURRENT_WORK_PACKAGE = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_V0_2_PRESEND_REVIEW`
 
 ## Current V0.2 decision
 
@@ -69,7 +69,13 @@ Historical attempt identities are immutable and cannot be reused.
 
 ## Execution state
 
-- `MATERIALIZED_PLAN = NONE`
+- `CURRENT_WORK_PACKAGE = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_V0_2_PRESEND_REVIEW`
+- `MATERIALIZED_PLAN = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_V0_2`
+- `MATERIALIZATION_STATUS = MATERIALIZED__AWAITING_PRESEND_REVIEW`
+- `PILOT_PLAN_IDENTITY = 34640cd6de7dd9f5069ad902e0e7c125b78aa7a5400475b4531ba318f3469340`
+- `PLAN_FILE_SHA256 = f72d16567b0f481551eda85cda3f5e67ba7c31a5504943e80e148540830cecbc`
+- `PLAN_NOT_MATERIALIZED = FALSE`
+- `PRESEND_REVIEW_REQUIRED = TRUE`
 - `PAID_CALLS = PAUSED`
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`
 - `AUTOMATIC_RETRY = FORBIDDEN`
@@ -89,7 +95,15 @@ The accepted local canonical corpus is required to materialize the fresh four-ca
 
 ## Exact next work
 
-Materialize the four fresh cases on the canonical-corpus host, verify them offline, then perform pre-send budget/authorization/payload review. Until that review creates a formal slot, no paid call is executable.
+The four fresh cases are materialized and verified (`MATERIALIZED__AWAITING_PRESEND_REVIEW`). The remaining work is pre-send review only:
+
+1. refresh the paid authorization and shared ledger;
+2. refresh provider pricing / rate-card;
+3. review the frozen payloads;
+4. reserve worst-case CNY;
+5. freeze the first explicit paid slot only if every gate passes.
+
+Until that review creates a formal slot, no paid call is executable.
 
 ## Tool decision
 

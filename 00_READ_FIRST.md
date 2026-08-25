@@ -40,17 +40,19 @@ with 4H used only as source-backed background context and represented by:
 
 DeepSeek is the current benchmark; MiniMax M3 and Kimi K3 each receive a final matched opportunity on four fresh real cases.
 
+The V0.2 four-case materialized plan is complete and verified:
+
+`MATERIALIZED_PLAN = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_V0_2`
+
+`MATERIALIZATION_STATUS = MATERIALIZED__AWAITING_PRESEND_REVIEW`
+
 However:
-
-`MATERIALIZED_PLAN = NONE`
-
-Therefore:
 
 `PAID_CALLS = PAUSED`
 
 `NEXT_EXPLICIT_PAID_SLOT = NONE`
 
-Do not reuse historical cases or attempt identities to bypass materialization.
+Pre-send review (authorization / ledger / pricing / payload / reservation / slot freeze) is still required before any paid call. Do not reuse historical cases or attempt identities to bypass materialization.
 
 ## Fresh-conversation first report
 

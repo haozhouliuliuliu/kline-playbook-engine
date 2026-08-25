@@ -43,13 +43,21 @@ Target:
 - fresh-case deterministic selection design excluding historical V0.1 partitions;
 - portable reconstruction / verification design;
 - pre-frozen correctness domination rule;
-- unit tests for 4H break semantics, incomplete-bucket exclusion, plan-spec identity, and elimination logic.
+- unit tests for 4H break semantics, incomplete-bucket exclusion, plan-spec identity, and elimination logic;
+- four fresh cases materialized and verified (`MATERIALIZED__AWAITING_PRESEND_REVIEW`).
 
 ## What is not complete
 
-`MATERIALIZED_PLAN = NONE`
+The V0.2 materialized plan exists and is verified (`MATERIALIZED__AWAITING_PRESEND_REVIEW`).
 
-The accepted canonical corpus is local data and is not stored in GitHub. Therefore the four fresh cases have not yet been produced in this lane.
+Still not complete:
+
+- paid authorization refresh
+- shared ledger refresh
+- provider pricing / rate-card refresh
+- payload / budget review
+- worst-case CNY reservation
+- explicit first paid-slot freeze
 
 No new provider call has occurred.
 
@@ -66,17 +74,11 @@ The existing paid-call authorization is necessary but not sufficient to create a
 
 ## Exact next step
 
-On the host containing the accepted canonical corpus, run:
+The four-case plan is materialized and verified. The next step is pre-send review only:
 
-`python tools/build_jianghe_downloaded_kline_final_chance_plan_v0_2.py --materialize`
-
-Then:
-
-1. verify the emitted four-case plan with `--check-plan`;
-2. run the repository offline test suite;
-3. commit/review the portable materialized evidence;
-4. refresh current ledger, paid authorization, and provider pricing;
-5. perform pre-send payload/budget review;
-6. freeze the first explicit paid slot only if every gate passes.
+1. refresh current ledger, paid authorization, and provider pricing;
+2. perform pre-send payload/budget review;
+3. reserve worst-case CNY;
+4. freeze the first explicit paid slot only if every gate passes.
 
 Do not call any provider before that pre-send review.

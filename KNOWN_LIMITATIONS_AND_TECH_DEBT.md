@@ -113,23 +113,17 @@ The generic V0.2 contract remains unchanged. 4H is carried separately and is for
 ## LIMIT-014 — Fresh final-chance plan is not materialized
 
 ```text
-STATUS=OPEN__LOCAL_CANONICAL_CORPUS_REQUIRED
-CURRENT_BLOCKER=YES_FOR_ANY_NEW_PAID_FINAL_CHANCE_CALL
-ACTIVATE_NOW=OFFLINE_MATERIALIZATION_ONLY
+STATUS=RESOLVED__FOUR_FRESH_CASES_MATERIALIZED_AND_VERIFIED
+CURRENT_BLOCKER=NO_FOR_MATERIALIZATION_GATE__PRE_SEND_GATE_STILL_PENDING
 PLAN_SPEC=docs/evidence/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_SPEC_V0_2.json
-MATERIALIZED_PLAN=NONE
+MATERIALIZED_PLAN=docs/evidence/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_V0_2.json
+MATERIALIZATION_STATUS=MATERIALIZED__AWAITING_PRESEND_REVIEW
 NEXT_EXPLICIT_PAID_SLOT=NONE
 ```
 
-The repository contains the deterministic builder, verifier, fail-closed plan spec, and tests, but not the accepted local canonical corpus. Four fresh case identities and final payload identities therefore do not exist yet.
+The V0.2 four-case plan is materialized and verified from the accepted local canonical corpus. Four fresh deterministic case identities and twelve matched non-executable slots exist and are committed.
 
-Correct resolution:
-
-1. run the materializer on the canonical-corpus host;
-2. verify and commit the portable four-case plan evidence;
-3. refresh the current paid authorization, shared ledger, and provider pricing;
-4. perform pre-send payload/budget review;
-5. only then create an explicit paid slot.
+This resolution closes only the materialization gate. Pricing / budget / authorization / pre-send review is still not complete, and no paid call may occur before that review creates an explicit slot.
 
 Historical V0.1 cases or attempts may not be reused to bypass this limitation.
 
