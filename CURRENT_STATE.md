@@ -85,9 +85,37 @@ Formal automated evidence:
 
 `PROTOTYPE_12_OBJECTIVE_AUTOMATED_GATE = PASS`
 
+## Windows local-acceptance repair
+
+The Owner's first Windows workstation attempt proved all four local Harness gates with zero real provider calls, but exposed a project-side Windows path-separator defect in Jianghe canon retrieval. The offline probe failed before producing its local artifacts.
+
+PR #43 repaired the cross-platform path representation without changing Jianghe/trading semantics and merged to `main` as:
+
+`22c88215ea90ff618bd8457fceabf2deb13e2226`
+
+Final PR #43 head:
+
+`98b707f7efbf65b4648d2f5763d1c825517dbb74`
+
+Repository CI run `32896485036` passed on that final head:
+
+- Linux full repository `test` = success;
+- native Windows `windows-prototype` = success;
+- Windows Jianghe path regression = success;
+- Windows prototype acceptance regression = success;
+- native Windows offline CLI probe = success with `DEEPSEEK_API_KEY=''`, `provider_call_made == false`, and every probe `checks` value true.
+
+Repair evidence:
+
+`docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_WINDOWS_LOCAL_ACCEPTANCE_REPAIR_2026-08-26.md`
+
+A separate non-acceptance Windows cleanup finding remains recorded there: a deliberately rejected mismatched-trader database constructor can retain its SQLite handle until Python cleanup/GC, causing same-process immediate temporary-directory deletion to receive `WinError 32`. The identity mismatch itself remains fail-closed. This does not redefine or weaken any of the twelve prototype objectives.
+
+`NATIVE_WINDOWS_PROJECT_ACCEPTANCE_CI = PASS`
+
 `LOCAL_WORKSTATION_ACCEPTANCE = PENDING`
 
-The work package is therefore not closed yet. The dated handoff remains active until the Owner workstation runs the offline probe and the resulting summary is reviewed.
+The work package is therefore not closed yet. The dated handoff remains active until the repaired current `main` passes the Owner workstation offline acceptance rerun and its summary is reviewed.
 
 ## Historical data foundation
 
@@ -114,11 +142,15 @@ Current task handoff:
 
 Exact next task:
 
-1. Owner workstation pulls current `main`.
-2. Run `python tools/run_persistent_deepseek_trader_offline_probe.py` with a local project-owned state directory.
-3. Do not set/use a DeepSeek API key and do not make a provider call.
-4. Return `offline-probe-summary.json` plus command/output evidence for project review.
-5. If local acceptance passes, finalize authority, delete the dated handoff, and stop before replay/learning.
+1. Owner workstation pulls repaired current `main`.
+2. Use Python 3.11 and a fresh local project-owned state directory.
+3. Force the acceptance process `DEEPSEEK_API_KEY` empty without exposing any prior value.
+4. Run `python tools/run_persistent_deepseek_trader_offline_probe.py --state-dir <fresh-local-state-dir>`.
+5. Verify exit code zero, `provider_call_made == false`, every `checks` value true, and the local DB/summary/four PNG charts/manifests exist.
+6. Return `offline-probe-summary.json` plus terminal/artifact evidence for project review.
+7. If local acceptance passes, finalize authority, delete the dated handoff, and stop before replay/learning.
+
+The existing local Harness installation may be reused only if its HEAD is still the pinned commit and the project patch remains applied. No real DeepSeek call is part of this acceptance.
 
 ## Locks
 
