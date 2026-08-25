@@ -287,7 +287,15 @@ class PersistentTraderStore:
         self._connection = sqlite3.connect(self.path)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
-        self._initialize()
+        try:
+            self._initialize()
+        except Exception:
+            # The mismatched-trader / schema failure remains fail-closed (the error
+            # is re-raised), but the open handle must not survive to keep Windows
+            # temporary-directory cleanup from observing WinError 32.
+            self._connection.close()
+            self._connection = None  # type: ignore[assignment]
+            raise
 
     def _initialize(self) -> None:
         self._connection.executescript(

@@ -249,6 +249,7 @@ def observation_to_context_payload(observation: JiangheObservation) -> dict[str,
         "exchange_time": _iso(observation.identity.exchange_time),
         "product": observation.identity.product,
         "concrete_contract": observation.identity.concrete_contract,
+        "mapping_identity": observation.identity.mapping_identity,
         "timeframes": list(ACTIVE_TIMEFRAMES),
         "four_hour_role": "BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY",
         "bars": [
