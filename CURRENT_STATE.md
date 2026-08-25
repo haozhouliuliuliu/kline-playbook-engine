@@ -10,20 +10,11 @@ As of: `2026-08-25`
 - Jianghe V1 remains the sole current trading-knowledge source.
 - No broker, account, shadow, validation, holdout, or real-money lane is unlocked.
 
-## Completed Jianghe Stage-A evidence
+## Historical foundation
 
-Historical three-provider matched evidence is complete.
+Historical three-provider matched evidence and the Downloaded-Kline V0.1 pilot remain immutable evidence.
 
-Historical downloaded-Kline V0.1 pilot:
-
-- five real canonical cases;
-- five scoreable DeepSeek responses;
-- two model factual errors;
-- zero invented fixed rules;
-- zero unsupported Jianghe claims identified by the frozen evaluator;
-- pilot accounted cost: `0.672282 CNY`.
-
-The project shared paid-research ledger after the completed historical work is:
+Historical shared paid-research ledger before the V0.2 final-chance round:
 
 `PROJECT_ACCOUNTED_CNY = 3.1609662`
 
@@ -31,20 +22,12 @@ Hard cap:
 
 `100.00 CNY`
 
-Historical attempts and their identities are immutable evidence and must not be rerun or rewritten.
-
-## Downloaded-Kline V0.1 forensic closure
-
-The V0.1 forensic review established that the DKL-DS-003 defect was not caused by canonical data, aggregation, rendering, or evaluator corruption. The observed defect was a model factual error plus an input-clarity weakness.
-
-The provider-neutral clarification layer is frozen as:
+The provider-neutral lower-stack clarification contract remains frozen as:
 
 - `DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`
 - schema identity `0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a`
 
-That contract remains unchanged.
-
-## Owner-approved V0.2 final-chance protocol
+## V0.2 final-chance protocol
 
 Owner decision authority:
 
@@ -54,56 +37,93 @@ Bounded higher-timeframe evidence review:
 
 `docs/reviews/JIANGHE_HIGHER_TIMEFRAME_BOUNDED_EVIDENCE_REVIEW_V0_2.md`
 
-The next fresh matched test protocol is:
+Frozen test stack:
 
 `4H / 1H / 15m / 5m`
 
-4H is authorized only as source-backed background / state / key-zone / location / remaining-space context. It is not a permanent Jianghe doctrine and must not be treated as an automatic trigger.
+4H remains authorized only as background / state / key-zone / location / remaining-space context. It is not an automatic trigger or permanent Jianghe doctrine.
 
-Daily / weekly / monthly are not included in this round because the bounded current evidence review did not identify enough explicit role evidence. This is not a universal claim that Jianghe never uses them.
-
-The project 4H test representation is:
+4H representation:
 
 `SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1`
 
-The existing V0.2 lower-stack input contract is preserved; 4H uses a separate descriptor and is excluded from exact cross-timeframe volume reconciliation.
+Materialized plan:
 
-## Fresh final-chance pilot
+`docs/evidence/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_V0_2.json`
 
-Plan-spec authority:
-
-`docs/evidence/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_SPEC_V0_2.json`
-
-Current state:
-
-- `CURRENT_WORK_PACKAGE = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_V0_2_PRESEND_REVIEW`
-- `PLAN_SPEC = FROZEN`
-- `MATERIALIZED_PLAN = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_V0_2`
-- `MATERIALIZATION_STATUS = MATERIALIZED__AWAITING_PRESEND_REVIEW`
 - `PILOT_PLAN_IDENTITY = 34640cd6de7dd9f5069ad902e0e7c125b78aa7a5400475b4531ba318f3469340`
 - `PLAN_FILE_SHA256 = f72d16567b0f481551eda85cda3f5e67ba7c31a5504943e80e148540830cecbc`
-- `SAMPLE_COUNT_TARGET = 4`
-- `PROVIDERS = DEEPSEEK, MINIMAX, KIMI`
-- `TOTAL_CALLS_IF_FULLY_EXECUTED = 12`
-- `HISTORICAL_ATTEMPT_REUSE = FORBIDDEN`
-- `HISTORICAL_V01_PARTITION_REUSE = FORBIDDEN_WHEN_AUTHORITY_AVAILABLE`
-- `AUTOMATIC_RETRY = FORBIDDEN`
-- `AUTOMATIC_NEXT_SLOT = FORBIDDEN`
 
-Correctness-first domination / elimination semantics are frozen before any new call in the Owner decision and machine-readable plan spec.
+## V0.2 live execution closure
+
+The final-chance round was actually executed through the fail-closed GitHub Actions single-slot lane.
+
+Remote ledger:
+
+`refs/heads/final-chance-live-state-v0-2`
+
+Final remote ledger head:
+
+`899f578cda41e534fe584d027bab3cd15c5fbb1d`
+
+Execution facts:
+
+- `TOTAL_NETWORK_ATTEMPTS = 12`
+- `TOTAL_TERMINAL_ATTEMPTS = 12`
+- `UNIQUE_ATTEMPTED_SLOTS = 12`
+- `AUTOMATIC_RETRIES = 0`
+- `AUTOMATIC_NEXT = 0`
+- DeepSeek: 4 attempts, 3 scoreable + 1 output-contract not-scoreable
+- MiniMax: 4 attempts, 4 scoreable
+- Kimi: 4 attempts, 2 scoreable + 1 not-scoreable + 1 infrastructure failure
+- Kimi slot 12 failed with `RemoteDisconnected` after a real network attempt; no retry was performed.
+
+Current shared hard-cap accounting after the round:
+
+`PROJECT_ACCOUNTED_CNY = 20.9075330`
+
+The original frozen three-provider PK remains:
+
+`THREE_PROVIDER_PK_VERDICT = NOT_FINALIZABLE`
+
+because Kimi's fourth capability answer does not exist. Historical attempt identities must not be rerun or rewritten.
+
+## Owner post-execution provider scope and adjudication
+
+Formal post-execution review:
+
+`docs/reviews/JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`
+
+Owner narrowed current provider selection to DeepSeek vs MiniMax and excluded Kimi from the current selection. No Kimi retry is requested.
+
+Independent two-provider correctness adjudication using the already-frozen correctness dimensions concludes:
+
+- DeepSeek `deepseek-v4-flash-vision-exp` = `SELECTED_FOR_NEXT_RESEARCH_LANE`
+- MiniMax `MiniMax-M3` = `VERIFIED_RUNNER_UP_RESERVE`
+- Kimi `kimi-k3` = `EXCLUDED_FROM_CURRENT_SELECTION`
+- `PERMANENT_PROVIDER_ADOPTION = NOT_FROZEN`
+
+Reason: DeepSeek was substantively stronger on the new 4H-context semantics and real-market interpretation. Its observed weaknesses are narrower and mechanically hardenable: one invalid 4H cross-timeframe volume reconciliation and one strict-enum output-format failure. MiniMax repeatedly introduced higher-timeframe/session semantic errors, including completed-4H maturity confusion, unsupported session/liquidity claims, and inappropriate 4H-volume inference.
+
+## Current work package
+
+`CURRENT_WORK_PACKAGE = JIANGHE_DEEPSEEK_SELECTED_LANE_HARDENING_V0_1`
+
+This is an engineering hardening continuation, not a new Jianghe research design.
+
+Required narrow hardening:
+
+1. exact output enum enforcement;
+2. explicit prohibition / validation against 4H exact cross-timeframe volume reconciliation.
+
+No additional paid provider call is required for the selection decision.
 
 ## Paid-call state
 
-The existing paid-call authorization remains a separate authority and does not itself create a slot.
-
-Current execution state:
-
 - `PAID_CALLS = PAUSED`
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`
-- `PLAN_NOT_MATERIALIZED = FALSE`
-- `PRESEND_REVIEW_REQUIRED = TRUE`
-
-The V0.2 materialized plan is complete and verified. Materialization itself remains offline and ends in `MATERIALIZED__AWAITING_PRESEND_REVIEW`; it must not automatically create a paid slot. Pre-send review (authorization / ledger / pricing / payload / reservation / slot freeze) is still required before any paid call.
+- no current executable paid slot exists;
+- historical final-chance attempts are immutable and may not be retried under their consumed identities.
 
 ## Locks
 
@@ -116,14 +136,11 @@ Unchanged unless a later explicit authority says otherwise:
 - shadow execution: `LOCKED`
 - broker/account action: `LOCKED`
 - real money: `LOCKED`
-- automatic provider retry: `FORBIDDEN`
 
 ## Exact next work
 
-1. Perform pre-send budget / authorization / payload review of the verified four-case plan.
-2. Refresh the current paid authorization and shared ledger.
-3. Refresh provider pricing / rate-card.
-4. Reserve worst-case CNY.
-5. Only then freeze the first explicit paid slot, if every gate still passes.
-
-No provider call is permitted before that pre-send review completes.
+1. harden the selected DeepSeek lane against the two observed mechanical failure modes;
+2. run focused regression tests only for those hardening changes plus normal repository CI;
+3. keep MiniMax as the verified reserve candidate;
+4. do not run more provider calls merely to re-litigate this selection;
+5. any new broader validation/research design remains a separate Owner gate.
