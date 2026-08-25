@@ -6,11 +6,11 @@
 
 Read `00_READ_FIRST.md` first, complete its read-only takeover order, and read this file **last**. Report understanding/contradictions and stop for Owner acceptance before executing new work.
 
-## Handoff checkpoint — 2026-08-25 DeepSeek V0.3 paid capability pass
+## Handoff checkpoint — 2026-08-25 DeepSeek and MiniMax matched results complete
 
 ```text
 PROJECT_PHASE=RESEARCH_FOUNDATION
-CURRENT_WORK_PACKAGE=JIANGHE_STAGE_A_V0_3_DEEPSEEK_CAPABILITY_PASS
+CURRENT_WORK_PACKAGE=JIANGHE_STAGE_A_V0_3_DEEPSEEK_AND_MINIMAX_COMPLETE
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 CURRENT_STAGE_A_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md
@@ -19,16 +19,28 @@ CURRENT_FROZEN_PLAN=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_3.json
 V0_3_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
 INTEGRATION_BRANCH=integration/stage-a-v0-3-one-shot
 V0_3_OFFLINE_CLOSURE=PASS
-NETWORK_PROVIDER_CALLS_MADE=2
-PAID_CALLS_CURRENTLY_PAUSED=YES__DEEPSEEK_PASS_RECORDED
-NEXT_EXPLICIT_PAID_SLOT=NONE_UNTIL_OWNER_DIRECTS_MINIMAX
-COMPLETED_PROVIDER=DEEPSEEK
-COMPLETED_SUCCESSFUL_SLOT=V0_3:DEEPSEEK:CAPABILITY_MATCHED_002
+V0_3_NETWORK_PROVIDER_CALLS_TOTAL=3
+PAID_CALLS_CURRENTLY_PAUSED=YES__DEEPSEEK_AND_MINIMAX_COMPLETE
+NEXT_EXPLICIT_PAID_SLOT=NONE_UNTIL_OWNER_DIRECTS_KIMI
+COMPLETED_PROVIDERS=DEEPSEEK__MINIMAX
+PENDING_PROVIDER=KIMI
 DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
 V0_3_REMOTE_REF=refs/heads/stage-a-live-state-v0-3
 TOOL_DECISION=USE_EXISTING
-LIMIT_012=ACTIVE__DEEPSEEK_MATCHED_EVIDENCE_PASS__MINIMAX_AND_KIMI_NOT_YET_RUN
+LIMIT_012=ACTIVE__DEEPSEEK_AND_MINIMAX_MATCHED_EVIDENCE_COMPLETE__KIMI_NOT_YET_RUN
 ```
+
+MiniMax's matched result is `CAPABILITY_SCOREABLE` and adjudicated
+`PASS__WITH_MATERIAL_QUALITY_DEFECTS`: `FAMILY=NONE`, `ACTION=WAIT`,
+`DIRECTION=NONE`. It cost CNY0.1085952; project accounted total is CNY1.8786642.
+Evidence identity is `0552d05848ae94b9c9a311432e88faed2dbefc4ad1ffc29ea0f8ae4f30d97b1a`
+and remote head is `f0c619d0743c25cc62a755f24829280545778f77`.
+
+MiniMax's safe decision matches DeepSeek's no-trade conclusion, but its answer
+invented a fixed two-close rule and contained material 1H/body and post-poke
+range/count errors. DeepSeek and MiniMax are complete; Kimi is pending. The shared
+runner's placeholder/live-payload START reservation defect was repaired and
+focused-tested.
 
 DeepSeek's successful result is `CAPABILITY_SCOREABLE` and substantively adjudicated
 `PASS`: `FAMILY=NONE`, `ACTION=NO_TRADE`, `DIRECTION=NONE`. Its attempt cost is
@@ -39,7 +51,7 @@ the remote ledger head is `d0ff1a727e276691bac2a63b8367cf73e5a8d438`.
 The first real call (`...MATCHED_001`) is an immutable transport failure caused by
 the repaired terminal-write defect and was conservatively charged CNY1.389174.
 The successful independent call is `...MATCHED_002`. There were no automatic
-retries. MiniMax and Kimi were not run. See
+retries. At that DeepSeek checkpoint MiniMax and Kimi had not run. See
 `docs/reviews/JIANGHE_STAGE_A_V0_3_DEEPSEEK_CAPABILITY_MATCHED_002_ADJUDICATION_V0_1.md`.
 
 ## Binding Owner objective
@@ -90,9 +102,9 @@ V0.3 restarts the matched comparison **with DeepSeek first**, but only with a ne
 
 ```text
 DEEPSEEK=CANDIDATE__V0_3_CAPABILITY_PASS
-MINIMAX=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
+MINIMAX=CANDIDATE__V0_3_CAPABILITY_PASS_WITH_MATERIAL_QUALITY_DEFECTS
 KIMI=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
-VERIFIED_PROVIDER=DEEPSEEK
+VERIFIED_PROVIDERS=DEEPSEEK__MINIMAX
 ADOPTED_PROVIDER=NONE
 ```
 
@@ -126,8 +138,8 @@ Score Jianghe principle accuracy, market structure, K-line visual reading, WAIT/
 
 ```text
 HISTORICAL_V0_1_V0_2_LIVE_CALLS=2
-V0_3_NETWORK_CALLS=2
-CURRENT_PROJECT_ACCOUNTED_CNY=1.770069
+V0_3_NETWORK_CALLS=3
+CURRENT_PROJECT_ACCOUNTED_CNY=1.8786642
 TOTAL_API_HARD_CAP_CNY=100.00
 V0_1_V0_2_STAGE_A_CNY18_LIMIT=HISTORICAL_ONLY_FOR_V0_3
 V0_1_V0_2_CNY6_PER_PROVIDER_LIMIT=HISTORICAL_ONLY_FOR_V0_3
@@ -161,9 +173,8 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Review the completed DeepSeek V0.3 adjudication and evidence binding.
-2. If the Owner continues the comparison, execute MiniMax next on the same governed material.
-3. Stop for explicit review before Kimi unless separately directed.
-4. Compare correctness/Jianghe fidelity first, then actual CNY and latency, before provider adoption.
+1. Compare the completed DeepSeek and MiniMax matched-fixture answers.
+2. If the Owner continues, execute Kimi next on the same governed material.
+3. Compare correctness/Jianghe fidelity first, then actual CNY and latency, before provider adoption.
 
 Do not reopen the closed pre-spend whole-repository rolling audit.

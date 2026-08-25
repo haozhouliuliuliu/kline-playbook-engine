@@ -154,12 +154,19 @@ def main() -> int:
         raise SystemExit("current Owner authorization does not permit this V0.3 provider/model")
 
     ledger = observed.ledger
+    runtime_worst_case = _runtime_worst_case_cny(
+        request,
+        transport,
+        config,
+        rate_card,
+        _image_bound_from_plan(plan, args.provider),
+    )
     reserved = ledger.append_start(
         now=now,
         provider_id=args.provider,
         slot_identity=slot_identity,
         request_identity=request.identity,
-        worst_case_cny=_worst_case_from_plan(plan, args.provider),
+        worst_case_cny=runtime_worst_case,
     )
     reserved_bytes = reserved.to_bytes()
     start_head = store.compare_and_swap(
@@ -168,7 +175,7 @@ def main() -> int:
     )
 
     terminal_status = V03TerminalStatus.INFRASTRUCTURE_FAILURE.value
-    accounted = _worst_case_from_plan(plan, args.provider)
+    accounted = runtime_worst_case
     evidence_payload = None
     try:
         evidence = transport.invoke(
@@ -260,11 +267,24 @@ def _next_slot_identity(provider_id: str, attempted_slots: object) -> str:
     return v03_slot_identity(provider_id, max(sequences, default=0) + 1)
 
 
-def _worst_case_from_plan(plan: dict[str, object], provider_id: str) -> Decimal:
-    for provider in plan["providers"]:
-        if provider["provider_id"] == provider_id:
-            return Decimal(provider["worst_case_reservation_cny"])
-    raise KeyError(provider_id)
+def _runtime_worst_case_cny(
+    request: V03Request,
+    transport: V03ProviderTransport,
+    config: V03ProviderInferenceConfig,
+    rate_card: object,
+    max_image_tokens: int,
+) -> Decimal:
+    """Match the transport's current-rate reservation before durable START."""
+    if rate_card.provider_id != config.provider_id:
+        raise ValueError("runtime reservation provider mismatch")
+    if not rate_card.image_tokens_billed_as_input:
+        raise ValueError("unknown image billing semantics fail closed")
+    text_bound = transport.conservative_text_input_token_bound(request)
+    million = Decimal("1000000")
+    return (
+        Decimal(text_bound + max_image_tokens) * Decimal(rate_card.input_per_million)
+        + Decimal(config.max_output_tokens) * Decimal(rate_card.output_per_million)
+    ) / million
 
 
 def _image_bound_from_plan(plan: dict[str, object], provider_id: str) -> int:

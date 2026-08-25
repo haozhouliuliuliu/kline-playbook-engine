@@ -13,10 +13,11 @@ from src.jianghe_v03_plan import (
 from src.jianghe_v03_runtime import (
     HISTORICAL_PROJECT_ACCOUNTED_CNY,
     V03_EXECUTION_ORDER,
+    V03ProviderTransport,
     v03_capability_answer_contract_identity,
     v03_slot_identity,
 )
-from tools.run_jianghe_v03_slot import _build_request
+from tools.run_jianghe_v03_slot import _build_request, _runtime_worst_case_cny
 
 
 class V03PlanTests(unittest.TestCase):
@@ -105,6 +106,27 @@ class V03PlanTests(unittest.TestCase):
                 self.plan["common_exam"][field_name],
                 getattr(request.common_exam_identity, field_name),
             )
+
+    def test_live_runner_start_uses_current_runtime_reservation(self) -> None:
+        now = datetime(2026, 8, 25, tzinfo=timezone.utc)
+        request, config, _, rate_card, _ = _build_request("MINIMAX", self.plan, now)
+        transport = V03ProviderTransport(config)
+        text_bound = transport.conservative_text_input_token_bound(request)
+
+        expected = (
+            Decimal(text_bound) * Decimal(rate_card.input_per_million)
+            + Decimal(config.max_output_tokens) * Decimal(rate_card.output_per_million)
+        ) / Decimal("1000000")
+
+        self.assertEqual(Decimal("2.51055"), expected)
+        frozen = next(
+            row for row in self.plan["providers"] if row["provider_id"] == "MINIMAX"
+        )
+        self.assertNotEqual(expected, Decimal(frozen["worst_case_reservation_cny"]))
+        self.assertEqual(
+            expected,
+            _runtime_worst_case_cny(request, transport, config, rate_card, 0),
+        )
 
 
 if __name__ == "__main__":
