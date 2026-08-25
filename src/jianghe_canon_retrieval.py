@@ -1,6 +1,6 @@
 """Bounded, attributable, read-only retrieval over JIANGHE_CANON text artifacts.
 
-This module deliberately has no write path.  Retrieval is deterministic and bounded
+This module deliberately has no write path. Retrieval is deterministic and bounded
 by both hit count and returned characters so source truth cannot silently become an
 unbounded prompt dump.
 """
@@ -10,12 +10,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 from typing import Iterable
 
 
-RETRIEVER_VERSION = "KPE_JIANGHE_CANON_RETRIEVER_V0_1"
+RETRIEVER_VERSION = "KPE_JIANGHE_CANON_RETRIEVER_V0_2"
 DEFAULT_MAX_RESULTS = 6
 DEFAULT_MAX_CHARS = 6000
 HARD_MAX_RESULTS = 12
@@ -35,16 +35,32 @@ def _normalize(text: str) -> str:
 
 
 def _tokens(query: str) -> tuple[str, ...]:
-    # Latin/numeric words plus individual CJK runs.  Exact normalized-substring
+    # Latin/numeric words plus individual CJK runs. Exact normalized-substring
     # matching receives the dominant score, so Chinese phrases remain useful even
     # without an external tokenizer.
     raw = re.findall(r"[a-zA-Z0-9_./:-]+|[\u3400-\u9fff]+", query.casefold())
     return tuple(sorted(set(token for token in raw if token)))
 
 
-def _safe_relative(relative_path: str) -> Path:
-    candidate = Path(relative_path)
-    if candidate.is_absolute() or ".." in candidate.parts or not candidate.parts:
+def _safe_relative(relative_path: str | Path) -> PurePosixPath:
+    """Return one canonical repo-relative path independent of host separators.
+
+    Git source identities must not change merely because the Owner workstation uses
+    Windows. Treat both slash styles as path separators, reject POSIX/Windows absolute
+    paths and traversal, then retain a forward-slash representation for allowlist
+    checks, document identities and audit payloads.
+    """
+    raw = str(relative_path)
+    windows_candidate = PureWindowsPath(raw)
+    candidate = PurePosixPath(raw.replace("\\", "/"))
+    if (
+        not raw
+        or windows_candidate.is_absolute()
+        or bool(windows_candidate.drive)
+        or candidate.is_absolute()
+        or ".." in candidate.parts
+        or not candidate.parts
+    ):
         raise ValueError("JIANGHE_CANON allowlist paths must be safe relative paths")
     return candidate
 
@@ -102,7 +118,7 @@ class JiangheCanonRetriever:
         self.max_results = max_results
         self.max_chars = max_chars
         self.context_lines = context_lines
-        normalized = tuple(sorted(set(str(_safe_relative(path)) for path in allowed_paths)))
+        normalized = tuple(sorted(set(_safe_relative(path).as_posix() for path in allowed_paths)))
         if not normalized:
             raise ValueError("JIANGHE_CANON allowlist cannot be empty")
         if any(not path.startswith("docs/research/jianghe/") for path in normalized):

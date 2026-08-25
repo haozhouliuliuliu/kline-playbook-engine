@@ -27,3 +27,55 @@ jobs:
 
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+
+  windows-prototype:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Windows timezone data
+        run: python -m pip install tzdata==2026.3
+
+      - name: Compile prototype surfaces
+        run: python -m compileall -q src tools tests
+
+      - name: Prototype Windows acceptance regression tests
+        run: >-
+          python -m unittest -v
+          tests.test_jianghe_canon_retrieval_cross_platform
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_context_assembles_bounded_semantic_layers_without_policy_leakage
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_invalid_output_enum_is_recorded_then_rejected
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_jianghe_retrieval_is_bounded_read_only_and_attributable
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_journal_and_hypothesis_memory_are_separate_and_non_executable
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_model_request_is_fully_reconstructable_and_never_sent
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_observation_exposes_exact_four_timeframe_stack_and_chart_provenance
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_portable_export_contains_project_state_not_harness_opaque_state
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_project_kline_tool_is_audited_and_4h_reconciliation_fails_closed
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_raw_response_and_strict_normalization_are_reconstructable
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_runtime_contract_is_exact_and_provider_execution_stays_locked
+          tests.test_persistent_deepseek_trader_prototype.PersistentDeepSeekTraderPrototypeTests.test_working_memory_survives_process_style_reopen_with_mutation_audit
+          tests.test_persistent_runtime_identity_binding
+          tests.test_persistent_trader_portability_regression
+          tests.test_persistent_deepseek_offline_probe
+
+      - name: Run native Windows offline acceptance probe
+        env:
+          DEEPSEEK_API_KEY: ''
+        shell: pwsh
+        run: |
+          $stateDir = Join-Path $env:RUNNER_TEMP 'kpe-prototype-v0-1'
+          python tools/run_persistent_deepseek_trader_offline_probe.py --state-dir $stateDir
+          if ($LASTEXITCODE -ne 0) { throw "offline probe exited $LASTEXITCODE" }
+          $summaryPath = Join-Path $stateDir 'offline-probe-summary.json'
+          $summary = Get-Content $summaryPath -Raw | ConvertFrom-Json
+          if ($summary.provider_call_made -ne $false) { throw 'provider_call_made must be false' }
+          foreach ($check in $summary.checks.PSObject.Properties) {
+            if ($check.Value -ne $true) { throw "offline probe check failed: $($check.Name)" }
+          }
