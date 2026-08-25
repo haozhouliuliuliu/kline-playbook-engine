@@ -4,83 +4,77 @@ Canonical repository: `haozhouliuliuliu/kline-playbook-engine`
 
 GitHub current `main` is the only dynamic project fact source.
 
-## Fresh-conversation takeover order
+## Fresh-conversation takeover
 
-Read in this order:
+Read only this active core first, in order:
 
 1. `00_READ_FIRST.md`
-2. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
-3. `CURRENT_STATE.md`
-4. `OWNER_COLLABORATION_CONTRACT.md`
-5. `ARCHITECTURE_BASELINE.md`
-6. `AGENTS.md`
-7. `CROSS_PROJECT_OPERATING_CONTRACT.md`
-8. `TOOL_REGISTRY.md`
-9. current work-package authorities:
-   - `docs/reviews/JIANGHE_DEEPSEEK_SOLE_ACTIVE_MODEL_OWNER_DECISION_V0_1.md`
-   - `docs/reviews/JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`
-   - `docs/reviews/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_OWNER_DECISION_V0_2.md`
-   - `docs/reviews/JIANGHE_HIGHER_TIMEFRAME_BOUNDED_EVIDENCE_REVIEW_V0_2.md`
-   - `docs/evidence/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_SPEC_V0_2.json`
-   - `docs/evidence/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_V0_2.json`
-10. live execution evidence only if relevant:
-   - branch `refs/heads/final-chance-live-state-v0-2`
-   - ledger `final-chance-live-ledger-v0-2.json`
-11. paid / execution authorities only if relevant:
-   - `docs/evidence/JIANGHE_PAID_CALL_AUTHORIZATION_CURRENT.json`
-12. `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`
-13. `PROJECT_HANDOFF_CURRENT.md` **last**
+2. `PROJECT_DIRECTION.md`
+3. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
+4. `CURRENT_STATE.md`
 
-## Current takeover headline
+Then read only the specific current authority/evidence required by the active task.
 
-The V0.2 `4H / 1H / 15m / 5m` final-chance round has executed.
+Do NOT front-load old provider comparisons, superseded research plans, cross-project catalogs, historical handoffs or obsolete worker instructions into the new conversation.
 
-Execution closure:
+Git history is the record for superseded plans.
 
-- 12 unique slots attempted;
-- 12 network attempts;
-- 0 retries;
-- remote ledger head `899f578cda41e534fe584d027bab3cd15c5fbb1d`;
-- Kimi slot 12 ended in a preserved infrastructure failure;
-- original three-provider frozen PK therefore remains `NOT_FINALIZABLE`.
+## Current headline
 
-Post-execution provider selection is now frozen as:
+`PRODUCT = JIANGHE_PERSISTENT_DEEPSEEK_TRADER`
 
-- DeepSeek `deepseek-v4-flash-vision-exp` = `SOLE_ACTIVE_MODEL_CANDIDATE_FOR_JIANGHE`
-- MiniMax `MiniMax-M3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
-- Kimi `kimi-k3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
+`MODEL_SOURCE = DEEPSEEK_ONLY`
 
-MiniMax is no longer a reserve/fallback candidate. Do not reopen the provider-selection question without a new explicit Owner decision.
+`CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-Current work package:
+DeepSeek is the sole active Jianghe model source. MiniMax and Kimi are not reserve/fallback candidates and must not be reintroduced without a new explicit Owner decision.
 
-`JIANGHE_DEEPSEEK_SELECTED_LANE_HARDENING_V0_1`
+The target is not a stateless prompt evaluator. The target is a persistent futures trader with:
 
-The narrow observed DeepSeek defects to harden are:
+- Jianghe source-grounded knowledge;
+- persistent working memory;
+- historical decision/journal memory;
+- relevant-knowledge retrieval;
+- K-line chart/data tools;
+- strict output/error guards;
+- auditable memory mutation;
+- governed hypothesis generation and independent validation;
+- deterministic risk/safety/execution boundaries.
 
-1. strict output enum compliance;
-2. prohibition of 4H exact cross-timeframe volume reconciliation.
+DeepSeek may learn from experience functionally, but may not rewrite Jianghe source truth or self-promote unvalidated trading rules.
 
-Current paid state:
+Full direction:
 
-`PAID_CALLS = PAUSED`
+`PROJECT_DIRECTION.md`
 
-`NEXT_EXPLICIT_PAID_SLOT = NONE`
+## Current next work
 
-No more provider call is required for model selection.
+1. finish the two known DeepSeek mechanical guards;
+2. verify a pinned DeepSeek Harness build for this project;
+3. build the smallest persistent-trader prototype;
+4. run a small chronological lifecycle replay;
+5. only then design large historical replay / governed experience learning.
 
-Any persistent DeepSeek trading workspace/harness or broader historical replay program is a new product/research stage until explicitly approved.
+Do not mass-run the historical corpus as independent stateless API questions.
 
-## Fresh-conversation first report
+## Current locks
 
-On a brand-new conversation, perform a read-only takeover first and report:
+- paid calls paused
+- `NEXT_EXPLICIT_PAID_SLOT = NONE`
+- validation/holdout locked
+- shadow locked
+- broker/account locked
+- real money locked
 
-- current main HEAD;
-- current phase/state;
+## First takeover report
+
+A new project brain should report only:
+
+- current `main` HEAD;
+- whether the four active-core files agree;
+- current product/model/work package;
 - current locks;
-- final-chance live-attempt closure;
-- current model-selection status;
-- exact next explicit slot, if any;
-- contradictions found.
+- exact next work;
+- any contradiction found.
 
-Do not perform a paid provider call during takeover.
+Do not modify the repository or make paid/provider calls during that first read-only takeover report.
