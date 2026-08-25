@@ -1,0 +1,99 @@
+name: DeepSeek Harness Dynamic Admission
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/deepseek-harness-dynamic-admission.yml'
+      - 'integrations/deepseek-harness/**'
+      - 'docs/reviews/DEEPSEEK_HARNESS_ADMISSION_V0_1.md'
+      - 'CURRENT_STATE.md'
+      - 'PROJECT_BRAIN_RUNTIME_BRIEF.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  project-dynamic-admission:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned DeepSeek Harness
+        uses: actions/checkout@v4
+        with:
+          repository: deepseek-ai/deepseek-harness
+          ref: b150a551b8d465e31e418e1b2eaf5e79bbb7d28e
+          path: _harness
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+
+      - name: Install pinned pnpm
+        run: npm install --global pnpm@11.7.0
+
+      - name: Install pinned Harness workspace
+        working-directory: _harness
+        env:
+          CI: 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply project fail-closed DeepSeek transport patch
+        run: python integrations/deepseek-harness/apply_deepseek_harness_project_patch.py _harness
+
+      - name: Verify patched source is clean
+        working-directory: _harness
+        run: |
+          git diff --check
+          ! grep -q 'fileAttempt' packages/llm/llm-deepseek/src/adapter.ts
+
+      - name: Stage project dynamic probes inside pinned Harness test graph
+        run: |
+          cp integrations/deepseek-harness/stale-file-fail-closed.spec.ts _harness/packages/llm/llm-deepseek/tests/kpe-stale-file-fail-closed.spec.ts
+          cp integrations/deepseek-harness/project-dynamic.spec.ts _harness/packages/examples/agent-spine-demo/tests/kpe-project-dynamic.spec.ts
+
+      - name: Prove fail-closed vision transport and zero hidden chat retry
+        working-directory: _harness
+        env:
+          CI: 'true'
+          DEEPSEEK_API_KEY: ''
+        run: pnpm exec vitest run packages/llm/llm-deepseek/tests/kpe-stale-file-fail-closed.spec.ts
+
+      - name: Prove project memory tool context and audit integration
+        working-directory: _harness
+        env:
+          CI: 'true'
+          DEEPSEEK_API_KEY: ''
+        run: pnpm exec vitest run packages/examples/agent-spine-demo/tests/kpe-project-dynamic.spec.ts
+
+      - name: Re-prove durable Harness session persistence
+        working-directory: _harness
+        env:
+          CI: 'true'
+        run: pnpm exec vitest run packages/session/session-persistence-sqlite/tests/sqlite.spec.ts
+
+      - name: Re-prove unaffected DeepSeek image serialization and dynamic config
+        working-directory: _harness
+        env:
+          CI: 'true'
+          DEEPSEEK_API_KEY: ''
+        run: >-
+          pnpm exec vitest run
+          packages/llm/llm-deepseek/tests/serialize.spec.ts
+          packages/llm/llm-deepseek/tests/dynamic-config.spec.ts
+
+      - name: Record project admission success on PR
+        if: success() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: >-
+          gh pr comment "${{ github.event.pull_request.number }}"
+          --body "KPE_HARNESS_DYNAMIC_ADMISSION_PASS head=${{ github.event.pull_request.head.sha }} run=${{ github.run_id }} attempt=${{ github.run_attempt }} pinned=b150a551b8d465e31e418e1b2eaf5e79bbb7d28e"
