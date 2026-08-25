@@ -8,13 +8,14 @@ Current target:
 
 ## Current product facts
 
-- DeepSeek is the only active model source.
+- `MODEL_SOURCE = DEEPSEEK_ONLY`
+- current model: `deepseek-v4-flash-vision-exp`
 - Jianghe is the initial source-grounded trading foundation.
-- The trader is intended to keep persistent working memory, journal and audited experience across calls/restarts.
-- DeepSeek may propose new hypotheses from experience, but cannot rewrite Jianghe source truth or promote an unvalidated rule into active policy.
-- Historical market replay must be chronological and causal.
-- Hard risk, broker/account truth, order lifecycle and safety remain deterministic/project-owned.
-- Validation/holdout, shadow, broker/account and real-money lanes are currently locked.
+- The trader keeps project-owned persistent working memory, journal and audited experience across calls/restarts.
+- DeepSeek may generate falsifiable hypotheses from experience; active policy changes require governed evidence and independent validation.
+- Historical market replay is chronological and causal.
+- Hard risk, broker/account truth, order lifecycle and safety remain deterministic project systems.
+- Validation/holdout, shadow, broker/account and real-money lanes are locked.
 
 ## Start reading
 
@@ -23,15 +24,14 @@ Current target:
 3. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
 4. `CURRENT_STATE.md`
 
-Do not start from old Git history or deleted superseded plans unless performing a specific forensic task.
-
 ## Current engineering sequence
 
-1. harden the two observed DeepSeek mechanical failure modes;
-2. verify a pinned DeepSeek Harness build for exact model + vision + persistence + project-owned memory/tools/audit;
-3. build the smallest persistent-trader prototype;
-4. run a small chronological lifecycle replay;
-5. only then design broad historical replay and governed experience learning.
+1. harden `STRICT_OUTPUT_ENUM_ENFORCEMENT`;
+2. harden `NO_4H_EXACT_VOLUME_RECONCILIATION`;
+3. verify a pinned DeepSeek Harness build for exact model + vision + persistence + project-owned memory/tools/audit;
+4. build the smallest persistent-trader prototype;
+5. run a small chronological lifecycle replay;
+6. design broad historical replay and governed experience learning after trader identity is stable.
 
 Historical data acceptance authority:
 
