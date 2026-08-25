@@ -12,9 +12,10 @@ Read in this order:
 2. `PROJECT_DIRECTION.md`
 3. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
 4. `CURRENT_STATE.md`
-5. `docs/reviews/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_HANDOFF_2026-08-26.md`
 
 Then read only authority/evidence required by the active task.
+
+The completed prototype's formal evidence is available under `docs/evidence/`; do not treat deleted dated handoffs or old chat as active authority.
 
 ## Current headline
 
@@ -24,13 +25,21 @@ Then read only authority/evidence required by the active task.
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-`CURRENT_WORK_PACKAGE = MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
+`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`
+
+`PROTOTYPE_12_OBJECTIVE_AUTOMATED_GATE = PASS`
+
+`NATIVE_WINDOWS_PROJECT_ACCEPTANCE_CI = PASS`
+
+`LOCAL_WORKSTATION_ACCEPTANCE = PASS`
+
+`CURRENT_WORK_PACKAGE = NONE__AWAITING_EXPLICIT_NEXT_WORK_PACKAGE`
 
 `DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
 `DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
 
-The product is one persistent China-futures trader with Jianghe source-grounded knowledge, persistent working memory, journal/hypothesis memory, bounded retrieval, causal K-line tools, strict guards, auditable memory mutation and governed learning.
+The product is one persistent China-futures trader with Jianghe source-grounded knowledge, persistent working memory, journal/hypothesis memory, bounded retrieval, causal K-line tools, strict guards, auditable memory mutation and governed learning boundaries.
 
 ## Runtime shell
 
@@ -41,7 +50,7 @@ Use only pinned DeepSeek Harness:
 - project fail-closed DeepSeek transport patch from `integrations/deepseek-harness/`
 - general retry `maxRetries: 0`
 
-The first prototype runs locally. A browser UI may use localhost; do not turn this work package into a public/cloud website.
+The accepted product/runtime boundary is local-workstation-first. A browser UI may use localhost; no current authority opens public/cloud deployment.
 
 ## Current locks
 
@@ -52,18 +61,23 @@ The first prototype runs locally. A browser UI may use localhost; do not turn th
 - broker/account: locked
 - real money: locked
 
+## Current stop point
+
+`NEXT_TASK = STOP__AWAIT_EXPLICIT_NEXT_WORK_PACKAGE`
+
+Do not infer that prototype completion opens replay, learning, validation, shadow, broker/account, real-money or provider-call work. None is active.
+
 ## First takeover report
 
 The new project brain first performs read-only takeover and reports only:
 
 - current `main` HEAD;
-- whether the five files above agree;
-- current product/model/work package;
+- whether the four active takeover files above agree;
+- current product/model;
+- completed prototype/local-acceptance status;
 - Harness pin/local deployment boundary;
 - current locks;
-- exact prototype task;
+- current stop point / whether an explicit next work package exists;
 - contradictions, if any.
 
-Then stop for Owner confirmation before implementation.
-
-When the prototype work package is completed, delete its dated handoff file rather than appending a superseding history section.
+Then stop for Owner confirmation before new implementation or research work.
