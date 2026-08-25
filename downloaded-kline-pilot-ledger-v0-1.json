@@ -10,6 +10,19 @@
       "request_identity": "8cdd5401441eaba2b807f956d7ad8474ffb972cf1df9cee22df7949c6cd63f4b",
       "sample_id": "DKL-DS-001",
       "sequence": 1
+    },
+    {
+      "accounted_cny_for_hard_cap": "0.079638",
+      "attempt_slot": "DOWNLOADED_KLINE_V0_1:DEEPSEEK:DKL-DS-001:001",
+      "event_identity": "3d76670a6a8ba6de0b7080495f333b1f856f35b5815dc94d91624f295a5ec0b1",
+      "event_type": "ATTEMPT_TERMINAL",
+      "evidence_identity": "0bd6518c259a6330eb28fbbd893287fe03eab7f2677faffd92038e128e6fd93e",
+      "previous_event_identity": "e17ca4df535c5f102161dd8288f888e4d07cb6eb574f99d2a5ad7480166c8c80",
+      "recorded_at": "2026-08-25T04:21:14.506525+00:00",
+      "request_identity": "8cdd5401441eaba2b807f956d7ad8474ffb972cf1df9cee22df7949c6cd63f4b",
+      "sample_id": "DKL-DS-001",
+      "sequence": 2,
+      "terminal_status": "CAPABILITY_SCOREABLE"
     }
   ],
   "historical_project_accounted_cny": "2.4886842",
