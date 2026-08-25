@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from decimal import Decimal
 import unittest
 
@@ -15,6 +16,7 @@ from src.jianghe_v03_runtime import (
     v03_capability_answer_contract_identity,
     v03_slot_identity,
 )
+from tools.run_jianghe_v03_slot import _build_request
 
 
 class V03PlanTests(unittest.TestCase):
@@ -79,6 +81,30 @@ class V03PlanTests(unittest.TestCase):
         self.assertEqual("FORBIDDEN", self.plan["automatic_retry"])
         self.assertEqual("NO", self.plan["outcome_access"])
         self.assertEqual("refs/heads/stage-a-live-state-v0-3", self.plan["remote_ref"])
+
+    def test_live_runner_builds_the_exact_frozen_common_exam(self) -> None:
+        request, _, _, _, _ = _build_request(
+            "DEEPSEEK",
+            self.plan,
+            datetime(2026, 8, 25, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(
+            self.plan["common_exam_identity"],
+            request.common_exam_identity.identity,
+        )
+        for field_name in (
+            "selected_context_identity",
+            "model_context_identity",
+            "structured_observation_identity",
+            "png_sha256",
+            "visual_artifact_identity",
+            "renderer_config_identity",
+        ):
+            self.assertEqual(
+                self.plan["common_exam"][field_name],
+                getattr(request.common_exam_identity, field_name),
+            )
 
 
 if __name__ == "__main__":

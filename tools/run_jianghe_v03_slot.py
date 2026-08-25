@@ -95,6 +95,12 @@ def _build_request(
         system_prompt_sha256=hashlib.sha256(system_prompt.encode("utf-8")).hexdigest(),
         decision_prompt_sha256=hashlib.sha256(decision_prompt.encode("utf-8")).hexdigest(),
         capability_answer_contract_identity=v03_capability_answer_contract_identity(),
+        selected_context_identity=context.identity,
+        model_context_identity=context.model_payload()["model_context_identity"],
+        structured_observation_identity=stimulus.structured.identity,
+        png_sha256=stimulus.png_sha256,
+        visual_artifact_identity=stimulus.visual_artifact_identity,
+        renderer_config_identity=stimulus.renderer_config_identity,
     )
     attempt = V03AttemptIdentity(
         common_exam_identity=common_exam.identity,
