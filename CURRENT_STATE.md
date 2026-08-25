@@ -51,7 +51,7 @@ Mandatory guards:
 
 Use the pinned Harness only with the project fail-closed DeepSeek transport patch in `integrations/deepseek-harness/` and general retry configuration `maxRetries: 0`.
 
-Harness admission was established by PR #41 and remains binding. The prototype implementation re-proved the required Harness properties on PR #42 final head `bb38a103457b9075f7f9a7d74715a054a8d166d4`:
+Harness admission was established by PR #41 and remains binding. Prototype PR #42 re-proved the project-required Harness properties on final head `bb38a103457b9075f7f9a7d74715a054a8d166d4`:
 
 - Repository CI run `32891952828` = `success`; 437 tests, 12 skipped, 0 failed.
 - DeepSeek Harness Dynamic Admission run `32891952918` = `success`.
@@ -87,9 +87,9 @@ Formal automated evidence:
 
 ## Windows local-acceptance repair
 
-The Owner's first Windows workstation attempt proved all four local Harness gates with zero real provider calls, but exposed a project-side Windows path-separator defect in Jianghe canon retrieval. The offline probe failed before producing its local artifacts.
+The Owner's first Windows workstation attempt exposed a project-side Windows path-separator defect in Jianghe canon retrieval after all four local Harness gates had already passed with zero provider calls.
 
-PR #43 repaired the cross-platform path representation without changing Jianghe/trading semantics and merged to `main` as:
+PR #43 repaired cross-platform path representation without changing Jianghe/trading semantics and merged as:
 
 `22c88215ea90ff618bd8457fceabf2deb13e2226`
 
@@ -113,16 +113,46 @@ A separate non-acceptance Windows cleanup finding remains recorded there: a deli
 
 `NATIVE_WINDOWS_PROJECT_ACCEPTANCE_CI = PASS`
 
-`LOCAL_WORKSTATION_ACCEPTANCE = PENDING`
+## Owner-workstation final acceptance
 
-The work package is therefore not closed yet. The dated handoff remains active until the repaired current `main` passes the Owner workstation offline acceptance rerun and its summary is reviewed.
+The repaired current `main` was rerun on the Owner's Windows workstation with Python `3.11.9`, Node `22.19.0`, pnpm `11.7.0`, and `DEEPSEEK_API_KEY` forced empty.
+
+Accepted project HEAD on the Owner workstation:
+
+`a37e218710d9763800578b4ee26f24d5d9173511`
+
+Results:
+
+- PR #43 merge verified as ancestor;
+- Windows retrieval regression = pass;
+- persistent offline-probe unittest = pass;
+- offline core probe exit code = `0`;
+- `provider_call_made = false`;
+- all thirteen offline summary checks = true;
+- local SQLite DB, summary JSON, four PNG charts and four manifests present;
+- summary SHA-256 = `25CEAFBF6B38A504B7DF3FCD871BFB18DBCCB322DCB88828C7FBA391614B66A9`;
+- local Harness remained at pinned commit with project fail-closed patch;
+- Harness Gate A = pass;
+- Harness Gate B = pass;
+- Harness Gate C = pass;
+- Harness Gate D = pass;
+- real DeepSeek provider calls = `0`;
+- project tracked files modified by acceptance = no.
+
+Formal local acceptance evidence:
+
+`docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_LOCAL_WORKSTATION_ACCEPTANCE_2026-08-26.md`
+
+`LOCAL_WORKSTATION_ACCEPTANCE = PASS`
+
+`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`
 
 ## Historical data foundation
 
 Accepted canonical corpus:
 
 - 2024-01-01..2025-12-31
-- cu/al/ni/au/ag/rb
+- cu/al/ni/au/rb/ag
 - 32,980 partitions
 - 212 contracts
 - 15,280,452 normalized 1-minute rows
@@ -130,27 +160,13 @@ Accepted canonical corpus:
 
 Authority: `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
 
-Do not start broad replay until the persistent trader prototype work package is formally closed and a next work package is defined.
+## Current work state
 
-## Current work package
+`CURRENT_WORK_PACKAGE = NONE__AWAITING_EXPLICIT_NEXT_WORK_PACKAGE`
 
-`CURRENT_WORK_PACKAGE = MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
+The minimal persistent DeepSeek trader prototype work package is closed.
 
-Current task handoff:
-
-`docs/reviews/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_HANDOFF_2026-08-26.md`
-
-Exact next task:
-
-1. Owner workstation pulls repaired current `main`.
-2. Use Python 3.11 and a fresh local project-owned state directory.
-3. Force the acceptance process `DEEPSEEK_API_KEY` empty without exposing any prior value.
-4. Run `python tools/run_persistent_deepseek_trader_offline_probe.py --state-dir <fresh-local-state-dir>`.
-5. Verify exit code zero, `provider_call_made == false`, every `checks` value true, and the local DB/summary/four PNG charts/manifests exist.
-6. Return `offline-probe-summary.json` plus terminal/artifact evidence for project review.
-7. If local acceptance passes, finalize authority, delete the dated handoff, and stop before replay/learning.
-
-The existing local Harness installation may be reused only if its HEAD is still the pinned commit and the project patch remains applied. No real DeepSeek call is part of this acceptance.
+No replay or learning task is active. Do not start chronological replay, broad replay, governed learning, validation/holdout, shadow, broker/account or real-money work until a later explicit work package/authority opens it.
 
 ## Locks
 
@@ -161,4 +177,4 @@ The existing local Harness installation may be reused only if its HEAD is still 
 - broker/account: locked
 - real money: locked
 
-No current authority permits a real DeepSeek provider call. Local acceptance is explicitly offline/no-provider-call.
+No current authority permits a real DeepSeek provider call.
