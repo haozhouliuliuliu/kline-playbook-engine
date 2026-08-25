@@ -67,6 +67,24 @@ class JiangheResponseNormalizerTests(unittest.TestCase):
         self.assertEqual(first.response_schema_identity, RESPONSE_SCHEMA_IDENTITY)
         self.assertEqual(first.identity, second.identity)
 
+    def test_machine_enums_require_exact_values_without_prose_or_normalization(self):
+        mutations = (
+            ("family", "A because breakout"),
+            ("action", "WAIT because trigger is not ready"),
+            ("direction", "LONG with confirmation"),
+            ("attention_mode", "WATCH pending retest"),
+            ("family", "a"),
+            ("action", " wait "),
+            ("direction", "long"),
+            ("attention_mode", "scan"),
+        )
+        for field_name, value in mutations:
+            payload = valid_payload()
+            payload[field_name] = value
+            with self.subTest(field_name=field_name, value=value):
+                with self.assertRaises(ValueError):
+                    JiangheResponseNormalizer().normalize(json.dumps(payload, ensure_ascii=False))
+
     def test_rejects_unknown_self_evaluation_and_outcome_fields_recursively(self):
         for field_name, value in (
             ("unexpected", "x"),
