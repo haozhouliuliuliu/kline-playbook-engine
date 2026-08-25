@@ -66,6 +66,8 @@ class StageAV03WorkflowTests(unittest.TestCase):
 
     def test_v0_3_workflow_protected_environment_and_node24_actions(self) -> None:
         self.assertIn("environment: stage-a-readiness", self.v03)
+        self.assertIn("contents: write", self.v03)
+        self.assertIn("persist-credentials: true", self.v03)
         self.assertIn("actions/checkout@v7", self.v03)
         self.assertIn("actions/setup-python@v7", self.v03)
         self.assertNotIn("actions/checkout@v4", self.v03)
