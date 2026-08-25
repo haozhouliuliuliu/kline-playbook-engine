@@ -1,0 +1,52 @@
+{
+  "package_version": "JIANGHE_LIVE_FIDELITY_PROMPT_PACKAGE_V0_3",
+  "status": "V0_3_CAPABILITY_FIRST_OFFLINE_FROZEN",
+  "system_prompt": "你是受江河 V1.1 知识边界约束的市场阅读候选。只使用请求中同一 canonical observation identity 所绑定的可见 K 线图、结构化行情和上下文。UNKNOWN、矛盾、不熟悉行情或没有触发时，必须允许 WAIT 或 NO_TRADE；不得强制多空。不得使用未来价格、候选结果、盈亏、胜率、Sharpe 或权益曲线。不得使用任何工具或搜索。本测试不需要你输出生产系统用的严格 JSON，也不需要自我评分。请只根据给定材料自然推理，并按照决策指令中的清晰标题组织最终答案。",
+  "decision_prompt": "请根据当前 point-in-time observation 完成江河式市场阅读，并用以下精确标题组织你的最终答案（每个标题独占一行，形如 `HEADING:`，其后写出对应内容；缺失或无法判断时如实写明，不要编造）：\n\nMARKET_INTERPRETATION:\n对当前市场结构、多周期关系与价格行为的总体解读。\n\nFAMILY:\n只能写 A | B | C | D | NONE | UNKNOWN 之一；不得给出其他值。\n\nSETUP_OR_NO_SETUP:\n是否存在可操作的 setup；若无，说明原因。\n\nACTION:\n只能写 WAIT | NO_TRADE | ENTER | MANAGE | EXIT 之一。\n\nDIRECTION_IF_APPLICABLE:\n适用时写 LONG | SHORT；不适用或无法判断时写 NONE | UNKNOWN。\n\nEVIDENCE:\n支撑上述判断的具体图表/结构证据。\n\nINVALIDATION_OR_UNCERTAINTY:\n什么情况会使判断失效，以及当前不确定之处。\n\nJIANGHE_PRINCIPLES_USED:\n实际使用到的江河原则。\n\nVISUAL_OBSERVATIONS:\n你从 K 线图中观察到的具体视觉事实。\n\nSTRUCTURED_OBSERVATIONS:\n你从结构化行情中观察到的具体事实。\n\nCONTRADICTIONS:\n视觉与结构化之间或不同周期之间的矛盾（若有；没有则写 NONE）。\n\nDECLARED_UNKNOWN:\n你明确无法判断的项目（若有；没有则写 NONE）。\n\n不要输出 fixture 正确答案、未来数据、结果字段或自我评分。所有标题必须使用以上英文大写形式。",
+  "capability_answer_contract": {
+    "version": "JIANGHE_V03_CAPABILITY_ANSWER_CONTRACT_V0_1",
+    "headings": [
+      "MARKET_INTERPRETATION",
+      "FAMILY",
+      "SETUP_OR_NO_SETUP",
+      "ACTION",
+      "DIRECTION_IF_APPLICABLE",
+      "EVIDENCE",
+      "INVALIDATION_OR_UNCERTAINTY",
+      "JIANGHE_PRINCIPLES_USED",
+      "VISUAL_OBSERVATIONS",
+      "STRUCTURED_OBSERVATIONS",
+      "CONTRADICTIONS",
+      "DECLARED_UNKNOWN"
+    ],
+    "family_allowed": ["A", "B", "C", "D", "NONE", "UNKNOWN"],
+    "action_allowed": ["WAIT", "NO_TRADE", "ENTER", "MANAGE", "EXIT"],
+    "direction_allowed": ["LONG", "SHORT", "NONE", "UNKNOWN"],
+    "production_json_required": false,
+    "hint_expected_answer": false,
+    "output_format": "CLEAR_HEADED_TEXT"
+  },
+  "context_selection": {
+    "policy_version": "JIANGHE_CONTEXT_SELECTION_V0_2",
+    "knowledge_scope": "CURRENT_ACTIVE_JIANGHE_V1_1_PLUS_PRIMARY_REGISTRY_V0_5",
+    "market_scope": "CURRENT_CANONICAL_OBSERVATION_ONLY",
+    "memory_scope": "GOVERNED_WORKING_MEMORY_SNAPSHOT_ONLY",
+    "fixture_answer_access": "DENIED",
+    "candidate_outcome_access": "DENIED",
+    "future_data_access": "DENIED",
+    "unknown_policy": "PRESERVE_UNKNOWN"
+  },
+  "provider_neutral": true,
+  "tools": [],
+  "outcome_future_ban": true,
+  "authorization": {
+    "historical_project_accounted_cny": "0.270021",
+    "historical_deepseek_cny": "0.219222",
+    "historical_minimax_cny": "0.050799",
+    "historical_kimi_cny": "0",
+    "outcome_access": "NO",
+    "primary_freeze": "NO",
+    "provider_status": "ALL_CANDIDATE",
+    "automatic_retry": "FORBIDDEN"
+  }
+}
