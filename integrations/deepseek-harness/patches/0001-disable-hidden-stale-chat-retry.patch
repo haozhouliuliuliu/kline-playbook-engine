@@ -1,0 +1,21 @@
+diff --git a/packages/llm/llm-deepseek/src/adapter.ts b/packages/llm/llm-deepseek/src/adapter.ts
+--- a/packages/llm/llm-deepseek/src/adapter.ts
++++ b/packages/llm/llm-deepseek/src/adapter.ts
+@@
+-    let representation: 'file' | 'base64' = 'file'
+-    let fileAttempt = 0
++    let representation: 'file' | 'base64' = 'file'
+@@
+         if (staleFile) {
+           await Promise.all(staleMappings(usedFiles, detail).map(file => (
+             this.files.invalidate(file.version, file.fileId, fileConnection)
+           )))
+-          if (fileAttempt === 0) {
+-            fileAttempt += 1
+-            continue
+-          }
++          // kline-playbook-engine policy: one chat-completions request per
++          // adapter stream() call. Keep the stale mapping invalidation so a
++          // later explicit project request may upload a fresh image, but do
++          // not issue a hidden second model request inside this call.
+         }
