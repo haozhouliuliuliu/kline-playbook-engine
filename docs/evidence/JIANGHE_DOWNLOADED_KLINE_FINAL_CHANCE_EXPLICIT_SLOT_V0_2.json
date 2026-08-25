@@ -1,0 +1,17 @@
+{
+  "artifact_schema_version": "JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_EXPLICIT_SLOT_AUTHORITY_V0_1",
+  "authority_identity": "7deed511cca2dc696d670e597eae63b3276972e166a6c856c51d61b187eefc5a",
+  "authorization_id": "OWNER-PAID-JIANGHE-FIDELITY-20260824-V01",
+  "case_identity": "e1bfc76215dbe4d10beafe046b62eaa073df8072742506427051600252c42db6",
+  "effective_at": "2026-08-25T10:23:35.154720+00:00",
+  "expires_at": "2026-08-30T16:00:00.000000+00:00",
+  "explicit_slot_identity": "DKL_FC_V0_2:DEEPSEEK:DKL-FC-001",
+  "model_id": "deepseek-v4-flash-vision-exp",
+  "next_explicit_paid_slot": "DKL_FC_V0_2:DEEPSEEK:DKL-FC-001",
+  "plan_file_sha256": "f72d16567b0f481551eda85cda3f5e67ba7c31a5504943e80e148540830cecbc",
+  "plan_identity": "34640cd6de7dd9f5069ad902e0e7c125b78aa7a5400475b4531ba318f3469340",
+  "provider_id": "DEEPSEEK",
+  "rate_card_identity": "eb9a290b439742eaacfddaeeddb78ca93c944b28f6569dbe105db10307e72800",
+  "sample_id": "DKL-FC-001",
+  "worst_case_reservation_cny": "1.406064"
+}
