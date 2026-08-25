@@ -48,7 +48,7 @@ Current active stack: `4H / 1H / 15m / 5m`.
 
 4H role: `BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`.
 
-Historical replay must simulate one persistent trader moving forward through time. Future information is unavailable before its governed availability time. Working memory persists forward. Deterministic attention/wake logic controls model calls.
+Historical replay, when explicitly opened under a future work package, must simulate one persistent trader moving forward through time. Future information is unavailable before its governed availability time. Working memory persists forward. Deterministic attention/wake logic controls model calls.
 
 Do not turn the historical corpus into mass independent stateless prompt exams.
 
@@ -70,29 +70,42 @@ Use only:
 
 `DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
 
-Harness is the local runtime/workbench shell, not the owner of trading intelligence. A localhost browser UI is allowed. Public/cloud deployment is outside the current work package.
+Harness is the local runtime/workbench shell, not the owner of trading intelligence. A localhost browser UI is allowed. Public/cloud deployment is outside the adopted local product boundary unless a later authority changes it.
 
 Trading knowledge, memory schema, context-selection policy, trader identity, evidence semantics, historical data and deterministic risk/safety logic remain project-owned and portable.
 
 The unpatched upstream stale-file recovery behavior is not admissible because it can issue a hidden second chat-completions request.
 
-## 8. Current implementation order
+## 8. Current implementation status and future direction
 
-Current work package:
+Completed work package:
 
-`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
+`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`
 
-Build the smallest local prototype proving exact model/vision path, restart-surviving working memory, bounded read-only Jianghe retrieval, project-owned K-line tools, journal/hypothesis memory, complete audit and the existing guards.
+Formal completion requires both the automated twelve-objective gate and the Owner-workstation local acceptance. Both are now passed.
 
-Then run a small chronological lifecycle replay to debug memory/runtime behavior.
+Current active work package:
 
-Only after the trader identity is stable should the project design broader historical replay and governed experience-learning validation.
+`CURRENT_WORK_PACKAGE = NONE__AWAITING_EXPLICIT_NEXT_WORK_PACKAGE`
+
+No replay or learning work is active now.
+
+Longer-term direction remains:
+
+1. a small chronological lifecycle replay may be defined later to debug memory/runtime behavior;
+2. broader historical replay and governed experience-learning validation may be designed only after trader identity is stable and under their own explicit work package/authority;
+3. none of those future steps are implied or authorized by completion of the prototype package.
 
 Do not build a polished generic/public website first.
 
 ## 9. Locks
 
 Validation/holdout, shadow, broker/account and real-money lanes remain locked until their own authorities exist. Paid provider calls require current execution authority.
+
+Current paid-call state remains:
+
+- `PAID_CALLS = PAUSED`
+- `NEXT_EXPLICIT_PAID_SLOT = NONE`
 
 ## 10. Success definition
 
