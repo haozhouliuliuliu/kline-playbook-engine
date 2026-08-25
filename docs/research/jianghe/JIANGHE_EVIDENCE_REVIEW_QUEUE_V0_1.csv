@@ -1,8 +1,0 @@
-review_id,claim_or_case_id,source_ordinal,bvid,candidate_start,candidate_end,reason,requested_sol_action
-JH-REV-001,JH-CLM-001-001,1,BV1yxebzoERD,UNKNOWN,UNKNOWN,"字幕候选文字为“应变教育理念”，已知原视频复查为“应变交易理念”；需补精确时间锚点。",VERIFY_LANGUAGE
-JH-REV-002,JH-CLM-024-002,24,BV1oWqDBbEuh,00:10:03.610,00:10:08.150,"ABC 的 B 回调根数与“连续三根以上”语境不能由工程端补完。",PIN_NUMERIC_BOUNDARY
-JH-REV-003,JH-CLM-020-001,20,BV1nDU8B6EjV,00:00:27.150,00:00:31.750,"1:1 出现在具体案例，不得扩张为统一规则。",CLASSIFY_EXPLICIT_VS_INFERRED
-JH-REV-004,JH-CLM-021-003,21,BV1fT2iBjEeE,00:06:18.970,00:06:21.570,"震荡仓位相对常规仓位的精确比例与适用范围未固定。",PIN_NUMERIC_BOUNDARY
-JH-REV-005,JH-CLM-005-001,5,BV16fxYzGEA3,00:06:57.200,00:07:00.060,"“排斥反应”依赖图表画面；需核实视觉指代与强弱。",VERIFY_VISUAL_REFERENT
-JH-REV-006,JH-CLM-024-001,24,BV1oWqDBbEuh,00:06:23.340,00:06:27.340,"ABC A 段数字要求需要确认是否适用于所有方向和所有市场。",PIN_NUMERIC_BOUNDARY
-JH-REV-007,JH-CON-001,20,BV1nDU8B6EjV,00:00:27.150,00:00:31.750,"固定目标与动态结构离场之间仅记录可能的语境解释。",RESOLVE_CONTRADICTION
