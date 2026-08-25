@@ -27,3 +27,45 @@ jobs:
 
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+
+  windows-prototype:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Windows timezone data
+        run: python -m pip install tzdata==2026.3
+
+      - name: Compile prototype surfaces
+        run: python -m compileall -q src tools tests
+
+      - name: Prototype Windows regression tests
+        run: >-
+          python -m unittest -v
+          tests.test_jianghe_canon_retrieval_cross_platform
+          tests.test_persistent_deepseek_trader_prototype
+          tests.test_persistent_runtime_identity_binding
+          tests.test_persistent_trader_portability_regression
+          tests.test_persistent_deepseek_offline_probe
+
+      - name: Run native Windows offline acceptance probe
+        env:
+          DEEPSEEK_API_KEY: ''
+        shell: pwsh
+        run: |
+          $stateDir = Join-Path $env:RUNNER_TEMP 'kpe-prototype-v0-1'
+          python tools/run_persistent_deepseek_trader_offline_probe.py --state-dir $stateDir
+          if ($LASTEXITCODE -ne 0) { throw "offline probe exited $LASTEXITCODE" }
+          $summaryPath = Join-Path $stateDir 'offline-probe-summary.json'
+          $summary = Get-Content $summaryPath -Raw | ConvertFrom-Json
+          if ($summary.provider_call_made -ne $false) { throw 'provider_call_made must be false' }
+          foreach ($check in $summary.checks.PSObject.Properties) {
+            if ($check.Value -ne $true) { throw "offline probe check failed: $($check.Name)" }
+          }
