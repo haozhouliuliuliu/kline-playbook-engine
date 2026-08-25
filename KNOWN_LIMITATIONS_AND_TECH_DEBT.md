@@ -2,15 +2,17 @@
 
 As of: `2026-08-26`
 
-## 1. DeepSeek output guard not fully hardened
+## 1. DeepSeek output guard
 
-A machine enum field can contain a valid value plus explanatory prose, making the response mechanically invalid.
+Machine enum fields must contain only exact allowed values; explanatory prose belongs in separate text fields.
 
-Required fix:
+Guard:
 
 `STRICT_OUTPUT_ENUM_ENFORCEMENT`
 
-Status: `OPEN`
+Status: `IMPLEMENTED__AWAITING_CI`
+
+The runtime normalizer uses exact enum construction with no case-folding, trimming, prefix matching or prose extraction. The current cleanup branch adds explicit regression coverage rejecting verbose, lowercase and whitespace-padded machine enum values.
 
 ## 2. 4H volume reasoning guard not fully hardened
 
