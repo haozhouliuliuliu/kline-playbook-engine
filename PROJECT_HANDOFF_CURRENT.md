@@ -42,45 +42,43 @@ Final remote ledger head:
 
 The original frozen three-provider PK remains `NOT_FINALIZABLE` because one Kimi capability answer is absent.
 
-## Current provider decision
+## Current model decision
 
-Formal review:
+Historical correctness review:
 
 `docs/reviews/JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`
 
-Owner post-execution selection scope:
+Binding later Owner decision:
 
-- Kimi excluded from current provider selection;
-- no Kimi retry;
-- selection narrowed to DeepSeek vs MiniMax;
-- substantive correctness outranks a single tunable output-format failure.
+`docs/reviews/JIANGHE_DEEPSEEK_SOLE_ACTIVE_MODEL_OWNER_DECISION_V0_1.md`
 
-Independent correctness adjudication:
+Current provider/model state:
 
-- DeepSeek `deepseek-v4-flash-vision-exp` = `SELECTED_FOR_NEXT_RESEARCH_LANE`
-- MiniMax `MiniMax-M3` = `VERIFIED_RUNNER_UP_RESERVE`
-- Kimi `kimi-k3` = `EXCLUDED_FROM_CURRENT_SELECTION`
-- permanent provider adoption is not frozen.
+- DeepSeek `deepseek-v4-flash-vision-exp` = `SOLE_ACTIVE_MODEL_CANDIDATE_FOR_JIANGHE`
+- MiniMax `MiniMax-M3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
+- Kimi `kimi-k3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
+- MiniMax is no longer reserve/fallback.
+- No further MiniMax/Kimi selection-testing budget is authorized under the current direction.
 
-Why DeepSeek won the two-provider adjudication:
+Why DeepSeek remains active:
 
 - stronger handling of the new 4H/session semantics across the four matched cases;
 - MiniMax repeatedly treated completed civil-grid 4H context as incomplete or introduced unsupported session/liquidity and 4H-volume interpretations;
-- DeepSeek's observed problems are narrower mechanical defects: one bad 4H volume reconciliation and one strict enum-format failure.
+- DeepSeek's observed problems are narrow mechanical defects: one bad 4H volume reconciliation and one strict enum-format failure.
 
 ## Current work package
 
 `JIANGHE_DEEPSEEK_SELECTED_LANE_HARDENING_V0_1`
 
-Next engineering work is limited to:
+Current authorized engineering continuation:
 
 1. exact output enum enforcement;
 2. blocking 4H exact cross-timeframe volume reconciliation;
 3. focused tests + normal CI.
 
-No additional provider call is needed to decide DeepSeek vs MiniMax.
+No additional provider call is needed for model selection.
 
-Any new broader validation/research design is a separate Owner gate.
+A persistent DeepSeek futures-trading workspace/harness or broader historical replay program is a new product/research stage and needs explicit Owner direction before implementation/large-scale execution.
 
 ## Locks
 
