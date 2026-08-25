@@ -232,6 +232,11 @@ def build_explicit_slot_authority(*, slot_identity: str, now: datetime) -> Final
 def main() -> int:
     parser = argparse.ArgumentParser(description="Final-Chance V0.2 pre-send review")
     parser.add_argument(
+        "--check",
+        action="store_true",
+        help="explicit alias for the default pre-send review (no slot freeze)",
+    )
+    parser.add_argument(
         "--freeze-slot",
         metavar="SLOT",
         help="freeze exactly one explicit paid slot, e.g. DKL_FC_V0_2:DEEPSEEK:DKL-FC-001",
