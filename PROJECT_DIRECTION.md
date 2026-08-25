@@ -4,227 +4,96 @@ As of: `2026-08-26`
 
 This file is the binding current product and research direction for `kline-playbook-engine`.
 
-# 1. Mission
+## 1. Mission
 
-Build one persistent, single-purpose China-futures AI trader whose active model source is DeepSeek, whose initial trading foundation is Jianghe's documented experience, and whose long-run improvement comes from governed memory, replay, reflection, falsifiable hypothesis generation, counterexample search and independent validation.
+Build one persistent, single-purpose China-futures AI trader whose active model source is DeepSeek, whose initial trading foundation is Jianghe's documented experience, and whose long-run improvement comes from governed memory, chronological replay, reflection, falsifiable hypothesis generation, counterexample search and independent validation.
 
-Canonical product identity:
+`PRODUCT = JIANGHE_PERSISTENT_DEEPSEEK_TRADER`
 
-`JIANGHE_PERSISTENT_DEEPSEEK_TRADER`
+`MODEL_SOURCE = DEEPSEEK_ONLY`
 
-Current model:
+`CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-`deepseek-v4-flash-vision-exp`
-
-# 2. Product loop
-
-The product operates as:
+## 2. Product loop
 
 `observe market -> retrieve relevant knowledge and experience -> reason -> decide -> record -> learn under governance`
 
-It must:
+The trader must follow futures markets causally through time, preserve working state across calls/restarts, retrieve bounded Jianghe evidence and prior experience, record decisions and memory mutations, generate falsifiable hypotheses, search for counterexamples, and activate experience-derived policy only after independent project validation.
 
-- follow futures markets causally through time;
-- view standardized multi-timeframe K-line data and charts;
-- preserve working state across calls and restarts;
-- retrieve bounded relevant Jianghe evidence and prior experience;
-- record decisions, memory mutations and journal entries;
-- retain current hypotheses, key/watch/invalidation regions and open questions;
-- generate falsifiable trading hypotheses from accumulated experience;
-- search for counterexamples before promoting an idea;
-- activate an experience-derived policy only after independent project validation;
-- remain able to return `WAIT` / `NO_TRADE` when evidence is incomplete or contradictory.
+Hard risk, broker/account truth, order lifecycle, reconciliation, safety and kill-switch behavior remain deterministic project systems.
 
-Hard risk, broker/account truth, order lifecycle truth, reconciliation, safety and kill-switch behavior remain deterministic project systems.
+## 3. Knowledge hierarchy
 
-# 3. Knowledge hierarchy
+- `JIANGHE_CANON`: source-grounded Jianghe claims/cases/unknowns; read-only to the trader.
+- `PROJECT_VALIDATED_POLICY`: project extensions that passed the required validation process.
+- `DS_HYPOTHESIS_MEMORY`: DeepSeek-generated candidate ideas; not executable policy.
+- `DS_WORKING_MEMORY`: persistent current market state, hypotheses, regions, expected trigger and open questions.
+- `DS_JOURNAL`: auditable reflection/self-critique; not market fact or Jianghe canon.
 
-The runtime preserves five distinct layers.
-
-## `JIANGHE_CANON`
-
-Source-grounded Jianghe claims, cases, contradictions and unknowns. Read-only to the trader. Provenance remains traceable and source uncertainty remains uncertainty.
-
-## `PROJECT_VALIDATED_POLICY`
-
-Project extensions that have passed the required evidence and validation process. They are labeled as project policy rather than Jianghe source truth.
-
-## `DS_HYPOTHESIS_MEMORY`
-
-DeepSeek-generated candidate ideas. They may guide research and attention but are not executable policy.
-
-## `DS_WORKING_MEMORY`
-
-Persistent current market state, including active hypotheses, timeframe interpretations, key/watch/invalidation regions, setup candidate, expected trigger, open questions and prior decisions still relevant.
-
-## `DS_JOURNAL`
-
-Auditable reflection and self-critique. Journal content is not market fact, Jianghe canon or validated policy.
-
-# 4. Context and memory
-
-Persistent memory is external and project-owned.
-
-Each DeepSeek call receives a deliberately assembled bounded context from:
-
-1. stable trading contract;
-2. relevant Jianghe canon;
-3. relevant validated project policy;
-4. current working memory;
-5. useful analogous historical cases/decisions;
-6. current causal market observation and charts;
-7. task-specific tool results.
-
-The context-selection policy is versioned and auditable because it can change trader behavior.
-
-# 5. Learning lifecycle
-
-Experience-derived trading ideas follow:
+Experience-derived ideas follow:
 
 `OBSERVATION -> HYPOTHESIS -> COUNTEREXAMPLE SEARCH -> DEVELOPMENT EVIDENCE -> INDEPENDENT VALIDATION -> PROJECT_VALIDATED_POLICY`
 
-A hypothesis must be falsifiable and record its identity, statement, market/setup scope, source status, motivating examples, known counterexamples, falsification condition and discovery-data exposure lineage.
+Profit alone does not prove reasoning correctness; loss alone does not prove reasoning error.
 
-Repeated redesign after observing results is additional discovery exposure and remains recorded.
+## 4. Context and trader identity
 
-A materially philosophy-changing or Jianghe-contradicting policy promotion requires explicit Owner research approval.
+Each DeepSeek call receives a bounded, auditable context assembled from stable trading contract, relevant Jianghe canon, validated project policy, working memory, useful historical analogues, current causal multi-timeframe observation/charts, and task-specific tool results.
 
-# 6. Process correctness and outcome
+`JiangheAITraderIdentity` binds outcome-affecting model/version, prompts, context-selection policy, memory schema/policy, chart renderer, observation schema, wake policy, decision schema/normalizer, mechanical guards, inference configuration and tool capability set. Material changes create a new trader version/descendant with exposure lineage preserved.
 
-The project keeps these separate:
+## 5. Observation and replay
 
-- `PROCESS_CORRECTNESS`: whether the decision followed information available at decision time and current governed policy;
-- `OUTCOME`: what happened later;
-- `RISK/EXECUTION_RESULT`: the result under a defined execution model.
+Current active stack: `4H / 1H / 15m / 5m`.
 
-Profit alone does not prove reasoning correctness, and loss alone does not prove reasoning error.
+4H role: `BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`.
 
-# 7. Chronological replay
+Historical replay must simulate one persistent trader moving forward through time. Future information is unavailable before its governed availability time. Working memory persists forward. Deterministic attention/wake logic controls model calls.
 
-Historical replay simulates one persistent trader moving forward through time.
+Do not turn the historical corpus into mass independent stateless prompt exams.
 
-Requirements:
+## 6. Mechanical guards
 
-- future information is unavailable before its governed availability time;
-- working memory persists forward;
-- decisions and notes become later experience according to the memory policy;
-- deterministic attention logic controls when DeepSeek is awakened;
-- replay uses causal market observations rather than independent stateless prompt exams.
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_CI_VERIFIED`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_CI_VERIFIED`
 
-Conceptual attention states:
+## 7. DeepSeek Harness runtime shell
 
-`SCAN -> WATCH -> CANDIDATE -> IN_POSITION`
+`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
-Potential wake events include meaningful bar close, watch-region entry/exit, setup transition, breakout/failure candidate, invalidation and session events.
+Use only:
 
-# 8. Observation semantics
+- version `0.1.1-rc.2`
+- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
+- project fail-closed patch under `integrations/deepseek-harness/`
+- retry policy `maxRetries: 0`
 
-Current active view stack:
+`DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
 
-`4H / 1H / 15m / 5m`
+Harness is the local runtime/workbench shell, not the owner of trading intelligence. A localhost browser UI is allowed. Public/cloud deployment is outside the current work package.
 
-4H role:
+Trading knowledge, memory schema, context-selection policy, trader identity, evidence semantics, historical data and deterministic risk/safety logic remain project-owned and portable.
 
-`BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
+The unpatched upstream stale-file recovery behavior is not admissible because it can issue a hidden second chat-completions request.
 
-Historical replay baseline uses completed 1-minute bars and does not invent sub-minute paths from 1-minute OHLC.
+## 8. Current implementation order
 
-# 9. Mechanical guards
+Current work package:
 
-Mandatory current guards:
+`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
 
-## `STRICT_OUTPUT_ENUM_ENFORCEMENT`
+Build the smallest local prototype proving exact model/vision path, restart-surviving working memory, bounded read-only Jianghe retrieval, project-owned K-line tools, journal/hypothesis memory, complete audit and the existing guards.
 
-Machine fields such as action, direction and family use exact allowed enum values. Explanatory text lives in separate fields.
+Then run a small chronological lifecycle replay to debug memory/runtime behavior.
 
-## `NO_4H_EXACT_VOLUME_RECONCILIATION`
+Only after the trader identity is stable should the project design broader historical replay and governed experience-learning validation.
 
-4H volume is not exactly reconciled against overlapping lower-timeframe volume, and such equality is not used as a trading fact under the current 4H contract.
+Do not build a polished generic/public website first.
 
-Current implementation state for both guards:
+## 9. Locks
 
-`IMPLEMENTED_AND_REGRESSION_TESTED`
+Validation/holdout, shadow, broker/account and real-money lanes remain locked until their own authorities exist. Paid provider calls require current execution authority.
 
-# 10. Trader identity
+## 10. Success definition
 
-`JiangheAITraderIdentity` binds outcome-affecting components including:
-
-- Jianghe knowledge identity;
-- project-validated policy identity;
-- DeepSeek model/version;
-- prompts;
-- context-selection policy;
-- memory policy/schema;
-- chart renderer;
-- observation schema;
-- wake policy;
-- decision schema/normalizer;
-- mechanical guards;
-- inference configuration;
-- tool capability set.
-
-A material change creates a new trader version/descendant and preserves exposure lineage.
-
-# 11. DeepSeek Harness admission
-
-`DEEPSEEK_HARNESS = CANDIDATE_FOR_PROJECT_ADMISSION`
-
-A pinned build must prove:
-
-- exact selected DeepSeek model route;
-- K-line image/vision support;
-- persistent session/state across restart;
-- project-owned memory integration;
-- project-owned K-line/retrieval tools;
-- auditable raw requests/responses and memory mutations;
-- no silent retry, model change or prompt mutation;
-- portability of core trader logic.
-
-Harness, when verified, is only a runtime shell. Trading knowledge, memory schema, validation semantics, evidence and hard-risk logic remain project-owned.
-
-# 12. Owner-facing workstation
-
-The useful product surface includes:
-
-- synchronized 4H / 1H / 15m / 5m charts;
-- current DeepSeek interpretation;
-- current setup/family/action;
-- key/watch/invalidation regions;
-- what the trader is waiting for;
-- relevant Jianghe evidence/cases retrieved;
-- working memory;
-- recent decisions and journal entries;
-- hypothesis and validation status;
-- deterministic system/risk/safety status when those lanes are authorized.
-
-UI packaging is secondary to correct persistent-trader behavior.
-
-# 13. Current implementation order
-
-Completed prerequisites:
-
-- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
-- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
-
-Current sequence:
-
-1. verify a pinned DeepSeek Harness version/commit against exact model + vision + persistence + project-owned memory/tool/audit requirements;
-2. adopt Harness only if the pinned build passes project-specific verification; otherwise use the thinnest project-owned runtime shell;
-3. build the smallest persistent trader proving exact model + vision + memory + Jianghe retrieval + K-line tools + journal + audit;
-4. run a small chronological lifecycle replay to find architecture and memory errors;
-5. design and authorize broader historical replay/research only after trader identity is stable;
-6. keep validation/holdout, shadow, broker/account and real-money lanes closed until their own authorities exist.
-
-# 14. Success definition
-
-The project succeeds when it produces an auditable DeepSeek futures trader that:
-
-- begins with high-fidelity Jianghe reasoning;
-- remembers what it is watching and why;
-- retrieves bounded relevant source and experience;
-- learns from audited experience without corrupting source truth;
-- generates and falsifies candidate trading hypotheses;
-- promotes only independently validated improvements;
-- remains causally honest;
-- preserves deterministic risk and safety authority outside AI discretion;
-- can eventually demonstrate on protected evidence whether its matured policy improves on its initial source-grounded baseline.
+The project succeeds when it produces an auditable DeepSeek futures trader that begins with high-fidelity Jianghe reasoning, remembers what it is watching and why, retrieves bounded relevant source/experience, learns without corrupting source truth, generates and falsifies candidate hypotheses, promotes only independently validated improvements, remains causally honest, and keeps deterministic risk/safety outside AI discretion.

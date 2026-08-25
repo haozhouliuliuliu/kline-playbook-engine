@@ -10,109 +10,90 @@ As of: `2026-08-26`
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-Target:
+Target: one persistent, auditable, Jianghe-trained, evidence-improving DeepSeek China-futures trader.
 
-`A PERSISTENT, AUDITABLE, JIANGHE-TRAINED, EVIDENCE-IMPROVING DEEPSEEK FUTURES TRADER`
+Jianghe source truth is read-only. DeepSeek may accumulate working memory, journal records and falsifiable hypotheses, but active policy is governed by the project.
 
-The project is building one persistent DeepSeek-based China-futures trader. Jianghe is its initial source-grounded trading foundation. The trader may accumulate working memory, journal records and falsifiable hypotheses, but source truth and active policy remain governed project assets.
+## Knowledge boundary
 
-## Knowledge and learning boundary
+- `JIANGHE_CANON`: source-grounded and read-only.
+- `PROJECT_VALIDATED_POLICY`: independently validated project extensions.
+- `DS_HYPOTHESIS_MEMORY`: DeepSeek candidate ideas; not executable policy.
+- `DS_WORKING_MEMORY`: persistent current market state and active hypotheses.
+- `DS_JOURNAL`: reflection/self-critique; not source truth.
 
-The runtime keeps these layers separate:
-
-- `JIANGHE_CANON`: source-grounded, read-only to the trader;
-- `PROJECT_VALIDATED_POLICY`: independently validated project extensions;
-- `DS_HYPOTHESIS_MEMORY`: DeepSeek-generated candidate ideas;
-- `DS_WORKING_MEMORY`: current market state and active hypotheses;
-- `DS_JOURNAL`: reflection and self-critique.
-
-Experience-derived policy follows:
+Promotion path:
 
 `OBSERVATION -> HYPOTHESIS -> COUNTEREXAMPLE SEARCH -> DEVELOPMENT EVIDENCE -> INDEPENDENT VALIDATION -> PROJECT_VALIDATED_POLICY`
 
 PnL and process correctness remain separate evidence dimensions.
 
-## Current architecture
+## Observation/runtime baseline
 
-`Market Data -> Rolling Market State -> Attention/Wake Policy -> Causal Multi-Timeframe Observation -> Context Assembler -> DeepSeek Trader -> Decision Normalizer + Mechanical Guards -> constrained TradeIntent -> deterministic RiskGate -> OMS/Execution -> Reconciliation/Safety/Ledger`
+Active stack: `4H / 1H / 15m / 5m`
 
-AI owns market interpretation and proposed discretionary intent.
-
-Deterministic project systems own hard risk, broker/account truth, order lifecycle, reconciliation and safety.
-
-Current active observation stack:
-
-`4H / 1H / 15m / 5m`
-
-4H role:
-
-`BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
+4H role: `BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
 
 Mandatory guards:
 
-- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
-- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_CI_VERIFIED`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_CI_VERIFIED`
 
-The guard implementation and broad repository regression passed the cleanup integration CI before authority synchronization.
+## DeepSeek Harness
+
+`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
+
+`PINNED_HARNESS_VERSION = 0.1.1-rc.2`
+
+`PINNED_HARNESS_COMMIT = b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
+
+`DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
+
+Use the pinned Harness only with the project fail-closed DeepSeek transport patch in `integrations/deepseek-harness/` and general retry configuration `maxRetries: 0`.
+
+Dynamic admission on PR #41 head `e4b0e3ef972ed3c8685ab71318f4c1a885a7ccd4` passed:
+
+- `project-dynamic-admission = success`
+- repository `test = success`
+
+PR #41 merged to main as `16021908b3226c6e9598f8030ddc5f2805825b1a`.
+
+The dynamic gate proved pinned selected-model/vision support, project fail-closed stale-file behavior with no hidden second chat request, zero configured general retries, project memory/tool context and audit integration, SQLite session persistence across restart, and unaffected DeepSeek image serialization/config behavior.
+
+The first prototype is local. A localhost browser UI is allowed; public/cloud deployment is not part of this work package. Project memory, trader state, market data and K-line tools remain project-owned/local unless a later authority changes that boundary.
 
 ## Historical data foundation
 
-Accepted canonical historical corpus:
+Accepted canonical corpus:
 
-- source scope: TqSdk historical concrete-contract 1-minute data
-- coverage: `2024-01-01..2025-12-31`
-- products: `cu, al, ni, au, ag, rb`
-- partitions: `32,980`
-- contracts: `212`
-- normalized rows: `15,280,452`
-- corpus identity: `1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`
+- 2024-01-01..2025-12-31
+- cu/al/ni/au/ag/rb
+- 32,980 partitions
+- 212 contracts
+- 15,280,452 normalized 1-minute rows
+- corpus identity `1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`
 
-Authority:
+Authority: `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
 
-`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
-
-The corpus is reserved for causal chronological replay of a persistent trader.
-
-## Repository hygiene
-
-The active tree is intentionally reduced to current product authority, current Jianghe source evidence, accepted canonical-data evidence, DeepSeek trader/runtime components, and deterministic execution/safety infrastructure.
-
-Superseded provider-selection, stateless evaluation, pilot/final-chance and obsolete generic research runtime surfaces are historical Git material rather than active takeover dependencies.
-
-Fresh takeover is governed by the four-file active core listed in `00_READ_FIRST.md`.
+Do not start broad replay until the persistent trader prototype identity is stable.
 
 ## Current work package
 
-`CURRENT_WORK_PACKAGE = JIANGHE_PERSISTENT_DEEPSEEK_TRADER_FOUNDATION_V0_1`
+`CURRENT_WORK_PACKAGE = MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
 
-`DEEPSEEK_HARNESS = CANDIDATE_FOR_PROJECT_ADMISSION`
+Exact next task:
 
-`TOOL_DECISION = ADD_TOOL__VERIFY_DEEPSEEK_HARNESS`
+`docs/reviews/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_HANDOFF_2026-08-26.md`
 
-Exact next sequence:
+The prototype must prove the local persistent-trader spine only; it is not a polished product, broad replay, public website or new research-design exercise.
 
-1. verify a pinned DeepSeek Harness version/commit against exact model + vision + persistence + project-owned memory/tool/audit requirements;
-2. if the pinned build passes, mark it VERIFIED and decide whether to ADOPT it only as the runtime shell; if it fails, use the thinnest project-owned equivalent without changing product direction;
-3. build the smallest persistent trader proving exact DeepSeek model path, chart/vision input, persistent working memory, Jianghe retrieval, K-line tools, structured journal/hypothesis memory and complete audit;
-4. run a small chronological lifecycle replay to debug memory/runtime semantics;
-5. only after that trader identity is stable, design broader historical replay and governed experience-learning research.
-
-## Current execution and research locks
+## Locks
 
 - paid provider calls: `PAUSED`
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`
-- protected future/outcome research access: locked unless a current protocol authorizes it
 - validation/holdout: locked
 - shadow: locked
 - broker/account: locked
 - real money: locked
 
-No current implementation step requires a paid provider call.
-
-## Historical paid-research accounting
-
-`PROJECT_ACCOUNTED_CNY = 20.9075330`
-
-Historical hard cap record: `100.00 CNY`.
-
-This is accounting history, not current spend authorization.
+Offline/no-network testing is preferred. Any real DeepSeek API call requires current executable authority before execution.

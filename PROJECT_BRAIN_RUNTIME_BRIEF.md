@@ -4,14 +4,14 @@ As of: `2026-08-26`
 
 ## Mandatory refresh
 
-Before any substantive answer about current state, architecture, model, tools, experiments, workers or next work:
+Before substantive project work:
 
 1. refresh GitHub `main` HEAD;
 2. read `PROJECT_DIRECTION.md`;
 3. read `CURRENT_STATE.md`;
-4. read only the specific current authority/evidence needed for the question;
+4. read only the current task authority/evidence needed;
 5. for spend/execution, additionally refresh paid authorization, ledger/evidence and exact executable-slot authority;
-6. never infer current project facts from chat history or obsolete documents.
+6. never infer current project facts from chat history or deleted/obsolete material.
 
 ## Current headline
 
@@ -21,51 +21,46 @@ Before any substantive answer about current state, architecture, model, tools, e
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-`CURRENT_WORK_PACKAGE = JIANGHE_PERSISTENT_DEEPSEEK_TRADER_FOUNDATION_V0_1`
+`CURRENT_WORK_PACKAGE = MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
 
-`DEEPSEEK_HARNESS = CANDIDATE_FOR_PROJECT_ADMISSION`
+`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
-`TOOL_DECISION = ADD_TOOL__VERIFY_DEEPSEEK_HARNESS`
+`DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
 
-## Product direction
+`TOOL_DECISION = USE_EXISTING__PINNED_DEEPSEEK_HARNESS`
 
-Build one persistent, auditable, single-purpose China-futures trader that starts from Jianghe source-grounded experience, preserves project-owned memory across calls and restarts, retrieves bounded relevant evidence, uses causal K-line observations, records its reasoning and memory mutations, and improves only through falsifiable hypotheses plus independent validation.
+## Harness authority
 
-Hard risk, broker/account truth, order lifecycle, reconciliation and safety remain deterministic project systems.
+Use only:
 
-## Completed foundation guards
+- Harness version `0.1.1-rc.2`
+- upstream commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
+- project fail-closed patch from `integrations/deepseek-harness/`
+- retry policy `mode: normal`, `maxRetries: 0`
 
-- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
-- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+Dynamic admission passed on PR #41 head `e4b0e3ef972ed3c8685ab71318f4c1a885a7ccd4` with both `project-dynamic-admission` and repository `test` successful. PR #41 merged as `16021908b3226c6e9598f8030ddc5f2805825b1a`.
 
-The active repository regression suite passed after the cleanup/guard implementation before this authority sync.
+Harness is a local runtime/workbench shell. Do not interpret adoption as permission to move trader memory/data to cloud or build a public service. Core trader logic, memory schema, Jianghe knowledge, evidence semantics and deterministic risk/safety remain project-owned.
 
-## Current exact next work
+## Exact next work
 
-1. verify a pinned DeepSeek Harness version/commit for exact selected model + vision + persistence + project-owned memory/tool/audit integration;
-2. only after project-specific verification decide whether Harness becomes `ADOPTED` as the runtime shell; if it fails, use the thinnest project-owned equivalent;
-3. build the smallest persistent-trader prototype;
-4. run a small chronological lifecycle replay to debug memory/runtime behavior;
-5. only then design broad historical replay and governed experience-learning validation.
+Read:
 
-Do not run mass stateless K-line API calls first.
+`docs/reviews/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_HANDOFF_2026-08-26.md`
 
-Do not build a polished generic website first.
+Then build the smallest local persistent DeepSeek trader prototype proving:
 
-Do not reopen MiniMax/Kimi model selection.
+- exact model + vision/data path;
+- restart-surviving working memory;
+- read-only bounded Jianghe retrieval;
+- project K-line tools;
+- journal and hypothesis memory;
+- complete request/tool/retrieval/memory audit;
+- existing output/4H guards;
+- zero silent retry/model substitution/prompt mutation;
+- project ownership/portability of core trader state.
 
-## Data foundation
-
-Accepted historical corpus:
-
-`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
-
-- 2024-01-01..2025-12-31
-- cu/al/ni/au/ag/rb
-- 32,980 partitions
-- 212 contracts
-- 15,280,452 normalized 1-minute rows
-- corpus identity `1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`
+Do not start broad historical replay first. Do not build polished/public UI first. Do not change research semantics in this package.
 
 ## Current locks
 
@@ -76,8 +71,8 @@ Accepted historical corpus:
 - broker/account = locked
 - real money = locked
 
-No current implementation step authorizes real trading.
+No current handoff step authorizes a provider call or real trading.
 
-## Active-context hygiene
+## Handoff hygiene
 
-The active takeover surface is the four-file core in `00_READ_FIRST.md`. Superseded provider-selection, stateless evaluation and obsolete runtime/planning material belongs in Git history rather than the active takeover path.
+The dated prototype handoff is the only current task handoff. When its work package is complete, delete that file instead of appending a superseding history section.

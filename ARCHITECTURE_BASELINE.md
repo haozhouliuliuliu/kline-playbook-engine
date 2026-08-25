@@ -4,13 +4,13 @@ Status: `CURRENT`
 
 Product direction authority: `PROJECT_DIRECTION.md`
 
-## 1. Core runtime
+## Core runtime
 
 ```text
 Market Data
 -> Rolling Market State
 -> Attention / Wake Policy
--> Causal Multi-Timeframe Observation
+-> Causal 4H/1H/15m/5m Observation
 -> Context Assembler
    -> Jianghe Canon
    -> Project-Validated Policy
@@ -21,39 +21,45 @@ Market Data
 -> constrained TradeIntent
 -> deterministic RiskGate
 -> OMS / Execution Adapter
--> Broker Reports
--> Reconciliation
--> Safety
--> Immutable Ledger
+-> Reconciliation / Safety / Immutable Ledger
 ```
 
-The AI interprets markets and proposes discretionary intent. Deterministic project code owns capital/risk limits, broker/account truth, order lifecycle, reconciliation, safety and kill-switch behavior.
+AI interprets markets and proposes discretionary intent. Deterministic project code owns capital/risk limits, broker/account truth, order lifecycle, reconciliation, safety and kill-switch behavior.
 
-## 2. Model/runtime boundary
+## Model/runtime boundary
 
 `MODEL_SOURCE = DEEPSEEK_ONLY`
 
-Current selected model line:
+`CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-`deepseek-v4-flash-vision-exp`
+Runtime shell:
 
-Production-facing model integration is DeepSeek-specific. A runtime shell may host sessions, tools and UI, but trading knowledge, memory schema, validation semantics, evidence and hard-risk logic remain project-owned and portable.
+`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
-## 3. Observation semantics
+Pinned shell:
 
-Current active view stack:
+- version `0.1.1-rc.2`
+- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
+- project fail-closed transport patch under `integrations/deepseek-harness/`
+- general retry `maxRetries: 0`
 
-`4H / 1H / 15m / 5m`
+Deployment baseline:
 
-4H role:
+`LOCAL_WORKSTATION_FIRST`
 
-`BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
+The local Harness process may expose a localhost browser UI. Project-owned memory, K-line data/tools, Jianghe knowledge and trader state stay local/project-controlled in the first prototype. Public/cloud hosting is not part of the current architecture package.
 
-Decision-time observations are causal: no future bar/content enters before its governed `available_at`.
+Harness hosts sessions/tools/UI but does not own core trader semantics. The trader core must remain portable behind another thin shell.
 
-Historical replay baseline uses completed 1-minute bars and does not invent sub-minute paths from 1-minute OHLC.
+## Observation semantics
 
-## 4. Persistent trader state
+Active stack: `4H / 1H / 15m / 5m`.
+
+4H role: `BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`.
+
+Decision-time observations are causal. Historical replay uses completed 1-minute data and does not invent sub-minute paths.
+
+## Persistent trader state
 
 Project-owned persistent state includes:
 
@@ -63,96 +69,37 @@ Project-owned persistent state includes:
 - key/watch/invalidation regions;
 - family/setup candidate;
 - expected trigger;
-- open questions / UNKNOWNs;
+- open questions/UNKNOWNs;
 - prior meaningful decisions still relevant;
-- journal/reflection records;
-- unvalidated DeepSeek hypotheses;
-- validated project policy extensions.
+- `DS_JOURNAL`;
+- `DS_HYPOTHESIS_MEMORY`;
+- project-validated policy references.
 
-Every mutation is attributable and auditable. Runtime restart must preserve governed working state.
+Every mutation is attributable and auditable. Restart must preserve governed working state.
 
-## 5. Knowledge separation
+## Knowledge separation
 
-- `JIANGHE_CANON` — source-grounded and read-only to the AI;
-- `PROJECT_VALIDATED_POLICY` — independently validated project extensions;
-- `DS_HYPOTHESIS_MEMORY` — candidate ideas, not executable policy;
-- `DS_WORKING_MEMORY` — current market state/hypotheses;
-- `DS_JOURNAL` — reflective notes, never source truth.
+- `JIANGHE_CANON` — read-only source truth.
+- `PROJECT_VALIDATED_POLICY` — independently validated extensions.
+- `DS_HYPOTHESIS_MEMORY` — candidate ideas only.
+- `DS_WORKING_MEMORY` — current market state/hypotheses.
+- `DS_JOURNAL` — reflection, never source truth.
 
-Retrieval assembles bounded relevant context. Context-selection policy is versioned as part of trader identity.
+## Mechanical guards
 
-## 6. Trader identity
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION`
 
-`JiangheAITraderIdentity` binds all outcome-affecting components, including:
+Both are implemented and CI verified.
 
-- Jianghe knowledge identity;
-- project-validated policy identity;
-- DeepSeek model/version;
-- prompts;
-- context-selection policy;
-- memory policy/schema;
-- chart renderer;
-- observation schema;
-- wake policy;
-- decision schema/normalizer;
-- mechanical guards;
-- inference configuration;
-- tool capability set.
+## Learning architecture
 
-A material change creates a new trader version/descendant with preserved exposure lineage.
-
-## 7. Mechanical guards
-
-### `STRICT_OUTPUT_ENUM_ENFORCEMENT`
-
-Machine fields such as action, direction and family use exact allowed enum values. Explanatory prose belongs in separate fields.
-
-### `NO_4H_EXACT_VOLUME_RECONCILIATION`
-
-The runtime does not sum or reconcile overlapping lower-timeframe volume into 4H volume or use that equality as a trading fact under the current 4H contract.
-
-## 8. Learning architecture
-
-Required promotion path:
-
-```text
-Observation
--> Falsifiable DS Hypothesis
--> Counterexample Search
--> Development Evidence
--> Independent Validation
--> Project-Validated Policy
-```
+`Observation -> Falsifiable DS Hypothesis -> Counterexample Search -> Development Evidence -> Independent Validation -> Project-Validated Policy`
 
 Discovery exposure and redesign history remain recorded. Outcome and process correctness remain separate.
 
-## 9. Chronological replay
+## Current implementation boundary
 
-Historical data is a simulated life for one persistent trader. Time advances forward; memory and prior decisions influence later decisions according to the frozen memory policy. Deterministic attention/wake logic controls model calls.
+Current work package is the smallest local persistent-trader prototype. It must prove model/vision path, restart persistence, Jianghe retrieval, K-line tools, journal/hypothesis storage, audit and no hidden retries before broad replay begins.
 
-Conceptual attention states:
-
-`SCAN -> WATCH -> CANDIDATE -> IN_POSITION`
-
-## 10. DeepSeek Harness admission
-
-`DEEPSEEK_HARNESS = CANDIDATE_FOR_PROJECT_ADMISSION`
-
-A pinned build must prove:
-
-- exact selected model route;
-- K-line image/vision support;
-- persistent session/state across restart;
-- project-owned memory integration;
-- project-owned K-line/retrieval tools;
-- full request/response/memory audit;
-- no silent retry/model/prompt mutation;
-- portability of core trader logic.
-
-## 11. UI target
-
-Owner-facing UI should expose synchronized 4H/1H/15m/5m charts, current interpretation/action/family, key/watch/invalidation regions, what the trader is waiting for, retrieved Jianghe evidence, working memory, recent decisions, journal/hypothesis status and authorized deterministic system status.
-
-## 12. Safety and authorization
-
-Safety is fail-closed and overrides AI intent. Current authorization is defined by `CURRENT_STATE.md`; architecture alone grants no validation, shadow, broker/account or real-money permission.
+Architecture alone grants no validation, shadow, broker/account or real-money permission.

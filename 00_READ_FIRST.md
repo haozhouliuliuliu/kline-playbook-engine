@@ -6,14 +6,15 @@ GitHub current `main` is the only dynamic project fact source.
 
 ## Fresh-conversation takeover
 
-Read this active core in order:
+Read in this order:
 
 1. `00_READ_FIRST.md`
 2. `PROJECT_DIRECTION.md`
 3. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
 4. `CURRENT_STATE.md`
+5. `docs/reviews/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_HANDOFF_2026-08-26.md`
 
-Then read only the current authority or evidence required by the active task.
+Then read only authority/evidence required by the active task.
 
 ## Current headline
 
@@ -23,32 +24,24 @@ Then read only the current authority or evidence required by the active task.
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-The target is one persistent China-futures trader with:
+`CURRENT_WORK_PACKAGE = MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
 
-- Jianghe source-grounded knowledge;
-- persistent working memory;
-- journal and hypothesis memory;
-- bounded relevant-knowledge retrieval;
-- causal K-line data and chart tools;
-- strict output and reasoning guards;
-- auditable memory mutation;
-- governed hypothesis generation and independent validation;
-- deterministic risk, execution and safety boundaries.
+`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
-DeepSeek may improve through governed experience, but Jianghe source truth remains read-only and new trading policy requires project validation before activation.
+`DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
 
-## Completed foundation guards
+The product is one persistent China-futures trader with Jianghe source-grounded knowledge, persistent working memory, journal/hypothesis memory, bounded retrieval, causal K-line tools, strict guards, auditable memory mutation and governed learning.
 
-- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
-- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+## Runtime shell
 
-## Current next work
+Use only pinned DeepSeek Harness:
 
-1. verify a pinned DeepSeek Harness version/commit against the exact selected model, vision, persistence, project-owned memory/tool integration and audit requirements;
-2. adopt Harness only if that pinned build passes project-specific verification; otherwise use the thinnest project-owned runtime shell;
-3. build the smallest persistent-trader prototype;
-4. run a small chronological lifecycle replay;
-5. design broader historical replay and governed experience-learning validation only after the persistent trader identity is stable.
+- version `0.1.1-rc.2`
+- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
+- project fail-closed DeepSeek transport patch from `integrations/deepseek-harness/`
+- general retry `maxRetries: 0`
+
+The first prototype runs locally. A browser UI may use localhost; do not turn this work package into a public/cloud website.
 
 ## Current locks
 
@@ -61,13 +54,16 @@ DeepSeek may improve through governed experience, but Jianghe source truth remai
 
 ## First takeover report
 
-A new project brain reports only:
+The new project brain first performs read-only takeover and reports only:
 
 - current `main` HEAD;
-- whether the four active-core files agree;
+- whether the five files above agree;
 - current product/model/work package;
+- Harness pin/local deployment boundary;
 - current locks;
-- exact next work;
-- any contradiction found.
+- exact prototype task;
+- contradictions, if any.
 
-The first takeover report is read-only and makes no provider call.
+Then stop for Owner confirmation before implementation.
+
+When the prototype work package is completed, delete its dated handoff file rather than appending a superseding history section.

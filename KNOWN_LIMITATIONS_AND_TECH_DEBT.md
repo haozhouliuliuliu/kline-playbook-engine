@@ -2,67 +2,37 @@
 
 As of: `2026-08-26`
 
-## 1. DeepSeek output guard
+## 1. Persistent trader prototype is not implemented yet
 
-Machine enum fields must contain only exact allowed values; explanatory prose belongs in separate text fields.
+Still required:
 
-Guard:
+- durable project-owned `DS_WORKING_MEMORY`;
+- `DS_JOURNAL` persistence;
+- `DS_HYPOTHESIS_MEMORY` persistence;
+- bounded Jianghe retrieval;
+- project-owned K-line/market tools;
+- complete request/retrieval/tool/memory audit;
+- restart continuity in the actual project composition.
 
-`STRICT_OUTPUT_ENUM_ENFORCEMENT`
+Status: `OPEN__NEXT_WORK_PACKAGE`
 
-Status: `IMPLEMENTED_AND_CI_VERIFIED`
+## 2. Harness patch is project-required
 
-The runtime normalizer uses exact enum construction with no case-folding, trimming, prefix matching or prose extraction. Regression coverage rejects verbose, lowercase and whitespace-padded machine enum values.
+The admitted local Harness runtime is pinned to `0.1.1-rc.2` / `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` and requires the project fail-closed DeepSeek transport patch under `integrations/deepseek-harness/` plus `maxRetries: 0`.
 
-## 2. 4H volume reasoning guard
+Do not replace it with an unpatched upstream build without a new admission verification.
 
-DeepSeek must not perform exact reconciliation between 4H volume and overlapping lower-timeframe volume.
+Status: `CONTROLLED_DEPENDENCY`
 
-Guard:
+## 3. Persistent chronological replay is not implemented end-to-end
 
-`NO_4H_EXACT_VOLUME_RECONCILIATION`
+The accepted historical corpus exists, but broad life-like replay of one persistent trader must wait until the prototype identity and memory/runtime semantics are stable.
 
-Status: `IMPLEMENTED_AND_CI_VERIFIED`
+Status: `OPEN_AFTER_PROTOTYPE`
 
-Raw per-timeframe OHLCV remains legal. The project-owned context guard rejects derived exact 4H cross-timeframe volume reconciliation/equality payloads while leaving lower-timeframe semantics unchanged. The obsolete downloaded-Kline comparison contract that could derive such comparisons has been physically removed from the active tree.
+## 4. Experience-derived policy promotion pipeline is not implemented
 
-## 3. Persistent trader memory is not implemented yet
-
-Needed capabilities include:
-
-- working-memory persistence;
-- journal persistence;
-- hypothesis-memory persistence;
-- relevant-case retrieval;
-- mutation audit;
-- explicit separation of Jianghe canon, DeepSeek hypotheses and validated project policy.
-
-Status: `OPEN`
-
-## 4. DeepSeek Harness is not yet verified
-
-Still unverified for this project:
-
-- pinned compatible version/commit;
-- exact `deepseek-v4-flash-vision-exp` route;
-- image/K-line input on that route;
-- restart persistence;
-- integration with project-owned memory/tools;
-- audit fidelity;
-- absence of silent retry/model/prompt changes;
-- portability if the runtime shell changes.
-
-Status: `OPEN`
-
-## 5. Persistent chronological replay is not implemented end-to-end
-
-The accepted historical corpus exists, but the project has not yet run the intended life-like replay of one persistent trader through time with governed memory and deterministic wake policy.
-
-Status: `OPEN`
-
-## 6. Experience-derived policy promotion pipeline is not implemented
-
-Tooling/storage is still required for:
+Still required later:
 
 - hypothesis identity;
 - falsification/counterexample search;
@@ -70,21 +40,19 @@ Tooling/storage is still required for:
 - independent validation;
 - policy promotion/versioning.
 
-Status: `OPEN`
+Status: `OPEN_FUTURE_WORK`
 
-## 7. Protected execution/research lanes are locked
+## 5. Protected lanes are locked
 
-Current state:
-
-- validation/holdout locked;
-- shadow locked;
-- broker/account locked;
-- real money locked.
+- validation/holdout: locked;
+- shadow: locked;
+- broker/account: locked;
+- real money: locked.
 
 Status: `LOCKED_BY_CURRENT_AUTHORITY`
 
-## 8. Long-run model stability is not yet demonstrated
+## 6. Long-run stability/profitability is not demonstrated
 
-The current trader identity has not yet established long-horizon stability, production reliability or profitability. Those require later protected evidence after memory/runtime identity is stable.
+No current evidence establishes long-horizon runtime stability, production reliability or profitability. Those require later protected evidence after the persistent trader identity is stable.
 
 Status: `OPEN_FUTURE_EVIDENCE`
