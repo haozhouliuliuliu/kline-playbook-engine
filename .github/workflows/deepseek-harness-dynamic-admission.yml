@@ -52,24 +52,24 @@ jobs:
           git diff --check
           ! grep -q 'fileAttempt' packages/llm/llm-deepseek/src/adapter.ts
 
-      - name: Stage project dynamic probes inside pinned Harness workspace
+      - name: Stage project dynamic probes inside pinned Harness test graph
         run: |
-          cp integrations/deepseek-harness/project-dynamic.spec.ts _harness/project-dynamic.spec.ts
-          cp integrations/deepseek-harness/stale-file-fail-closed.spec.ts _harness/stale-file-fail-closed.spec.ts
+          cp integrations/deepseek-harness/stale-file-fail-closed.spec.ts _harness/packages/llm/llm-deepseek/tests/kpe-stale-file-fail-closed.spec.ts
+          cp integrations/deepseek-harness/project-dynamic.spec.ts _harness/packages/examples/agent-spine-demo/tests/kpe-project-dynamic.spec.ts
 
       - name: Prove fail-closed vision transport and zero hidden chat retry
         working-directory: _harness
         env:
           CI: 'true'
           DEEPSEEK_API_KEY: ''
-        run: pnpm exec vitest run stale-file-fail-closed.spec.ts
+        run: pnpm exec vitest run packages/llm/llm-deepseek/tests/kpe-stale-file-fail-closed.spec.ts
 
       - name: Prove project memory tool context and audit integration
         working-directory: _harness
         env:
           CI: 'true'
           DEEPSEEK_API_KEY: ''
-        run: pnpm exec vitest run project-dynamic.spec.ts
+        run: pnpm exec vitest run packages/examples/agent-spine-demo/tests/kpe-project-dynamic.spec.ts
 
       - name: Re-prove durable Harness session persistence
         working-directory: _harness
