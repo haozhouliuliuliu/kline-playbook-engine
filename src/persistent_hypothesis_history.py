@@ -7,6 +7,7 @@ Harness-independent.
 
 from __future__ import annotations
 
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -128,7 +129,7 @@ class VersionedHypothesisLedger:
         return connection
 
     def _initialize(self) -> None:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS hypotheses (
@@ -189,7 +190,7 @@ class VersionedHypothesisLedger:
         if any(not isinstance(ref, str) or not ref for ref in refs):
             raise ValueError("evidence references must be non-empty strings")
 
-        with self._connect() as connection:
+        with closing(self._connect()) as connection, connection:
             connection.execute("BEGIN IMMEDIATE")
             existing = connection.execute(
                 "SELECT * FROM hypotheses WHERE hypothesis_id=?", (hypothesis_id,)
@@ -311,7 +312,7 @@ class VersionedHypothesisLedger:
     def list_revisions(self, *, hypothesis_id: str | None = None) -> tuple[HypothesisRevision, ...]:
         if hypothesis_id is not None and (not isinstance(hypothesis_id, str) or not hypothesis_id):
             raise ValueError("hypothesis_id must be null or a non-empty string")
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             if hypothesis_id is None:
                 rows = connection.execute(
                     "SELECT * FROM hypothesis_revisions ORDER BY sequence"

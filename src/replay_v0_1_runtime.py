@@ -52,6 +52,14 @@ class ReplayV01Runtime:
     def trader_identity(self) -> Any:
         return self.base_runtime.trader_identity
 
+    @property
+    def store(self) -> Any:
+        return self.base_runtime.store
+
+    def close(self) -> None:
+        """Cleanly close the underlying persistent store for restart continuity."""
+        self.base_runtime.store.close()
+
     def prepare_model_request(
         self,
         *,
