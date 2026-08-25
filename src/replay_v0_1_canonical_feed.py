@@ -13,7 +13,6 @@ from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from hashlib import sha256
 import json
-from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 from zoneinfo import ZoneInfo
 
@@ -327,34 +326,4 @@ def build_fixed_5m_preflight(*, product: str, concrete_contract: str, replay_day
     return CanonicalFiveMinutePreflight(product, concrete_contract, replay_days_tuple, window_tuple, tuple(wake_bars), len(bars), sum(item.expected_minute_count for item in window_tuple), expected_fixed_5m_wake_count(window_tuple))
 
 
-def load_canonical_minute_bars_from_parquet(*, parquet_root: Path, product: str, concrete_contract: str, replay_days: Sequence[date], partition_identity_by_day: Mapping[date, str], session_authority_identity_by_day: Mapping[date, str]) -> tuple[ReplayMinuteBar, ...]:
-    try:
-        import pyarrow.dataset as ds  # noqa: PLC0415
-    except ImportError as error:  # pragma: no cover
-        raise RuntimeError("canonical replay Parquet preflight requires the pinned pyarrow environment") from error
-    root = Path(parquet_root)
-    if not root.is_dir():
-        raise ValueError("canonical parquet root does not exist")
-    days = tuple(replay_days)
-    if set(days) != set(partition_identity_by_day) or set(days) != set(session_authority_identity_by_day):
-        raise ValueError("sealed replay days must have exact partition and session identity bindings")
-    dataset = ds.dataset(str(root), format="parquet", partitioning="hive")
-    expression = (ds.field("product") == product) & (ds.field("concrete_contract") == concrete_contract)
-    table = dataset.to_table(columns=["product", "concrete_contract", "trading_day", "bar_start", "bar_end", "historical_available_at", "open", "high", "low", "close", "volume", "session_metadata_identity"], filter=expression)
-    wanted = set(days)
-    result: list[ReplayMinuteBar] = []
-    for row in table.to_pylist():
-        trading_day = row["trading_day"]
-        if trading_day not in wanted:
-            continue
-        if row["volume"] is None:
-            raise ValueError("selected canonical replay minute has missing volume")
-        row_session_identity = _require_text(row["session_metadata_identity"], "canonical session metadata identity")
-        expected_session_identity = session_authority_identity_by_day[trading_day]
-        if row_session_identity != expected_session_identity:
-            raise ValueError("canonical Parquet session identity disagrees with sealed manifest binding")
-        result.append(ReplayMinuteBar(product=row["product"], concrete_contract=row["concrete_contract"], trading_day=trading_day, start=row["bar_start"], end=row["bar_end"], available_at=row["historical_available_at"], open=row["open"], high=row["high"], low=row["low"], close=row["close"], volume=Decimal(row["volume"]), partition_identity=partition_identity_by_day[trading_day], session_authority_identity=expected_session_identity))
-    return tuple(sorted(result, key=lambda item: item.start))
-
-
-__all__ = ["CanonicalFiveMinutePreflight", "FEED_VERSION", "GovernedSessionWindow", "ReplayFiveMinuteBar", "ReplayMinuteBar", "build_fixed_5m_preflight", "expected_fixed_5m_wake_count", "governed_windows_for_days", "load_canonical_minute_bars_from_parquet"]
+__all__ = ["CanonicalFiveMinutePreflight", "FEED_VERSION", "GovernedSessionWindow", "ReplayFiveMinuteBar", "ReplayMinuteBar", "build_fixed_5m_preflight", "expected_fixed_5m_wake_count", "governed_windows_for_days"]
