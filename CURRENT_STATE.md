@@ -51,16 +51,43 @@ Mandatory guards:
 
 Use the pinned Harness only with the project fail-closed DeepSeek transport patch in `integrations/deepseek-harness/` and general retry configuration `maxRetries: 0`.
 
-Dynamic admission on PR #41 head `e4b0e3ef972ed3c8685ab71318f4c1a885a7ccd4` passed:
+Harness admission was established by PR #41 and remains binding. The prototype implementation re-proved the required Harness properties on PR #42 final head `bb38a103457b9075f7f9a7d74715a054a8d166d4`:
 
-- `project-dynamic-admission = success`
-- repository `test = success`
+- Repository CI run `32891952828` = `success`; 437 tests, 12 skipped, 0 failed.
+- DeepSeek Harness Dynamic Admission run `32891952918` = `success`.
+- fail-closed vision transport/no hidden stale-file second request = pass.
+- exact project provider/model route plus project memory/tool/audit integration = pass using no-network mock transport.
+- durable Harness SQLite persistence contract = pass.
+- DeepSeek image serialization/dynamic config regression = pass.
 
-PR #41 merged to main as `16021908b3226c6e9598f8030ddc5f2805825b1a`.
+## Minimal persistent trader prototype
 
-The dynamic gate proved pinned selected-model/vision support, project fail-closed stale-file behavior with no hidden second chat request, zero configured general retries, project memory/tool context and audit integration, SQLite session persistence across restart, and unaffected DeepSeek image serialization/config behavior.
+PR #42 merged to `main` as:
 
-The first prototype is local. A localhost browser UI is allowed; public/cloud deployment is not part of this work package. Project memory, trader state, market data and K-line tools remain project-owned/local unless a later authority changes that boundary.
+`361649965685282af0f04b854f14195c9ce66e65`
+
+Implemented project-owned prototype spine:
+
+- local SQLite `DS_WORKING_MEMORY`, `DS_JOURNAL`, `DS_HYPOTHESIS_MEMORY` and append-only audit;
+- process-style close/reopen working-memory persistence;
+- bounded attributable read-only Jianghe canon retrieval;
+- exact model/Harness runtime contract with provider execution locked;
+- causal `4H / 1H / 15m / 5m` observation + deterministic PNG chart context;
+- project-owned audited tool registry;
+- strict response normalization and existing mechanical guards;
+- prompt/tool identity binding to `JiangheAITraderIdentity`;
+- Harness-independent complete portable export without bounded-query truncation;
+- local no-provider-call acceptance probe at `tools/run_persistent_deepseek_trader_offline_probe.py`.
+
+Formal automated evidence:
+
+`docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_AUTOMATED_GATE_EVIDENCE_2026-08-26.md`
+
+`PROTOTYPE_12_OBJECTIVE_AUTOMATED_GATE = PASS`
+
+`LOCAL_WORKSTATION_ACCEPTANCE = PENDING`
+
+The work package is therefore not closed yet. The dated handoff remains active until the Owner workstation runs the offline probe and the resulting summary is reviewed.
 
 ## Historical data foundation
 
@@ -75,17 +102,23 @@ Accepted canonical corpus:
 
 Authority: `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
 
-Do not start broad replay until the persistent trader prototype identity is stable.
+Do not start broad replay until the persistent trader prototype work package is formally closed and a next work package is defined.
 
 ## Current work package
 
 `CURRENT_WORK_PACKAGE = MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
 
-Exact next task:
+Current task handoff:
 
 `docs/reviews/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_HANDOFF_2026-08-26.md`
 
-The prototype must prove the local persistent-trader spine only; it is not a polished product, broad replay, public website or new research-design exercise.
+Exact next task:
+
+1. Owner workstation pulls current `main`.
+2. Run `python tools/run_persistent_deepseek_trader_offline_probe.py` with a local project-owned state directory.
+3. Do not set/use a DeepSeek API key and do not make a provider call.
+4. Return `offline-probe-summary.json` plus command/output evidence for project review.
+5. If local acceptance passes, finalize authority, delete the dated handoff, and stop before replay/learning.
 
 ## Locks
 
@@ -96,4 +129,4 @@ The prototype must prove the local persistent-trader spine only; it is not a pol
 - broker/account: locked
 - real money: locked
 
-Offline/no-network testing is preferred. Any real DeepSeek API call requires current executable authority before execution.
+No current authority permits a real DeepSeek provider call. Local acceptance is explicitly offline/no-provider-call.
