@@ -2,121 +2,87 @@
 
 As of: `2026-08-25`
 
-This file is the runtime refresh brief for substantive project answers.
+Purpose: keep each substantive project reply grounded in current `main` without forcing every new project brain to ingest obsolete history.
 
-## Required refresh rule
+## Mandatory refresh
 
-Before answering a substantive question about current status, architecture, permissions, research state, model/provider state, tools, experiments, worker prompts, or next work:
+Before any substantive answer about current state, architecture, model, tools, experiments, workers or next work:
 
-1. refresh current GitHub `main`;
-2. read `CURRENT_STATE.md`;
-3. read the formal authority relevant to the requested topic;
-4. if execution/spend is involved, refresh the paid authorization, current ledger/evidence, and exact executable-slot authority;
-5. do not infer current facts from chat history.
+1. refresh GitHub `main` HEAD;
+2. read `PROJECT_DIRECTION.md`;
+3. read `CURRENT_STATE.md`;
+4. read only the specific current authority/evidence needed for the question;
+5. for spend/execution, additionally refresh paid authorization, ledger/evidence and exact executable-slot authority;
+6. never infer current project facts from chat history or obsolete documents.
 
-## Current phase
+## Current headline
 
-- `PHASE = RESEARCH_FOUNDATION`
-- `RESEARCH_DIRECTION = HUMAN_PLAYBOOK_FIRST`
-- `JIANGHE = sole current trading-knowledge source`
-- `CURRENT_WORK_PACKAGE = JIANGHE_DEEPSEEK_SELECTED_LANE_HARDENING_V0_1`
+`PRODUCT = JIANGHE_PERSISTENT_DEEPSEEK_TRADER`
 
-## Frozen V0.2 protocol
+`MODEL_SOURCE = DEEPSEEK_ONLY`
 
-Frozen stack:
+`CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-`4H / 1H / 15m / 5m`
+`CURRENT_WORK_PACKAGE = JIANGHE_PERSISTENT_DEEPSEEK_TRADER_FOUNDATION_V0_1`
 
-4H remains background/state/key-zone/location/remaining-space only and uses:
+`DEEPSEEK_HARNESS = CANDIDATE_FOR_PROJECT_ADMISSION`
 
-`SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1`
+`TOOL_DECISION = ADD_TOOL__VERIFY_DEEPSEEK_HARNESS`
 
-Lower-stack contract:
+## Product direction
 
-`DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`
+Build one persistent, auditable, single-purpose futures trader that:
 
-schema identity:
+- starts from Jianghe source-grounded experience;
+- preserves persistent working memory and journal across calls/restarts;
+- retrieves relevant Jianghe knowledge instead of rereading an unbounded corpus every call;
+- uses causal K-line data/charts and project-owned tools;
+- may generate and refine new trading hypotheses from accumulated experience;
+- may not rewrite Jianghe source truth or self-promote an unvalidated hypothesis;
+- only promotes experience-derived policy after counterexample search and independent validation;
+- keeps hard risk, broker/account truth, order lifecycle and safety deterministic.
 
-`0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a`
+Full binding direction:
 
-## Final-chance execution state
+`PROJECT_DIRECTION.md`
 
-Materialized plan identity:
+## Current exact next work
 
-`34640cd6de7dd9f5069ad902e0e7c125b78aa7a5400475b4531ba318f3469340`
+1. finish DeepSeek exact-enum guard;
+2. finish no-4H-exact-volume-reconciliation guard;
+3. verify a pinned DeepSeek Harness version/commit for exact selected model + vision + persistence + project-owned memory/tool/audit integration;
+4. build the smallest persistent-trader prototype;
+5. run a small chronological lifecycle replay to debug memory/runtime behavior;
+6. only then design broad historical replay and experience-learning validation.
 
-Plan file SHA256:
+Do not run mass stateless K-line API calls first.
 
-`f72d16567b0f481551eda85cda3f5e67ba7c31a5504943e80e148540830cecbc`
+Do not build a polished generic website first.
 
-Remote live ledger:
+Do not reopen MiniMax/Kimi model selection.
 
-`refs/heads/final-chance-live-state-v0-2`
+## Data foundation
 
-Remote ledger head:
+Accepted historical corpus exists and is ready for later chronological replay:
 
-`899f578cda41e534fe584d027bab3cd15c5fbb1d`
+`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
 
-- 12 unique network attempts completed;
-- 12 terminal records;
-- 0 retries;
-- 0 automatic-next behavior;
-- current project hard-cap accounting: `20.9075330 CNY`;
-- hard cap: `100.00 CNY`;
-- `NEXT_EXPLICIT_PAID_SLOT = NONE`.
+- 2024-01-01..2025-12-31
+- cu/al/ni/au/ag/rb
+- 32,980 partitions
+- 15,280,452 normalized 1-minute rows
 
-The original frozen three-provider PK remains `NOT_FINALIZABLE` because Kimi slot 12 ended in a preserved infrastructure failure with no capability answer.
-
-## Current model selection
-
-Historical correctness adjudication:
-
-`docs/reviews/JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`
-
-Binding later Owner decision:
-
-`docs/reviews/JIANGHE_DEEPSEEK_SOLE_ACTIVE_MODEL_OWNER_DECISION_V0_1.md`
-
-Current state:
-
-- DeepSeek `deepseek-v4-flash-vision-exp` = `SOLE_ACTIVE_MODEL_CANDIDATE_FOR_JIANGHE`
-- MiniMax `MiniMax-M3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
-- Kimi `kimi-k3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
-- MiniMax is not a reserve/fallback candidate.
-- Do not spend further selection budget on MiniMax or Kimi under the current direction.
-
-DeepSeek is the sole active model candidate, but production/shadow/broker/real-money adoption is not thereby authorized.
-
-## Exact next work
-
-Current authorized engineering continuation:
-
-1. enforce exact action/direction/family enum values;
-2. forbid / validate against 4H exact cross-timeframe volume reconciliation;
-3. run focused tests and normal CI;
-4. do not make more provider calls merely to repeat model selection.
-
-A persistent DeepSeek trading workspace/harness or a broader historical replay program is a new product/research stage and requires an explicit Owner direction before implementation/large-scale execution.
-
-## Paid state
+## Current locks
 
 - `PAID_CALLS = PAUSED`
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`
-- no current provider call is authorized by a live slot;
-- consumed historical attempts may not be retried under the same identities.
+- validation/holdout = locked
+- shadow = locked
+- broker/account = locked
+- real money = locked
 
-## Locks
+No current implementation step authorizes real trading.
 
-- outcome/future: locked
-- validation/holdout: locked
-- shadow: locked
-- broker/account: locked
-- real money: locked
+## Active-context hygiene
 
-## Tool decision
-
-For the current narrow hardening package:
-
-`USE_EXISTING`
-
-DeepSeek Harness exists in `TOOL_REGISTRY.md` as a `CANDIDATE`; it is not yet verified or adopted by this project. Any harness prototype requires a fresh tool-admission decision and pin/review because it changes the runtime boundary.
+Fresh takeover should stay small. Obsolete plans, provider-selection history and superseded handoff text must not remain in the active takeover path merely for historical preservation. Git history is the historical record.
