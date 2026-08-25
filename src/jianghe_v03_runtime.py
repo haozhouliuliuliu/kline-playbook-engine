@@ -552,10 +552,10 @@ class V03CapabilityAdapter:
             )
             if len(pattern.findall(unwrapped)) > 1:
                 duplicates.append(heading)
-        missing_headings = tuple(
+        missing_headings = tuple(sorted(
             heading for heading in CAPABILITY_ANSWER_HEADINGS
             if heading not in headings
-        )
+        ))
 
         def enum_value(heading: str, allowed: Sequence[str]) -> tuple[str | None, bool]:
             raw_value = (headings.get(heading) or "").strip().splitlines()[0].strip() if headings.get(heading) else ""
@@ -1186,6 +1186,8 @@ class V03ProviderTransport:
         usage = mechanical["usage"]
         if content_state in {"NULL", "TEXT_EMPTY", "NON_TEXT"}:
             status = V03TerminalStatus.OUTPUT_EMPTY.value
+            final_for_evidence = None
+            final_hash = None
             reconciled = budget.reconcile(
                 usage=usage, provider_reported_billed_cny=None, now=now
             )
@@ -1195,10 +1197,12 @@ class V03ProviderTransport:
                 if finish == "length"
                 else V03TerminalStatus.COMPLETE_CAPABILITY_ANSWER.value
             )
+            assert final_text is not None
+            final_for_evidence = final_text
+            final_hash = sha256(final_text.encode("utf-8")).hexdigest()
             reconciled = budget.reconcile(
                 usage=usage, provider_reported_billed_cny=None, now=now
             )
-        assert final_text is not None
         return V03InvocationEvidence(
             request_identity=request.identity,
             common_exam_identity=request.common_exam_identity.identity,
@@ -1211,8 +1215,8 @@ class V03ProviderTransport:
             provider_request_id=provider_request_id,
             finish_reason=finish,
             final_content_state=content_state,
-            model_raw_final_answer=final_text,
-            final_content_sha256=sha256(final_text.encode("utf-8")).hexdigest(),
+            model_raw_final_answer=final_for_evidence,
+            final_content_sha256=final_hash,
             usage=usage,
             reasoning_present=bool(mechanical["reasoning_present"]),
             reasoning_length=mechanical["reasoning_length"],

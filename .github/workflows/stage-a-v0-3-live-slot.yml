@@ -1,0 +1,77 @@
+name: Stage-A V0.3 Live Slot
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: V0.3 matched capability provider (slot identity is frozen by plan)
+        required: true
+        type: choice
+        options: [DEEPSEEK, MINIMAX, KIMI]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stage-a-v0-3-single-slot
+  cancel-in-progress: false
+
+jobs:
+  v0-3-slot:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: stage-a-v0-3
+    env:
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen V0.3 plan before credentials
+        run: python tools/build_jianghe_stage_a_frozen_plan_v0_3.py --check --output docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_3.json
+
+      - name: Execute one V0.3 DeepSeek matched capability slot
+        if: inputs.provider == 'DEEPSEEK'
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          python tools/run_jianghe_v03_slot.py --provider DEEPSEEK
+        continue-on-error: false
+
+      - name: Execute one V0.3 MiniMax matched capability slot
+        if: inputs.provider == 'MINIMAX'
+        env:
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+        run: |
+          python tools/run_jianghe_v03_slot.py --provider MINIMAX
+        continue-on-error: false
+
+      - name: Execute one V0.3 Kimi matched capability slot
+        if: inputs.provider == 'KIMI'
+        env:
+          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+        run: |
+          python tools/run_jianghe_v03_slot.py --provider KIMI
+        continue-on-error: false
+
+      - name: Upload secret-safe V0.3 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage-a-v0-3-evidence
+          path: |
+            .runtime/jianghe_v03/**/*.json
+          if-no-files-found: warn
+          retention-days: 30
