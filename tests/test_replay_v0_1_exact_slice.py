@@ -1,20 +1,25 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, time, timedelta
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
+from zoneinfo import ZoneInfo
 
+from src.historical_manifest import DatasetManifest, ManifestPartition, canonical_hash
 from src.replay_v0_1_exact_slice import (
     _parse_calendar,
     _parse_e07,
     _parse_session_schedule,
     build_full_session_mapping_facts,
+    select_and_seal_exact_v0_1_slice,
 )
 from src.replay_v0_1_selector import ReplayPartitionFact, select_v0_1_slice
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+_CN = ZoneInfo("Asia/Shanghai")
 
 
 class ReplayV01ExactSliceTests(unittest.TestCase):
@@ -97,6 +102,140 @@ class ReplayV01ExactSliceTests(unittest.TestCase):
         self.assertEqual(selected.measurement_days[0], date(2024, 4, 12))
         self.assertEqual(selected.measurement_days[-1], date(2024, 5, 14))
         self.assertEqual(len(selected.measurement_days), 20)
+
+    def test_full_seal_path_binds_manifest_identity_and_real_authorities(self) -> None:
+        selected_days = tuple(
+            day for day in self.calendar
+            if date(2024, 3, 11) <= day <= date(2024, 5, 14)
+        )
+        self.assertEqual(len(selected_days), 42)
+        partitions = []
+        for day in selected_days:
+            start = datetime.combine(day, time(0, 0), tzinfo=_CN)
+            end = start + timedelta(days=1)
+            request_parameters = (
+                ("duration_seconds", "60"),
+                ("end_dt", end.isoformat()),
+                ("start_dt", start.isoformat()),
+                ("symbol", "SHFE.cu2406"),
+            )
+            partitions.append(
+                ManifestPartition(
+                    provider="TQSDK",
+                    api_version="3.10.1",
+                    contract="SHFE.cu2406",
+                    exchange="SHFE",
+                    granularity_seconds=60,
+                    timezone="Asia/Shanghai",
+                    trading_day=day,
+                    requested_start=start,
+                    requested_end=end,
+                    returned_start=start,
+                    returned_end=end,
+                    retrieved_at=end,
+                    raw_bytes=1,
+                    raw_sha256="0" * 64,
+                    request_identity=canonical_hash(request_parameters),
+                    request_parameters=request_parameters,
+                    normalizer_identity="fixture-normalizer",
+                    session_metadata_version="fixture-session",
+                    contract_metadata_identity="fixture-contract-metadata",
+                    data_version_id="fixture-data-version",
+                    normalized_batch_id=f"fixture-batch-{day.isoformat()}",
+                    quality_status="PASS",
+                )
+            )
+        manifest = DatasetManifest("fixture-manifest-v1", tuple(partitions))
+
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest_path = root / "manifest.json"
+            corpus_path = root / "corpus.json"
+            DatasetManifest.save(manifest, manifest_path)
+            corpus_path.write_text(
+                json.dumps(
+                    {
+                        "canonical_corpus_identity": "fixture-corpus-identity",
+                        "raw_manifest_root_identity": manifest.identity(),
+                        "partition_count": len(manifest.partitions),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            seal = select_and_seal_exact_v0_1_slice(
+                manifest_path=manifest_path,
+                trading_calendar_path=REPO_ROOT / "docs/evidence/CANONICAL_TRADING_CALENDAR.json",
+                session_schedule_path=REPO_ROOT / "docs/evidence/CANONICAL_SESSION_SCHEDULES.json",
+                e07_path=REPO_ROOT / "docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_V0_1.json",
+                corpus_identity_path=corpus_path,
+            )
+
+        self.assertEqual(seal.slice.product, "cu")
+        self.assertEqual(seal.slice.concrete_contract, "SHFE.cu2406")
+        self.assertEqual(seal.slice.burn_in_days[0], date(2024, 4, 10))
+        self.assertEqual(seal.slice.measurement_days[-1], date(2024, 5, 14))
+        self.assertEqual(seal.raw_manifest_root_identity, manifest.identity())
+        self.assertEqual(len(seal.slice.partition_identities), 42)
+        self.assertEqual(len(seal.identity), 64)
+
+    def test_full_seal_rejects_manifest_identity_drift(self) -> None:
+        day = date(2024, 4, 10)
+        start = datetime.combine(day, time(0, 0), tzinfo=_CN)
+        end = start + timedelta(days=1)
+        request_parameters = (
+            ("duration_seconds", "60"),
+            ("end_dt", end.isoformat()),
+            ("start_dt", start.isoformat()),
+            ("symbol", "SHFE.cu2406"),
+        )
+        partition = ManifestPartition(
+            provider="TQSDK",
+            api_version="3.10.1",
+            contract="SHFE.cu2406",
+            exchange="SHFE",
+            granularity_seconds=60,
+            timezone="Asia/Shanghai",
+            trading_day=day,
+            requested_start=start,
+            requested_end=end,
+            returned_start=start,
+            returned_end=end,
+            retrieved_at=end,
+            raw_bytes=1,
+            raw_sha256="0" * 64,
+            request_identity=canonical_hash(request_parameters),
+            request_parameters=request_parameters,
+            normalizer_identity="fixture-normalizer",
+            session_metadata_version="fixture-session",
+            contract_metadata_identity="fixture-contract-metadata",
+            data_version_id="fixture-data-version",
+            normalized_batch_id="fixture-batch",
+            quality_status="PASS",
+        )
+        manifest = DatasetManifest("fixture-manifest-v1", (partition,))
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest_path = root / "manifest.json"
+            corpus_path = root / "corpus.json"
+            DatasetManifest.save(manifest, manifest_path)
+            corpus_path.write_text(
+                json.dumps(
+                    {
+                        "canonical_corpus_identity": "fixture-corpus-identity",
+                        "raw_manifest_root_identity": "wrong-manifest-identity",
+                        "partition_count": 1,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "manifest identity"):
+                select_and_seal_exact_v0_1_slice(
+                    manifest_path=manifest_path,
+                    trading_calendar_path=REPO_ROOT / "docs/evidence/CANONICAL_TRADING_CALENDAR.json",
+                    session_schedule_path=REPO_ROOT / "docs/evidence/CANONICAL_SESSION_SCHEDULES.json",
+                    e07_path=REPO_ROOT / "docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_V0_1.json",
+                    corpus_identity_path=corpus_path,
+                )
 
 
 if __name__ == "__main__":
