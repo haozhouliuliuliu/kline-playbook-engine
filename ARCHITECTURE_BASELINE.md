@@ -47,7 +47,7 @@ Deployment baseline:
 
 `LOCAL_WORKSTATION_FIRST`
 
-The local Harness process may expose a localhost browser UI. Project-owned memory, K-line data/tools, Jianghe knowledge and trader state stay local/project-controlled in the first prototype. Public/cloud hosting is not part of the current architecture package.
+The local Harness process may expose a localhost browser UI. Project-owned memory, K-line data/tools, Jianghe knowledge and trader state stay local/project-controlled. Public/cloud hosting is outside the adopted local product boundary unless later authority changes it.
 
 Harness hosts sessions/tools/UI but does not own core trader semantics. The trader core must remain portable behind another thin shell.
 
@@ -57,7 +57,7 @@ Active stack: `4H / 1H / 15m / 5m`.
 
 4H role: `BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`.
 
-Decision-time observations are causal. Historical replay uses completed 1-minute data and does not invent sub-minute paths.
+Decision-time observations are causal. Historical replay, when explicitly opened, uses completed 1-minute data and does not invent sub-minute paths.
 
 ## Persistent trader state
 
@@ -75,7 +75,7 @@ Project-owned persistent state includes:
 - `DS_HYPOTHESIS_MEMORY`;
 - project-validated policy references.
 
-Every mutation is attributable and auditable. Restart must preserve governed working state.
+Every mutation is attributable and auditable. Restart preserves governed working state; this was proven by the completed minimal persistent trader prototype and Owner-workstation acceptance.
 
 ## Knowledge separation
 
@@ -100,6 +100,10 @@ Discovery exposure and redesign history remain recorded. Outcome and process cor
 
 ## Current implementation boundary
 
-Current work package is the smallest local persistent-trader prototype. It must prove model/vision path, restart persistence, Jianghe retrieval, K-line tools, journal/hypothesis storage, audit and no hidden retries before broad replay begins.
+`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`.
 
-Architecture alone grants no validation, shadow, broker/account or real-money permission.
+The accepted local composition proves persistent project-owned memory, bounded Jianghe retrieval, causal multi-timeframe observation/charts, audited tools, journal/hypothesis separation, reconstructable request/response state, portability and fail-closed provider/runtime guards.
+
+`CURRENT_WORK_PACKAGE = NONE__AWAITING_EXPLICIT_NEXT_WORK_PACKAGE`.
+
+Persistent chronological replay is a future work package, not an automatic consequence of prototype completion. Architecture alone grants no replay/learning, provider-call, validation, shadow, broker/account or real-money permission.
