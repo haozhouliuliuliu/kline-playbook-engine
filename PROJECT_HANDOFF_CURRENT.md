@@ -1,136 +1,82 @@
 # PROJECT_HANDOFF_CURRENT
 
-> Derived continuity pointer only. `main`, `CURRENT_STATE.md`,
-> `PROJECT_BRAIN_RUNTIME_BRIEF.md`, and the named authorities always win.
+As of: `2026-08-25`
 
-## Fresh-conversation rule
+This file is a handoff snapshot and must be read after the current formal authorities.
 
-Read `00_READ_FIRST.md` first, follow its takeover order, refresh current `main`,
-then read this handoff last. Do not use the prior chat as project authority.
+## Current breakpoint
 
-## Closure + authority-sync checkpoint — 2026-08-25
+The Owner-approved V0.2 final-chance protocol has been designed and implemented offline.
 
-```text
-AUTHORITY_SYNC_BASE_HEAD=525ca00fade2c44d4a9ec8dc4e44bc8a0d87f526
-PROJECT_PHASE=RESEARCH_FOUNDATION
-CURRENT_WORK_PACKAGE=JIANGHE_DOWNLOADED_KLINE_PILOT_DEFECT_REVIEW_COMPLETE
-NEXT_NORMAL_PHASE=DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
-OWNER_ACTION=DECIDE_V0_2_INPUT_SCOPE_THEN_AUTHORIZE_OR_DECLINE_FRESH_SMALL_PILOT
-TOOL_DECISION=USE_EXISTING
-AUTHORITY_DRIFT_SYNC=COMPLETE
-```
+Frozen protocol:
 
-## Three-provider and downloaded-Kline state
+`4H / 1H / 15m / 5m`
 
-```text
-THREE_PROVIDER_MATCHED_COMPARISON=COMPLETE
-QUALITY_RANK_1=DEEPSEEK
-QUALITY_RANK_2=KIMI
-QUALITY_RANK_3=MINIMAX
-DEEPSEEK_PROVIDER_STATUS=CURRENT_LEADING_PROVIDER__NO_PERMANENT_ADOPTION
-ADOPTED_PROVIDER=NONE__NO_PERMANENT_ADOPTION
-HISTORICAL_PILOT_ID=JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1
-HISTORICAL_PILOT_VERDICT=REVIEW_BEFORE_EXPAND__UNCHANGED
-PILOT_SAMPLE_COUNT=5
-PILOT_SCOREABLE_COUNT=5
-HISTORICAL_PILOT_FACTUAL_ERRORS=2
-HISTORICAL_PILOT_INVENTED_RULES=0
-CURRENT_PROJECT_ACCOUNTED_CNY=3.1609662
-```
+4H engineering representation:
 
-The historical pilot and all five V0.1 attempts remain immutable. No historical
-attempt may be rerun or silently rewritten.
+`SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1`
 
-## DKL-DS-003 forensic closure
+4H semantic role:
 
-```text
-FORENSIC_AUTHORITY=docs/reviews/JIANGHE_DOWNLOADED_KLINE_DKL_DS_003_FORENSIC_REVIEW_V0_1.md
-FORENSIC_VERDICT=MULTI_CAUSAL_DEFECTS_FIXED
-CASE=DKL-DS-003
-DKL_DS_003_ROOT_CAUSE=MODEL_FACTUAL_ERROR_PLUS_GENERIC_V0_1_INPUT_SEMANTICS_AMBIGUITY
-CANONICAL_DATA_CORRECT=YES
-AGGREGATION_CORRECT=YES
-RENDERING_CORRECT=YES
-EVALUATOR_CORRECT=YES
-MODEL_FACTUAL_ERROR_CONFIRMED=YES
-INPUT_AMBIGUITY_CONFIRMED=YES
-NEW_INPUT_CONTRACT_VERSION=DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2
-NEW_INPUT_CONTRACT_SCHEMA_IDENTITY=0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a
-GENERIC_REPAIR=EXPLICIT_ORDER_LATEST_CLOSED_BAR_AND_EXACT_BUCKET_VOLUME_SEMANTICS
-PILOT_REVIEW_RESOLUTION=READY_FOR_FRESH_PILOT_V0_2
-LARGE_BATCH_AUTHORIZED=NO
-```
+`BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
 
-The canonical 1m→5m/15m/1H mechanical rebuild is point-in-time and session-aware.
-DKL-DS-003 misread 5m index 34 as index 35 and then used `5+5+29=39` instead of
-the exact final 15m bucket `5+29+20=54`. The data, aggregation, PNG and evaluator
-were correct. The new input contract is a provider-neutral, case-neutral interface
-repair and has not yet been sent to any provider.
+Generic lower-stack input contract remains unchanged:
 
-## Timeframe evidence conclusion
+`DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`
 
-```text
-TIMEFRAME_REVIEW_AUTHORITY=docs/reviews/JIANGHE_TIMEFRAME_INPUT_SCOPE_EVIDENCE_REVIEW_V0_1.md
-CURRENT_TEST_TIMEFRAMES=1H__15M__5M
-CURRENT_1H_15M_5M_IS_TEST_PROTOCOL=YES
-CAN_WE_CONCLUDE_JIANGHE_ONLY_USES_1H_AND_BELOW=NO
-JIANGHE_HIGHER_TIMEFRAME_EVIDENCE_STATUS=UNRESOLVED_IN_CURRENT_PRIMARY_EVIDENCE
-SOURCE_BACKED_HIGHER_TF_SUPPORT=JH-CLM-039-001__JH-CLM-012-SP01__JH-CLM-012-SP02__JH-CLM-095-001__JH-CLM-095-003
-JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-NEXT_INPUT_PROTOCOL_RECOMMENDATION=OWNER_RESEARCH_DECISION_REQUIRED_AFTER_EVIDENCE_REVIEW
-```
+Provider set:
 
-Current source-backed Jianghe material includes `4H+15m`, `1H+5m`, `15m+1m`, and
-`4H→1H→5m` examples. Therefore 1H/15m/5m is a test-protocol stack, not evidence
-that Jianghe only uses 1H and below. Current PRIMARY does not establish that 4H or
-daily must always be present, so higher-timeframe paid input is not added until the
-Owner decides the next protocol scope.
+1. DeepSeek benchmark
+2. MiniMax M3 final matched opportunity
+3. Kimi K3 final matched opportunity
 
-## Current limits, paid state and locks
+Target:
 
-```text
-LIMIT_012=RESOLVED__THREE_PROVIDER_MATCHED_EVIDENCE_COMPLETE
-LIMIT_013=OPEN__OWNER_DECISION_REQUIRED
-PAID_CALLS_MADE_THIS_SYNC=0
-PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
-NEXT_EXPLICIT_PAID_SLOT=NONE
-CURRENT_PROJECT_ACCOUNTED_CNY=3.1609662
-TOTAL_API_HARD_CAP_CNY=100
-AUTOMATIC_RETRY=FORBIDDEN
-AUTOMATIC_NEXT_SLOT=FORBIDDEN
-AUTOMATIC_RECHARGE=FORBIDDEN
-LARGE_BATCH_AUTHORIZED=NO
-OUTCOME_ACCESS=NO
-VALIDATION_ACCESS=LOCKED
-FINAL_HOLDOUT_ACCESS=LOCKED
-SHADOW=NO
-BROKER=NO
-REAL_MONEY=NO
-```
+`4 fresh real cases x 3 providers = 12 matched calls`
 
-## Exact next work
+## What is complete
 
-```text
-EXACT_NEXT_WORK=OWNER_DECIDES_DOWNLOADED_KLINE_V0_2_INPUT_SCOPE
-```
+- bounded higher-timeframe evidence review;
+- Owner decision authority;
+- machine-readable fail-closed plan spec;
+- session-aware 4H builder semantics;
+- fresh-case deterministic selection design excluding historical V0.1 partitions;
+- portable reconstruction / verification design;
+- pre-frozen correctness domination rule;
+- unit tests for 4H break semantics, incomplete-bucket exclusion, plan-spec identity, and elimination logic.
 
-1. Owner decides whether the fresh V0.2 downloaded-Kline pilot keeps the current
-   `1H/15m/5m` stack or whether source-backed higher-timeframe context should enter
-   a separately frozen research/input protocol.
-2. Until that decision, no paid provider call, no historical-attempt rerun, and no
-   large batch are authorized.
-3. If the Owner authorizes a fresh pilot, freeze a new independent small V0.2 plan
-   using `DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2` and new attempt identities.
-4. Keep outcome/validation/final-holdout/shadow/broker/real-money locks unchanged.
+## What is not complete
 
-## New-conversation readiness
+`MATERIALIZED_PLAN = NONE`
 
-```text
-PROJECT_HANDOFF_UPDATED_LAST=YES
-NEW_CONVERSATION_READY=YES
-FRESH_CONVERSATION_ENTRY=00_READ_FIRST.md
-FRESH_CONVERSATION_HANDOFF_LAST=PROJECT_HANDOFF_CURRENT.md
-```
+The accepted canonical corpus is local data and is not stored in GitHub. Therefore the four fresh cases have not yet been produced in this lane.
 
-A new conversation must perform the repository-defined read-only takeover and use
-current GitHub `main` as the sole mutable project fact source.
+No new provider call has occurred.
+
+## Paid state
+
+- historical project accounted CNY: `3.1609662`
+- hard cap: `100.00 CNY`
+- `PAID_CALLS = PAUSED`
+- `NEXT_EXPLICIT_PAID_SLOT = NONE`
+- automatic retry: forbidden
+- automatic next slot: forbidden
+
+The existing paid-call authorization is necessary but not sufficient to create a slot.
+
+## Exact next step
+
+On the host containing the accepted canonical corpus, run:
+
+`python tools/build_jianghe_downloaded_kline_final_chance_plan_v0_2.py --materialize`
+
+Then:
+
+1. verify the emitted four-case plan with `--check-plan`;
+2. run the repository offline test suite;
+3. commit/review the portable materialized evidence;
+4. refresh current ledger, paid authorization, and provider pricing;
+5. perform pre-send payload/budget review;
+6. freeze the first explicit paid slot only if every gate passes.
+
+Do not call any provider before that pre-send review.

@@ -63,36 +63,17 @@ CURRENT_PLAN=docs/evidence/JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN_V0_3.json
 CURRENT_FROZEN_PLAN=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_3.json
 V0_3_OFFLINE_CLOSURE=COMPLETE
 V0_3_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
-PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
+PAID_CALLS_CURRENTLY_PAUSED=YES__FINAL_CHANCE_V0_2_PLAN_NOT_MATERIALIZED
 FAIR_MATCHED_THREE_MODEL_EVIDENCE=COMPLETE
 DEEPSEEK_STATUS=CURRENT_LEADING_PROVIDER__NO_PERMANENT_ADOPTION
-MINIMAX_STATUS=CANDIDATE__PASS_WITH_MATERIAL_QUALITY_DEFECTS
-KIMI_STATUS=CANDIDATE__PASS_WITH_MATERIAL_QUALITY_DEFECTS
+MINIMAX_STATUS=CANDIDATE__FINAL_MATCHED_OPPORTUNITY_APPROVED
+KIMI_STATUS=CANDIDATE__FINAL_MATCHED_OPPORTUNITY_APPROVED
 NEXT_EXPLICIT_PAID_SLOT=NONE
 ```
 
-The V0.3 three-provider matched comparison is complete. Its binding quality order
-is DeepSeek > Kimi > MiniMax, with no permanent provider adoption. LIMIT-012 is
-therefore resolved; the current blocker is instead the separate downloaded-Kline
-pilot review recorded in current state.
+The historical V0.3 three-provider matched comparison is complete. Its binding quality order is DeepSeek > Kimi > MiniMax, with no permanent provider adoption. Historical attempts remain immutable.
 
-The Owner corrected a research-design error in V0.1/V0.2: output-format/normalizer compatibility and a uniform 1024-token completion ceiling had become too entangled with model-capability elimination.
-
-## LIMIT-013 — Downloaded-Kline V0.2 input protocol still needs an Owner scope decision
-
-```text
-STATUS=OPEN__OWNER_DECISION_REQUIRED
-CURRENT_BLOCKER=NO_FOR_OFFLINE_FORENSIC_CLOSURE
-ACTIVATE_BEFORE=ANY_FRESH_DOWNLOADED_KLINE_V0_2_PAID_PILOT
-AUTHORITY=docs/reviews/JIANGHE_DOWNLOADED_KLINE_DKL_DS_003_FORENSIC_REVIEW_V0_1.md
-TIMEFRAME_AUTHORITY=docs/reviews/JIANGHE_TIMEFRAME_INPUT_SCOPE_EVIDENCE_REVIEW_V0_1.md
-```
-
-The generic V0.2 contract explicitly marks bar order/latest closed bars and exact
-cross-timeframe volume buckets. It has no paid validation yet. Source-backed Jianghe
-material contains 4H examples, while the PRIMARY semantic freeze remains unrequested;
-the Owner must decide the next input scope before a fresh small pilot. No rerun and no
-large batch are authorized.
+The Owner corrected the old V0.1/V0.2 research-design error in which output-format / normalizer compatibility and a uniform 1024-token completion ceiling had become too entangled with model-capability elimination.
 
 Current anti-regression rule:
 
@@ -105,20 +86,62 @@ PROVIDER_FORMAT_DIFFERENCE != JIANGHE_CAPABILITY_FAIL
 
 Historical Attempt 001 remains immutable: DeepSeek old slot 1 was actually attempted and accounted CNY0.219222, is non-retryable, and did not establish a DeepSeek capability fatal fail.
 
-Historical Attempt 002 remains immutable: MiniMax old slot 1 returned 2xx, resolved MiniMax-M3, consumed 1024 completion tokens including 914 reported reasoning tokens, ended `finish_reason=length`, and produced non-empty but non-normalizable final content. The old V0.2 funnel's operational elimination remains historical V0.2 truth, but it is **not current evidence that MiniMax failed Jianghe capability**.
+Historical Attempt 002 remains immutable: MiniMax old slot 1 returned 2xx, resolved MiniMax-M3, consumed 1024 completion tokens including 914 reported reasoning tokens, ended `finish_reason=length`, and produced non-empty but non-normalizable final content. The old V0.2 operational elimination remains historical truth, but it is not current evidence that MiniMax failed Jianghe capability.
 
 ```text
 MINIMAX_V0_2_OPERATIONAL_FATAL_STOP=HISTORICAL_TRUE
 MINIMAX_V0_3_JIANGHE_CAPABILITY_FAIL=NO_EVIDENCE
 ```
 
-The previous `KIMI:1` next slot is superseded and must not be executed. The V0.2 live workflow is retired fail-closed before credentials/provider transport.
+## LIMIT-013 — Downloaded-Kline V0.2 input protocol / timeframe scope
 
-V0.3 must compare the three models on the same Jianghe material/question/visual/structured observation/visible history and outcome/tool restrictions, while allowing provider-required wire syntax and provider-native recommended reasoning. Each provider receives sufficient completion headroom for a complete final answer. Production JSON is not required for capability scoring; safe raw final answer and an identity-bound, format-only normalized evaluation view are required, with no persisted hidden reasoning text.
+```text
+STATUS=RESOLVED__OWNER_APPROVED_V0_2_PROTOCOL
+CURRENT_BLOCKER=NO
+AUTHORITY=docs/reviews/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_OWNER_DECISION_V0_2.md
+TIMEFRAME_AUTHORITY=docs/reviews/JIANGHE_HIGHER_TIMEFRAME_BOUNDED_EVIDENCE_REVIEW_V0_2.md
+INPUT_CONTRACT=DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2
+INPUT_CONTRACT_SCHEMA_IDENTITY=0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a
+TEST_STACK=4H/1H/15m/5m
+FOUR_HOUR_REPRESENTATION=SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1
+```
 
-Final selection order is Jianghe correctness/capability, then actual CNY cost, then actual time/latency. Token usage and integration convenience remain diagnostics rather than automatic capability gates.
+The Owner approved 4H as a source-backed context layer for the next bounded test. It is not a permanent Jianghe timeframe doctrine. Daily / weekly / monthly are not included in this round because the bounded current evidence did not establish a sufficiently explicit role.
 
-Historical V0.1/V0.2 CNY18 Stage-A, CNY6/provider and fixed-five-calls/provider limits are not V0.3 capability gates. The project-wide CNY100 API hard cap remains binding, unused budget remains unspent, and recharge is never automatic.
+The generic V0.2 contract remains unchanged. 4H is carried separately and is forbidden from participating in exact cross-timeframe volume reconciliation.
+
+## LIMIT-014 — Fresh final-chance plan is not materialized
+
+```text
+STATUS=OPEN__LOCAL_CANONICAL_CORPUS_REQUIRED
+CURRENT_BLOCKER=YES_FOR_ANY_NEW_PAID_FINAL_CHANCE_CALL
+ACTIVATE_NOW=OFFLINE_MATERIALIZATION_ONLY
+PLAN_SPEC=docs/evidence/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_SPEC_V0_2.json
+MATERIALIZED_PLAN=NONE
+NEXT_EXPLICIT_PAID_SLOT=NONE
+```
+
+The repository contains the deterministic builder, verifier, fail-closed plan spec, and tests, but not the accepted local canonical corpus. Four fresh case identities and final payload identities therefore do not exist yet.
+
+Correct resolution:
+
+1. run the materializer on the canonical-corpus host;
+2. verify and commit the portable four-case plan evidence;
+3. refresh the current paid authorization, shared ledger, and provider pricing;
+4. perform pre-send payload/budget review;
+5. only then create an explicit paid slot.
+
+Historical V0.1 cases or attempts may not be reused to bypass this limitation.
+
+## LIMIT-016 — Permanent Jianghe timeframe doctrine remains unknown
+
+```text
+STATUS=DEFERRED_SEMANTIC_SCOPE
+CURRENT_BLOCKER=NO_FOR_CURRENT_V0_2_TEST
+ACTIVATE_BEFORE=claiming a permanent mandatory Jianghe timeframe stack
+```
+
+The V0.2 experimental `4H / 1H / 15m / 5m` stack must not be promoted into permanent strategy doctrine without separate semantic authority.
 
 ## Current PRIMARY prerequisite
 
@@ -135,4 +158,4 @@ NEXT_GATE=OWNER_FREEZE_DECISION_AFTER_FAIR_REAL_MODEL_CAPABILITY_EVIDENCE
 
 ## Maintenance rule
 
-Keep only unresolved items that can still affect a future decision. Do not reopen the closed pre-spend whole-repository audit; BSP-001..005, RSP-001..002 and LIMIT-015 remain closed/resolved in historical authority.
+Keep only unresolved items that can still affect a future decision. Do not reopen the closed pre-spend whole-repository audit; BSP-001..005, RSP-001..002 and historical LIMIT-015 remain closed/resolved in historical authority.

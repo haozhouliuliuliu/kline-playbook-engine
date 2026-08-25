@@ -1,183 +1,124 @@
 # CURRENT_STATE
 
-> Mutable project-state authority. Current GitHub `main` is the only dynamic project fact source. Historical details remain in the named immutable authorities and Git history.
+As of: `2026-08-25`
 
-## Current phase
+## Canonical project phase
 
-```text
-PROJECT_PHASE=RESEARCH_FOUNDATION
-CURRENT_ADOPTED_ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
-ARCHITECTURE_STATUS=ACCEPTED
-RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
-RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
-JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=JIANGHE_DOWNLOADED_KLINE_PILOT_DEFECT_REVIEW_COMPLETE
-NEXT_NORMAL_PHASE=DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
-OWNER_ACTION=DECIDE_V0_2_INPUT_SCOPE_THEN_AUTHORIZE_OR_DECLINE_FRESH_SMALL_PILOT
-TOOL_DECISION=USE_EXISTING
-```
+- `PHASE = RESEARCH_FOUNDATION`
+- `ARCHITECTURE = Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1`
+- `RESEARCH_DIRECTION = HUMAN_PLAYBOOK_FIRST`
+- Jianghe V1 remains the sole current trading-knowledge source.
+- No broker, account, shadow, validation, holdout, or real-money lane is unlocked.
 
-## Three-provider matched comparison
+## Completed Jianghe Stage-A evidence
 
-```text
-THREE_PROVIDER_MATCHED_COMPARISON=COMPLETE
-DEEPSEEK=COMPLETE__PASS
-KIMI=COMPLETE__PASS_WITH_MATERIAL_QUALITY_DEFECTS
-MINIMAX=COMPLETE__PASS_WITH_MATERIAL_QUALITY_DEFECTS
-QUALITY_RANK_1=DEEPSEEK
-QUALITY_RANK_2=KIMI
-QUALITY_RANK_3=MINIMAX
-STAGE_A_CURRENT_LEADING_PROVIDER=DEEPSEEK
-STAGE_A_SELECTION_CONFIDENCE=PROVISIONAL__ONE_MATCHED_FIXTURE
-VERIFIED_PROVIDERS=DEEPSEEK__MINIMAX__KIMI
-ADOPTED_PROVIDER=NONE__NO_PERMANENT_ADOPTION
-LIMIT_012=RESOLVED__THREE_PROVIDER_MATCHED_EVIDENCE_COMPLETE
-```
+Historical three-provider matched evidence is complete.
 
-Authority:
-`docs/reviews/JIANGHE_STAGE_A_V0_3_THREE_PROVIDER_MATCHED_CAPABILITY_COMPARISON_V0_1.md`.
+Historical downloaded-Kline V0.1 pilot:
 
-DeepSeek remains the current leading provider because it had the strongest
-Jianghe/visual/structured fidelity under the binding quality-first selection order.
-This is not permanent adoption and does not establish long-run trading performance.
+- five real canonical cases;
+- five scoreable DeepSeek responses;
+- two model factual errors;
+- zero invented fixed rules;
+- zero unsupported Jianghe claims identified by the frozen evaluator;
+- pilot accounted cost: `0.672282 CNY`.
 
-## Downloaded-Kline DeepSeek pilot V0.1
+The project shared paid-research ledger after the completed historical work is:
 
-```text
-PILOT_ID=JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1
-PILOT_STATUS=COMPLETE
-PILOT_VERDICT=REVIEW_BEFORE_EXPAND__HISTORICAL_IMMUTABLE
-PILOT_SAMPLE_COUNT=5
-NETWORK_CALLS=5
-AUTOMATIC_RETRIES=0
-SCOREABLE_COUNT=5
-COMPLETE_OUTPUT_COUNT=5
-TOTAL_FACTUAL_ERRORS=2
-TOTAL_INVENTED_RULES=0
-TOTAL_UNSUPPORTED_JIANGHE_CLAIMS=0
-TOTAL_ACCOUNTED_CNY_THIS_PILOT=0.672282
-PROJECT_ACCOUNTED_CNY_AFTER=3.1609662
-REMOTE_LEDGER_HEAD=3aa33628a0c2d0d598aea8bba8babea093e75a50
-PILOT_PLAN_IDENTITY=e4dd70c8938995ec57715abc28bcf1784d9a1e4d2c6bd7e61add83a224d8582a
-SUMMARY_EVIDENCE_IDENTITY=78355db024882c21fdb172cce35a504b47b4c8a41d39f5748b64ae6efb673289
-OUTCOME_ACCESS=NO
-FUTURE_ACCESS=NO
-```
+`PROJECT_ACCOUNTED_CNY = 3.1609662`
 
-Authority:
-- `docs/reviews/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1.md`
-- `docs/evidence/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_SUMMARY_V0_1.json`
+Hard cap:
 
-All five calls completed and were scoreable. DKL-DS-003 made two mechanically
-confirmed factual errors: it treated the penultimate 5m bar as the final closed 5m
-bar and then fabricated a cross-timeframe volume mismatch. The historical model
-answer, attempt evidence and pilot verdict remain immutable.
+`100.00 CNY`
 
-## DKL-DS-003 forensic closure and V0.2 input contract
+Historical attempts and their identities are immutable evidence and must not be rerun or rewritten.
 
-```text
-FORENSIC_VERDICT=MULTI_CAUSAL_DEFECTS_FIXED
-FORENSIC_AUTHORITY=docs/reviews/JIANGHE_DOWNLOADED_KLINE_DKL_DS_003_FORENSIC_REVIEW_V0_1.md
-TIMEFRAME_REVIEW_AUTHORITY=docs/reviews/JIANGHE_TIMEFRAME_INPUT_SCOPE_EVIDENCE_REVIEW_V0_1.md
-CANONICAL_DATA_CORRECT=YES
-AGGREGATION_CORRECT=YES
-RENDERING_CORRECT=YES
-EVALUATOR_CORRECT=YES
-MODEL_FACTUAL_ERROR_CONFIRMED=YES
-INPUT_AMBIGUITY_CONFIRMED=YES
-NEW_INPUT_CONTRACT_VERSION=DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2
-NEW_INPUT_CONTRACT_SCHEMA_IDENTITY=0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a
-GENERIC_REPAIR=EXPLICIT_ORDER_LATEST_CLOSED_BAR_AND_EXACT_BUCKET_VOLUME_SEMANTICS
-HISTORICAL_PILOT_VERDICT_UNCHANGED=YES
-PILOT_REVIEW_RESOLUTION=READY_FOR_FRESH_PILOT_V0_2
-LARGE_BATCH_AUTHORIZED=NO
-FORENSIC_CLOSURE_PAID_PROVIDER_CALLS=0
-PROJECT_ACCOUNTED_CNY_AFTER=3.1609662
-```
+## Downloaded-Kline V0.1 forensic closure
 
-The V0.2 input contract is provider-neutral and case-neutral. It has not been sent
-to any provider. Historical V0.1 pilot attempts must not be rerun or reused.
+The V0.1 forensic review established that the DKL-DS-003 defect was not caused by canonical data, aggregation, rendering, or evaluator corruption. The observed defect was a model factual error plus an input-clarity weakness.
 
-## Timeframe input-scope evidence
+The provider-neutral clarification layer is frozen as:
 
-```text
-CURRENT_TEST_TIMEFRAMES=1H__15M__5M
-CURRENT_1H_15M_5M_IS_TEST_PROTOCOL=YES
-CAN_WE_CONCLUDE_JIANGHE_ONLY_USES_1H_AND_BELOW=NO
-JIANGHE_HIGHER_TIMEFRAME_EVIDENCE_STATUS=UNRESOLVED_IN_CURRENT_PRIMARY_EVIDENCE
-SOURCE_BACKED_HIGHER_TIMEFRAME_SUPPORT=JH-CLM-039-001__JH-CLM-012-SP01__JH-CLM-012-SP02__JH-CLM-095-001__JH-CLM-095-003
-JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-NEXT_INPUT_PROTOCOL_RECOMMENDATION=OWNER_RESEARCH_DECISION_REQUIRED_AFTER_EVIDENCE_REVIEW
-```
+- `DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`
+- schema identity `0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a`
 
-Authority: `docs/reviews/JIANGHE_TIMEFRAME_INPUT_SCOPE_EVIDENCE_REVIEW_V0_1.md`.
+That contract remains unchanged.
 
-Current source-backed Jianghe material includes `4H+15m`, `1H+5m`, `15m+1m`, and
-`4H→1H→5m` examples. Therefore the project cannot claim Jianghe only uses 1H and
-below. The current PRIMARY does not yet establish that 4H or daily input is required
-for every decision, so no higher-timeframe paid input may be added before the Owner
-makes the next research/input-protocol decision.
+## Owner-approved V0.2 final-chance protocol
 
-## Current limitation state
+Owner decision authority:
 
-```text
-LIMIT_012=RESOLVED__THREE_PROVIDER_MATCHED_EVIDENCE_COMPLETE
-LIMIT_013=OPEN__OWNER_DECISION_REQUIRED
-LIMIT_013_ACTIVATE_BEFORE=ANY_FRESH_DOWNLOADED_KLINE_V0_2_PAID_PILOT
-```
+`docs/reviews/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_OWNER_DECISION_V0_2.md`
 
-See `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`.
+Bounded higher-timeframe evidence review:
 
-## Current paid-call state and accounting
+`docs/reviews/JIANGHE_HIGHER_TIMEFRAME_BOUNDED_EVIDENCE_REVIEW_V0_2.md`
 
-```text
-PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
-NEXT_EXPLICIT_PAID_SLOT=NONE
-COMPLETED_PROVIDERS=DEEPSEEK__MINIMAX__KIMI
-PENDING_PROVIDER=NONE
-CURRENT_PROJECT_ACCOUNTED_CNY=3.1609662
-TOTAL_API_SPEND_HARD_CAP_CNY=100.00
-MAX_REMAINING_UNDER_CONSERVATIVE_PROJECT_ACCOUNTING_CNY=96.8390338
-AUTOMATIC_RETRY=FORBIDDEN
-AUTOMATIC_NEXT_SLOT=FORBIDDEN
-AUTOMATIC_RECHARGE=FORBIDDEN
-NEW_RECHARGE_REQUIRED=NO
-```
+The next fresh matched test protocol is:
 
-The previous provider-comparison and downloaded-Kline V0.1 attempts are immutable
-historical evidence. There is no current executable paid slot. A fresh V0.2 pilot
-requires a new independent plan/attempt namespace after the Owner decides input
-scope.
+`4H / 1H / 15m / 5m`
 
-## Current Jianghe / PRIMARY state
+4H is authorized only as source-backed background / state / key-zone / location / remaining-space context. It is not a permanent Jianghe doctrine and must not be treated as an automatic trigger.
 
-```text
-JIANGHE_PRIMARY_ELIGIBLE=NO
-JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-JIANGHE_PRIMARY_CLAIM_MANIFEST_IDENTITY=f767253dc4c2d1b17f57b9adfdc903907a97df8d4697dbe0fae0f603427dbf36
-CURRENT_ACTIVE_KNOWLEDGE_PACK_IDENTITY=e079c225825e08d5ccca07feddd9a6dbc1a6e07189d033fb1929b0c689e90fd2
-```
+Daily / weekly / monthly are not included in this round because the bounded current evidence review did not identify enough explicit role evidence. This is not a universal claim that Jianghe never uses them.
 
-Do not promote source-backed higher-timeframe examples into frozen PRIMARY trading
-rules without the explicit Owner research decision required by current authority.
+The project 4H test representation is:
+
+`SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1`
+
+The existing V0.2 lower-stack input contract is preserved; 4H uses a separate descriptor and is excluded from exact cross-timeframe volume reconciliation.
+
+## Fresh final-chance pilot
+
+Plan-spec authority:
+
+`docs/evidence/JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_SPEC_V0_2.json`
+
+Current state:
+
+- `PLAN_SPEC = FROZEN`
+- `MATERIALIZED_PLAN = NONE`
+- `SAMPLE_COUNT_TARGET = 4`
+- `PROVIDERS = DEEPSEEK, MINIMAX, KIMI`
+- `TOTAL_CALLS_IF_FULLY_EXECUTED = 12`
+- `HISTORICAL_ATTEMPT_REUSE = FORBIDDEN`
+- `HISTORICAL_V01_PARTITION_REUSE = FORBIDDEN_WHEN_AUTHORITY_AVAILABLE`
+- `AUTOMATIC_RETRY = FORBIDDEN`
+- `AUTOMATIC_NEXT_SLOT = FORBIDDEN`
+
+Correctness-first domination / elimination semantics are frozen before any new call in the Owner decision and machine-readable plan spec.
+
+## Paid-call state
+
+The existing paid-call authorization remains a separate authority and does not itself create a slot.
+
+Current execution state:
+
+- `PAID_CALLS = PAUSED`
+- `NEXT_EXPLICIT_PAID_SLOT = NONE`
+- `PLAN_NOT_MATERIALIZED = TRUE`
+
+A materialized plan requires the accepted local canonical corpus. Materialization itself remains offline and must end in `MATERIALIZED__AWAITING_PRESEND_REVIEW`; it must not automatically create a paid slot.
 
 ## Locks
 
-```text
-OUTCOME_ACCESS=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-VALIDATION_ACCESS=LOCKED_BY_PROJECT_POLICY
-HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
-PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
-BROKER_ACCESS=NOT_AUTHORIZED
-REAL_MONEY=NOT_AUTHORIZED
-```
+Unchanged unless a later explicit authority says otherwise:
+
+- outcome access: `LOCKED`
+- future access: `LOCKED`
+- validation access: `LOCKED`
+- holdout access: `LOCKED`
+- shadow execution: `LOCKED`
+- broker/account action: `LOCKED`
+- real money: `LOCKED`
+- automatic provider retry: `FORBIDDEN`
 
 ## Exact next work
 
-1. Owner decides the V0.2 downloaded-Kline input scope.
-2. The decision explicitly addresses whether the existing source-backed 4H evidence should enter a separately frozen higher-timeframe input protocol.
-3. Until that decision, keep paid calls paused; do not rerun historical attempts, start a large batch, or relax outcome/validation/holdout/shadow/broker/real-money locks.
-4. If the Owner authorizes a fresh small pilot, freeze a **new independent V0.2 plan** using `DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2` and new attempt identities.
+1. Run the V0.2 materializer on the host that has the accepted canonical corpus.
+2. Produce four fresh deterministic cases and portable identities.
+3. Run offline verification and repository tests.
+4. Perform pre-send budget / authorization / payload review.
+5. Only then freeze an explicit paid slot, if every gate still passes.
 
-Do not reopen a whole-repository rolling audit.
+No provider call is permitted before step 4 completes.
