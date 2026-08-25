@@ -1,0 +1,17 @@
+{
+  "artifact_schema_version": "JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_EXPLICIT_SLOT_AUTHORITY_V0_1",
+  "authority_identity": "abe649a72911945143c99f73012098264fed5887be1557161fb688c4dd90f66e",
+  "authorization_id": "OWNER-PAID-JIANGHE-FIDELITY-20260824-V01",
+  "case_identity": "dcb33b93ff5f334ef21da5a7a5f47849ece1493375474a6fc6327cbc575c9db7",
+  "effective_at": "2026-08-25T11:07:01.150246+00:00",
+  "expires_at": "2026-08-30T16:00:00.000000+00:00",
+  "explicit_slot_identity": "DKL_FC_V0_2:KIMI:DKL-FC-004",
+  "model_id": "kimi-k3",
+  "next_explicit_paid_slot": "DKL_FC_V0_2:KIMI:DKL-FC-004",
+  "plan_file_sha256": "f72d16567b0f481551eda85cda3f5e67ba7c31a5504943e80e148540830cecbc",
+  "plan_identity": "34640cd6de7dd9f5069ad902e0e7c125b78aa7a5400475b4531ba318f3469340",
+  "provider_id": "KIMI",
+  "rate_card_identity": "c8519f4edaf97b8260cc05ebfdc54989d51c8334e23b00397204e72e19bfc964",
+  "sample_id": "DKL-FC-004",
+  "worst_case_reservation_cny": "14.61076"
+}
