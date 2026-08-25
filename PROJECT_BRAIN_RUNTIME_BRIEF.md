@@ -21,11 +21,15 @@ Before substantive project work:
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-`CURRENT_WORK_PACKAGE = MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
+`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`
 
 `PROTOTYPE_12_OBJECTIVE_AUTOMATED_GATE = PASS`
 
-`LOCAL_WORKSTATION_ACCEPTANCE = PENDING`
+`NATIVE_WINDOWS_PROJECT_ACCEPTANCE_CI = PASS`
+
+`LOCAL_WORKSTATION_ACCEPTANCE = PASS`
+
+`CURRENT_WORK_PACKAGE = NONE__AWAITING_EXPLICIT_NEXT_WORK_PACKAGE`
 
 `DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
@@ -49,30 +53,41 @@ Harness admission was established on PR #41. Prototype PR #42 re-proved the proj
 
 PR #42 merged to main as `361649965685282af0f04b854f14195c9ce66e65`.
 
-Formal automated gate evidence:
+Windows repair PR #43 merged as `22c88215ea90ff618bd8457fceabf2deb13e2226`; native Windows acceptance CI run `32896485036` passed on final head `98b707f7efbf65b4648d2f5763d1c825517dbb74`.
 
-`docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_AUTOMATED_GATE_EVIDENCE_2026-08-26.md`
+Formal evidence:
 
-Harness is a local runtime/workbench shell. Do not interpret adoption as permission to move trader memory/data to cloud or build a public service. Core trader logic, memory schema, Jianghe knowledge, evidence semantics and deterministic risk/safety remain project-owned.
+- `docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_AUTOMATED_GATE_EVIDENCE_2026-08-26.md`
+- `docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_WINDOWS_LOCAL_ACCEPTANCE_REPAIR_2026-08-26.md`
+- `docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_LOCAL_WORKSTATION_ACCEPTANCE_2026-08-26.md`
+
+Harness is a local runtime/workbench shell. Core trader logic, memory schema, Jianghe knowledge, evidence semantics and deterministic risk/safety remain project-owned and portable.
+
+## Closed prototype proof
+
+The Owner-workstation final acceptance on repaired `main` passed with:
+
+- Python `3.11.9`;
+- Node `22.19.0`;
+- pnpm `11.7.0`;
+- offline core probe exit code `0`;
+- `provider_call_made = false`;
+- all thirteen offline summary checks true;
+- summary SHA-256 `25CEAFBF6B38A504B7DF3FCD871BFB18DBCCB322DCB88828C7FBA391614B66A9`;
+- local DB/charts/manifests present;
+- Harness Gates A-D all pass;
+- real DeepSeek/provider calls `0`;
+- no tracked project files modified by local acceptance.
 
 ## Exact next work
 
-Read:
+There is no active implementation/research work package.
 
-`docs/reviews/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_HANDOFF_2026-08-26.md`
+`NEXT_TASK = STOP__AWAIT_EXPLICIT_NEXT_WORK_PACKAGE`
 
-The prototype code is already merged. Do not rebuild it from scratch.
+Do not start chronological replay, broad replay, learning, validation/holdout, shadow, broker/account or real-money work from the completed prototype package.
 
-The only remaining work-package step is Owner-workstation offline acceptance:
-
-1. pull current `main` on the Owner workstation;
-2. run `python tools/run_persistent_deepseek_trader_offline_probe.py` using a local project-owned state directory;
-3. make no DeepSeek/provider call and do not use an API key;
-4. return `offline-probe-summary.json` and terminal evidence;
-5. verify all summary `checks` are `true` and `provider_call_made` is `false`;
-6. only then finalize authority, delete the dated handoff, and stop.
-
-Do not start chronological replay/learning, broad replay, validation, shadow, broker/account or real-money work in this package.
+A later Owner-approved/explicitly defined work package may open the next engineering or research phase. Until then, preserve the completed prototype state and current locks.
 
 ## Current locks
 
@@ -83,8 +98,8 @@ Do not start chronological replay/learning, broad replay, validation, shadow, br
 - broker/account = locked
 - real money = locked
 
-No current handoff step authorizes a provider call or real trading.
+No current authority authorizes a provider call or real trading.
 
 ## Handoff hygiene
 
-The dated prototype handoff remains the current task handoff while local workstation acceptance is pending. When local acceptance passes and the work package is formally closed, delete that file instead of appending a superseding history section.
+The dated prototype handoff was only valid while the prototype package remained open. Completion requires its deletion; current conversations should use this runtime brief, `PROJECT_DIRECTION.md`, `CURRENT_STATE.md`, and formal evidence instead of any deleted handoff snapshot.
