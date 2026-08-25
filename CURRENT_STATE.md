@@ -76,8 +76,12 @@ Plan-spec authority:
 
 Current state:
 
+- `CURRENT_WORK_PACKAGE = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_V0_2_PRESEND_REVIEW`
 - `PLAN_SPEC = FROZEN`
-- `MATERIALIZED_PLAN = NONE`
+- `MATERIALIZED_PLAN = JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_PLAN_V0_2`
+- `MATERIALIZATION_STATUS = MATERIALIZED__AWAITING_PRESEND_REVIEW`
+- `PILOT_PLAN_IDENTITY = 34640cd6de7dd9f5069ad902e0e7c125b78aa7a5400475b4531ba318f3469340`
+- `PLAN_FILE_SHA256 = f72d16567b0f481551eda85cda3f5e67ba7c31a5504943e80e148540830cecbc`
 - `SAMPLE_COUNT_TARGET = 4`
 - `PROVIDERS = DEEPSEEK, MINIMAX, KIMI`
 - `TOTAL_CALLS_IF_FULLY_EXECUTED = 12`
@@ -96,9 +100,10 @@ Current execution state:
 
 - `PAID_CALLS = PAUSED`
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`
-- `PLAN_NOT_MATERIALIZED = TRUE`
+- `PLAN_NOT_MATERIALIZED = FALSE`
+- `PRESEND_REVIEW_REQUIRED = TRUE`
 
-A materialized plan requires the accepted local canonical corpus. Materialization itself remains offline and must end in `MATERIALIZED__AWAITING_PRESEND_REVIEW`; it must not automatically create a paid slot.
+The V0.2 materialized plan is complete and verified. Materialization itself remains offline and ends in `MATERIALIZED__AWAITING_PRESEND_REVIEW`; it must not automatically create a paid slot. Pre-send review (authorization / ledger / pricing / payload / reservation / slot freeze) is still required before any paid call.
 
 ## Locks
 
@@ -115,10 +120,10 @@ Unchanged unless a later explicit authority says otherwise:
 
 ## Exact next work
 
-1. Run the V0.2 materializer on the host that has the accepted canonical corpus.
-2. Produce four fresh deterministic cases and portable identities.
-3. Run offline verification and repository tests.
-4. Perform pre-send budget / authorization / payload review.
-5. Only then freeze an explicit paid slot, if every gate still passes.
+1. Perform pre-send budget / authorization / payload review of the verified four-case plan.
+2. Refresh the current paid authorization and shared ledger.
+3. Refresh provider pricing / rate-card.
+4. Reserve worst-case CNY.
+5. Only then freeze the first explicit paid slot, if every gate still passes.
 
-No provider call is permitted before step 4 completes.
+No provider call is permitted before that pre-send review completes.
