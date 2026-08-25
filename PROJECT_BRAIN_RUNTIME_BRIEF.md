@@ -23,6 +23,10 @@ Before substantive project work:
 
 `CURRENT_WORK_PACKAGE = MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1`
 
+`PROTOTYPE_12_OBJECTIVE_AUTOMATED_GATE = PASS`
+
+`LOCAL_WORKSTATION_ACCEPTANCE = PENDING`
+
 `DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
 `DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
@@ -38,7 +42,16 @@ Use only:
 - project fail-closed patch from `integrations/deepseek-harness/`
 - retry policy `mode: normal`, `maxRetries: 0`
 
-Dynamic admission passed on PR #41 head `e4b0e3ef972ed3c8685ab71318f4c1a885a7ccd4` with both `project-dynamic-admission` and repository `test` successful. PR #41 merged as `16021908b3226c6e9598f8030ddc5f2805825b1a`.
+Harness admission was established on PR #41. Prototype PR #42 re-proved the project-required Harness properties on final head `bb38a103457b9075f7f9a7d74715a054a8d166d4`:
+
+- Repository CI run `32891952828` = success; 437 tests, 12 skipped, 0 failed.
+- DeepSeek Harness Dynamic Admission run `32891952918` = success.
+
+PR #42 merged to main as `361649965685282af0f04b854f14195c9ce66e65`.
+
+Formal automated gate evidence:
+
+`docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_AUTOMATED_GATE_EVIDENCE_2026-08-26.md`
 
 Harness is a local runtime/workbench shell. Do not interpret adoption as permission to move trader memory/data to cloud or build a public service. Core trader logic, memory schema, Jianghe knowledge, evidence semantics and deterministic risk/safety remain project-owned.
 
@@ -48,19 +61,18 @@ Read:
 
 `docs/reviews/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_HANDOFF_2026-08-26.md`
 
-Then build the smallest local persistent DeepSeek trader prototype proving:
+The prototype code is already merged. Do not rebuild it from scratch.
 
-- exact model + vision/data path;
-- restart-surviving working memory;
-- read-only bounded Jianghe retrieval;
-- project K-line tools;
-- journal and hypothesis memory;
-- complete request/tool/retrieval/memory audit;
-- existing output/4H guards;
-- zero silent retry/model substitution/prompt mutation;
-- project ownership/portability of core trader state.
+The only remaining work-package step is Owner-workstation offline acceptance:
 
-Do not start broad historical replay first. Do not build polished/public UI first. Do not change research semantics in this package.
+1. pull current `main` on the Owner workstation;
+2. run `python tools/run_persistent_deepseek_trader_offline_probe.py` using a local project-owned state directory;
+3. make no DeepSeek/provider call and do not use an API key;
+4. return `offline-probe-summary.json` and terminal evidence;
+5. verify all summary `checks` are `true` and `provider_call_made` is `false`;
+6. only then finalize authority, delete the dated handoff, and stop.
+
+Do not start chronological replay/learning, broad replay, validation, shadow, broker/account or real-money work in this package.
 
 ## Current locks
 
@@ -75,4 +87,4 @@ No current handoff step authorizes a provider call or real trading.
 
 ## Handoff hygiene
 
-The dated prototype handoff is the only current task handoff. When its work package is complete, delete that file instead of appending a superseding history section.
+The dated prototype handoff remains the current task handoff while local workstation acceptance is pending. When local acceptance passes and the work package is formally closed, delete that file instead of appending a superseding history section.
