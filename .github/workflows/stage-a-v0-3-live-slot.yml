@@ -21,7 +21,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: stage-a-v0-3
+    environment: stage-a-readiness
     env:
       MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
