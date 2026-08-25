@@ -23,6 +23,7 @@ from collections import Counter
 from pathlib import Path
 
 from src.playbook_contract import MachineReadiness, parameter_identity, validate_contract
+from src.jianghe_source_only_verification import _repository_blob_bytes
 from tools.build_raschke_holy_grail_playbook_contract_draft_v0_3 import (
     build_payload as build_v0_3_payload,
 )
@@ -217,7 +218,7 @@ class RaschkeHolyGrailV04MachineReadyTests(unittest.TestCase):
 
     def test_machine_code_hash_matches_actual_implementation_bytes(self):
         import hashlib
-        machine_module = (REPO_ROOT / "src" / "holy_grail_machine.py").read_bytes()
+        machine_module = _repository_blob_bytes(REPO_ROOT / "src" / "holy_grail_machine.py")
         self.assertEqual(
             self.payload["machine_operationalization"]["code_hash"],
             hashlib.sha256(machine_module).hexdigest(),

@@ -42,7 +42,8 @@ from src.playbook_contract import (
     parameter_identity,
     validate_contract,
 )
-from src.strategy_evidence import TypedParameter
+from src.jianghe_source_only_verification import _repository_blob_bytes
+from src.strategy_evidence import ArtifactBinding, TypedParameter
 from src.holy_grail_machine import (
     HOLY_GRAIL_MACHINE_FEATURE_VERSION,
     MACHINE_IMPLEMENTATION_BINDING,
@@ -528,10 +529,26 @@ def strategy_parameters() -> tuple[TypedParameter, ...]:
 
 def _machine_operationalization() -> MachineOperationalization:
     """Real MACHINE layer identity binding for ``src/holy_grail_machine.py``."""
+    machine_binding = ArtifactBinding.from_bytes(
+        artifact_kind=MACHINE_IMPLEMENTATION_BINDING.artifact_kind,
+        artifact_reference=MACHINE_IMPLEMENTATION_BINDING.artifact_reference,
+        content=_repository_blob_bytes(
+            REPO_ROOT / MACHINE_IMPLEMENTATION_BINDING.artifact_reference
+        ),
+        declared_version=MACHINE_IMPLEMENTATION_BINDING.declared_version,
+    )
+    feature_binding = ArtifactBinding.from_bytes(
+        artifact_kind=FEATURE_IMPLEMENTATION_BINDING.artifact_kind,
+        artifact_reference=FEATURE_IMPLEMENTATION_BINDING.artifact_reference,
+        content=_repository_blob_bytes(
+            REPO_ROOT / FEATURE_IMPLEMENTATION_BINDING.artifact_reference
+        ),
+        declared_version=FEATURE_IMPLEMENTATION_BINDING.declared_version,
+    )
     required_feature_versions = tuple(
         sorted(
             {
-                FEATURE_IMPLEMENTATION_BINDING.identity_id,
+                feature_binding.identity_id,
                 HOLY_GRAIL_MACHINE_FEATURE_VERSION,
             }
         )
@@ -547,7 +564,7 @@ def _machine_operationalization() -> MachineOperationalization:
     )
     return MachineOperationalization(
         operationalization_reference="src/holy_grail_machine.py",
-        code_hash=MACHINE_IMPLEMENTATION_BINDING.sha256,
+        code_hash=machine_binding.sha256,
         environment_hash=environment_hash,
         required_feature_versions=required_feature_versions,
         parameter_identities=tuple(sorted(parameter_identity(item) for item in strategy_parameters())),
