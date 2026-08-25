@@ -30,6 +30,7 @@ class TradingOnlyPromptContractTests(unittest.TestCase):
         self.assertIn("Those are deterministic project responsibilities", SYSTEM_PROMPT)
 
     def test_prompt_keeps_model_on_trading_evidence_and_unknown_handling(self) -> None:
+        normalized_prompt = " ".join(SYSTEM_PROMPT.split())
         for phrase in (
             "current market state across 4H / 1H / 15m / 5m",
             "expected trigger and invalidation",
@@ -37,9 +38,9 @@ class TradingOnlyPromptContractTests(unittest.TestCase):
             "do not invent a system fix and do not guess",
             "declared_unknown",
         ):
-            self.assertIn(phrase, SYSTEM_PROMPT)
-        self.assertIn("4H only as background state, key-zone position, and remaining space", SYSTEM_PROMPT)
-        self.assertIn("Do not use or request floating PnL", SYSTEM_PROMPT)
+            self.assertIn(phrase, normalized_prompt)
+        self.assertIn("4H only as background state, key-zone position, and remaining space", normalized_prompt)
+        self.assertIn("Do not use or request floating PnL", normalized_prompt)
 
     def test_decision_prompt_binds_existing_strict_schema_and_enums(self) -> None:
         self.assertIn(RESPONSE_SCHEMA_VERSION, DECISION_PROMPT)
