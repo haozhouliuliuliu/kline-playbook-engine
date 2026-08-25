@@ -1,6 +1,6 @@
 {
   "schema_version": "JIANGHE_DOWNLOADED_KLINE_FINAL_CHANCE_EXECUTION_REQUEST_V0_2",
-  "slot_identity": "DKL_FC_V0_2:DEEPSEEK:DKL-FC-004",
+  "slot_identity": "DKL_FC_V0_2:MINIMAX:DKL-FC-004",
   "automatic_retry": "FORBIDDEN",
   "automatic_next_slot": "FORBIDDEN"
 }
