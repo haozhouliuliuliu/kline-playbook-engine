@@ -58,6 +58,19 @@
       "request_identity": "a124a76a320ca646000341e409379f2ec8b51a559379766cd57d6e7058d6f46c",
       "sample_id": "DKL-DS-003",
       "sequence": 5
+    },
+    {
+      "accounted_cny_for_hard_cap": "0.207615",
+      "attempt_slot": "DOWNLOADED_KLINE_V0_1:DEEPSEEK:DKL-DS-003:001",
+      "event_identity": "60441daed001538c030c49a5db7e9ec2c75bd5b6d12df33da53822f148fbee7b",
+      "event_type": "ATTEMPT_TERMINAL",
+      "evidence_identity": "a68eee209cb1bc9105cbecd601c089c0566a944b3947f21f2271058e8883c4b7",
+      "previous_event_identity": "09f5a09930ec30edee84f44cd5b667353cd84eaa5bf9f3f078b04bedb7e50ff3",
+      "recorded_at": "2026-08-25T04:28:13.189834+00:00",
+      "request_identity": "a124a76a320ca646000341e409379f2ec8b51a559379766cd57d6e7058d6f46c",
+      "sample_id": "DKL-DS-003",
+      "sequence": 6,
+      "terminal_status": "CAPABILITY_SCOREABLE"
     }
   ],
   "historical_project_accounted_cny": "2.4886842",
