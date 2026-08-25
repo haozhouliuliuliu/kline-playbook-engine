@@ -31,9 +31,7 @@ class JianghePrimaryCuratedQualityV05Tests(unittest.TestCase):
         cls.curated_by_id = {record["claim_id"]: record for record in cls.curated_records}
         cls.source_by_id = {record["claim_id"]: record for record in cls.source_records}
 
-    def test_v05_uses_new_artifacts_and_preserves_v03_history(self) -> None:
-        draft_directory = REPOSITORY_ROOT / draft_builder.DRAFT_DIRECTORY
-
+    def test_v05_uses_current_artifacts_without_superseded_snapshot_dependency(self) -> None:
         self.assertEqual(
             draft_builder.CURATED_REVIEW_NAME,
             "JIANGHE_PRIMARY_CLAIM_LEVEL_CURATED_REVIEW_V0_5.jsonl",
@@ -46,21 +44,18 @@ class JianghePrimaryCuratedQualityV05Tests(unittest.TestCase):
             draft_builder.DRAFT_MARKDOWN_NAME,
             "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_5.md",
         )
+        self.assertTrue(self.curated_path.is_file())
         self.assertTrue(
-            (draft_directory / "JIANGHE_PRIMARY_CLAIM_LEVEL_CURATED_REVIEW_V0_3_IDENTITY_BOUND.jsonl").is_file()
+            (REPOSITORY_ROOT / draft_builder.DRAFT_DIRECTORY / draft_builder.DRAFT_JSONL_NAME).is_file()
         )
         self.assertTrue(
-            (draft_directory / "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_3.jsonl").is_file()
-        )
-        self.assertTrue(
-            (draft_directory / "JIANGHE_PRIMARY_CLAIM_LEVEL_BRANCH_REGISTRY_V0_3.md").is_file()
+            (REPOSITORY_ROOT / draft_builder.DRAFT_DIRECTORY / draft_builder.DRAFT_MARKDOWN_NAME).is_file()
         )
 
     def test_v05_curated_data_reviews_every_claim_once_with_substantive_fields(self) -> None:
         records = draft_builder.load_jsonl(self.curated_path, "V0.5 curated review")
         _, source_records = draft_builder.load_claim_records(REPOSITORY_ROOT)
         claim_ids = [record["claim_id"] for record in records]
-
         self.assertEqual(len(records), 352)
         self.assertEqual(len(set(claim_ids)), 352)
         self.assertEqual(claim_ids, sorted(claim_ids))
@@ -93,12 +88,7 @@ class JianghePrimaryCuratedQualityV05Tests(unittest.TestCase):
             reasoning = record["claim_specific_reasoning"]
             self.assertEqual(
                 set(reasoning),
-                {
-                    "source_says",
-                    "source_does_not_say",
-                    "supports",
-                    "does_not_support",
-                },
+                {"source_says", "source_does_not_say", "supports", "does_not_support"},
                 claim_id,
             )
             self.assertGreaterEqual(sum(len(value) for value in reasoning.values()), 80, claim_id)
@@ -126,7 +116,6 @@ class JianghePrimaryCuratedQualityV05Tests(unittest.TestCase):
                 claim_id,
             )
             alternative_statuses[record["alternative_analysis"]["status"]] += 1
-
         self.assertGreater(alternative_statuses["MATERIAL_ALTERNATIVES_REVIEWED"], 0)
         self.assertGreater(alternative_statuses["NO_MATERIAL_SOURCE_ALTERNATIVE"], 0)
 
@@ -194,7 +183,6 @@ class JianghePrimaryCuratedQualityV05Tests(unittest.TestCase):
         for record in self.curated_records:
             for relative_path in draft_builder.repository_evidence_paths(record):
                 self.assertTrue((REPOSITORY_ROOT / relative_path).is_file(), record["claim_id"])
-
         curated = deepcopy(self.curated_records[0])
         curated["required_source_review"]["evidence"].append("docs/missing/phantom.md")
         source = deepcopy(self.source_by_id[curated["claim_id"]])
@@ -228,7 +216,6 @@ class JianghePrimaryCuratedQualityV05Tests(unittest.TestCase):
     def test_reverse_coverage_links_reported_unknown_and_records_not_applicable(self) -> None:
         record = self.curated_by_id["JH-CLM-078-004"]
         self.assertIn("JH-UNK-036", [item["id"] for item in record["authority_links"]["unknowns"]])
-
         path = REPOSITORY_ROOT / "docs/reviews/JIANGHE_PRIMARY_AUTHORITY_REVERSE_COVERAGE_V0_5.json"
         diagnostic = json.loads(path.read_text(encoding="utf-8"))
         decisions = {
@@ -314,12 +301,14 @@ class JianghePrimaryCuratedQualityV05Tests(unittest.TestCase):
         first_records = draft_builder.build_draft_records(REPOSITORY_ROOT)
         second_records = draft_builder.build_draft_records(REPOSITORY_ROOT)
         self.assertEqual(draft_builder.jsonl_content(first_records), draft_builder.jsonl_content(second_records))
-        source_by_id = self.source_by_id
         dispositions = Counter(record["pre_freeze_disposition"] for record in first_records)
         self.assertGreater(dispositions["READY_FOR_PRIMARY_FREEZE"], 0)
         self.assertGreater(sum(value for key, value in dispositions.items() if key.startswith("STOP_")), 0)
         for branch in first_records:
-            self.assertEqual(branch["source_meaning"], source_by_id[branch["claim_id"]]["interpretation_text"])
+            self.assertEqual(
+                branch["source_meaning"],
+                self.source_by_id[branch["claim_id"]]["interpretation_text"],
+            )
             self.assertIs(branch["primary_semantics_frozen"], False)
             self.assertIs(branch["primary_eligible"], False)
 
