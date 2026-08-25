@@ -141,6 +141,10 @@ Machine fields such as action, direction and family use exact allowed enum value
 
 4H volume is not exactly reconciled against overlapping lower-timeframe volume, and such equality is not used as a trading fact under the current 4H contract.
 
+Current implementation state for both guards:
+
+`IMPLEMENTED_AND_REGRESSION_TESTED`
+
 # 10. Trader identity
 
 `JiangheAITraderIdentity` binds outcome-affecting components including:
@@ -197,13 +201,19 @@ UI packaging is secondary to correct persistent-trader behavior.
 
 # 13. Current implementation order
 
-1. finish `STRICT_OUTPUT_ENUM_ENFORCEMENT`;
-2. finish `NO_4H_EXACT_VOLUME_RECONCILIATION`;
-3. verify a pinned DeepSeek Harness version/commit;
-4. build the smallest persistent trader proving exact model + vision + memory + Jianghe retrieval + K-line tools + journal + audit;
-5. run a small chronological lifecycle replay to find architecture and memory errors;
-6. design and authorize broader historical replay/research after trader identity is stable;
-7. keep validation/holdout, shadow, broker/account and real-money lanes closed until their own authorities exist.
+Completed prerequisites:
+
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+
+Current sequence:
+
+1. verify a pinned DeepSeek Harness version/commit against exact model + vision + persistence + project-owned memory/tool/audit requirements;
+2. adopt Harness only if the pinned build passes project-specific verification; otherwise use the thinnest project-owned runtime shell;
+3. build the smallest persistent trader proving exact model + vision + memory + Jianghe retrieval + K-line tools + journal + audit;
+4. run a small chronological lifecycle replay to find architecture and memory errors;
+5. design and authorize broader historical replay/research only after trader identity is stable;
+6. keep validation/holdout, shadow, broker/account and real-money lanes closed until their own authorities exist.
 
 # 14. Success definition
 
