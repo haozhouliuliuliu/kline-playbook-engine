@@ -1,173 +1,201 @@
 # ARCHITECTURE_BASELINE
 
-## Status
+Status: `CURRENT`
 
-```text
-CURRENT_ADOPTED_ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
-STATE=ACCEPTED
-```
+Product direction authority: `PROJECT_DIRECTION.md`
 
-This file contains the **current consolidated architecture only**. Historical Skeleton wording is preserved in Git history and accepted evidence; it is not repeated here because contradictory historical wording must not pollute the active project-brain context.
-
-Binding decision-layer detail:
-`docs/architecture/ADR_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1.md`.
-
-## 1. Core architecture
+## 1. Core runtime
 
 ```text
 Market Data
 -> Rolling Market State
--> Multi-Timeframe Observation
--> Jianghe AI Decision Layer
+-> Attention / Wake Policy
+-> Causal Multi-Timeframe Observation
+-> Context Assembler
+   -> Jianghe Canon
+   -> Project-Validated Policy
+   -> DeepSeek Working Memory
+   -> Retrieved Analogues / Cases
+-> DeepSeek Trader
+-> Decision Normalizer + Mechanical Guards
 -> constrained TradeIntent
 -> deterministic RiskGate
--> OMS / STOP-OCO
--> Execution / Broker Adapter
+-> OMS / Execution Adapter
 -> Broker Reports
 -> Reconciliation
 -> Safety
--> Ledger
+-> Immutable Ledger
 ```
 
-The central product split is deliberate:
+The AI interprets markets and proposes discretionary intent.
 
-- **AI owns market interpretation and discretionary trade proposals within the Jianghe knowledge boundary.**
-- **Deterministic systems own hard risk, order lifecycle, broker/account truth, reconciliation and safety.**
+Deterministic project code owns capital/risk limits, broker/account truth, order lifecycle, reconciliation, safety and kill-switch behavior.
 
-## 2. Data substrate
+## 2. Model/runtime boundary
 
-The data layer owns normalized, point-in-time market and contract facts:
+DeepSeek is the sole active model source.
 
-- concrete instrument / contract identity;
-- China-futures trading calendar and night-session semantics;
-- 1m bars and causal higher-timeframe aggregation;
-- tick / multiplier / limit / fee / margin metadata when governed;
-- contract mapping / roll authority;
-- `available_at` and completeness semantics;
-- historical storage and live market-data recording;
-- data-quality and provenance identities.
+Current selected model line:
 
-Downstream components must consume the same normalized semantics. Future information may not enter an observation or replay snapshot.
+`deepseek-v4-flash-vision-exp`
 
-## 3. Jianghe knowledge and AI decision layer
+Do not maintain a multi-provider runtime for removed providers.
 
-Jianghe V1 is the sole current trading knowledge source unless `CURRENT_STATE.md` changes that direction.
+A runtime shell such as DeepSeek Harness may host sessions/tools/UI, but it must not own the project's trading knowledge, memory schema, validation semantics, evidence or hard-risk logic. Those remain project-owned so the shell can be replaced without losing the trader.
 
-The AI decision layer may:
+## 3. Observation semantics
 
-- read causal structured OHLCV and standardized charts;
-- maintain versioned working memory and AI annotations;
-- interpret market state, timeframe-specific trend, location, relative strength and execution-timeframe behavior;
-- classify A / B / C / D / NONE;
-- output WAIT / NO_TRADE / WATCH / CANDIDATE / ENTER / MANAGE / EXIT;
-- propose a constrained trade intent and invalidation logic.
+Current active view stack:
 
-It must allow `NO_TRADE` when the market is unfamiliar, source evidence is UNKNOWN/contradictory, or Jianghe permission conditions are not met.
+`4H / 1H / 15m / 5m`
 
-The AI does **not** own:
+4H current role:
 
-- capital truth;
-- position truth;
-- broker truth;
-- hard risk limits;
-- order lifecycle truth;
-- Safety overrides.
+`BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
 
-## 4. Versioned AI Trader identity
+4H is not an automatic trigger and must not be used for exact cross-timeframe volume reconciliation.
 
-The research object is not merely a model name. `JiangheAITraderIdentity` binds outcome-affecting components including:
+Decision-time observations must be causal: no future bar/content may enter before its governed `available_at`.
 
-- Jianghe knowledge-pack identity;
-- model provider / model version;
-- system and decision prompt identities;
+Historical replay baseline remains completed 1-minute bars; do not invent sub-minute paths from 1m OHLC.
+
+## 4. Persistent trader state
+
+The product is not a sequence of independent prompts.
+
+Project-owned persistent state includes at least:
+
+- instrument/session attention state;
+- timeframe interpretations;
+- active market hypotheses;
+- key/watch/invalidation regions;
+- family/setup candidate;
+- expected trigger;
+- open questions / UNKNOWNs;
+- prior meaningful decisions still relevant;
+- journal/reflection records;
+- unvalidated DeepSeek hypotheses;
+- validated project policy extensions.
+
+Every mutation must be attributable and auditable.
+
+Restarting the UI/runtime must not erase the trader's governed working state.
+
+## 5. Knowledge separation
+
+The runtime must preserve the hierarchy defined in `PROJECT_DIRECTION.md`:
+
+- `JIANGHE_CANON` — source-grounded and read-only to the AI;
+- `PROJECT_VALIDATED_POLICY` — independently validated project extensions;
+- `DS_HYPOTHESIS_MEMORY` — candidate ideas, not executable policy;
+- `DS_WORKING_MEMORY` — current market state/hypotheses;
+- `DS_JOURNAL` — reflective notes, never source truth.
+
+Retrieval must assemble bounded relevant context rather than append the entire corpus/chat history to every model call.
+
+Context-selection policy is outcome-affecting and therefore versioned as part of trader identity.
+
+## 6. Trader identity
+
+`JiangheAITraderIdentity` binds all outcome-affecting components, including:
+
+- Jianghe knowledge identity;
+- project-validated policy identity;
+- DeepSeek model/version;
+- prompts;
 - context-selection policy;
-- memory policy;
+- memory policy/schema;
 - chart renderer;
 - observation schema;
 - wake policy;
-- decision schema / normalizer;
+- decision schema/normalizer;
+- mechanical guards;
 - inference configuration;
-- tool capability set;
-- Jianghe family scope.
+- tool capability set.
 
-A material change creates a new version/descendant and inherits prior exposure as required by research governance.
+A material change creates a new trader version/descendant. Historical exposure/evidence is not silently reassigned to the new identity.
 
-## 5. Observation / attention / replay
+## 7. Mechanical guards
 
-The AI does not receive occasional large retrospective packages. Market state is continuous; `JiangheObservation` is the point-in-time snapshot created when the AI is awakened.
+Current mandatory guards:
 
-Supported attention semantics include SCAN / WATCH / CANDIDATE / IN_POSITION. Wake events may include new closed bars, price entry/exit from AI watch regions, invalidation touches, order/position events, safety events and session events.
+### `STRICT_OUTPUT_ENUM_ENFORCEMENT`
 
-Historical V1 replay has a hard evidence boundary:
+Machine fields such as action/direction/family must use exact allowed enum values. Explanatory prose belongs in separate fields.
+
+### `NO_4H_EXACT_VOLUME_RECONCILIATION`
+
+The model/runtime must not sum/reconcile overlapping lower-timeframe volume into 4H volume or use that equality as a trading fact under the current 4H contract.
+
+These guards constrain observed failure modes; they do not invent new Jianghe doctrine.
+
+## 8. Learning architecture
+
+DeepSeek may functionally improve through persistent external experience without directly rewriting source truth or live policy.
+
+Required promotion path:
 
 ```text
-HISTORICAL_BASELINE=COMPLETED_1_MINUTE_BAR
-NO_SYNTHETIC_SUB_MINUTE_PATH_FROM_1M_OHLC=YES
+Observation
+-> Falsifiable DS Hypothesis
+-> Counterexample Search
+-> Development Evidence
+-> Independent Validation
+-> Project-Validated Policy
 ```
 
-Any future live use of partial-bar / sub-minute information is a different capability/version and cannot be claimed equivalent to 1m historical replay.
+The hypothesis/research system must record discovery exposure and redesign history to avoid disguising repeated search as one clean test.
 
-## 6. Working memory and audit
+Outcome and process correctness remain separate. Profit alone cannot promote a rule.
 
-AI working memory is persistent within the governed replay/session and mutation-audited. It may retain:
+## 9. Chronological replay
 
-- market hypotheses;
-- timeframe-specific trend views;
-- directional bias;
-- watch / key / invalidation regions;
-- active family hypothesis;
-- expected trigger;
-- UNKNOWN/open questions;
-- prior meaningful decisions and state transitions.
+Historical data is a simulated life for one persistent trader.
 
-AI annotations are hypotheses, never market facts.
+Time advances forward; memory and prior decisions may influence later decisions according to the frozen memory policy. The model is awakened only when deterministic attention/wake logic says a meaningful re-evaluation is useful.
 
-Every real model call must be auditable with observation identity, raw/normalized response, timing/latency chain, decision identity and memory mutation evidence.
+Conceptual attention states:
 
-## 7. TradingState / RiskGate / execution
+`SCAN -> WATCH -> CANDIDATE -> IN_POSITION`
 
-`TradingState` is the only authoritative mutable local realtime state owner.
+Potential wake events include meaningful bar close, watch-region entry/exit, breakout/failure candidate, invalidation, state transition and session events.
 
-`RiskGate` owns versioned hard limits and may reject AI intents. The AI cannot enlarge its own capital/risk allowance or bypass safety.
+Large replay must not be implemented as thousands of stateless independent API exams.
 
-OMS / STOP-OCO / Broker Adapter / reconciliation remain deterministic project-owned execution infrastructure. Broker/exchange facts override local inference. Crash/restart must rebuild from persistent facts plus broker reconciliation.
+## 10. Harness/runtime shell admission
 
-## 8. Safety
+DeepSeek Harness is currently a candidate runtime shell, not adopted architecture.
 
-Safety is fail-closed and overrides the AI and execution path for at least:
+A pinned build must prove:
 
-- stale/missing market data;
-- broker disconnect;
-- duplicate/order inconsistency;
-- account/position mismatch;
-- abnormal margin/risk;
-- clock/session abnormality;
-- kill switch.
+- exact selected model route;
+- K-line image/vision support;
+- persistent session/state across restart;
+- project-owned memory integration;
+- project-owned K-line/retrieval tools;
+- full request/response/memory audit;
+- no silent retry/model/prompt mutation;
+- portability of core trader logic.
 
-## 9. Research / validation firewall
+If it fails, replace the shell, not the product direction.
 
-Human-playbook/source governance and candidate outcome access remain separate from implementation readiness.
+## 11. UI target
 
-The project preserves:
+Owner-facing UI should eventually expose only what improves operation/reasoning:
 
-- SOURCE / AI interpretation / project operationalization separation;
-- point-in-time data rules;
-- family/version lineage and exposure inheritance;
-- development / validation / final-holdout separation;
-- technical denial of protected outcome access before authorization;
-- search-freedom / multiplicity governance;
-- genuinely unseen future Shadow/Forward evidence when later authorized.
+- synchronized 4H/1H/15m/5m charts;
+- current interpretation/action/family;
+- key/watch/invalidation regions;
+- what the trader is waiting for;
+- relevant Jianghe evidence retrieved;
+- working memory and recent decisions;
+- journal/hypothesis status;
+- later, deterministic risk/safety/account status when authorized.
 
-Current authorization values live only in `CURRENT_STATE.md` / `PROJECT_BRAIN_RUNTIME_BRIEF.md`; this architecture file grants no outcome, Shadow, broker or real-money permission by itself.
+UI polish and packaging are secondary to correct persistent-trader behavior.
 
-## 10. Ledger / observability
+## 12. Safety and current locks
 
-Ledger stores immutable factual history for identities, exposures, decisions, intents, orders, fills, position transitions, safety/reconciliation events and lifecycle changes. It does not own live mutable state.
+Safety is fail-closed and overrides AI intent.
 
-Owner-facing observability should ultimately expose what the AI is watching, why a trade was proposed/rejected, positions/orders, risk/safety health and a kill switch without forcing the Owner to inspect internal engineering details.
-
-## 11. Tool policy
-
-External execution frameworks, model providers, agent frameworks and open-source tools remain `CANDIDATE` until this project verifies/adopts them. Core business logic must remain behind project-owned interfaces.
-
-Current architecture does not require a vector database, knowledge graph, multi-agent runtime, message queue, microservices or distributed infrastructure merely because those tools exist.
+Current authorization remains in `CURRENT_STATE.md`; this architecture grants no validation/holdout, shadow, broker/account or real-money permission by itself.
