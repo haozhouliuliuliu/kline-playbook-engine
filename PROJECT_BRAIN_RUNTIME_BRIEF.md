@@ -8,10 +8,9 @@ Before every substantive project reply after takeover:
 1. fetch current `main` HEAD;
 2. fetch this file from current `main`;
 3. do not use chat memory as mutable project authority;
-4. for state/architecture/locks/next work/worker/model/provider/tool questions, refresh `CURRENT_STATE.md` and named authority;
-5. for historical Stage-A attempt/accounting facts, also refresh the relevant immutable attempt authority and `refs/heads/stage-a-live-state-v0-2` when needed;
-6. for any future V0.3 executable state, refresh the V0.3 frozen plan/remote ref named by `CURRENT_STATE.md` once those exist;
-7. fresh conversations read `00_READ_FIRST.md` first and `PROJECT_HANDOFF_CURRENT.md` last.
+4. for state/architecture/locks/next work/worker/model/provider/tool questions, refresh `CURRENT_STATE.md` and the named authority;
+5. for historical attempt/accounting facts, refresh the relevant immutable attempt authority and ledger ref when needed;
+6. fresh conversations read `00_READ_FIRST.md` first and `PROJECT_HANDOFF_CURRENT.md` last.
 
 ## Current live pointer
 
@@ -21,29 +20,43 @@ ARCHITECTURE=Skeleton_v1.0_PLUS_JIANGHE_AI_TRADER_DECISION_LAYER_V0_1
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 CURRENT_WORK_PACKAGE=JIANGHE_DOWNLOADED_KLINE_PILOT_DEFECT_REVIEW_COMPLETE
-CURRENT_STAGE_A_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md
-CURRENT_PREFLIGHT_AUDIT=docs/reviews/JIANGHE_STAGE_A_V0_3_PREFLIGHT_FAILURE_AUDIT_V0_1.md
-V0_3_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
-CURRENT_COMPARISON_PLAN=docs/evidence/JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN_V0_3.json
-CURRENT_FROZEN_PLAN=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_3.json
-V0_3_REMOTE_REF=refs/heads/stage-a-live-state-v0-3
-DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
-CURRENT_THREE_PROVIDER_COMPARISON=docs/reviews/JIANGHE_STAGE_A_V0_3_THREE_PROVIDER_MATCHED_CAPABILITY_COMPARISON_V0_1.md
-CURRENT_DOWNLOADED_KLINE_PILOT=docs/reviews/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1.md
-CURRENT_DOWNLOADED_KLINE_PILOT_SUMMARY=docs/evidence/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_SUMMARY_V0_1.json
-DOWNLOADED_KLINE_PILOT_REMOTE_REF=refs/heads/downloaded-kline-pilot-state-v0-1
 NEXT_NORMAL_PHASE=DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
 OWNER_ACTION=DECIDE_V0_2_INPUT_SCOPE_THEN_AUTHORIZE_OR_DECLINE_FRESH_SMALL_PILOT
 TOOL_DECISION=USE_EXISTING
 LIMIT_012=RESOLVED__THREE_PROVIDER_MATCHED_EVIDENCE_COMPLETE
+LIMIT_013=OPEN__OWNER_DECISION_REQUIRED
+CURRENT_THREE_PROVIDER_COMPARISON=docs/reviews/JIANGHE_STAGE_A_V0_3_THREE_PROVIDER_MATCHED_CAPABILITY_COMPARISON_V0_1.md
+CURRENT_DOWNLOADED_KLINE_PILOT=docs/reviews/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1.md
+CURRENT_DOWNLOADED_KLINE_PILOT_SUMMARY=docs/evidence/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_SUMMARY_V0_1.json
+CURRENT_FORENSIC_AUTHORITY=docs/reviews/JIANGHE_DOWNLOADED_KLINE_DKL_DS_003_FORENSIC_REVIEW_V0_1.md
+CURRENT_TIMEFRAME_AUTHORITY=docs/reviews/JIANGHE_TIMEFRAME_INPUT_SCOPE_EVIDENCE_REVIEW_V0_1.md
 ```
 
-## Downloaded-Kline pilot result
+## Current provider-selection state
+
+```text
+THREE_PROVIDER_MATCHED_COMPARISON=COMPLETE
+QUALITY_RANK_1=DEEPSEEK
+QUALITY_RANK_2=KIMI
+QUALITY_RANK_3=MINIMAX
+DEEPSEEK=CANDIDATE__V0_3_CAPABILITY_PASS
+KIMI=CANDIDATE__V0_3_CAPABILITY_PASS_WITH_MATERIAL_QUALITY_DEFECTS
+MINIMAX=CANDIDATE__V0_3_CAPABILITY_PASS_WITH_MATERIAL_QUALITY_DEFECTS
+VERIFIED_PROVIDERS=DEEPSEEK__MINIMAX__KIMI
+STAGE_A_CURRENT_LEADING_PROVIDER=DEEPSEEK
+ADOPTED_PROVIDER=NONE__NO_PERMANENT_ADOPTION
+```
+
+Selection order remains Jianghe correctness/capability first, actual CNY second,
+and actual latency third. The one matched synthetic fixture plus the first real
+K-line pilot are selection signals, not proof of permanent provider superiority.
+
+## Downloaded-Kline pilot and forensic closure
 
 ```text
 PILOT_ID=JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1
-PILOT_VERDICT=REVIEW_BEFORE_EXPAND
-PILOT_PLAN_IDENTITY=e4dd70c8938995ec57715abc28bcf1784d9a1e4d2c6bd7e61add83a224d8582a
+PILOT_STATUS=COMPLETE
+PILOT_VERDICT=REVIEW_BEFORE_EXPAND__HISTORICAL_IMMUTABLE
 PILOT_SAMPLE_COUNT=5
 NETWORK_CALLS=5
 AUTOMATIC_RETRIES=0
@@ -53,243 +66,65 @@ TOTAL_INVENTED_RULES=0
 TOTAL_UNSUPPORTED_JIANGHE_CLAIMS=0
 TOTAL_ACCOUNTED_CNY_THIS_PILOT=0.672282
 PROJECT_ACCOUNTED_CNY_AFTER=3.1609662
-REMOTE_LEDGER_HEAD=3aa33628a0c2d0d598aea8bba8babea093e75a50
+PILOT_REVIEW_RESOLUTION=READY_FOR_FRESH_PILOT_V0_2
+LARGE_BATCH_AUTHORIZED=NO
+FORENSIC_VERDICT=MULTI_CAUSAL_DEFECTS_FIXED
+NEW_INPUT_CONTRACT_VERSION=DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2
+NEW_INPUT_CONTRACT_SCHEMA_IDENTITY=0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a
 ```
 
-DeepSeek remains the current leading provider, not a permanently adopted
-provider. The five real downloaded-Kline cases were all complete and scoreable,
-but DKL-DS-003 misidentified the final 5m bar and fabricated a volume mismatch.
-Forensic closure found correct data/aggregation/rendering/evaluation plus an input
-semantics ambiguity. `DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`
-(`0057b11939c71f10fa7094db119f5b280e74edd13cb2bb7d40cc29a418c4c68a`)
-is ready only for a new independent small pilot after the Owner decides its input
-scope; no historical attempt reruns and no large batch are authorized.
+DKL-DS-003's canonical data, session aggregation, structured artifact, renderer and
+evaluator were correct. DeepSeek made two factual errors while the V0.1 interface
+also lacked explicit order/latest-closed-bar/exact-bucket semantics. The V0.2
+contract fixes only those generic provider-neutral input semantics. Historical
+attempts remain immutable and are never rerun.
 
-Authorities: `docs/reviews/JIANGHE_DOWNLOADED_KLINE_DKL_DS_003_FORENSIC_REVIEW_V0_1.md`
-and `docs/reviews/JIANGHE_TIMEFRAME_INPUT_SCOPE_EVIDENCE_REVIEW_V0_1.md`. The
-timeframe review records source-backed 4H evidence but
-`JIANGHE_HIGHER_TIMEFRAME_EVIDENCE_STATUS=UNRESOLVED_IN_CURRENT_PRIMARY_EVIDENCE`
-because the primary semantic freeze has not been requested.
-
-## Three-provider comparison result
+## Timeframe evidence state
 
 ```text
-THREE_PROVIDER_MATCHED_COMPARISON=COMPLETE
-DEEPSEEK=COMPLETE__PASS
-MINIMAX=COMPLETE__PASS_WITH_MATERIAL_QUALITY_DEFECTS
-KIMI=COMPLETE__PASS_WITH_MATERIAL_QUALITY_DEFECTS
-QUALITY_RANK_1=DEEPSEEK
-QUALITY_RANK_2=KIMI
-QUALITY_RANK_3=MINIMAX
-STAGE_A_CURRENT_LEADING_PROVIDER=DEEPSEEK
-STAGE_A_SELECTION_CONFIDENCE=PROVISIONAL__ONE_MATCHED_FIXTURE
-ADOPTED_PROVIDER=NONE__NO_PERMANENT_ADOPTION
-NEXT_VALIDATION=DOWNLOADED_KLINE_EVALUATION
+CURRENT_TEST_TIMEFRAMES=1H__15M__5M
+CURRENT_1H_15M_5M_IS_TEST_PROTOCOL=YES
+CAN_WE_CONCLUDE_JIANGHE_ONLY_USES_1H_AND_BELOW=NO
+JIANGHE_HIGHER_TIMEFRAME_EVIDENCE_STATUS=UNRESOLVED_IN_CURRENT_PRIMARY_EVIDENCE
+SOURCE_BACKED_HIGHER_TIMEFRAME_SUPPORT=JH-CLM-039-001__JH-CLM-012-SP01__JH-CLM-012-SP02__JH-CLM-095-001__JH-CLM-095-003
+JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
 ```
 
-DeepSeek leads because it combined the correct no-trade classification with the
-strongest visual/structured fidelity and no invented fixed rule. Kimi is second
-because its safe decision and breakout logic were correct but its family label and
-two detailed data claims were defective. MiniMax is third because it invented a
-fixed two-close rule in addition to material visual/data errors. Cost and latency
-were considered only after answer quality.
+Current source-backed material includes `4H+15m`, `1H+5m`, `15m+1m`, and
+`4H→1H→5m` examples. This is enough to reject the statement that Jianghe only uses
+1H and below, but not enough to freeze 4H/daily as mandatory input. Adding any
+higher-timeframe paid input requires the Owner's next input-protocol research
+decision.
 
-## Latest Kimi paid result
-
-```text
-PROVIDER=KIMI
-MODEL=kimi-k3
-SLOT_ID=V0_3:KIMI:CAPABILITY_MATCHED_001
-TERMINAL_STATUS=CAPABILITY_SCOREABLE
-CAPABILITY_SCOREABLE=YES
-JIANGHE_ADJUDICATION=PASS
-QUALITY_STATUS=PASS__WITH_MATERIAL_QUALITY_DEFECTS
-FAMILY=C
-ACTION=NO_TRADE
-DIRECTION=NONE
-ATTEMPT_ACCOUNTED_CNY=0.61002
-PROJECT_ACCOUNTED_CNY_AFTER=2.4886842
-EVIDENCE_IDENTITY=a20d602fcda2c47da34654b770a11d89239ab182a2ac2258736e74f138427fe7
-NORMALIZED_VIEW_IDENTITY=edcf6bcc7fa8da4b83d8ca8d2f3bbb537ce16de6cf5433ecb2ab9aa42e311f66
-V0_3_REMOTE_HEAD=eef1f6a5a58757d2e071ba9413a133c4b24b6dbb
-```
-
-## Latest MiniMax paid result
+## Paid-call state and budget
 
 ```text
-RESULT_SCOPE=FIRST_MATCHED_FIXTURE_RESULT
-PROVIDER=MINIMAX
-MODEL=MiniMax-M3
-SLOT_ID=V0_3:MINIMAX:CAPABILITY_MATCHED_001
-TERMINAL_STATUS=CAPABILITY_SCOREABLE
-CAPABILITY_ADJUDICATION=PASS__WITH_MATERIAL_QUALITY_DEFECTS
-FAMILY=NONE
-ACTION=WAIT
-DIRECTION=NONE
-ATTEMPT_ACCOUNTED_CNY=0.1085952
-PROJECT_ACCOUNTED_CNY_AFTER=1.8786642
-EVIDENCE_IDENTITY=0552d05848ae94b9c9a311432e88faed2dbefc4ad1ffc29ea0f8ae4f30d97b1a
-NORMALIZED_VIEW_IDENTITY=0ebe2ceccbe6b1242f94e349757400a9dd891ef7917005694250bfb09ffa5a47
-V0_3_REMOTE_HEAD=f0c619d0743c25cc62a755f24829280545778f77
-HISTORICAL_NEXT_RECOMMENDATION=RUN_KIMI_NEXT__NOW_COMPLETED
-```
-
-Authority:
-`docs/reviews/JIANGHE_STAGE_A_V0_3_MINIMAX_CAPABILITY_MATCHED_001_ADJUDICATION_V0_1.md`.
-MiniMax reached the safe core decision but invented a fixed two-close rule and made
-material visual/structured-detail errors. The runner's placeholder/live-payload
-START reservation mismatch was repaired before any possible Kimi call.
-
-## DeepSeek paid checkpoint
-
-```text
-PROVIDER=DEEPSEEK
-MODEL=deepseek-v4-flash-vision-exp
-SLOT_ID=V0_3:DEEPSEEK:CAPABILITY_MATCHED_002
-TERMINAL_STATUS=CAPABILITY_SCOREABLE
-CAPABILITY_ADJUDICATION=PASS
-FAMILY=NONE
-ACTION=NO_TRADE
-DIRECTION=NONE
-ATTEMPT_ACCOUNTED_CNY=0.110874
-PROJECT_ACCOUNTED_CNY_AFTER=1.770069
-EVIDENCE_IDENTITY=dd6c10adf138b6bad5babbca4ac675c749b4888680a91bcb108f29f01fbc600d
-NORMALIZED_VIEW_IDENTITY=e17058ef8cc9557c232f9574ceba874f71324ae3a438a6ac7ddb9090432ea6df
-V0_3_REMOTE_HEAD=d0ff1a727e276691bac2a63b8367cf73e5a8d438
-NEXT_RECOMMENDATION=RUN_MINIMAX_NEXT
-```
-
-Adjudication authority:
-`docs/reviews/JIANGHE_STAGE_A_V0_3_DEEPSEEK_CAPABILITY_MATCHED_002_ADJUDICATION_V0_1.md`.
-At this DeepSeek checkpoint MiniMax and Kimi had not run. Attempt `...MATCHED_001` is an immutable,
-conservatively charged transport failure caused by the repaired runner terminal
-write defect; it is not a capability judgment and must not be rerun.
-
-## Binding model-selection order
-
-```text
-1=JIANGHE_CORRECTNESS_AND_CAPABILITY
-2=ACTUAL_CNY_COST
-3=ACTUAL_TIME_LATENCY
-FAIRNESS=SAME_MATERIAL__SAME_QUESTION__DIFFERENT_MODEL_BRAIN
-```
-
-Do not substitute JSON obedience, integration convenience, uniform token limits, or low reasoning-token count for Jianghe capability.
-
-## Paid execution pause
-
-```text
-PAID_CALLS_CURRENTLY_PAUSED=YES
-PAUSE_REASON=DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
-NEXT_EXPLICIT_PAID_SLOT=NONE__NO_FOURTH_PROVIDER
-COMPLETED_PROVIDERS=DEEPSEEK__MINIMAX__KIMI
-PENDING_PROVIDER=NONE
-DEEPSEEK_CURRENT_FIRST_PARTY_NATIVE_VISUAL_ROUTE=VERIFIED__VISION_EXP_DIRECT_IMAGE_INPUT
-DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
-OLD_KIMI_1=SUPERSEDED__DO_NOT_EXECUTE
-OLD_V0_2_LIVE_WORKFLOW=RETIRED__FAIL_CLOSED_BEFORE_CREDENTIALS
-AUTOMATIC_RETRY=ZERO_USED
-AUTOMATIC_NEXT_SLOT=FORBIDDEN
-```
-
-Do not trigger the next provider call until the Owner directs it. The V0.3 path sends the canonical PNG bytes
-directly via the first-party image_url/base64 contract; a VS Code/Copilot vision
-proxy must never be scored as native DeepSeek visual reading.
-
-## Immutable historical attempts
-
-### Attempt 001 — DeepSeek V0.1
-
-```text
-PROVIDER=DEEPSEEK
-MODEL=deepseek-v4-flash-vision-exp
-OLD_SLOT=1
-ACCOUNTED_CNY=0.219222
-EVIDENCE_IDENTITY=d36c1fbbb1cd639e48a6f049f7df1be3bb95d9f346d75bbb85e25451fba9dc55
-OLD_SLOT=ATTEMPTED__NON_RETRYABLE
-CAPABILITY_FATAL=NO
-```
-
-Attempt 001 reached 2xx provider JSON, but V0.1 failed to preserve enough safe response-envelope evidence. Never rerun the old slot. A future V0.3 DeepSeek test uses a new research/slot identity only if the current required input contract is verified.
-
-### Attempt 002 — MiniMax V0.2
-
-```text
-PROVIDER=MINIMAX
-MODEL=MiniMax-M3
-OLD_SLOT=1
-HTTP_STATUS_CLASS=2xx
-FINISH_REASON=length
-FINAL_CONTENT_STATE=TEXT_NONEMPTY
-PROMPT_TOKENS=7999
-COMPLETION_TOKENS=1024
-REASONING_TOKEN_COUNT=914
-LATENCY_MS=10364
-ACCOUNTED_CNY=0.050799
-TERMINAL_STATUS=NON_SCOREABLE_NORMALIZER
-OLD_SLOT=ATTEMPTED__NON_RETRYABLE
-MINIMAX_V0_2_OPERATIONAL_FATAL_STOP=HISTORICAL_TRUE
-MINIMAX_V0_3_JIANGHE_CAPABILITY_FAIL=NO_EVIDENCE
-```
-
-V0.2 operational elimination remains historical truth inside the old frozen funnel. It is not current Jianghe capability-failure evidence.
-
-## Candidate state
-
-```text
-DEEPSEEK=CANDIDATE__V0_3_CAPABILITY_PASS
-MINIMAX=CANDIDATE__V0_3_CAPABILITY_PASS_WITH_MATERIAL_QUALITY_DEFECTS
-KIMI=CANDIDATE__V0_3_CAPABILITY_PASS_WITH_MATERIAL_QUALITY_DEFECTS
-VERIFIED_PROVIDERS=DEEPSEEK__MINIMAX__KIMI
-ADOPTED_PROVIDER=NONE__NO_PERMANENT_ADOPTION
-STAGE_A_CURRENT_LEADING_PROVIDER=DEEPSEEK
-```
-
-## V0.3 anti-regression semantics
-
-```text
-NON_SCOREABLE_NORMALIZER_IS_CAPABILITY_FATAL=NO
-TRUNCATION_IS_CAPABILITY_FATAL=NO
-MARKDOWN_OR_PROVIDER_FORMAT_IS_CAPABILITY_FATAL=NO
-LONG_REASONING_IS_CAPABILITY_FATAL=NO
-UNIFORM_1024_CAPABILITY_GATE=RETIRED
-PRODUCTION_JSON_REQUIRED_FOR_CAPABILITY_SCORE=NO
-PROVIDER_SPECIFIC_SUFFICIENT_COMPLETION_HEADROOM=REQUIRED
-RAW_FINAL_ANSWER_EVIDENCE=REQUIRED__SECRET_SAFE__NO_CHAIN_OF_THOUGHT
-NORMALIZED_EVALUATION_VIEW=REQUIRED__IDENTITY_BOUND
-NORMALIZATION_ADAPTER=FORMAT_ONLY__NO_SEMANTIC_REPAIR
-COMMON_EXAM_IDENTITY=PROVIDER_NEUTRAL__SEPARATE_FROM_INFERENCE_CONFIGURATION
-HISTORICAL_SPEND_CARRY_FORWARD=REQUIRED
-```
-
-## Historical execution/accounting checkpoint
-
-```text
-HISTORICAL_V0_1_V0_2_LIVE_CALLS=2
-HISTORICAL_PROJECT_ACCOUNTED_CNY_AT_V0_3_START=0.270021
-V0_2_PLAN_IDENTITY=9736e1cf75372ec13f524a971ee1d1c036a1d5e6ac51b250a6890a9ecf76d913
-V0_2_REMOTE_REF=refs/heads/stage-a-live-state-v0-2
-V0_2_REMOTE_HEAD_AFTER_ATTEMPT_002=ea1364e04e378781d8cf9f1b43a9ce3f0ef1679e
-```
-
-These facts are historical carry-forward accounting, not current V0.3 slot authority.
-
-## Authorization / budget
-
-```text
-PAID_CALL_AUTHORIZATION_ID=OWNER-PAID-JIANGHE-FIDELITY-20260824-V01
-PAID_CALL_AUTHORIZATION_EXPIRES=2026-08-31T00:00:00+08:00
-TOTAL_HARD_API_SPEND_CAP_CNY=100.00
+PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_INPUT_PROTOCOL_DECISION
+NEXT_EXPLICIT_PAID_SLOT=NONE
 CURRENT_PROJECT_ACCOUNTED_CNY=3.1609662
+TOTAL_HARD_API_SPEND_CAP_CNY=100.00
 MAX_REMAINING_UNDER_CONSERVATIVE_PROJECT_ACCOUNTING_CNY=96.8390338
-V0_1_V0_2_STAGE_A_CNY18_LIMIT=HISTORICAL_ONLY_FOR_V0_3
-V0_1_V0_2_CNY6_PER_PROVIDER_LIMIT=HISTORICAL_ONLY_FOR_V0_3
-V0_1_V0_2_FIVE_CALLS_PER_PROVIDER=HISTORICAL_ONLY_FOR_V0_3
+AUTOMATIC_RETRY=FORBIDDEN
+AUTOMATIC_NEXT_SLOT=FORBIDDEN
 AUTOMATIC_RECHARGE=FORBIDDEN
 NEW_RECHARGE_REQUIRED=NO
 ```
 
-Cost/time/token use are comparison measurements, not V0.3 capability failure gates. CNY100 remains the project-wide API hard ceiling.
+The prior Stage-A V0.1/V0.2/V0.3 paid attempts and the five downloaded-Kline V0.1
+pilot attempts are immutable evidence. Do not infer a current executable slot from
+historical plan files.
+
+## Current locks
+
+```text
+OUTCOME_ACCESS=NO
+CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
+VALIDATION_ACCESS=LOCKED
+HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
+PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
+BROKER_ACCESS=NOT_AUTHORIZED
+REAL_MONEY=NOT_AUTHORIZED
+```
 
 ## GitHub connector 404 rule
 
@@ -301,25 +136,11 @@ REFETCH_BLOB_SHA_BEFORE_WRITE_RETRY=REQUIRED
 DISAGREEMENT=FAIL_CLOSED__REPORT_ACCESS_UNCERTAINTY
 ```
 
-A 404 can represent a wrong path/ref, permission masking, connector scope/routing, transient API behavior, or actual deletion. Project state must never infer deletion from one connector 404.
-
-## Locks
-
-```text
-OUTCOME_ACCESS=NO
-CANDIDATE_OUTCOME_BACKTEST=NOT_AUTHORIZED
-JIANGHE_PRIMARY_SEMANTIC_FREEZE=NOT_REQUESTED
-VALIDATION_ACCESS=LOCKED
-HISTORICAL_FINAL_HOLDOUT_ACCESS=LOCKED
-PROSPECTIVE_SHADOW_FORWARD=NOT_AUTHORIZED
-BROKER_ACCESS=NOT_AUTHORIZED
-REAL_MONEY=NOT_AUTHORIZED
-```
-
 ## Exact next work
 
-1. Review DKL-DS-003's final-bar indexing and volume-sum defects.
-2. Freeze the smallest corrective prompt/evaluation change without rerunning the five pilot attempts.
-3. Re-review pilot evidence before authorizing any downloaded-Kline batch expansion.
+1. Owner decides the V0.2 downloaded-Kline input scope.
+2. That decision must explicitly consider whether the existing source-backed 4H evidence should enter a separately frozen higher-timeframe input protocol.
+3. Until that decision: no paid provider call, no historical-attempt rerun, no large batch, and no outcome/validation/holdout/shadow/broker/real-money expansion.
+4. If the Owner authorizes a fresh pilot, freeze a **new independent small V0.2 plan** using `DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`; never reuse historical V0.1 attempt identities.
 
 Do not reopen a rolling whole-repository audit.
