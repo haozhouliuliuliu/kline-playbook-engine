@@ -136,3 +136,22 @@ PAID_SPEND=0
 ```
 
 This correction does not authorize external spend, outcome access, PRIMARY semantic freeze, Validation, historical Final, Shadow/Forward, broker access, or real money.
+
+## V0.3 offline-closure disposition (2026-08-25)
+
+```text
+PF-001=RETRACTED_BY_OWNER_FIRST_PARTY_EVIDENCE
+PF-002=RETRACTED_BY_OWNER_FIRST_PARTY_EVIDENCE
+DEEPSEEK_CURRENT_FIRST_PARTY_NATIVE_VISUAL_ROUTE=VERIFIED__VISION_EXP_DIRECT_IMAGE_INPUT
+DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
+```
+The earlier text-only inferences about `deepseek-v4-flash-vision-exp` are not current
+project facts. First-party `api-docs.deepseek.com` documentation confirms:
+- `deepseek-v4-flash-vision-exp` is a current experimental multimodal model;
+- base64 data-URL `image_url` is documented image input method #1 for Chat Completions;
+- images are accepted only in `user` messages;
+- `max_tokens` is the completion field; thinking mode returns `reasoning_content`.
+
+This disposition does not authorize a paid call on its own; execution remains
+gated by the V0.3 offline closure (`docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md`)
+and the project brain.

@@ -1,8 +1,23 @@
 # JIANGHE STAGE-A V0.3 PREFLIGHT FAILURE AUDIT V0.1
 
-Status: `PREFLIGHT_BLOCKED__NO_PAID_CALL`
+Status: `PREFLIGHT_BLOCKED__NO_PAID_CALL__DISPOSITIONS_UPDATED_BY_V0_3_OFFLINE_CLOSURE`
 Date: 2026-08-25
 Tool decision: `USE_EXISTING`
+
+## Disposition update (2026-08-25)
+
+```text
+PF-001=RETRACTED_BY_OWNER_FIRST_PARTY_EVIDENCE
+PF-002=RETRACTED_BY_OWNER_FIRST_PARTY_EVIDENCE
+PF-003..PF-015=CLOSED_BY_V0_3_OFFLINE_CLOSURE
+NF-001..NF-004=CLOSED_BY_V0_3_OFFLINE_CLOSURE
+CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
+```
+PF-001/PF-002 are formally retracted on Owner first-party evidence (the vision-exp
+model exists and natively accepts image input). All remaining preflight findings
+were closed by the deterministic V0.3 offline closure; see the closure authority
+for exact implementation and test evidence. The original audit body below remains
+the historical record of the pre-closure blockers and is not rewritten.
 
 ## Purpose
 

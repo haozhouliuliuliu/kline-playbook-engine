@@ -11,11 +11,38 @@ ARCHITECTURE_STATUS=ACCEPTED
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 RESEARCH_DIRECTION_STATUS=OWNER_APPROVED
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
-CURRENT_WORK_PACKAGE=STAGE_A_V0_3_CAPABILITY_FIRST_MODEL_COMPARISON__PREFLIGHT_BLOCKER_RESOLUTION
-NEXT_NORMAL_PHASE=V0_3_PREFLIGHT_BLOCKERS_CLOSE__THEN_OFFLINE_CLOSURE__THEN_NEW_PAID_SLOT
-OWNER_ACTION=REQUIRED_ONLY_IF_DEEPSEEK_NATIVE_VISUAL_ROUTE_CANNOT_BE_VERIFIED
+CURRENT_WORK_PACKAGE=JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_COMPLETE__AWAITING_REVIEW
+NEXT_NORMAL_PHASE=project_brain_review_then_mint_V0_3_DEEPSEEK_matched_capability_slot
+OWNER_ACTION=REVIEW_INTEGRATION_STAGE_A_V0_3_ONE_SHOT
 TOOL_DECISION=USE_EXISTING
 ```
+
+## Stage-A V0.3 capability-first offline closure (2026-08-25)
+
+```text
+V0_3_OFFLINE_CLOSURE=PASS__AWAITING_PROJECT_BRAIN_REVIEW
+V0_3_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
+PF-001=RETRACTED_BY_OWNER_FIRST_PARTY_EVIDENCE
+PF-002=RETRACTED_BY_OWNER_FIRST_PARTY_EVIDENCE
+DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
+V0_3_PLAN_IDENTITY=2a7897926fcf94ef58bd26b002a0cd3dbcd408c26af5a21ac6eb8a611f0887c3
+COMMON_EXAM_IDENTITY=7521af411b5df17d27ced17c27a2db34e776ba85a97070f7634e3a197bf3c4e8
+DEEPSEEK_SLOT_ID=V0_3:DEEPSEEK:CAPABILITY_MATCHED_001
+MINIMAX_SLOT_ID=V0_3:MINIMAX:CAPABILITY_MATCHED_001
+KIMI_SLOT_ID=V0_3:KIMI:CAPABILITY_MATCHED_001
+REMOTE_REF=refs/heads/stage-a-live-state-v0-3
+HISTORICAL_PROJECT_ACCOUNTED_CNY=0.270021
+PAID_PROVIDER_CALLS=0
+```
+The V0.3 capability-first offline closure closed all confirmed PF-003..PF-015 and
+NF-001..NF-004 findings. It created the shared headed capability-answer contract,
+the three-tier COMMON_EXAM / PROVIDER_INFERENCE_CONFIG / ATTEMPT identities, the
+format-only capability adapter, the CNY100 ledger carrying 0.270021 forward, the
+V0.3 transport with a full terminal-status taxonomy, the deterministic frozen V0.3
+plan, the crash-safe `stage-a-live-state-v0-3` lane, and the manual main-only V0.3
+workflow. No real provider call was made. Execution of the first
+`V0_3:DEEPSEEK:CAPABILITY_MATCHED_001` matched capability slot remains gated by
+project-brain review/merge of `integration/stage-a-v0-3-one-shot`.
 
 Current Stage-A research-design authority:
 `docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md`.
@@ -40,18 +67,24 @@ Formatting convenience, strict JSON compliance, reasoning-token count, or a unif
 ## Current paid-call state
 
 ```text
-PAID_CALLS_CURRENTLY_PAUSED=YES__V0_3_PREFLIGHT_BLOCKED
-NEXT_EXPLICIT_PAID_SLOT=NONE
-FUTURE_FIRST_V0_3_PROVIDER=DEEPSEEK__CONDITIONAL_ON_VALID_CURRENT_NATIVE_VISUAL_ROUTE
-FUTURE_FIRST_V0_3_SLOT=NEW_IDENTITY_REQUIRED
-DEEPSEEK_CURRENT_FIRST_PARTY_NATIVE_VISUAL_ROUTE=NOT_VERIFIED__CURRENT_V4_DOCS_TEXT_ONLY
+PAID_CALLS_CURRENTLY_PAUSED=YES__AWAITING_PROJECT_BRAIN_REVIEW
+NEXT_EXPLICIT_PAID_SLOT=NONE_UNTIL_REVIEW
+FUTURE_FIRST_V0_3_PROVIDER=DEEPSEEK
+FUTURE_FIRST_V0_3_SLOT=V0_3:DEEPSEEK:CAPABILITY_MATCHED_001
+DEEPSEEK_CURRENT_FIRST_PARTY_NATIVE_VISUAL_ROUTE=VERIFIED__VISION_EXP_DIRECT_IMAGE_INPUT
+DEEPSEEK_NATIVE_VISION_MODEL_EXISTS=YES
 OLD_NEXT_KIMI_1=SUPERSEDED__NOT_EXECUTED
 OLD_V0_2_LIVE_WORKFLOW=RETIRED__FAIL_CLOSED_BEFORE_CREDENTIALS
 AUTOMATIC_RETRY=FORBIDDEN
 AUTOMATIC_NEXT_SLOT=FORBIDDEN
 ```
 
-No V0.3 provider call may execute until the preflight audit blockers are closed. In particular, do not use a VS Code/Copilot vision proxy and score that output as native DeepSeek K-line visual reading.
+The V0.3 offline closure closed all preflight blockers and minted the executable
+machinery. The first DeepSeek matched capability call may only be executed by the
+project brain after review/merge of `integration/stage-a-v0-3-one-shot`. Do not use
+a VS Code/Copilot vision proxy and score that output as native DeepSeek K-line
+visual reading; the V0.3 path sends the canonical PNG bytes directly via the
+first-party image_url/base64 contract.
 
 ## Immutable historical live state
 
@@ -113,7 +146,7 @@ The V0.2 frozen funnel's elimination remains immutable historical experiment sem
 ## Current capability candidates
 
 ```text
-DEEPSEEK_CAPABILITY_STATUS=CANDIDATE__V0_3_INPUT_COMPATIBILITY_BLOCKER_OPEN
+DEEPSEEK_CAPABILITY_STATUS=CANDIDATE__READY_FOR_FIRST_V0_3_MATCHED_CAPABILITY_CALL
 MINIMAX_CAPABILITY_STATUS=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
 KIMI_CAPABILITY_STATUS=CANDIDATE__FAIR_V0_3_EVALUATION_REQUIRED
 VERIFIED_PROVIDER=NONE
@@ -121,7 +154,11 @@ ADOPTED_PROVIDER=NONE
 FAIR_MATCHED_THREE_MODEL_EVIDENCE=NONE_YET
 ```
 
-Owner ordering remains DeepSeek first **only if** the exact current DeepSeek model brain can receive the governed common exam inputs. Current first-party V4 docs do not verify native image input, so no DeepSeek paid slot exists yet.
+Owner ordering remains DeepSeek first. First-party evidence confirms
+`deepseek-v4-flash-vision-exp` natively accepts image input (base64 `image_url`
+data URL is documented method #1), so the V0.3 DeepSeek matched capability slot
+`V0_3:DEEPSEEK:CAPABILITY_MATCHED_001` is executable machinery awaiting
+project-brain review/merge. No DeepSeek paid slot has been executed yet.
 
 ## V0.3 capability contract
 
