@@ -325,6 +325,12 @@ class PersistentDeepSeekTraderPrototype:
             raise ValueError("prototype trader identity must use DeepSeek")
         if trader_identity.model_id_version != CURRENT_MODEL:
             raise ValueError("prototype trader identity must use the sole active model")
+        if trader_identity.system_prompt_identity != runtime_contract.system_prompt_sha256:
+            raise ValueError("trader identity system prompt does not match runtime contract")
+        if trader_identity.decision_prompt_identity != runtime_contract.decision_prompt_sha256:
+            raise ValueError("trader identity decision prompt does not match runtime contract")
+        if tuple(sorted(trader_identity.tool_capability_set)) != tools.capability_names:
+            raise ValueError("trader identity tool capability set does not match runtime registry")
         if store.trader_identity != trader_identity.identity:
             raise ValueError("persistent store must be bound to the same trader identity")
         self.trader_identity = trader_identity
