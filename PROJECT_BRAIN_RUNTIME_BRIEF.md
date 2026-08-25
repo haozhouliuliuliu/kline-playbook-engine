@@ -10,7 +10,8 @@ Before any substantive answer about current state, architecture, model, tools, e
 2. read `PROJECT_DIRECTION.md`;
 3. read `CURRENT_STATE.md`;
 4. read only the specific current authority/evidence needed for the question;
-5. for spend/execution, additionally refresh paid authorization, ledger/evidence and exact executable-slot authority.
+5. for spend/execution, additionally refresh paid authorization, ledger/evidence and exact executable-slot authority;
+6. never infer current project facts from chat history or obsolete documents.
 
 ## Current headline
 
@@ -32,14 +33,26 @@ Build one persistent, auditable, single-purpose China-futures trader that starts
 
 Hard risk, broker/account truth, order lifecycle, reconciliation and safety remain deterministic project systems.
 
+## Completed foundation guards
+
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+
+The active repository regression suite passed after the cleanup/guard implementation before this authority sync.
+
 ## Current exact next work
 
-1. finish `STRICT_OUTPUT_ENUM_ENFORCEMENT`;
-2. finish `NO_4H_EXACT_VOLUME_RECONCILIATION`;
-3. verify a pinned DeepSeek Harness version/commit for exact model + vision + persistence + project-owned memory/tool/audit integration;
-4. build the smallest persistent-trader prototype;
-5. run a small chronological lifecycle replay;
-6. only then design broad historical replay and experience-learning validation.
+1. verify a pinned DeepSeek Harness version/commit for exact selected model + vision + persistence + project-owned memory/tool/audit integration;
+2. only after project-specific verification decide whether Harness becomes `ADOPTED` as the runtime shell; if it fails, use the thinnest project-owned equivalent;
+3. build the smallest persistent-trader prototype;
+4. run a small chronological lifecycle replay to debug memory/runtime behavior;
+5. only then design broad historical replay and governed experience-learning validation.
+
+Do not run mass stateless K-line API calls first.
+
+Do not build a polished generic website first.
+
+Do not reopen MiniMax/Kimi model selection.
 
 ## Data foundation
 
@@ -62,3 +75,9 @@ Accepted historical corpus:
 - shadow = locked
 - broker/account = locked
 - real money = locked
+
+No current implementation step authorizes real trading.
+
+## Active-context hygiene
+
+The active takeover surface is the four-file core in `00_READ_FIRST.md`. Superseded provider-selection, stateless evaluation and obsolete runtime/planning material belongs in Git history rather than the active takeover path.

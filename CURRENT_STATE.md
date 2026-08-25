@@ -50,8 +50,10 @@ Current active observation stack:
 
 Mandatory guards:
 
-- `STRICT_OUTPUT_ENUM_ENFORCEMENT`
-- `NO_4H_EXACT_VOLUME_RECONCILIATION`
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+
+The guard implementation and broad repository regression passed the cleanup integration CI before authority synchronization.
 
 ## Historical data foundation
 
@@ -71,6 +73,14 @@ Authority:
 
 The corpus is reserved for causal chronological replay of a persistent trader.
 
+## Repository hygiene
+
+The active tree is intentionally reduced to current product authority, current Jianghe source evidence, accepted canonical-data evidence, DeepSeek trader/runtime components, and deterministic execution/safety infrastructure.
+
+Superseded provider-selection, stateless evaluation, pilot/final-chance and obsolete generic research runtime surfaces are historical Git material rather than active takeover dependencies.
+
+Fresh takeover is governed by the four-file active core listed in `00_READ_FIRST.md`.
+
 ## Current work package
 
 `CURRENT_WORK_PACKAGE = JIANGHE_PERSISTENT_DEEPSEEK_TRADER_FOUNDATION_V0_1`
@@ -81,12 +91,11 @@ The corpus is reserved for causal chronological replay of a persistent trader.
 
 Exact next sequence:
 
-1. finish the two mandatory DeepSeek mechanical guards;
-2. verify a pinned DeepSeek Harness version/commit against exact model + vision + persistence + project-owned memory/tool/audit requirements;
-3. if verified, use Harness as a runtime shell while keeping trading knowledge, memory schema, evidence and decision semantics project-owned;
-4. build the smallest persistent trader proving exact DeepSeek model path, chart/vision input, persistent working memory, Jianghe retrieval, K-line tools, structured journal/hypothesis memory and complete audit;
-5. run a small chronological lifecycle replay to debug memory/runtime semantics;
-6. design broader historical replay and governed experience-learning research only after trader identity is stable.
+1. verify a pinned DeepSeek Harness version/commit against exact model + vision + persistence + project-owned memory/tool/audit requirements;
+2. if the pinned build passes, mark it VERIFIED and decide whether to ADOPT it only as the runtime shell; if it fails, use the thinnest project-owned equivalent without changing product direction;
+3. build the smallest persistent trader proving exact DeepSeek model path, chart/vision input, persistent working memory, Jianghe retrieval, K-line tools, structured journal/hypothesis memory and complete audit;
+4. run a small chronological lifecycle replay to debug memory/runtime semantics;
+5. only after that trader identity is stable, design broader historical replay and governed experience-learning research.
 
 ## Current execution and research locks
 
@@ -99,3 +108,11 @@ Exact next sequence:
 - real money: locked
 
 No current implementation step requires a paid provider call.
+
+## Historical paid-research accounting
+
+`PROJECT_ACCOUNTED_CNY = 20.9075330`
+
+Historical hard cap record: `100.00 CNY`.
+
+This is accounting history, not current spend authorization.

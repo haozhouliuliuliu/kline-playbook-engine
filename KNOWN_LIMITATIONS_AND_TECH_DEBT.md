@@ -10,9 +10,9 @@ Guard:
 
 `STRICT_OUTPUT_ENUM_ENFORCEMENT`
 
-Status: `IMPLEMENTED__AWAITING_CI`
+Status: `IMPLEMENTED_AND_CI_VERIFIED`
 
-The runtime normalizer uses exact enum construction with no case-folding, trimming, prefix matching or prose extraction. The current cleanup branch adds explicit regression coverage rejecting verbose, lowercase and whitespace-padded machine enum values.
+The runtime normalizer uses exact enum construction with no case-folding, trimming, prefix matching or prose extraction. Regression coverage rejects verbose, lowercase and whitespace-padded machine enum values.
 
 ## 2. 4H volume reasoning guard
 
@@ -22,7 +22,7 @@ Guard:
 
 `NO_4H_EXACT_VOLUME_RECONCILIATION`
 
-Status: `IMPLEMENTED__AWAITING_CI`
+Status: `IMPLEMENTED_AND_CI_VERIFIED`
 
 Raw per-timeframe OHLCV remains legal. The project-owned context guard rejects derived exact 4H cross-timeframe volume reconciliation/equality payloads while leaving lower-timeframe semantics unchanged. The obsolete downloaded-Kline comparison contract that could derive such comparisons has been physically removed from the active tree.
 

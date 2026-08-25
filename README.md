@@ -24,14 +24,18 @@ Current target:
 3. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
 4. `CURRENT_STATE.md`
 
+## Foundation guards
+
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+
 ## Current engineering sequence
 
-1. harden `STRICT_OUTPUT_ENUM_ENFORCEMENT`;
-2. harden `NO_4H_EXACT_VOLUME_RECONCILIATION`;
-3. verify a pinned DeepSeek Harness build for exact model + vision + persistence + project-owned memory/tools/audit;
-4. build the smallest persistent-trader prototype;
-5. run a small chronological lifecycle replay;
-6. design broad historical replay and governed experience learning after trader identity is stable.
+1. verify a pinned DeepSeek Harness build for exact model + vision + persistence + project-owned memory/tools/audit;
+2. adopt Harness only if the pinned build passes project-specific verification; otherwise use the thinnest project-owned runtime shell;
+3. build the smallest persistent-trader prototype;
+4. run a small chronological lifecycle replay;
+5. design broad historical replay and governed experience learning only after trader identity is stable.
 
 Historical data acceptance authority:
 

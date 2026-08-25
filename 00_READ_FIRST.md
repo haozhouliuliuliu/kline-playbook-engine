@@ -37,14 +37,18 @@ The target is one persistent China-futures trader with:
 
 DeepSeek may improve through governed experience, but Jianghe source truth remains read-only and new trading policy requires project validation before activation.
 
+## Completed foundation guards
+
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+
 ## Current next work
 
-1. finish `STRICT_OUTPUT_ENUM_ENFORCEMENT`;
-2. finish `NO_4H_EXACT_VOLUME_RECONCILIATION`;
-3. verify a pinned DeepSeek Harness build;
-4. build the smallest persistent-trader prototype;
-5. run a small chronological lifecycle replay;
-6. design broader historical replay only after the persistent trader identity is stable.
+1. verify a pinned DeepSeek Harness version/commit against the exact selected model, vision, persistence, project-owned memory/tool integration and audit requirements;
+2. adopt Harness only if that pinned build passes project-specific verification; otherwise use the thinnest project-owned runtime shell;
+3. build the smallest persistent-trader prototype;
+4. run a small chronological lifecycle replay;
+5. design broader historical replay and governed experience-learning validation only after the persistent trader identity is stable.
 
 ## Current locks
 
