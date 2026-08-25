@@ -152,7 +152,7 @@ Formal local acceptance evidence:
 Accepted canonical corpus:
 
 - 2024-01-01..2025-12-31
-- cu/al/ni/au/rb/ag
+- cu/al/ni/au/ag/rb
 - 32,980 partitions
 - 212 contracts
 - 15,280,452 normalized 1-minute rows
