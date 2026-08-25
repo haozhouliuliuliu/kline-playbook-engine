@@ -6,21 +6,32 @@
 
 Read `00_READ_FIRST.md` first, complete its read-only takeover order, and read this file **last**. Report understanding/contradictions and stop for Owner acceptance before executing new work.
 
-## Handoff checkpoint — 2026-08-25 three-provider matched comparison complete
+## Handoff checkpoint — 2026-08-25 downloaded-Kline DeepSeek pilot complete
 
 ```text
 PROJECT_PHASE=RESEARCH_FOUNDATION
-CURRENT_WORK_PACKAGE=JIANGHE_STAGE_A_V0_3_THREE_PROVIDER_MATCHED_COMPARISON_COMPLETE
+CURRENT_WORK_PACKAGE=JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_COMPLETE
 RESEARCH_DIRECTION=HUMAN_PLAYBOOK_FIRST
 JIANGHE_V1=SOLE_CURRENT_TRADING_KNOWLEDGE_SOURCE
 CURRENT_STAGE_A_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_CAPABILITY_FIRST_OWNER_DECISION.md
 CURRENT_COMPARISON_PLAN=docs/evidence/JIANGHE_STAGE_A_CAPABILITY_COMPARISON_PLAN_V0_3.json
 CURRENT_FROZEN_PLAN=docs/evidence/JIANGHE_STAGE_A_FROZEN_PLAN_V0_3.json
 V0_3_CLOSURE_AUTHORITY=docs/reviews/JIANGHE_STAGE_A_V0_3_OFFLINE_CLOSURE_V0_1.md
-INTEGRATION_BRANCH=integration/stage-a-v0-3-one-shot
+PILOT_ID=JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1
+PILOT_VERDICT=REVIEW_BEFORE_EXPAND
+PILOT_SAMPLE_COUNT=5
+PILOT_NETWORK_CALLS=5
+PILOT_AUTOMATIC_RETRIES=0
+PILOT_SCOREABLE_COUNT=5
+PILOT_TOTAL_FACTUAL_ERRORS=2
+PILOT_TOTAL_INVENTED_RULES=0
+PILOT_TOTAL_ACCOUNTED_CNY=0.672282
+CURRENT_PROJECT_ACCOUNTED_CNY=3.1609662
+PILOT_REMOTE_REF=refs/heads/downloaded-kline-pilot-state-v0-1
+PILOT_REMOTE_HEAD=3aa33628a0c2d0d598aea8bba8babea093e75a50
 V0_3_OFFLINE_CLOSURE=PASS
 V0_3_NETWORK_PROVIDER_CALLS_TOTAL=4
-PAID_CALLS_CURRENTLY_PAUSED=YES__THREE_PROVIDER_COMPARISON_COMPLETE
+PAID_CALLS_CURRENTLY_PAUSED=YES__DOWNLOADED_KLINE_PILOT_REVIEW
 NEXT_EXPLICIT_PAID_SLOT=NONE__NO_FOURTH_PROVIDER
 COMPLETED_PROVIDERS=DEEPSEEK__MINIMAX__KIMI
 PENDING_PROVIDER=NONE
@@ -29,6 +40,13 @@ V0_3_REMOTE_REF=refs/heads/stage-a-live-state-v0-3
 TOOL_DECISION=USE_EXISTING
 LIMIT_012=RESOLVED__THREE_PROVIDER_MATCHED_EVIDENCE_COMPLETE
 ```
+
+The bounded five-case DeepSeek pilot is complete. All attempts are terminal,
+scoreable and non-retried. DKL-DS-003 contains two confirmed data-fidelity errors:
+the answer used the penultimate 5m bar as the final bar and then reported a false
+15m/5m volume mismatch. The binding pilot authority is
+`docs/reviews/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_V0_1.md`; the machine summary
+is `docs/evidence/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_SUMMARY_V0_1.json`.
 
 The three-provider result is complete. Quality ranking is
 `DEEPSEEK > KIMI > MINIMAX`; DeepSeek is the current leading provider for the
@@ -156,7 +174,7 @@ Score Jianghe principle accuracy, market structure, K-line visual reading, WAIT/
 ```text
 HISTORICAL_V0_1_V0_2_LIVE_CALLS=2
 V0_3_NETWORK_CALLS=4
-CURRENT_PROJECT_ACCOUNTED_CNY=2.4886842
+CURRENT_PROJECT_ACCOUNTED_CNY=3.1609662
 TOTAL_API_HARD_CAP_CNY=100.00
 V0_1_V0_2_STAGE_A_CNY18_LIMIT=HISTORICAL_ONLY_FOR_V0_3
 V0_1_V0_2_CNY6_PER_PROVIDER_LIMIT=HISTORICAL_ONLY_FOR_V0_3
@@ -190,8 +208,11 @@ REAL_MONEY=NOT_AUTHORIZED
 
 ## Exact next work
 
-1. Use DeepSeek with the existing Stage-A V0.3 Jianghe prompt/context.
-2. Verify or materialize the canonical downloaded dataset path through existing dataset-build authority; no populated `data/canonical/parquet` is present in this checkout.
-3. Freeze a small causal point-in-time pilot batch before execution; do not expose future/outcome data or begin a large batch yet.
+1. Review DKL-DS-003's final-bar indexing and cross-timeframe volume-accounting defects.
+2. Freeze the smallest corrective prompt/evaluation change; never rerun any pilot attempt.
+3. Re-review the pilot before authorizing any larger downloaded-Kline batch.
 
 Do not reopen the closed pre-spend whole-repository rolling audit.
+
+Handoff last synchronized after the downloaded-Kline pilot authority, evidence,
+budget and next-work pointers were finalized on 2026-08-25.

@@ -6,13 +6,14 @@ import json
 from pathlib import Path
 import unittest
 
-from src.jianghe_downloaded_kline_pilot import PILOT_ID, reconstruct_sample, verify_plan
+from src.jianghe_downloaded_kline_pilot import PILOT_ID, identity, reconstruct_sample, verify_plan
 
 
 class DownloadedKlinePilotTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         root = Path(__file__).resolve().parents[1]
+        cls.root = root
         cls.plan = json.loads((root / "docs/evidence/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_PLAN_V0_1.json").read_text(encoding="utf-8"))
 
     def test_frozen_plan_is_portably_verifiable(self) -> None:
@@ -42,6 +43,22 @@ class DownloadedKlinePilotTests(unittest.TestCase):
         altered["outcome_access"] = "YES"
         with self.assertRaisesRegex(ValueError, "deny outcome"):
             verify_plan(altered)
+
+    def test_materialized_summary_and_case_evidence_are_identity_bound_and_safe(self) -> None:
+        summary = json.loads((self.root / "docs/evidence/JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_SUMMARY_V0_1.json").read_text(encoding="utf-8"))
+        declared = summary.pop("summary_evidence_identity")
+        self.assertEqual(declared, identity(summary))
+        self.assertEqual("REVIEW_BEFORE_EXPAND", summary["pilot_verdict"])
+        self.assertEqual(5, summary["scoreable_count"])
+        self.assertEqual(2, summary["total_factual_errors"])
+        for case in summary["cases"]:
+            filename = f"JIANGHE_DOWNLOADED_KLINE_DEEPSEEK_PILOT_{case['sample_id'].replace('-', '_')}_V0_1.json"
+            text = (self.root / "docs/evidence" / filename).read_text(encoding="utf-8")
+            self.assertNotIn('"reasoning_content"', text)
+            self.assertNotIn('"reasoning_details"', text)
+            payload = json.loads(text)
+            declared_case = payload.pop("case_evidence_identity")
+            self.assertEqual(declared_case, identity(payload))
 
 
 if __name__ == "__main__":

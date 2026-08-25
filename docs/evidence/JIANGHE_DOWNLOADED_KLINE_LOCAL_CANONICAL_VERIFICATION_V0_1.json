@@ -1,0 +1,20 @@
+{
+  "canonical_corpus_identity": "1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8",
+  "catalog_normalized_row_count": 15280452,
+  "catalog_partition_count": 32980,
+  "catalog_pass_count": 32980,
+  "catalog_unique_parquet_artifact_count": 32980,
+  "corpus_identity_recomputed": true,
+  "dataset_found": true,
+  "local_canonical_path": "C:\\Users\\H\\Documents\\kline-playbook-engine\\data\\canonical",
+  "manifest_identity": "7510a4a943e85c9be256e62971b5a64d64e9976c2b01c9f5d0fe07b1c6c8d324",
+  "manifest_partition_count": 32980,
+  "parquet_file_count": 32980,
+  "qualified_eligibility_view_identity": "fb30bfaf0433df02b4ee7d1e781b25473c7271495924859c1d781b87e036c822",
+  "qualified_eligible_partition_count": 32768,
+  "schema_version": "jianghe-downloaded-kline-local-canonical-verification-v0.1",
+  "unique_partition_identity_count": 32980,
+  "verification_evidence_identity": "06a0b009e814759b5c6445155ebdc7381c443c91827732318edfea40990390cf",
+  "verification_result": "PASS",
+  "verified_at": "2026-08-25"
+}
