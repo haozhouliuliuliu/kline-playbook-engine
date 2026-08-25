@@ -10,6 +10,8 @@ import * as agentCore from '../src/index.ts'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 const roots: string[] = []
+const PROJECT_PROVIDER = 'deepseek'
+const PROJECT_MODEL = 'deepseek-v4-flash-vision-exp'
 
 afterEach(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
@@ -25,7 +27,10 @@ async function projectRuntime(memoryPath: string, auditPath: string, adapter: Mo
   const ctx = new Context()
   await ctx.plugin(agentCore, { workspaceContext: false })
   await new Promise(resolve => setTimeout(resolve, 50))
-  ctx.llm.registerAdapter(['project-mock'], adapter)
+  // The adapter is a no-network mock, but it is registered on the exact admitted
+  // provider route so the Harness request surface is tested with the production
+  // provider/model identity rather than a substitute model name.
+  ctx.llm.registerAdapter([PROJECT_PROVIDER], adapter)
 
   ctx.systemPrompt.context({
     name: 'jianghe-project-working-memory',
@@ -54,7 +59,7 @@ async function projectRuntime(memoryPath: string, auditPath: string, adapter: Mo
 }
 
 describe('kline-playbook-engine Harness dynamic admission', () => {
-  it('preserves project working memory across runtime restart and audits memory plus tool activity', async () => {
+  it('uses the exact model route, preserves project memory across restart, and audits tool activity', async () => {
     const root = mkdtempSync(join(tmpdir(), 'kpe-harness-project-probe-'))
     roots.push(root)
     const memoryPath = join(root, 'working-memory.json')
@@ -70,14 +75,16 @@ describe('kline-playbook-engine Harness dynamic admission', () => {
     const handle = await ctx.agents.create({
       sessionId: SessionId('kpe-project-dynamic-probe'),
       meta: { cwd: process.cwd() },
-      agentOptions: { provider: 'project-mock', model: 'project-model' },
+      agentOptions: { provider: PROJECT_PROVIDER, model: PROJECT_MODEL },
     })
     handle.agent.followup(createUserMessage({ content: [{ type: 'text', text: 'Evaluate the current project fixture.' }], source: { kind: 'user' } }))
     await handle.agent.whenIdle()
 
     expect(adapter.requests).toHaveLength(2)
-    expect(adapter.requests[0]?.provider).toBe('project-mock')
-    expect(adapter.requests[0]?.model).toBe('project-model')
+    expect(adapter.requests[0]?.provider).toBe(PROJECT_PROVIDER)
+    expect(adapter.requests[0]?.model).toBe(PROJECT_MODEL)
+    expect(adapter.requests[1]?.provider).toBe(PROJECT_PROVIDER)
+    expect(adapter.requests[1]?.model).toBe(PROJECT_MODEL)
     expect(requestText(adapter.requests[0] as never)).toContain('"watch_region":null')
     expect(requestText(adapter.requests[1] as never)).toContain('"watch_region":"3125-3135"')
 
