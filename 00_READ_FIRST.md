@@ -13,9 +13,11 @@ Read in this order:
 3. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
 4. `CURRENT_STATE.md`
 
-Then read only authority/evidence required by the active task.
+Then read task-specific authority/evidence. For the active work package, mandatory authority is:
 
-The completed prototype's formal evidence is available under `docs/evidence/`; do not treat deleted dated handoffs or old chat as active authority.
+`docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
+
+Do not use deleted dated handoffs or chat as project authority.
 
 ## Current headline
 
@@ -27,19 +29,29 @@ The completed prototype's formal evidence is available under `docs/evidence/`; d
 
 `MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`
 
-`PROTOTYPE_12_OBJECTIVE_AUTOMATED_GATE = PASS`
-
-`NATIVE_WINDOWS_PROJECT_ACCEPTANCE_CI = PASS`
-
 `LOCAL_WORKSTATION_ACCEPTANCE = PASS`
 
-`CURRENT_WORK_PACKAGE = NONE__AWAITING_EXPLICIT_NEXT_WORK_PACKAGE`
+`CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
+
+`WORK_PACKAGE_PHASE = OFFLINE_PREEXECUTION_ENGINEERING`
+
+`MODEL_COGNITIVE_SCOPE = TRADING_ONLY`
+
+`WAKE_POLICY = EVERY_NEW_CLOSED_5M_BAR`
+
+`PAPER_EXECUTION = DEFERRED`
 
 `DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
 `DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
 
-The product is one persistent China-futures trader with Jianghe source-grounded knowledge, persistent working memory, journal/hypothesis memory, bounded retrieval, causal K-line tools, strict guards, auditable memory mutation and governed learning boundaries.
+## V0.1 purpose
+
+Prove that one fixed persistent Jianghe DeepSeek trader can move causally through a bounded real historical slice with stable identity, persistent memory, attributable retrieval, legal state transitions, restart continuity, exact request accounting and zero policy self-promotion.
+
+This is not a profitability test and not learning.
+
+The model is a single-purpose trader. Operational/runtime work such as wake scheduling, replay time, data eligibility, mapping, chart construction, storage, retries, audit, experiment control and provider routing is project-system responsibility and should not consume DeepSeek trading cognition.
 
 ## Runtime shell
 
@@ -47,37 +59,48 @@ Use only pinned DeepSeek Harness:
 
 - version `0.1.1-rc.2`
 - commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
-- project fail-closed DeepSeek transport patch from `integrations/deepseek-harness/`
+- project fail-closed patch under `integrations/deepseek-harness/`
 - general retry `maxRetries: 0`
 
-The accepted product/runtime boundary is local-workstation-first. A browser UI may use localhost; no current authority opens public/cloud deployment.
+## Current authorization / locks
 
-## Current locks
+Authorized now:
 
-- paid provider calls: `PAUSED`
+- offline V0.1 engineering and tests;
+- deterministic historical-slice selector;
+- strict prompt/context contract;
+- append-only hypothesis revision-history repair;
+- replay orchestrator;
+- mock/no-provider dry runs;
+- leakage/audit gate implementation.
+
+Still locked:
+
+- real DeepSeek/provider replay calls: `PAUSED`
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`
+- learning/policy promotion: locked
 - validation/holdout: locked
 - shadow: locked
 - broker/account: locked
 - real money: locked
 
-## Current stop point
+## Exact next work
 
-`NEXT_TASK = STOP__AWAIT_EXPLICIT_NEXT_WORK_PACKAGE`
+`NEXT_TASK = IMPLEMENT_V0_1_OFFLINE_REPLAY_PREEXECUTION_GATES`
 
-Do not infer that prototype completion opens replay, learning, validation, shadow, broker/account, real-money or provider-call work. None is active.
+Proceed autonomously with approved offline engineering. Stop at the exact first real-provider-call boundary unless a later execution authority opens it.
 
 ## First takeover report
 
-The new project brain first performs read-only takeover and reports only:
+A fresh project brain first performs read-only takeover and reports:
 
 - current `main` HEAD;
-- whether the four active takeover files above agree;
-- current product/model;
-- completed prototype/local-acceptance status;
-- Harness pin/local deployment boundary;
-- current locks;
-- current stop point / whether an explicit next work package exists;
+- whether the four takeover files agree;
+- product/model/Harness pin;
+- active V0.1 work package and phase;
+- V0.1 frozen headline design;
+- current provider/learning/live locks;
+- exact next task;
 - contradictions, if any.
 
-Then stop for Owner confirmation before new implementation or research work.
+Then stop for Owner confirmation before making new changes in that fresh conversation.
