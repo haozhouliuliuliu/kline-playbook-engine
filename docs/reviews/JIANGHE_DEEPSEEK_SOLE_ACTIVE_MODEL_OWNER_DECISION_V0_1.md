@@ -1,56 +1,34 @@
-# Jianghe DeepSeek Sole Active Model Owner Decision V0.1
+# Jianghe DeepSeek Model Authority
 
-As of: `2026-08-25`
+As of: `2026-08-26`
 
-## Status
+Status:
 
-`OWNER_DECISION__MODEL_SELECTION_SCOPE_FROZEN`
+`OWNER_DECISION__DEEPSEEK_ONLY`
 
-## Decision
+## Current model authority
 
-After the completed V0.2 final-chance execution and the formal DeepSeek-vs-MiniMax correctness adjudication, the Owner made the following follow-on provider-selection decision:
+`MODEL_SOURCE = DEEPSEEK_ONLY`
 
-- DeepSeek `deepseek-v4-flash-vision-exp` = `SOLE_ACTIVE_MODEL_CANDIDATE_FOR_JIANGHE`
-- MiniMax `MiniMax-M3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
-- Kimi `kimi-k3` = `EXCLUDED_FROM_JIANGHE_MODEL_CANDIDATE_SET`
-- MiniMax is no longer a reserve/fallback candidate and receives no further Jianghe selection-testing budget under the current product direction.
-- Kimi remains excluded and receives no retry.
+`CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-This decision supersedes the earlier *future selection status* in `JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`, where MiniMax was retained as a verified reserve. It does not alter or rewrite the historical V0.2 evidence or that adjudication's factual findings.
+This is the sole active model source and model line for the current Jianghe persistent-trader product.
 
-## Rationale
+A change of model source or a material DeepSeek model-generation change requires a new explicit Owner decision.
 
-The Owner accepts the project-brain conclusion that DeepSeek's observed defects are primarily narrow, mechanically hardenable failure modes:
+## Current engineering requirements
 
-1. strict enum/output-contract discipline;
-2. prohibited 4H exact cross-timeframe volume reconciliation.
+The DeepSeek integration preserves these mandatory guards:
 
-MiniMax's observed defects were instead more closely tied to market/context interpretation under the newly introduced 4H/session representation, including completed-bucket maturity confusion, unsupported session/liquidity interpretation, and inappropriate 4H-volume inference.
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION`
 
-The project therefore treats DeepSeek's error profile as more suitable for continued engineering hardening and long-run Jianghe specialization.
+The current implementation sequence is governed by `PROJECT_DIRECTION.md` and `CURRENT_STATE.md`.
 
-## What this does and does not freeze
+## Current locks
 
-This decision freezes the **current Jianghe model-selection direction**: do not re-open DeepSeek-vs-MiniMax-vs-Kimi selection without a new explicit Owner decision.
-
-It does **not** claim that DeepSeek is already production-approved for shadow, broker, account, or real-money execution. Those stages remain separately gated by research, validation, safety, and execution authorities.
-
-If a materially new future model generation is ever considered, that is a new research/model-selection decision rather than an automatic revival of MiniMax or Kimi.
-
-## Current next work
-
-Continue only with the DeepSeek lane:
-
-1. harden strict enum output behavior;
-2. harden against 4H exact cross-timeframe volume reconciliation;
-3. design the next research/validation stage only after explicit Owner approval;
-4. no provider calls are authorized by this decision.
-
-## Locks
-
-- `NEXT_EXPLICIT_PAID_SLOT = NONE`
 - `PAID_CALLS = PAUSED`
-- outcome/future access = locked
+- `NEXT_EXPLICIT_PAID_SLOT = NONE`
 - validation/holdout = locked
 - shadow = locked
 - broker/account = locked

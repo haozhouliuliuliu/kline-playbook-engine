@@ -1,8 +1,6 @@
 # PROJECT_BRAIN_RUNTIME_BRIEF
 
-As of: `2026-08-25`
-
-Purpose: keep each substantive project reply grounded in current `main` without forcing every new project brain to ingest obsolete history.
+As of: `2026-08-26`
 
 ## Mandatory refresh
 
@@ -31,29 +29,24 @@ Before any substantive answer about current state, architecture, model, tools, e
 
 ## Product direction
 
-Build one persistent, auditable, single-purpose futures trader that:
+Build one persistent, auditable, single-purpose China-futures trader that starts from Jianghe source-grounded experience, preserves project-owned memory across calls and restarts, retrieves bounded relevant evidence, uses causal K-line observations, records its reasoning and memory mutations, and improves only through falsifiable hypotheses plus independent validation.
 
-- starts from Jianghe source-grounded experience;
-- preserves persistent working memory and journal across calls/restarts;
-- retrieves relevant Jianghe knowledge instead of rereading an unbounded corpus every call;
-- uses causal K-line data/charts and project-owned tools;
-- may generate and refine new trading hypotheses from accumulated experience;
-- may not rewrite Jianghe source truth or self-promote an unvalidated hypothesis;
-- only promotes experience-derived policy after counterexample search and independent validation;
-- keeps hard risk, broker/account truth, order lifecycle and safety deterministic.
+Hard risk, broker/account truth, order lifecycle, reconciliation and safety remain deterministic project systems.
 
-Full binding direction:
+## Completed foundation guards
 
-`PROJECT_DIRECTION.md`
+- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_REGRESSION_TESTED`
+- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_REGRESSION_TESTED`
+
+The active repository regression suite passed after the cleanup/guard implementation before this authority sync.
 
 ## Current exact next work
 
-1. finish DeepSeek exact-enum guard;
-2. finish no-4H-exact-volume-reconciliation guard;
-3. verify a pinned DeepSeek Harness version/commit for exact selected model + vision + persistence + project-owned memory/tool/audit integration;
-4. build the smallest persistent-trader prototype;
-5. run a small chronological lifecycle replay to debug memory/runtime behavior;
-6. only then design broad historical replay and experience-learning validation.
+1. verify a pinned DeepSeek Harness version/commit for exact selected model + vision + persistence + project-owned memory/tool/audit integration;
+2. only after project-specific verification decide whether Harness becomes `ADOPTED` as the runtime shell; if it fails, use the thinnest project-owned equivalent;
+3. build the smallest persistent-trader prototype;
+4. run a small chronological lifecycle replay to debug memory/runtime behavior;
+5. only then design broad historical replay and governed experience-learning validation.
 
 Do not run mass stateless K-line API calls first.
 
@@ -63,14 +56,16 @@ Do not reopen MiniMax/Kimi model selection.
 
 ## Data foundation
 
-Accepted historical corpus exists and is ready for later chronological replay:
+Accepted historical corpus:
 
 `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
 
 - 2024-01-01..2025-12-31
 - cu/al/ni/au/ag/rb
 - 32,980 partitions
+- 212 contracts
 - 15,280,452 normalized 1-minute rows
+- corpus identity `1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`
 
 ## Current locks
 
@@ -85,4 +80,4 @@ No current implementation step authorizes real trading.
 
 ## Active-context hygiene
 
-Fresh takeover should stay small. Obsolete plans, provider-selection history and superseded handoff text must not remain in the active takeover path merely for historical preservation. Git history is the historical record.
+The active takeover surface is the four-file core in `00_READ_FIRST.md`. Superseded provider-selection, stateless evaluation and obsolete runtime/planning material belongs in Git history rather than the active takeover path.

@@ -1,2 +1,0 @@
-review_id,claim_or_case_id,source_ordinal,bvid,candidate_start,candidate_end,reason,requested_sol_action,status
-JH-REV-008,JH-CLM-030-001|JH-CON-007,030,BV1yCrTBhE82,00:03:12.860,00:03:34.240,"同一来源先说高于3分才开、低于3分不交易，随后又给出3分=3000美元仓位示例；3分本身是否允许开仓无法唯一确定。",PIN_NUMERIC_BOUNDARY,SOL_REVIEW_REQUIRED

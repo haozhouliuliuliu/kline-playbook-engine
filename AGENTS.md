@@ -1,69 +1,81 @@
 # AGENTS
 
-Canonical repository identity:
+Canonical repository:
 
-```text
-REPOSITORY_FULL_NAME=haozhouliuliuliu/kline-playbook-engine
-```
+`haozhouliuliuliu/kline-playbook-engine`
 
-## Bootstrap
+This file contains stable operating rules for people and AI working on this repository. Current product/state live in `PROJECT_DIRECTION.md` and `CURRENT_STATE.md`.
 
-1. Read `00_READ_FIRST.md` **first**.
-2. Fetch current `main` HEAD.
-3. Follow the active takeover order declared by `00_READ_FIRST.md`; that order begins with `OWNER_COLLABORATION_CONTRACT.md` after the bootstrap file itself.
-4. Use the exact canonical repository identity above for GitHub operations; do not reconstruct it from memory.
+## Start here
 
-If a GitHub operation unexpectedly returns `404`, first compare the requested repository slug character-for-character with the canonical identity before retrying. A connector 404 by itself is not evidence that the private repository, branch, PR or artifact was deleted.
+1. Refresh GitHub `main`.
+2. Read `00_READ_FIRST.md`.
+3. Follow its active-core takeover order.
+4. Treat current GitHub `main` as the only dynamic fact source.
+5. Load only the current task-specific authority/evidence after the active core.
 
-## Mandatory project rules
+## Product boundary
 
-- This is a clean-room project. Other projects and project-external chat are not project fact sources.
-- Current GitHub `main` is the sole dynamic project fact source. Chat, Project uploads and handoff prose never override current authority.
-- Follow the current consolidated architecture in `ARCHITECTURE_BASELINE.md` + the Jianghe AI ADR. Do not revert to historical “LLM offline only” wording from old Git history.
-- Follow `CURRENT_STATE.md` authorization locks and the current active Stage-A plan/attempt authorities named by `00_READ_FIRST.md`.
-- Jianghe is the sole current V1 trading knowledge source while `STRATEGY_SOURCE_EXPANSION=PAUSED_FOR_V1`.
-- UNKNOWN / contradiction / unsupported or unfamiliar market state must allow WAIT / NO_TRADE; do not invent source semantics to force a trade.
-- External tools/frameworks/models remain CANDIDATE until project evidence verifies/adopts them.
-- No candidate outcome, Validation, Final, real Shadow, broker order or real-money action without current authority.
-- Protect Git/worktree/user files; no destructive cleanup merely to make a command succeed.
+- This is a single-purpose China-futures trading project.
+- `MODEL_SOURCE = DEEPSEEK_ONLY` unless the Owner explicitly changes model direction.
+- Jianghe source truth, DeepSeek working hypotheses and project-validated extensions remain separately labeled.
+- UNKNOWN, contradiction or insufficient confirmation must allow `WAIT` / `NO_TRADE`.
+- Persistent memory is project-owned, bounded and auditable.
+- DeepSeek may generate hypotheses but may not self-promote them into active trading policy.
+- Hard risk, broker/account truth, order lifecycle, reconciliation and safety remain deterministic project systems.
 
-## Live Stage-A safety rules
+## Owner collaboration
 
-When the current Stage-A live fidelity funnel is active:
+The Owner is not expected to perform ordinary engineering work.
 
-- Refresh the fixed live remote ledger before stating current attempted slots or accounting.
-- A durable `NETWORK_ATTEMPT_STARTED` makes that slot attempted; **never rerun it**, even after crash/cancel/terminal persistence failure.
-- `AUTOMATIC_RETRY=FORBIDDEN` and `AUTOMATIC_NEXT_SLOT=FORBIDDEN`.
-- Production live state ref is fixed by current authority; caller-selected live refs are forbidden.
-- Do not mutate historical Stage-A state refs after they are superseded/declared immutable.
-- Provider elimination/fatal-stop decisions come from the frozen funnel/evaluator authority, not workflow convenience.
-- An eliminated provider receives no further Stage-A calls and no recycled Stage-B budget.
-- Paid wallet funding is not the same as model API consumption accounting.
-- No live call may be used merely as a balance probe.
+Project brain should:
 
-## Parallel / worktree rules
+- default to Chinese and plain language for Owner-facing explanations;
+- make ordinary engineering, test, documentation and integration decisions autonomously;
+- challenge technically weaker proposals when a better approach exists;
+- ask the Owner only for material product/research direction, semantic freezes, permanent risk rules, real-money/broker/account actions, paid spend without current authority, or irreversible external decisions.
 
-- Use isolated branches/worktrees for parallel workers.
-- **Never point two active workers at the same worktree.**
-- Exactly one integration lane may advance `main` and shared authority/state files.
-- Before creating/reusing a worktree, inspect `git worktree list`, target branch and current remote state.
-- Parallel workers must not edit `CURRENT_STATE.md`, `00_READ_FIRST.md`, `PROJECT_BRAIN_RUNTIME_BRIEF.md`, `PROJECT_HANDOFF_CURRENT.md`, frozen protocols, Owner evidence or other integration-owned authority unless explicitly assigned.
-- If WorkBuddy/local worker cannot access GitHub, its work remains local; a GitHub-capable lane must protect/commit/integrate it.
-- Do not parallelize tasks whose meaning depends on an unresolved frozen research-semantic decision or Owner gate.
+Do not create artificial authorization loops for already-approved work.
 
-## Worker use
+## Workers and Git
 
-- Codex/Sol is appropriate for high-value architecture, research-design implementation and complex cross-module integration in an isolated worktree.
-- Ordinary mechanical engineering/testing/review may use cheaper reliable workers when available.
-- WorkBuddy remains local/no-GitHub unless current tool evidence proves otherwise.
-- Workers do not become project authority merely by reporting success; project brain reviews and the integration lane writes accepted facts to GitHub.
+- Exactly one integration lane may modify `main` and shared authority at a time.
+- Parallel workers use separate worktrees/branches.
+- Do not point two active workers at one worktree.
+- Strong reasoning workers are reserved for architecture, research design and difficult cross-module work when useful.
+- Ordinary mechanical work may use cheaper reliable workers.
+- WorkBuddy is treated as local/no-GitHub unless current tool evidence proves otherwise.
+- Worker reports are not authority. Accepted facts are written to GitHub by the integration lane.
+- Protect user files/worktrees; never use destructive local cleanup merely to make a command pass.
+
+## Tool/runtime admission
+
+For material external frameworks, tools and models use:
+
+- `CANDIDATE` — plausible, not verified for this project;
+- `VERIFIED` — actually tested against project requirements;
+- `ADOPTED` — formally selected for a defined role.
+
+Current DeepSeek Harness status is governed by `PROJECT_DIRECTION.md` / `CURRENT_STATE.md`.
+
+## Research and evidence
+
+- Future information must not enter a decision-time observation.
+- Discovery/tuning evidence remains separate from independent validation/holdout evidence.
+- Profit is not identical to process correctness; loss is not identical to process error.
+- New DeepSeek-derived trading ideas follow the learning lifecycle in `PROJECT_DIRECTION.md`.
+- Source/evidence records remain immutable factual lineage.
 
 ## Verification
 
-Canonical full-suite command:
+For code changes use the smallest sufficient focused checks plus normal repository CI.
 
-```text
-python -m unittest discover -s tests -v
-```
+Default broad regression command:
 
-Also use relevant focused tests, `python -m compileall -q src tools tests`, deterministic artifact rebuild/checks and `git diff --check` for integration work when applicable.
+`python -m unittest discover -s tests`
+
+Also use when applicable:
+
+- `python -m compileall -q src tools tests`
+- deterministic artifact checks
+- `git diff --check`
