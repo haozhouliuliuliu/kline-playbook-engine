@@ -6,13 +6,13 @@ This file is a handoff snapshot and must be read after the current formal author
 
 ## Current breakpoint
 
-The Owner-approved V0.2 final-chance protocol has been designed and implemented offline.
+The Downloaded-Kline Final-Chance V0.2 live round has executed.
 
-Frozen protocol:
+Frozen test stack remains:
 
 `4H / 1H / 15m / 5m`
 
-4H engineering representation:
+4H representation:
 
 `SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1`
 
@@ -20,65 +20,74 @@ Frozen protocol:
 
 `BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
 
-Generic lower-stack input contract remains unchanged:
+## Execution closure
 
-`DOWNLOADED_KLINE_INPUT_CONTRACT_V0_2`
+Remote ledger:
 
-Provider set:
+`refs/heads/final-chance-live-state-v0-2`
 
-1. DeepSeek benchmark
-2. MiniMax M3 final matched opportunity
-3. Kimi K3 final matched opportunity
+Final remote ledger head:
 
-Target:
+`899f578cda41e534fe584d027bab3cd15c5fbb1d`
 
-`4 fresh real cases x 3 providers = 12 matched calls`
+- 12 unique slots attempted;
+- 12 network attempts;
+- 12 terminal records;
+- zero retries;
+- zero automatic-next behavior;
+- Kimi fourth slot ended in `INFRASTRUCTURE_FAILURE` after the network attempt;
+- no Kimi retry occurred;
+- current project hard-cap accounting: `20.9075330 CNY`;
+- `NEXT_EXPLICIT_PAID_SLOT = NONE`.
 
-## What is complete
+The original frozen three-provider PK remains `NOT_FINALIZABLE` because one Kimi capability answer is absent.
 
-- bounded higher-timeframe evidence review;
-- Owner decision authority;
-- machine-readable fail-closed plan spec;
-- session-aware 4H builder semantics;
-- fresh-case deterministic selection design excluding historical V0.1 partitions;
-- portable reconstruction / verification design;
-- pre-frozen correctness domination rule;
-- unit tests for 4H break semantics, incomplete-bucket exclusion, plan-spec identity, and elimination logic;
-- four fresh cases materialized and verified (`MATERIALIZED__AWAITING_PRESEND_REVIEW`).
+## Current provider decision
 
-## What is not complete
+Formal review:
 
-The V0.2 materialized plan exists and is verified (`MATERIALIZED__AWAITING_PRESEND_REVIEW`).
+`docs/reviews/JIANGHE_FINAL_CHANCE_V0_2_DS_MINIMAX_OWNER_ADJUDICATION_V0_1.md`
 
-Still not complete:
+Owner post-execution selection scope:
 
-- paid authorization refresh
-- shared ledger refresh
-- provider pricing / rate-card refresh
-- payload / budget review
-- worst-case CNY reservation
-- explicit first paid-slot freeze
+- Kimi excluded from current provider selection;
+- no Kimi retry;
+- selection narrowed to DeepSeek vs MiniMax;
+- substantive correctness outranks a single tunable output-format failure.
 
-No new provider call has occurred.
+Independent correctness adjudication:
 
-## Paid state
+- DeepSeek `deepseek-v4-flash-vision-exp` = `SELECTED_FOR_NEXT_RESEARCH_LANE`
+- MiniMax `MiniMax-M3` = `VERIFIED_RUNNER_UP_RESERVE`
+- Kimi `kimi-k3` = `EXCLUDED_FROM_CURRENT_SELECTION`
+- permanent provider adoption is not frozen.
 
-- historical project accounted CNY: `3.1609662`
-- hard cap: `100.00 CNY`
+Why DeepSeek won the two-provider adjudication:
+
+- stronger handling of the new 4H/session semantics across the four matched cases;
+- MiniMax repeatedly treated completed civil-grid 4H context as incomplete or introduced unsupported session/liquidity and 4H-volume interpretations;
+- DeepSeek's observed problems are narrower mechanical defects: one bad 4H volume reconciliation and one strict enum-format failure.
+
+## Current work package
+
+`JIANGHE_DEEPSEEK_SELECTED_LANE_HARDENING_V0_1`
+
+Next engineering work is limited to:
+
+1. exact output enum enforcement;
+2. blocking 4H exact cross-timeframe volume reconciliation;
+3. focused tests + normal CI.
+
+No additional provider call is needed to decide DeepSeek vs MiniMax.
+
+Any new broader validation/research design is a separate Owner gate.
+
+## Locks
+
+- outcome/future: locked
+- validation/holdout: locked
+- shadow: locked
+- broker/account: locked
+- real money: locked
 - `PAID_CALLS = PAUSED`
 - `NEXT_EXPLICIT_PAID_SLOT = NONE`
-- automatic retry: forbidden
-- automatic next slot: forbidden
-
-The existing paid-call authorization is necessary but not sufficient to create a slot.
-
-## Exact next step
-
-The four-case plan is materialized and verified. The next step is pre-send review only:
-
-1. refresh current ledger, paid authorization, and provider pricing;
-2. perform pre-send payload/budget review;
-3. reserve worst-case CNY;
-4. freeze the first explicit paid slot only if every gate passes.
-
-Do not call any provider before that pre-send review.
