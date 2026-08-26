@@ -18,7 +18,7 @@ Stable product direction, architecture, tooling and governance live in their own
 
 `NEXT_TASK = WAIT_FOR_OWNER_EXPLICIT_RESUME_OF_THREE_CALL_PROVIDER_SMOKE`
 
-The Owner has explicitly stopped the provider smoke for now while governance/context continuity is repaired. Do not delegate or resume the smoke in a fresh conversation.
+The Owner has explicitly stopped the provider smoke before the first real call while governance/context continuity is repaired. Do not delegate or resume the smoke in a fresh conversation.
 
 Current hold authority:
 
@@ -34,11 +34,11 @@ Provider-smoke design authority:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
 
-Previously approved exact payment/execution authority:
+Previously approved payment/execution authority:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`
 
-Machine-readable exact slot authority:
+Current machine-readable slot authority:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
 
@@ -52,23 +52,27 @@ Approved post-V0.1 roadmap:
 
 ## Provider execution state
 
-The exact three-call smoke slot was previously approved and machine-sealed, but a newer Owner instruction now places execution on hold before the first provider call.
+The exact three-call smoke was previously approved for payment/execution, but the later Owner hold now governs current execution state.
 
 `PROVIDER_SMOKE_EXECUTION = OWNER_HOLD_BEFORE_FIRST_CALL`
 
 `PROVIDER_CALLS_DURING_CURRENT_HOLD = 0`
 
-`THREE_CALL_SMOKE_SLOT = APPROVED_BUT_NOT_CURRENTLY_EXECUTABLE_DUE_TO_OWNER_HOLD`
+`THREE_CALL_SMOKE_MACHINE_AUTHORITY_STATUS = REVOKED`
+
+`THREE_CALL_SMOKE_SLOT = HISTORICALLY_APPROVED__CURRENTLY_NON_EXECUTABLE`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-The hold does not consume, widen or rewrite the previously sealed slot. A later explicit Owner instruction is required to resume it.
+The machine JSON is deliberately `REVOKED`, so the smoke runner fails before reading `DEEPSEEK_API_KEY` or constructing provider/network capability.
+
+The historical fact that payment was previously approved is preserved; the hold does not rewrite that history. A later explicit Owner instruction is required to resume the smoke, and resumption must reseal an executable machine authority against the then-current code/governance state.
 
 ## Current locks
 
-- three-call provider smoke execution: `OWNER_HOLD_BEFORE_FIRST_CALL`;
+- three-call provider smoke execution: `OWNER_HOLD_BEFORE_FIRST_CALL__MACHINE_REVOKED`;
 - full V0.1 1998-call provider replay: `LOCKED`;
-- post-V0.1 CU/RB paid replays: `LOCKED`;
+- post-V0.1 CU/RB provider replay: `LOCKED`;
 - historical execution/PnL semantics: `NOT_YET_APPROVED`;
 - learning/policy promotion: `LOCKED`;
 - SHADOW: `LOCKED`;
@@ -85,5 +89,5 @@ The hold does not consume, widen or rewrite the previously sealed slot. A later 
 - `PROJECT_DIRECTION.md` owns product/research direction;
 - `ARCHITECTURE_BASELINE.md` owns long-lived architecture;
 - `TOOL_REGISTRY.md` owns provider/tool/runtime status, pins and credential-location contract;
-- exact execution permission is owned by the exact Owner execution authority plus machine-readable authority;
-- this file alone owns the current phase/locks/next-task summary.
+- exact paid/external execution permission is owned by the applicable Owner execution authority plus machine-readable authority;
+- this file alone owns the current activity/phase/locks/next-task summary.
