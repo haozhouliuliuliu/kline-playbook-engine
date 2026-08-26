@@ -1,6 +1,6 @@
 {
   "api_key_env": "DEEPSEEK_API_KEY",
-  "authority_identity": "0a1d5d9c8d45eb34b81e1e6b58d4d4412bcd939aebe1c60000ee0d1a7c3a4457",
+  "authority_identity": "0fc92bd83e4ab718b17d862757cba55ec890dc9bd20e755f8243b5dd862b4ecb",
   "authority_version": "KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_1",
   "burn_in_days": [
     "2024-04-10",
@@ -10,7 +10,7 @@
   "context_policy_identity": "98262c9ab0614b4145fe56cb8746a44d754d03a38a25584aba810991cd666371",
   "created_at": "2026-08-26T14:42:05.000000+00:00",
   "exact_slice_seal_identity": "e9bbd232fd05d320a24c80ac5570a94abdf6d4c3a167cdd5c46f4426a6c84156",
-  "execution_code_commit": "PENDING_COMMIT_A",
+  "execution_code_commit": "1787d2c",
   "full_replay_1998_calls_authorized": false,
   "full_replay_authorized": false,
   "harness_commit": "b150a551b8d465e31e418e1b2eaf5e79bbb7d28e",
