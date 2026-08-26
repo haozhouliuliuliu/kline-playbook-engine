@@ -10,19 +10,19 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = PROVIDER_SMOKE_OWNER_HOLD`
+`CURRENT_ACTIVITY = THREE_CALL_PROVIDER_SMOKE_EXECUTION_READY`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_READY__OWNER_HOLD_BEFORE_FIRST_CALL`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__EXACT_THREE_CALL_SLOT`
 
-`NEXT_TASK = WAIT_FOR_OWNER_EXPLICIT_RESUME_OF_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
 
-The Owner has explicitly stopped the provider smoke before the first real call while governance/context continuity is repaired. Do not delegate or resume the smoke in a fresh conversation.
+The Owner has explicitly resumed the exact previously approved three-call DeepSeek provider smoke after governance/context continuity repair.
 
-Current hold authority:
+Current resume authority:
 
-`docs/reviews/PROJECT_GOVERNANCE_OWNERSHIP_REPAIR_OWNER_DECISION_2026-08-27.md`
+`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RESUME_OWNER_DECISION_2026-08-27.md`
 
 ## Current exact task authorities
 
@@ -34,9 +34,13 @@ Provider-smoke design authority:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
 
-Previously approved payment/execution authority:
+Payment/execution authority:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`
+
+Owner resume authority:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RESUME_OWNER_DECISION_2026-08-27.md`
 
 Current machine-readable slot authority:
 
@@ -52,25 +56,37 @@ Approved post-V0.1 roadmap:
 
 ## Provider execution state
 
-The exact three-call smoke was previously approved for payment/execution, but the later Owner hold now governs current execution state.
+`PROVIDER_SMOKE_EXECUTION = OWNER_APPROVED__READY_TO_EXECUTE`
 
-`PROVIDER_SMOKE_EXECUTION = OWNER_HOLD_BEFORE_FIRST_CALL`
+`THREE_CALL_SMOKE_MACHINE_AUTHORITY_STATUS = ACTIVE`
 
-`PROVIDER_CALLS_DURING_CURRENT_HOLD = 0`
-
-`THREE_CALL_SMOKE_MACHINE_AUTHORITY_STATUS = REVOKED`
-
-`THREE_CALL_SMOKE_SLOT = HISTORICALLY_APPROVED__CURRENTLY_NON_EXECUTABLE`
+`THREE_CALL_SMOKE_SLOT = AUTHORIZED_FOR_EXACT_THREE_CALL_EXECUTION_ONLY`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-The machine JSON is deliberately `REVOKED`, so the smoke runner fails before reading `DEEPSEEK_API_KEY` or constructing provider/network capability.
+Exact paid boundary remains:
 
-The historical fact that payment was previously approved is preserved; the hold does not rewrite that history. A later explicit Owner instruction is required to resume the smoke, and resumption must reseal an executable machine authority against the then-current code/governance state.
+- provider: `deepseek`;
+- model: `deepseek-v4-flash-vision-exp`;
+- max provider calls: `3`;
+- max retries: `0`;
+- max spend: `CNY 3.00`;
+- exactly 4 causal PNGs per call;
+- exactly one provider request per governed wake;
+- forced project-owned restart after successful call 2 before call 3;
+- call 4 forbidden;
+- full 1998-call replay unauthorized.
+
+Credential location remains the Windows current-user environment variable `DEEPSEEK_API_KEY`; secret values must not be printed, logged or committed.
+
+The machine JSON is `ACTIVE` for this exact slot. Before execution, the runner must still pass the pre-network code/prompt/context/renderer/authority guards. Any mismatch fails closed before provider capability is created.
+
+After 3/3 completion or any fail-closed terminal result, this exact paid slot is consumed/closed. A retry or re-run requires new explicit Owner paid authority.
 
 ## Current locks
 
-- three-call provider smoke execution: `OWNER_HOLD_BEFORE_FIRST_CALL__MACHINE_REVOKED`;
+- three-call provider smoke execution: `ACTIVE__EXACT_SLOT_ONLY`;
+- fourth provider call/retry/replacement wake: `LOCKED`;
 - full V0.1 1998-call provider replay: `LOCKED`;
 - post-V0.1 CU/RB provider replay: `LOCKED`;
 - historical execution/PnL semantics: `NOT_YET_APPROVED`;
