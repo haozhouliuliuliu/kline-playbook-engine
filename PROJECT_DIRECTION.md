@@ -46,7 +46,7 @@ Current smoke decision:
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_FAILCLOSED__SLOT_CLOSED`
 
 Frozen V0.1:
 
@@ -77,9 +77,13 @@ Owner payment/execution authority:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`
 
-Current machine authority is ACTIVE for this exact sealed slot:
+Real three-call provider smoke STOPPED FAIL-CLOSED on 2026-08-27; evidence:
 
-`status = ACTIVE`
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`
+
+Machine authority is terminal (slot consumed/closed):
+
+`status = REVOKED`
 
 `owner_payment_confirmation = true`
 
@@ -89,9 +93,11 @@ Current machine authority is ACTIVE for this exact sealed slot:
 
 `max_retries = 0`
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_THIS_EXACT_THREE_CALL_SLOT_ONLY`
+`authority_identity = 6622351c707538c0db881cf69e1dbd388ae2f1c339d478e67932c65d247b3ce9`
 
-`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__EXECUTION`
+`REAL_DEEPSEEK_PROVIDER_CALLS = STOPPED__SLOT_CLOSED__NO_AUTHORITY_TO_RERUN`
+
+`NEXT_EXPLICIT_PAID_SLOT = NEW_OWNER_AUTHORITY_REQUIRED`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
@@ -216,11 +222,11 @@ Cost is controlled per paid work package by sealed wake/request count, actual us
 
 Current next task:
 
-`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = OWNER_DECISION_REQUIRED_AFTER_FAILCLOSED_PROVIDER_SMOKE`
 
-Authorized for this exact sealed slot only:
+Closed after execution (fail-closed, 1 real call):
 
-- three-call provider smoke: ACTIVE (owner_payment_confirmation=true, max_spend_cny=3.00, max 3 calls, 0 retries, execution authority `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`);
+- three-call provider smoke: CLOSED/REVOKED (evidence `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`); no re-run without new Owner paid authority;
 
 Still locked:
 

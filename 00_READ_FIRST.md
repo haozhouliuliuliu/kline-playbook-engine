@@ -38,7 +38,7 @@ Do not use chat, stale branches, deleted dated handoffs or obsolete authority as
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_FAILCLOSED__SLOT_CLOSED`
 
 `MODEL_COGNITIVE_SCOPE = TRADING_ONLY`
 
@@ -84,9 +84,13 @@ Frozen smoke scope:
 - call 4 forbidden;
 - full 1998-call replay unauthorized.
 
-Machine authority is ACTIVE for this exact sealed slot:
+Real three-call provider smoke STOPPED FAIL-CLOSED on `2026-08-27`:
 
-`status = ACTIVE`
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`
+
+Machine authority is terminal (slot consumed/closed):
+
+`status = REVOKED`
 
 `owner_payment_confirmation = true`
 
@@ -98,11 +102,13 @@ Machine authority is ACTIVE for this exact sealed slot:
 
 `full_replay_1998_calls_authorized = false`
 
+`authority_identity = 6622351c707538c0db881cf69e1dbd388ae2f1c339d478e67932c65d247b3ce9`
+
 Therefore:
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_THIS_EXACT_THREE_CALL_SLOT_ONLY`
+`REAL_DEEPSEEK_PROVIDER_CALLS = STOPPED__SLOT_CLOSED__NO_AUTHORITY_TO_RERUN`
 
-`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__EXECUTION`
+`NEXT_EXPLICIT_PAID_SLOT = NEW_OWNER_AUTHORITY_REQUIRED`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
@@ -133,7 +139,7 @@ RMB 100,000 is a capital envelope, not a risk budget. RB is a first real-money c
 
 Still locked unless a later exact authority explicitly opens them:
 
-- current three-call provider smoke: now ACTIVE for this exact sealed slot only (execution authority `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`);
+- current three-call provider smoke: CLOSED/REVOKED after fail-closed (evidence `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`); any re-run needs a new Owner paid authority;
 - full V0.1 1998-call replay;
 - post-V0.1 CU/RB paid replays;
 - learning/policy promotion;
@@ -147,7 +153,7 @@ Still locked unless a later exact authority explicitly opens them:
 
 ## Exact current next task
 
-`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = OWNER_DECISION_REQUIRED_AFTER_FAILCLOSED_PROVIDER_SMOKE`
 
 Do not jump to post-V0.1 implementation before current V0.1 closes.
 

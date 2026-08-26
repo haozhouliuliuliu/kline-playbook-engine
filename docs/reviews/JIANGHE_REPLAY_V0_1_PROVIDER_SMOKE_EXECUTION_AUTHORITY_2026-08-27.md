@@ -94,3 +94,24 @@ paid authority. The next step after a successful smoke is limited to:
 `SMOKE ADJUDICATION / PREPARE OWNER DECISION FOR FULL SEALED V0.1`
 
 The full `1998`-call replay remains unauthorized under this authority.
+
+## Outcome — slot consumed and closed
+
+Executed `2026-08-27`. Result: `STOPPED FAIL-CLOSED`.
+
+- real provider calls attempted: `1` (call 1 only; stopped during normalization)
+- real provider calls normalized: `0`
+- retries: `0`; hidden second requests: `0`; call 4: `NO`
+- root cause: provider emitted `numeric_claims` as a JSON object instead of the
+  frozen `JIANGHE_RUNTIME_RESPONSE_V0_1` array schema
+- fail-closed evidence: `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`
+
+The machine authority has been transitioned to the terminal `REVOKED` status:
+
+`status = REVOKED`
+
+`authority_identity = 6622351c707538c0db881cf69e1dbd388ae2f1c339d478e67932c65d247b3ce9`
+
+`THIS THREE-CALL PAID SLOT CANNOT BE ACCIDENTALLY RE-RUN`
+
+Any new real provider retry/re-run requires a new Owner paid authority.

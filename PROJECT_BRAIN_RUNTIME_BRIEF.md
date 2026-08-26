@@ -23,7 +23,7 @@ Before substantive project work:
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_FAILCLOSED__SLOT_CLOSED`
 
 `MODEL_COGNITIVE_SCOPE = TRADING_ONLY`
 
@@ -56,7 +56,7 @@ Sealed V0.1:
 - 1998 governed wakes;
 - R1 verified;
 - R2 `NOT_OBSERVED` permitted by frozen design;
-- real provider calls so far `0`.
+- real provider calls at preexecution `0`; the 2026-08-27 real smoke consumed `1` (fail-closed).
 
 ## Current three-call smoke boundary
 
@@ -83,9 +83,13 @@ Preparation is complete and CI-verified:
 - execution code / prompt / context / renderer identities bound;
 - full 1998-call replay unauthorized.
 
-Current machine authority is ACTIVE for this exact sealed slot:
+Real provider smoke STOPPED FAIL-CLOSED on 2026-08-27 (1 real call consumed; provider `numeric_claims` schema mismatch). Evidence:
 
-`status = ACTIVE`
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`
+
+Machine authority is terminal (slot consumed/closed):
+
+`status = REVOKED`
 
 `owner_payment_confirmation = true`
 
@@ -95,9 +99,11 @@ Current machine authority is ACTIVE for this exact sealed slot:
 
 `max_retries = 0`
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_THIS_EXACT_THREE_CALL_SLOT_ONLY`
+`authority_identity = 6622351c707538c0db881cf69e1dbd388ae2f1c339d478e67932c65d247b3ce9`
 
-`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__EXECUTION`
+`REAL_DEEPSEEK_PROVIDER_CALLS = STOPPED__SLOT_CLOSED__NO_AUTHORITY_TO_RERUN`
+
+`NEXT_EXPLICIT_PAID_SLOT = NEW_OWNER_AUTHORITY_REQUIRED`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
@@ -134,13 +140,13 @@ RMB ~100k is a capital envelope, not a risk budget. RB is a candidate, not a pro
 
 ## Exact next task
 
-`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = OWNER_DECISION_REQUIRED_AFTER_FAILCLOSED_PROVIDER_SMOKE`
 
-The sealed three-call smoke slot is ACTIVE for this exact slot only. Do not add another offline research gate. Do not jump to post-V0.1 implementation before V0.1 closure.
+The three-call smoke slot is CLOSED (fail-closed after 1 real call). Do not add another offline research gate. Do not jump to post-V0.1 implementation before V0.1 closure.
 
 ## Current locks
 
-- three-call provider smoke: ACTIVE for this exact sealed slot only (execution authority `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`);
+- three-call provider smoke: CLOSED/REVOKED after fail-closed (evidence `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`); any re-run needs a new Owner paid authority;
 - full V0.1 1998-call replay: locked;
 - post-V0.1 CU/RB paid replays: locked;
 - historical execution/PnL semantics: not yet approved;

@@ -169,6 +169,27 @@ class ProviderSmokeAuthorityTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 assert_smoke_authority_active(authority)
 
+    def test_revoked_authority_loads_but_active_gate_fails_closed(self) -> None:
+        """A consumed/failed slot must be terminal: REVOKED never re-admits."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            payload = _authority_payload(
+                status=SMOKE_STATUS_REVOKED,
+                owner_payment_confirmation=True,
+                max_spend_cny="3.00",
+                smoke_wakes=(
+                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
+                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
+                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
+                ),
+            )
+            path = _write_authority(root, payload)
+            authority = load_provider_smoke_authority(path)
+            self.assertEqual(authority.status, SMOKE_STATUS_REVOKED)
+            self.assertEqual(authority.identity, payload["authority_identity"])
+            with self.assertRaises(ValueError):
+                assert_smoke_authority_active(authority)
+
     def test_active_requires_payment_confirmation_and_concrete_spend(self) -> None:
         wakes = (
             ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
@@ -351,6 +372,44 @@ class ProviderSmokeRunnerGateTests(unittest.TestCase):
             self.assertEqual(parsed["admitted_wake_count"], 0)
             self.assertEqual(parsed["authority_status"], SMOKE_STATUS_PENDING)
             self.assertFalse(parsed["owner_payment_confirmation"])
+
+    def test_revoked_authority_blocks_runner_before_any_network(self) -> None:
+        """A consumed/failed slot must make a provider call impossible."""
+        runner = Path(__file__).resolve().parents[1] / "tools" / "run_replay_v0_1_provider_smoke.py"
+        self.assertTrue(runner.is_file())
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            payload = _authority_payload(
+                status=SMOKE_STATUS_REVOKED, owner_payment_confirmation=True,
+                max_spend_cny="3.00",
+                smoke_wakes=(
+                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
+                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
+                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
+                ),
+            )
+            authority_path = _write_authority(root, payload)
+            state_dir = root / "state"
+            output = root / "smoke.json"
+            completed = subprocess.run(
+                [
+                    sys.executable, str(runner),
+                    "--authority", str(authority_path),
+                    "--state-dir", str(state_dir),
+                    "--output", str(output),
+                    "--transport", "mock",
+                ],
+                capture_output=True, text=True, cwd=str(root), timeout=120,
+            )
+            self.assertEqual(completed.returncode, 1)
+            self.assertFalse(state_dir.exists(), "runner must not create state before the authority gate")
+            self.assertFalse(output.exists(), "runner must not write evidence before the authority gate")
+            parsed = json.loads(completed.stdout)
+            self.assertEqual(parsed["status"], "FAIL")
+            self.assertEqual(parsed["provider_call_count"], 0)
+            self.assertEqual(parsed["network_request_count"], 0)
+            self.assertEqual(parsed["admitted_wake_count"], 0)
+            self.assertEqual(parsed["authority_status"], SMOKE_STATUS_REVOKED)
 
 
 class ProviderSmokeThreeCallMockChainTests(unittest.TestCase):
