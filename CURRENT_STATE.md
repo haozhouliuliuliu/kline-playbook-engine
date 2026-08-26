@@ -10,15 +10,19 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = THREE_CALL_PROVIDER_SMOKE_RETEST_COMPLETED__3OF3__SLOT_CLOSED`
+`CURRENT_ACTIVITY = SMOKE_ADJUDICATION_ACCEPTED__LOCAL_DECISION_EVIDENCE_EXTRACTION`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_RETEST_COMPLETED__ADJUDICATION_NEXT`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_RETEST_ACCEPTED__DECISION_CONTENT_REVIEW_NEXT`
 
-`NEXT_TASK = SMOKE_ADJUDICATION_AND_OWNER_DECISION_FOR_FULL_SEALED_V0_1`
+`NEXT_TASK = EXTRACT_AND_REVIEW_THREE_CALL_NORMALIZED_DECISIONS__THEN_OWNER_DECIDE_FULL_V0_1`
 
-The fresh independent three-call provider-smoke retest completed 3/3 PASS on 2026-08-27 (V0_2 response-contract clarification). The retest slot is consumed/closed; no full 1998-call replay was started.
+The fresh independent three-call provider-smoke retest completed 3/3 PASS on 2026-08-27. An independent high-assurance review accepted the retest for its narrow provider-path/schema/restart/request-accounting claims and found no true wake-selection/protocol violation. The differing V0.1/V0.2 runtime wake hashes are an identity-layer wording defect caused by the approved prompt/trader-identity change, not a different logical wake selection. No paid rerun is required for that issue.
+
+Before any new future provider slot is resealed, the project must prospectively distinguish stable logical wake-selection identity from runtime wake identity. Historical slots/evidence remain immutable.
+
+The immediate task is read-only/local evidence extraction and review of the three successful DeepSeek normalized trading judgments and resulting project-owned state transitions. This task must not make a provider request or use future/PnL outcome information.
 
 ## Current exact task authorities and evidence
 
@@ -54,6 +58,10 @@ Fresh retest execution evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_2026-08-27.md`
 
+Independent wake-identity / retest acceptability review:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_WAKE_IDENTITY_INDEPENDENT_REVIEW_2026-08-27.md`
+
 Fail-closed real-provider evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`
@@ -72,7 +80,7 @@ Approved post-V0.1 roadmap:
 
 `ORIGINAL_SMOKE_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`FRESH_THREE_CALL_RETEST_OWNER_AUTHORITY = APPROVED`
+`FRESH_THREE_CALL_RETEST_OWNER_AUTHORITY = APPROVED__CONSUMED`
 
 `FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
@@ -80,7 +88,9 @@ Approved post-V0.1 roadmap:
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-The fresh retest completed 3/3 PASS (execution evidence `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_2026-08-27.md`). Both the original slot and the fresh retest slot are terminal/consumed; a further real provider attempt requires a new explicit Owner paid authority. The full V0.1 1998-call replay remains unauthorized and must not be started automatically.
+`FUTURE_PROVIDER_SLOT_WAKE_IDENTITY_REPAIR = REQUIRED_BEFORE_ANY_NEW_SLOT_RESEAL`
+
+Both the original slot and fresh retest slot are terminal/consumed. A further real provider attempt requires a new explicit Owner paid authority. The full V0.1 1998-call replay remains unauthorized and must not be started automatically.
 
 ## Current locks
 
@@ -88,6 +98,7 @@ The fresh retest completed 3/3 PASS (execution evidence `docs/evidence/JIANGHE_R
 - any retry or continuation under the old slot: `LOCKED`;
 - fresh three-call retest provider execution: `CONSUMED / CLOSED (3/3 PASS)`;
 - fourth call, automatic retry or replacement wake inside the retest: `LOCKED`;
+- any new provider slot reseal before logical/runtime wake-identity forward repair: `LOCKED`;
 - full V0.1 1998-call provider replay: `LOCKED`;
 - post-V0.1 CU/RB provider replay: `LOCKED`;
 - historical execution/PnL semantics: `NOT_YET_APPROVED`;
@@ -101,4 +112,6 @@ The fresh retest completed 3/3 PASS (execution evidence `docs/evidence/JIANGHE_R
 
 ## Continuity rule for the next integration lane
 
-Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, then this file and the exact authorities/evidence above. Do not merge the stale pre-governance `CURRENT_STATE.md` from the fail-closed worker branch.
+Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, then this file and the exact authorities/evidence above.
+
+For the immediate local decision-evidence extraction, do not call any provider and do not infer missing decision content from hashes. Inspect only retained local runner output / project-owned persistent state from the already completed successful retest, match it to the committed request/wake/decision identities, and persist a derived evidence artifact without secrets or future/PnL outcome data. If the retained local artifacts are unavailable, record that evidence gap and do not rerun the provider.
