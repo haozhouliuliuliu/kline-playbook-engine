@@ -6,24 +6,25 @@ GitHub current `main` is the only dynamic project fact source.
 
 ## Fresh-conversation takeover
 
-A fresh project brain must read both the stable governance/architecture layer and the current dynamic work-package layer. Do not treat a state snapshot alone as sufficient project context.
+A fresh project brain must read the stable governance/architecture/tooling layer and the current dynamic work-package layer. Do not treat a state snapshot alone as sufficient project context.
 
 Read in this order:
 
 1. `00_READ_FIRST.md`
 2. `AGENTS.md`
 3. `ARCHITECTURE_BASELINE.md`
-4. `PROJECT_DIRECTION.md`
-5. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
-6. `CURRENT_STATE.md`
-7. `docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
-8. `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
-9. `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
-10. `docs/evidence/JIANGHE_REPLAY_V0_1_PREEXECUTION_EVIDENCE_2026-08-26.md`
-11. `docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
-12. when execution/paper/real architecture is relevant: `docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_ARCHITECTURE_V0_1.md`
+4. `TOOL_REGISTRY.md`
+5. `PROJECT_DIRECTION.md`
+6. `PROJECT_BRAIN_RUNTIME_BRIEF.md`
+7. `CURRENT_STATE.md`
+8. `docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
+9. `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
+10. `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
+11. `docs/evidence/JIANGHE_REPLAY_V0_1_PREEXECUTION_EVIDENCE_2026-08-26.md`
+12. `docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
+13. when execution/paper/real architecture is relevant: `docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_ARCHITECTURE_V0_1.md`
 
-`AGENTS.md` supplies stable operating/governance rules. `ARCHITECTURE_BASELINE.md` supplies the current project architecture boundary. `PROJECT_DIRECTION.md`, `PROJECT_BRAIN_RUNTIME_BRIEF.md` and `CURRENT_STATE.md` supply current dynamic product/work-package state. Task-specific Owner decisions and evidence then determine the exact frozen semantics and authorization boundary.
+`AGENTS.md` supplies stable operating/governance rules. `ARCHITECTURE_BASELINE.md` supplies the current project architecture boundary. `TOOL_REGISTRY.md` supplies current project-scoped tool/framework/provider capability status and revalidation boundaries. `PROJECT_DIRECTION.md`, `PROJECT_BRAIN_RUNTIME_BRIEF.md` and `CURRENT_STATE.md` supply current dynamic product/work-package state. Task-specific Owner decisions and evidence then determine the exact frozen semantics and authorization boundary.
 
 Do not use chat, stale branches, deleted dated handoffs or obsolete authority as current project facts.
 
@@ -155,7 +156,8 @@ Do not jump to post-V0.1 implementation before current V0.1 closes.
 A fresh project brain first performs read-only takeover and reports only:
 
 - current `main` HEAD;
-- whether stable governance/architecture and dynamic core authority agree;
+- whether stable governance/architecture/tooling and dynamic core authority agree;
+- project-scoped `CANDIDATE / VERIFIED / ADOPTED` tool/runtime statuses relevant to current work;
 - product/model/Harness pin;
 - current V0.1 work package, phase and frozen sealed design;
 - current three-call smoke status and paid boundary;
