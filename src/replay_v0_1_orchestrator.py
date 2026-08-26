@@ -45,10 +45,12 @@ from src.jianghe_ai_trader import (
     validate_transition,
 )
 from src.jianghe_response_normalizer import NormalizedJiangheDecision
+from src.jianghe_visual_renderer import JiangheVisualRenderer
 from src.persistent_deepseek_runtime import PreparedModelRequest
 from src.persistent_trader_store import PersistentTraderStore
 from src.replay_v0_1_runtime import JOURNAL_WRITE_TRIGGERS, ReplayV01Runtime
 from src.replay_v0_1_selector import MEASUREMENT_TRADING_DAYS, ReplaySlice
+from src.replay_v0_1_smoke_visual import render_wake_charts
 
 REPLAY_ORCHESTRATOR_VERSION = "KPE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_ORCHESTRATOR_V0_1"
 PHASE_BURN_IN = "BURN_IN"
@@ -106,7 +108,13 @@ class GovernedWakeStep:
 
 
 class ReplayModelTransport(Protocol):
-    """Model transport seam. Real provider execution stays locked; only mocks pass."""
+    """Model transport seam.
+
+    Offline replay admits only mocks (``mock=True``).  A real provider transport
+    is admitted only when it carries an explicit ``provider_admitted=True`` flag
+    that was granted by an ACTIVE provider-execution authority; without that flag
+    a non-mock transport is rejected exactly as before.
+    """
 
     provider_identity: str
     mock: bool
@@ -114,6 +122,10 @@ class ReplayModelTransport(Protocol):
     def execute(self, request: PreparedModelRequest) -> str:
         """Return raw model response text for an already-prepared request."""
         ...
+
+    @property
+    def provider_admitted(self) -> bool:
+        return False
 
 
 class NoProviderTransport:
@@ -360,23 +372,30 @@ class ReplayV01Orchestrator:
         slice_: ReplaySlice,
         transport: ReplayModelTransport,
         state_dir: str | Path,
+        renderer: JiangheVisualRenderer | None = None,
         retrieval_query: str = "current causal market state and key locations",
         r2_active_restart_measurement_day: int = 4,
     ) -> None:
-        if not transport.mock:
-            raise ValueError("replay V0.1 admits only mock model transport; provider stays locked")
+        provider_admitted = bool(getattr(transport, "provider_admitted", False))
+        if not transport.mock and not provider_admitted:
+            raise ValueError("replay V0.1 admits only mock or explicitly provider-admitted transport")
+        if provider_admitted and not callable(getattr(transport, "execute", None)):
+            raise ValueError("provider-admitted transport must implement execute")
         if not callable(runtime_factory):
             raise TypeError("runtime_factory must be callable")
         if not isinstance(clock, ReplayClock):
             raise TypeError("orchestrator requires the single existing ReplayClock")
         if not isinstance(slice_, ReplaySlice):
             raise TypeError("orchestrator requires a sealed ReplaySlice")
+        if renderer is not None and not isinstance(renderer, JiangheVisualRenderer):
+            raise TypeError("orchestrator renderer must be the accepted JiangheVisualRenderer")
         if not isinstance(r2_active_restart_measurement_day, int) or r2_active_restart_measurement_day < 1:
             raise ValueError("R2 active-state restart measurement day must be >= 1")
         self._runtime_factory = runtime_factory
         self._clock = clock
         self._slice = slice_
         self._transport = transport
+        self._renderer = renderer
         self._state_dir = Path(state_dir)
         self._state_dir.mkdir(parents=True, exist_ok=True)
         self._retrieval_query = _non_empty(retrieval_query, "retrieval_query")
@@ -701,7 +720,16 @@ class ReplayV01Orchestrator:
             mapping_identity=mapping_identity,
             session_identity=self._session_identity or "",
         )
-        return JiangheObservation(identity=identity, bars=step.context_bars)
+        charts: tuple = ()
+        if self._renderer is not None:
+            charts = render_wake_charts(
+                bars=step.context_bars,
+                product=self._slice.product,
+                concrete_contract=self._slice.concrete_contract,
+                as_of=decision_time,
+                renderer=self._renderer,
+            ).charts
+        return JiangheObservation(identity=identity, bars=step.context_bars, charts=charts)
 
     def _apply_working_memory(
         self,
