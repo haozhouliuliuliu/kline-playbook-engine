@@ -123,3 +123,19 @@ This authority does not authorize:
 - permanent numeric risk rules;
 - real money/funding/orders;
 - learning/policy promotion.
+
+## Outcome — retest completed 3/3, slot closed
+
+Executed `2026-08-27`. Result: `PASS (3/3)`.
+
+- real provider calls attempted: `3`; normalized: `3`; retries: `0`; hidden: `0`
+- forced project-owned restart after call 2: `VERIFIED`
+- execution evidence: `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_2026-08-27.md`
+- fresh retest machine authority transitioned to terminal `REVOKED`:
+
+`authority_identity = cc29bc494c787ef94dc560e1c6d2d74075df8d7a8d0c3950efc304af59204f3e`
+
+`THIS FRESH THREE-CALL RETEST SLOT CANNOT BE ACCIDENTALLY RE-RUN`
+
+The full V0.1 `1998`-call replay remains unauthorized; next step is smoke
+adjudication / preparation of an Owner decision for the full sealed V0.1.

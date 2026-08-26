@@ -10,15 +10,15 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = THREE_CALL_PROVIDER_SMOKE_RETEST_RESEALED__PRE_EXECUTION`
+`CURRENT_ACTIVITY = THREE_CALL_PROVIDER_SMOKE_RETEST_COMPLETED__3OF3__SLOT_CLOSED`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_RETEST_RESEALED__PRE_EXECUTION`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_RETEST_COMPLETED__ADJUDICATION_NEXT`
 
-`NEXT_TASK = EXECUTE_FRESH_THREE_CALL_PROVIDER_SMOKE_RETEST`
+`NEXT_TASK = SMOKE_ADJUDICATION_AND_OWNER_DECISION_FOR_FULL_SEALED_V0_1`
 
-The original slot was consumed by its fail-closed first real request. The response-contract clarification (prompt V0_2) and fail-closed observability repair are implemented, tested, rehearsed and a fresh independent retest machine authority has been resealed and is ACTIVE.
+The fresh independent three-call provider-smoke retest completed 3/3 PASS on 2026-08-27 (V0_2 response-contract clarification). The retest slot is consumed/closed; no full 1998-call replay was started.
 
 ## Current exact task authorities and evidence
 
@@ -46,9 +46,13 @@ Current machine-readable authority file (old slot, terminal):
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
 
-Fresh retest machine-readable authority file (ACTIVE):
+Fresh retest machine-readable authority file (terminal, REVOKED after 3/3):
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_SLOT.json`
+
+Fresh retest execution evidence:
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_2026-08-27.md`
 
 Fail-closed real-provider evidence:
 
@@ -70,19 +74,19 @@ Approved post-V0.1 roadmap:
 
 `FRESH_THREE_CALL_RETEST_OWNER_AUTHORITY = APPROVED`
 
-`FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY = ACTIVE`
+`FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_FRESH_THREE_CALL_RETEST_ONLY`
+`REAL_DEEPSEEK_PROVIDER_CALLS = RETEST_COMPLETED_3OF3__SLOT_CLOSED__NO_AUTHORITY_TO_RERUN`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-The original failed request is immutable evidence and is not treated as one of the three calls in the separately authorized fresh retest. The retest begins from the same first sealed wake using a clean pre-smoke state. The fresh retest machine authority (`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_SLOT.json`, version `KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_1`) is bound to the repaired execution commit and the V0_2 prompt identity; the old slot JSON stays `REVOKED` and is never flipped back to its old `ACTIVE` identity.
+The fresh retest completed 3/3 PASS (execution evidence `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_2026-08-27.md`). Both the original slot and the fresh retest slot are terminal/consumed; a further real provider attempt requires a new explicit Owner paid authority. The full V0.1 1998-call replay remains unauthorized and must not be started automatically.
 
 ## Current locks
 
 - original three-call smoke slot: `CONSUMED / CLOSED`;
 - any retry or continuation under the old slot: `LOCKED`;
-- fresh three-call retest provider execution: `ACTIVE__EXACT_THREE_CALL_SLOT_ONLY`;
+- fresh three-call retest provider execution: `CONSUMED / CLOSED (3/3 PASS)`;
 - fourth call, automatic retry or replacement wake inside the retest: `LOCKED`;
 - full V0.1 1998-call provider replay: `LOCKED`;
 - post-V0.1 CU/RB provider replay: `LOCKED`;
