@@ -10,41 +10,45 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = THREE_CALL_PROVIDER_SMOKE_EXECUTION_READY`
+`CURRENT_ACTIVITY = PROVIDER_SMOKE_RESPONSE_CONTRACT_REPAIR_AND_RETEST_PREPARATION`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__EXACT_THREE_CALL_SLOT`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_FAILCLOSED__REPAIR_AUTHORIZED__RETEST_PREEXECUTION`
 
-`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = IMPLEMENT_RESPONSE_CONTRACT_CLARIFICATION_AND_RESEAL_FRESH_THREE_CALL_RETEST`
 
-The Owner has explicitly resumed the exact previously approved three-call DeepSeek provider smoke after governance/context continuity repair.
+The first real provider smoke attempt consumed its original slot and stopped fail-closed on a provider response-schema mismatch. The Owner has approved a serialization-contract clarification and a separate fresh three-call retest after offline repair verification and exact machine-authority resealing.
 
-Current resume authority:
+## Current exact task authorities and evidence
 
-`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RESUME_OWNER_DECISION_2026-08-27.md`
-
-## Current exact task authorities
-
-Current frozen replay authority:
+Frozen V0.1 replay authority:
 
 `docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
 
-Provider-smoke design authority:
+Original provider-smoke design authority:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
 
-Payment/execution authority:
+Consumed original payment/execution authority:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`
 
-Owner resume authority:
+Response-contract clarification authority:
 
-`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RESUME_OWNER_DECISION_2026-08-27.md`
+`docs/reviews/JIANGHE_REPLAY_V0_1_RESPONSE_CONTRACT_CLARIFICATION_OWNER_DECISION_2026-08-27.md`
 
-Current machine-readable slot authority:
+Fresh retest payment/execution authority:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_EXECUTION_AUTHORITY_2026-08-27.md`
+
+Current machine-readable authority file:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
+
+Fail-closed real-provider evidence:
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`
 
 Offline preexecution evidence:
 
@@ -56,37 +60,28 @@ Approved post-V0.1 roadmap:
 
 ## Provider execution state
 
-`PROVIDER_SMOKE_EXECUTION = OWNER_APPROVED__READY_TO_EXECUTE`
+`ORIGINAL_THREE_CALL_SMOKE = CONSUMED__FAILCLOSED_AFTER_ONE_REAL_REQUEST`
 
-`THREE_CALL_SMOKE_MACHINE_AUTHORITY_STATUS = ACTIVE`
+`ORIGINAL_SMOKE_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`THREE_CALL_SMOKE_SLOT = AUTHORIZED_FOR_EXACT_THREE_CALL_EXECUTION_ONLY`
+`FRESH_THREE_CALL_RETEST_OWNER_AUTHORITY = APPROVED__CONDITIONAL_ON_REPAIR_AND_RESEAL`
+
+`FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY = NOT_YET_ACTIVE`
+
+`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED_UNTIL_REPAIR_VERIFIED_AND_NEW_MACHINE_AUTHORITY_ACTIVE`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-Exact paid boundary remains:
+The original failed request is immutable evidence and is not treated as one of the three calls in the separately authorized fresh retest. The retest must begin from the same first sealed wake using a clean pre-smoke state, but only after the response-contract clarification, fail-closed observability repair, tests, mock/loopback rehearsal and exact resealing are complete.
 
-- provider: `deepseek`;
-- model: `deepseek-v4-flash-vision-exp`;
-- max provider calls: `3`;
-- max retries: `0`;
-- max spend: `CNY 3.00`;
-- exactly 4 causal PNGs per call;
-- exactly one provider request per governed wake;
-- forced project-owned restart after successful call 2 before call 3;
-- call 4 forbidden;
-- full 1998-call replay unauthorized.
-
-Credential location remains the Windows current-user environment variable `DEEPSEEK_API_KEY`; secret values must not be printed, logged or committed.
-
-The machine JSON is `ACTIVE` for this exact slot. Before execution, the runner must still pass the pre-network code/prompt/context/renderer/authority guards. Any mismatch fails closed before provider capability is created.
-
-After 3/3 completion or any fail-closed terminal result, this exact paid slot is consumed/closed. A retry or re-run requires new explicit Owner paid authority.
+The currently committed machine JSON remains the terminal old-slot authority (`status = REVOKED`). It must not be flipped back to the old `ACTIVE` identity. The integration lane must generate a new retest authority identity/version bound to the repaired execution-code commit and new prompt identity before any credential/network capability is created.
 
 ## Current locks
 
-- three-call provider smoke execution: `ACTIVE__EXACT_SLOT_ONLY`;
-- fourth provider call/retry/replacement wake: `LOCKED`;
+- original three-call smoke slot: `CONSUMED / CLOSED`;
+- any retry or continuation under the old slot: `LOCKED`;
+- fresh three-call retest provider execution: `PAUSED_PENDING_REPAIR_VERIFICATION_AND_NEW_MACHINE_AUTHORITY`;
+- fourth call, automatic retry or replacement wake inside the retest: `LOCKED`;
 - full V0.1 1998-call provider replay: `LOCKED`;
 - post-V0.1 CU/RB provider replay: `LOCKED`;
 - historical execution/PnL semantics: `NOT_YET_APPROVED`;
@@ -98,12 +93,6 @@ After 3/3 completion or any fail-closed terminal result, this exact paid slot is
 - real money/capital funding/real orders: `LOCKED`;
 - automatic product, position-size or capital expansion: `LOCKED`.
 
-## Current continuity facts
+## Continuity rule for the next integration lane
 
-- current GitHub `main` is the dynamic project fact source;
-- `PROJECT_GOVERNANCE.md` owns stable governance/authority ownership;
-- `PROJECT_DIRECTION.md` owns product/research direction;
-- `ARCHITECTURE_BASELINE.md` owns long-lived architecture;
-- `TOOL_REGISTRY.md` owns provider/tool/runtime status, pins and credential-location contract;
-- exact paid/external execution permission is owned by the applicable Owner execution authority plus machine-readable authority;
-- this file alone owns the current activity/phase/locks/next-task summary.
+Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, then this file and the exact authorities/evidence above. Do not merge the stale pre-governance `CURRENT_STATE.md` from the fail-closed worker branch.
