@@ -44,14 +44,6 @@ Architecture direction alone is not evidence that these future modes are ready.
 
 Status: `OPEN_FUTURE_CAPABILITY_AND_EVIDENCE`
 
-## 5. Governance anti-drift enforcement
-
-The repository historically allowed duplicated volatile state and did not mechanically check authority ownership. The governance ownership repair introduces a canonical-owner model and repository consistency checker.
-
-Until that checker is integrated and passing on `main`, governance drift prevention remains incomplete.
-
-Status: `OPEN_UNTIL_GOVERNANCE_REPAIR_ACCEPTED`
-
 ## Maintenance rule
 
 A debt item belongs here only while it is genuinely unresolved and useful for future work.
