@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import unittest
 
 from tools.check_authority_consistency import (
@@ -27,6 +26,26 @@ class AuthorityConsistencyTests(unittest.TestCase):
         self.assertEqual(payload["authority_identity"], _canonical_identity(payload))
         self.assertEqual(payload["status"], "REVOKED")
         self.assertEqual(payload["api_key_env"], "DEEPSEEK_API_KEY")
+
+    def test_owner_windows_user_environment_credential_convention_is_preserved(self) -> None:
+        registry = (REPO_ROOT / "TOOL_REGISTRY.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "LOCAL_PROVIDER_SECRET_STORE = WINDOWS_CURRENT_USER_ENVIRONMENT_VARIABLES",
+            registry,
+        )
+        for variable_name in (
+            "ANTHROPIC_API_KEY",
+            "DASHSCOPE_API_KEY",
+            "DEEPSEEK_API_KEY",
+            "GEMINI_API_KEY",
+            "SILICONFLOW_API_KEY",
+        ):
+            self.assertIn(variable_name, registry)
+        self.assertIn("CREDENTIAL_ENV = DEEPSEEK_API_KEY", registry)
+        self.assertIn(
+            "CREDENTIAL_LOCATION = WINDOWS_CURRENT_USER_ENVIRONMENT_VARIABLES",
+            registry,
+        )
 
 
 if __name__ == "__main__":
