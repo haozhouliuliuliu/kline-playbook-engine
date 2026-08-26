@@ -1,10 +1,16 @@
 # ARCHITECTURE_BASELINE
 
-Status: `CURRENT`
+Status: `CURRENT_ARCHITECTURE`
 
 Product direction authority: `PROJECT_DIRECTION.md`
 
-Execution/promotion detail: `docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_ARCHITECTURE_V0_1.md`
+Current work package / locks / next task: `CURRENT_STATE.md`
+
+Execution/promotion detail:
+
+`docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_ARCHITECTURE_V0_1.md`
+
+This file owns long-lived architecture only. It must not carry current work-package, current phase, paid-slot or next-task values.
 
 ## Core runtime
 
@@ -12,7 +18,7 @@ Execution/promotion detail: `docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_A
 Market Data
 -> Rolling Market State
 -> Attention / Wake Policy
--> Causal 4H/1H/15m/5m Observation
+-> Causal Multi-Timeframe Observation
 -> Context Assembler
    -> Jianghe Canon
    -> Project-Validated Policy
@@ -26,47 +32,56 @@ Market Data
 -> Reconciliation / Safety / Immutable Ledger
 ```
 
-DeepSeek interprets markets and proposes discretionary intent. Deterministic project code owns capital/risk limits, broker/account truth, order lifecycle, reconciliation, safety, request accounting and kill-switch behavior.
+DeepSeek interprets markets and proposes discretionary intent.
+
+Deterministic project code owns capital/risk limits, broker/account truth, order lifecycle, reconciliation, safety, request accounting and kill-switch behavior.
 
 ## Model/runtime boundary
 
-`MODEL_SOURCE = DEEPSEEK_ONLY`
+The active product model source is DeepSeek. Exact provider/model status, Harness pin, retry semantics and credential seam are owned by:
 
-`CURRENT_MODEL = deepseek-v4-flash-vision-exp`
+`TOOL_REGISTRY.md`
 
-`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
+The runtime shell may host sessions, tools and UI, but it does not own core trader semantics. Trader cognition, project memory, evidence and policy remain project-owned and portable.
 
-Pinned shell:
-
-- version `0.1.1-rc.2`;
-- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`;
-- project fail-closed transport patch under `integrations/deepseek-harness/`;
-- general retry `maxRetries: 0`.
-
-Deployment baseline: `LOCAL_WORKSTATION_FIRST`.
-
-Harness hosts sessions/tools/UI but does not own core trader semantics. The trader core remains project-owned and portable.
+Deployment baseline is local-workstation first unless later architecture authority changes it.
 
 ## Observation semantics
 
-Active stack: `4H / 1H / 15m / 5m`.
+The current Jianghe observation design uses causal multi-timeframe context. Exact active timeframes and replay-specific aggregation rules are governed by the applicable frozen task authority/protocol.
 
-4H role: `BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`.
+Long-lived rules:
 
-All decision-time observations are causal. Historical replay uses governed completed data; real-time mode must preserve the same causal availability boundary.
+- decision-time observation must be causal;
+- future bars may not enter the current observation;
+- historical replay and real-time operation must preserve the same information-availability principle;
+- chart rendering is project-owned and auditable;
+- model-visible annotations/hypotheses are not market facts.
 
 ## Persistent trader state
 
-Project-owned persistent state includes attention/state, timeframe interpretations, hypotheses, key/watch/invalidation regions, family/setup candidate, expected trigger, open questions, meaningful prior decisions, journal, hypothesis memory and validated-policy references.
+Project-owned persistent state may include:
 
-Every mutation is attributable and auditable. Restart preserves governed working state.
+- attention/state;
+- timeframe interpretations;
+- hypotheses;
+- key/watch/invalidation regions;
+- family/setup candidate;
+- expected trigger;
+- open questions;
+- meaningful prior decisions;
+- journal;
+- hypothesis memory;
+- validated-policy references.
+
+Every mutation is attributable and auditable. Restart must preserve governed working state.
 
 ## Knowledge separation
 
-- `JIANGHE_CANON` — read-only source truth.
-- `PROJECT_VALIDATED_POLICY` — independently validated extensions.
-- `DS_HYPOTHESIS_MEMORY` — candidate ideas only.
-- `DS_WORKING_MEMORY` — current market state/hypotheses.
+- `JIANGHE_CANON` — read-only source truth;
+- `PROJECT_VALIDATED_POLICY` — independently validated extensions;
+- `DS_HYPOTHESIS_MEMORY` — candidate ideas only;
+- `DS_WORKING_MEMORY` — current market state/hypotheses;
 - `DS_JOURNAL` — reflection, never source truth.
 
 ## Execution-mode architecture direction
@@ -75,11 +90,11 @@ Future execution modes share the same cognition/risk/OMS contracts:
 
 `EXECUTION_MODE = SHADOW / PAPER / REAL`
 
-- `SHADOW`: no external order; diagnostics/fault isolation/safe degradation; not a mandatory promotion stage.
-- `PAPER`: real-time end-to-end execution semantics through a paper/simulation account.
+- `SHADOW`: no external order; diagnostics/fault isolation/safe degradation; not a mandatory promotion stage;
+- `PAPER`: real-time end-to-end execution semantics through a paper/simulation account;
 - `REAL`: real broker/account adapter under exact external-risk authority.
 
-Normal promotion path after historical research:
+Normal product-level promotion direction is:
 
 `HISTORICAL REPLAY -> REAL-TIME PAPER -> CONSTRAINED REAL MONEY`
 
@@ -87,7 +102,9 @@ Switching PAPER -> REAL should primarily change account/execution authority and 
 
 ## OMS/reconciliation boundary
 
-Each order intent must be idempotently bound to trader/wake/decision/risk/order identities. Restart/reconnect must reconstruct account/order truth before new risk.
+Each order intent must be idempotently bound to trader/wake/decision/risk/order identities.
+
+Restart/reconnect must reconstruct account/order truth before new risk.
 
 Truth hierarchy:
 
@@ -97,20 +114,14 @@ Unknown order/position/account state means no new risk and fail-closed adjudicat
 
 ## Deterministic risk boundary
 
-RiskGate has final veto. Required future controls include product whitelist, max position, add-on permission, per-trade/daily/cumulative risk, margin/headroom, duplicate prevention, reconciliation, data/provider/runtime health and kill-switch state.
+RiskGate has final veto.
+
+Required controls for consequential execution include product whitelist, position limits, add-on permission, risk limits, margin/headroom, duplicate prevention, reconciliation, data/provider/runtime health and kill-switch state.
 
 Permanent numeric limits are not defined by architecture and require Owner authority before real-money use.
 
-## Current work package boundary
+## Current-state pointer
 
-`CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
+For current implementation phase, execution hold/permission, locks and next task, read only:
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
-
-Current V0.1 remains intent-only with `PAPER_EXECUTION = DEFERRED`.
-
-The post-V0.1 roadmap is approved as future direction only. Architecture grants no provider spend beyond the exact three-call smoke slot authorized by `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`, and no shadow, paper, broker/account or real-money permission.
-
-Current next task:
-
-`EXECUTE_THREE_CALL_PROVIDER_SMOKE`.
+`CURRENT_STATE.md`
