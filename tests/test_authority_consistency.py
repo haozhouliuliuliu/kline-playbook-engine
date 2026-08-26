@@ -23,8 +23,13 @@ class AuthorityConsistencyTests(unittest.TestCase):
     def test_machine_authority_identity_is_self_consistent(self) -> None:
         path = REPO_ROOT / SMOKE_AUTHORITY_PATH
         payload = json.loads(path.read_text(encoding="utf-8"))
+        state = (REPO_ROOT / "CURRENT_STATE.md").read_text(encoding="utf-8")
+        machine_status = _assignment_values(
+            state, "THREE_CALL_SMOKE_MACHINE_AUTHORITY_STATUS"
+        )
         self.assertEqual(payload["authority_identity"], _canonical_identity(payload))
-        self.assertEqual(payload["status"], "REVOKED")
+        self.assertEqual(machine_status, [payload["status"]])
+        self.assertIn(payload["status"], {"PENDING_OWNER_PAYMENT_CONFIRMATION", "ACTIVE", "REVOKED"})
         self.assertEqual(payload["api_key_env"], "DEEPSEEK_API_KEY")
 
     def test_owner_windows_user_environment_credential_convention_is_preserved(self) -> None:

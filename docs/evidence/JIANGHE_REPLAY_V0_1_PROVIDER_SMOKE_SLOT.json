@@ -1,6 +1,6 @@
 {
   "api_key_env": "DEEPSEEK_API_KEY",
-  "authority_identity": "6622351c707538c0db881cf69e1dbd388ae2f1c339d478e67932c65d247b3ce9",
+  "authority_identity": "8583694f4164c7983f40d784bf21e5582b1ae7c96ca7b1fef902abf155fae905",
   "authority_version": "KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_1",
   "burn_in_days": [
     "2024-04-10",
@@ -91,7 +91,7 @@
       "wake_identity": "c5d018984b6c67b3a0e3011f00a92797ffb22f95a312fca20cb64c00a77ee7f8"
     }
   },
-  "status": "REVOKED",
+  "status": "ACTIVE",
   "wake_policy": "EVERY_NEW_CLOSED_5M_BAR",
   "work_package": "SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1"
 }
