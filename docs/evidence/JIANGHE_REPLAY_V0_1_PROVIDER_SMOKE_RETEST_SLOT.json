@@ -1,0 +1,97 @@
+{
+  "api_key_env": "DEEPSEEK_API_KEY",
+  "authority_identity": "93ab34e088bdece221625dee23d30ee6d4330137365a19def154e52940ff368c",
+  "authority_version": "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_1",
+  "burn_in_days": [
+    "2024-04-10",
+    "2024-04-11"
+  ],
+  "concrete_contract": "SHFE.cu2406",
+  "context_policy_identity": "98262c9ab0614b4145fe56cb8746a44d754d03a38a25584aba810991cd666371",
+  "created_at": "2026-08-27T12:00:00.000000+00:00",
+  "exact_slice_seal_identity": "e9bbd232fd05d320a24c80ac5570a94abdf6d4c3a167cdd5c46f4426a6c84156",
+  "execution_code_commit": "4cf9600d834dd7df9e0526b2583a07e42a4b996e",
+  "full_replay_1998_calls_authorized": false,
+  "full_replay_authorized": false,
+  "harness_commit": "b150a551b8d465e31e418e1b2eaf5e79bbb7d28e",
+  "harness_version": "0.1.1-rc.2",
+  "images_per_call": 4,
+  "max_provider_calls": 3,
+  "max_retries": 0,
+  "max_spend_cny": "3.00",
+  "measurement_days": [
+    "2024-04-12",
+    "2024-04-15",
+    "2024-04-16",
+    "2024-04-17",
+    "2024-04-18",
+    "2024-04-19",
+    "2024-04-22",
+    "2024-04-23",
+    "2024-04-24",
+    "2024-04-25",
+    "2024-04-26",
+    "2024-04-29",
+    "2024-04-30",
+    "2024-05-06",
+    "2024-05-07",
+    "2024-05-08",
+    "2024-05-09",
+    "2024-05-10",
+    "2024-05-13",
+    "2024-05-14"
+  ],
+  "model": "deepseek-v4-flash-vision-exp",
+  "owner_payment_confirmation": true,
+  "prior_history_days": [
+    "2024-03-11",
+    "2024-03-12",
+    "2024-03-13",
+    "2024-03-14",
+    "2024-03-15",
+    "2024-03-18",
+    "2024-03-19",
+    "2024-03-20",
+    "2024-03-21",
+    "2024-03-22",
+    "2024-03-25",
+    "2024-03-26",
+    "2024-03-27",
+    "2024-03-28",
+    "2024-03-29",
+    "2024-04-01",
+    "2024-04-02",
+    "2024-04-03",
+    "2024-04-08",
+    "2024-04-09"
+  ],
+  "product": "cu",
+  "project_transport_patch": "integrations/deepseek-harness/",
+  "prompt_identities": {
+    "decision_prompt_sha256": "181387fd77090ff829339680a57d0c48f665627297bd77772c6e8b7b600a7e1a",
+    "prompt_contract_identity": "d5fd8384864bc4e0b2ff5198d21f0c4c522a33662babb1b13824c87d5420bac2",
+    "prompt_contract_version": "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2",
+    "system_prompt_sha256": "592cdc16cb1486b7a310cd9370cd6cfbad924b0cd9055548953e0e2871145f2b"
+  },
+  "provider": "deepseek",
+  "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1:2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+  "restart_after_call": 2,
+  "slice_identity": "347291481968b1884635a11aa1da985d9aad1b3fb854a16087bbca662bd85a06",
+  "smoke_wakes": {
+    "call_1": {
+      "close_time": "2024-04-09T13:05:00.000000+00:00",
+      "wake_identity": "4000fa69c0eaeb4f3d125b31bdd09b052e1b17efc52930c67a2bedc5c53e1105"
+    },
+    "call_2": {
+      "close_time": "2024-04-09T13:10:00.000000+00:00",
+      "wake_identity": "b4785ee84a871e198d4ed72b18d87379ab4c345a7dcea0a6fe6fd1af40543962"
+    },
+    "call_3": {
+      "close_time": "2024-04-09T13:15:00.000000+00:00",
+      "wake_identity": "149e93dc899b9e63ff08104a8222535f68561639306fcb08cc260619e19de94b"
+    }
+  },
+  "status": "ACTIVE",
+  "wake_policy": "EVERY_NEW_CLOSED_5M_BAR",
+  "work_package": "SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1"
+}

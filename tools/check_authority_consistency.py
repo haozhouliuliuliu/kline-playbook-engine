@@ -72,6 +72,7 @@ TAKEOVER_OWNER_ORDER = (
 )
 
 SMOKE_AUTHORITY_PATH = Path("docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json")
+SMOKE_RETEST_AUTHORITY_PATH = Path("docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_SLOT.json")
 
 _BACKTICK_PATH = re.compile(
     r"`((?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.(?:md|json|py|yml|yaml))`"
@@ -225,6 +226,46 @@ def _check_smoke_machine_authority(root: Path) -> Iterable[str]:
             )
 
 
+def _check_retest_machine_authority(root: Path) -> Iterable[str]:
+    """Validate the fresh three-call retest machine authority when it exists."""
+    path = root / SMOKE_RETEST_AUTHORITY_PATH
+    if not path.is_file():
+        return
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        yield f"{SMOKE_RETEST_AUTHORITY_PATH} must be a JSON object"
+        return
+
+    stored_identity = payload.get("authority_identity")
+    computed_identity = _canonical_identity(payload)
+    if stored_identity != computed_identity:
+        yield (
+            f"{SMOKE_RETEST_AUTHORITY_PATH} authority_identity mismatch: "
+            f"stored={stored_identity!r} computed={computed_identity}"
+        )
+    if payload.get("api_key_env") != "DEEPSEEK_API_KEY":
+        yield f"{SMOKE_RETEST_AUTHORITY_PATH} must bind api_key_env=DEEPSEEK_API_KEY"
+    if payload.get("status") not in {
+        "PENDING_OWNER_PAYMENT_CONFIRMATION", "ACTIVE", "REVOKED",
+    }:
+        yield f"{SMOKE_RETEST_AUTHORITY_PATH} has unsupported status"
+
+    state = _read(root, "CURRENT_STATE.md")
+    fresh = _assignment_values(state, "FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY")
+    if fresh:
+        expected = {
+            "ACTIVE": "ACTIVE",
+            "REVOKED": "REVOKED__TERMINAL",
+            "PENDING_OWNER_PAYMENT_CONFIRMATION": "NOT_YET_ACTIVE",
+        }[payload.get("status")]
+        if expected not in fresh[0]:
+            yield (
+                f"CURRENT_STATE.md fresh retest machine authority does not match "
+                f"{SMOKE_RETEST_AUTHORITY_PATH}: state={fresh[0]!r} json={payload.get('status')!r}"
+            )
+
+
 def check_repository(root: Path = REPO_ROOT) -> list[str]:
     checks = (
         _check_required_files,
@@ -234,6 +275,7 @@ def check_repository(root: Path = REPO_ROOT) -> list[str]:
         _check_tool_registry,
         _check_governance_identity,
         _check_smoke_machine_authority,
+        _check_retest_machine_authority,
     )
     errors: list[str] = []
     for check in checks:

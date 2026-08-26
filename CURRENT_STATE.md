@@ -10,15 +10,15 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = PROVIDER_SMOKE_RESPONSE_CONTRACT_REPAIR_AND_RETEST_PREPARATION`
+`CURRENT_ACTIVITY = THREE_CALL_PROVIDER_SMOKE_RETEST_RESEALED__PRE_EXECUTION`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_FAILCLOSED__REPAIR_AUTHORIZED__RETEST_PREEXECUTION`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_RETEST_RESEALED__PRE_EXECUTION`
 
-`NEXT_TASK = IMPLEMENT_RESPONSE_CONTRACT_CLARIFICATION_AND_RESEAL_FRESH_THREE_CALL_RETEST`
+`NEXT_TASK = EXECUTE_FRESH_THREE_CALL_PROVIDER_SMOKE_RETEST`
 
-The first real provider smoke attempt consumed its original slot and stopped fail-closed on a provider response-schema mismatch. The Owner has approved a serialization-contract clarification and a separate fresh three-call retest after offline repair verification and exact machine-authority resealing.
+The original slot was consumed by its fail-closed first real request. The response-contract clarification (prompt V0_2) and fail-closed observability repair are implemented, tested, rehearsed and a fresh independent retest machine authority has been resealed and is ACTIVE.
 
 ## Current exact task authorities and evidence
 
@@ -42,9 +42,13 @@ Fresh retest payment/execution authority:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_EXECUTION_AUTHORITY_2026-08-27.md`
 
-Current machine-readable authority file:
+Current machine-readable authority file (old slot, terminal):
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
+
+Fresh retest machine-readable authority file (ACTIVE):
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_SLOT.json`
 
 Fail-closed real-provider evidence:
 
@@ -64,23 +68,21 @@ Approved post-V0.1 roadmap:
 
 `ORIGINAL_SMOKE_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`FRESH_THREE_CALL_RETEST_OWNER_AUTHORITY = APPROVED__CONDITIONAL_ON_REPAIR_AND_RESEAL`
+`FRESH_THREE_CALL_RETEST_OWNER_AUTHORITY = APPROVED`
 
-`FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY = NOT_YET_ACTIVE`
+`FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY = ACTIVE`
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED_UNTIL_REPAIR_VERIFIED_AND_NEW_MACHINE_AUTHORITY_ACTIVE`
+`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_FRESH_THREE_CALL_RETEST_ONLY`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-The original failed request is immutable evidence and is not treated as one of the three calls in the separately authorized fresh retest. The retest must begin from the same first sealed wake using a clean pre-smoke state, but only after the response-contract clarification, fail-closed observability repair, tests, mock/loopback rehearsal and exact resealing are complete.
-
-The currently committed machine JSON remains the terminal old-slot authority (`status = REVOKED`). It must not be flipped back to the old `ACTIVE` identity. The integration lane must generate a new retest authority identity/version bound to the repaired execution-code commit and new prompt identity before any credential/network capability is created.
+The original failed request is immutable evidence and is not treated as one of the three calls in the separately authorized fresh retest. The retest begins from the same first sealed wake using a clean pre-smoke state. The fresh retest machine authority (`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_SLOT.json`, version `KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_1`) is bound to the repaired execution commit and the V0_2 prompt identity; the old slot JSON stays `REVOKED` and is never flipped back to its old `ACTIVE` identity.
 
 ## Current locks
 
 - original three-call smoke slot: `CONSUMED / CLOSED`;
 - any retry or continuation under the old slot: `LOCKED`;
-- fresh three-call retest provider execution: `PAUSED_PENDING_REPAIR_VERIFICATION_AND_NEW_MACHINE_AUTHORITY`;
+- fresh three-call retest provider execution: `ACTIVE__EXACT_THREE_CALL_SLOT_ONLY`;
 - fourth call, automatic retry or replacement wake inside the retest: `LOCKED`;
 - full V0.1 1998-call provider replay: `LOCKED`;
 - post-V0.1 CU/RB provider replay: `LOCKED`;
