@@ -181,7 +181,50 @@ Revalidation trigger:
 
 Persistent-state schema change, ledger schema change, restart/reconciliation failure, or migration to another storage engine.
 
-## 6. GitHub Actions repository verification
+## 6. faster-whisper
+
+`STATUS = ADOPTED`
+
+Role:
+
+`LOCAL_ASR_FOR_SOURCE_EVIDENCE_TRANSPORT_WHEN_NATIVE_SUBTITLE_UNAVAILABLE`
+
+Verified identity:
+
+- package: `faster-whisper 1.2.1`
+- model: `Systran/faster-whisper-small`
+- execution profile: CPU / `int8`
+- verification evidence commit: `1027ea40d65ff7d86e9f65ea8bd38654fd654377`
+
+Adopted scope:
+
+- local, free ASR transport for source review only when native subtitles are unavailable;
+- preserve timestamped transcript and low-confidence disclosure;
+- ASR output is evidence transport, not semantic authority.
+
+Revalidation trigger:
+
+Model identity, package/runtime version, CPU/int8 configuration, timestamp-validation rule, or source-review workflow changes materially.
+
+## 7. DuckDB
+
+`STATUS = CANDIDATE`
+
+Role:
+
+`OPTIONAL_RESEARCH_QUERY_ENGINE`
+
+Activation:
+
+`DEFERRED_UNTIL_A_REAL_CURRENT_QUERY_CAPABILITY_GAP_IS_DEMONSTRATED`
+
+It is not currently installed/adopted as required project infrastructure.
+
+Revalidation trigger:
+
+A concrete research-query workload demonstrates that current Parquet/Python/SQLite paths are materially insufficient.
+
+## 8. GitHub Actions repository verification
 
 `STATUS = ADOPTED`
 
@@ -201,7 +244,7 @@ Revalidation trigger:
 
 Workflow semantics, runner platform, dependency/runtime pin, or Harness admission path changes materially.
 
-## 7. Local worker/helper surfaces
+## 9. Local worker/helper surfaces
 
 WorkBuddy and local VS Code/worker helpers are not project authority by themselves.
 
