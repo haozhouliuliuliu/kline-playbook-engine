@@ -220,6 +220,8 @@ class SmokeHarnessTransport:
         *,
         bridge: HarnessOneShotBridge,
         image_bundles: tuple[tuple[bytes, ...], ...],
+        expected_provider: str,
+        expected_model: str,
     ) -> None:
         # Duck-typed so tests can substitute a fake one-shot bridge; production
         # construction always uses a HarnessOneShotBridge (which itself enforces
@@ -228,8 +230,14 @@ class SmokeHarnessTransport:
             raise TypeError("SmokeHarnessTransport requires a one-shot bridge with execute()")
         if len(image_bundles) != 3 or any(len(bundle) != 4 for bundle in image_bundles):
             raise ValueError("provider smoke transport requires exactly three four-PNG bundles")
+        if not isinstance(expected_provider, str) or not expected_provider:
+            raise ValueError("SmokeHarnessTransport requires the exact expected provider")
+        if not isinstance(expected_model, str) or not expected_model:
+            raise ValueError("SmokeHarnessTransport requires the exact expected model")
         self._bridge = bridge
         self._bundles = list(image_bundles)
+        self._expected_provider = expected_provider
+        self._expected_model = expected_model
         self.calls: list[SmokeBridgeResult] = []
 
     @property
@@ -249,6 +257,25 @@ class SmokeHarnessTransport:
         self.calls.append(result)
         if result.status != "OK" or result.error:
             raise RuntimeError(f"provider smoke bridge failed closed: {result.error}")
+        # Post-call fail-closed: exact provider/model, exactly four images, exactly one request.
+        if result.provider != self._expected_provider:
+            raise RuntimeError(
+                f"provider smoke bridge returned unexpected provider {result.provider!r}; "
+                f"expected {self._expected_provider!r}"
+            )
+        if result.model != self._expected_model:
+            raise RuntimeError(
+                f"provider smoke bridge returned unexpected model {result.model!r}; "
+                f"expected {self._expected_model!r}"
+            )
+        if result.image_count != 4:
+            raise RuntimeError(
+                f"provider smoke bridge must attach exactly 4 images; got {result.image_count}"
+            )
+        if result.request_count != 1:
+            raise RuntimeError(
+                f"provider smoke bridge must make exactly 1 request; got {result.request_count}"
+            )
         return result.raw_response_text
 
 

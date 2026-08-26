@@ -8,16 +8,22 @@ This runner is the fail-closed execution gate for
 2. refuses to proceed (before any network/provider initialization, before reading
    ``DEEPSEEK_API_KEY``, before constructing any adapter) unless the authority is
    ACTIVE with ``owner_payment_confirmation=true``;
-3. binds the exact sealed slice and the exact first-three smoke wakes;
-4. renders four PNGs per wake from the causal 4H/1H/15m/5m context;
-5. drives call 1 -> call 2 -> project-owned restart -> call 3 via the pinned
+3. pre-network: verifies the execution-critical working tree still matches
+   ``execution_code_commit`` and mechanically binds live prompt / context-policy /
+   renderer / ``DEEPSEEK_API_KEY`` identities to the authority;
+4. binds the exact sealed slice and the exact first-three smoke wakes;
+5. renders four PNGs per wake from the causal 4H/1H/15m/5m context;
+6. drives call 1 -> call 2 -> project-owned restart -> call 3 via the pinned
    Harness one-shot bridge (or a deterministic mock for zero-cost rehearsal);
-6. forces a stop after call 3 — a fourth request is impossible by construction;
-7. writes machine-readable smoke evidence (no secrets).
+7. fails closed after each Harness call unless exact provider/model, 4 images,
+   and exactly 1 request are returned;
+8. forces a stop after call 3 — a fourth request is impossible by construction;
+9. writes machine-readable smoke evidence (no secrets).
 
 In the current frozen state the authority is PENDING, so the runner always exits
 at step 2.  ``--transport mock`` plus a synthetic ACTIVE authority (test fixture
-only) exercises the full three-call chain with zero cost.
+only) exercises the full three-call chain with zero cost.  ``--base-url`` is
+loopback-only and requires the explicit ``--allow-test-base-url`` test flag.
 """
 from __future__ import annotations
 
@@ -67,6 +73,11 @@ from src.replay_v0_1_smoke_bridge import (
     SmokeDeterministicTransport,
     SmokeHarnessTransport,
 )
+from src.replay_v0_1_smoke_guard import (
+    bind_runtime_identities_to_authority,
+    validate_test_base_url,
+    verify_execution_code_bound,
+)
 from src.replay_v0_1_smoke_visual import render_wake_charts
 
 PROVIDER_SMOKE_RUNNER_VERSION = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RUNNER_V0_1"
@@ -87,7 +98,9 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--harness-root", type=Path, default=None,
                    help="pinned DeepSeek Harness checkout root (required for --transport harness)")
     p.add_argument("--base-url", type=str, default=None,
-                   help="optional provider endpoint override (zero-cost local fake server tests)")
+                   help="loopback-only provider endpoint override; requires --allow-test-base-url")
+    p.add_argument("--allow-test-base-url", action="store_true",
+                   help="permit --base-url only for loopback test servers (test-only, never production)")
     return p
 
 
@@ -243,14 +256,28 @@ def main() -> int:
         sys.stdout.write(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
         return 1
 
-    # --- 2. State/output hygiene (prevents hidden reruns / silent overwrite). ---
+    # --- 2. Pre-network code-binding + live-identity binding (no provider capability yet). ---
+    verify_execution_code_bound(
+        repo_root=REPO_ROOT,
+        execution_code_commit=authority.execution_code_commit,
+    )
+    guard_renderer = JiangheVisualRenderer()
+    bind_runtime_identities_to_authority(
+        authority=authority,
+        prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
+        context_policy_identity=context_policy_identity(),
+        renderer_identity=f"{RENDERER_VERSION}:{guard_renderer.config.identity}",
+        api_key_env=authority.api_key_env,
+    )
+
+    # --- 3. State/output hygiene (prevents hidden reruns / silent overwrite). ---
     if state_dir.exists() and any(state_dir.iterdir()):
         raise ValueError("provider smoke state-dir must be new or empty; hidden reruns are forbidden")
     if output.exists():
         raise ValueError("provider smoke output already exists; evidence must not be silently overwritten")
     state_dir.mkdir(parents=True, exist_ok=True)
 
-    # --- 3. Build the sealed slice + causal context + governed steps. ---
+    # --- 4. Build the sealed slice + causal context + governed steps. ---
     calendar_path = REPO_ROOT / "docs/evidence/CANONICAL_TRADING_CALENDAR.json"
     sessions_path = REPO_ROOT / "docs/evidence/CANONICAL_SESSION_SCHEDULES.json"
     e07_path = REPO_ROOT / "docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_V0_1.json"
@@ -297,12 +324,12 @@ def main() -> int:
     if len(smoke_steps) != 3:
         raise ValueError("provider smoke requires at least three governed wakes in the sealed slice")
 
-    # --- 4. Build runtime factory + renderer (before any network capability). ---
+    # --- 5. Build runtime factory + renderer (before any network capability). ---
     runtime_factory, trader_identity, runtime_contract, renderer = _build_runtime_factory(
         repo_root=REPO_ROOT, state_dir=state_dir, causal_policy_identity=context_policy_identity(),
     )
 
-    # --- 5. Render the four-PNG bundle per smoke wake (deterministic). ---
+    # --- 6. Render the four-PNG bundle per smoke wake (deterministic). ---
     rendered_per_step = tuple(
         render_wake_charts(
             bars=step.context_bars, product=seal.slice.product,
@@ -312,17 +339,20 @@ def main() -> int:
         for step in smoke_steps
     )
 
-    # --- 6. Build transport + orchestrator. ---
+    # --- 7. Build transport + orchestrator. ---
     if args.transport == "harness":
         if not args.harness_root:
             raise ValueError("--transport harness requires --harness-root")
+        base_url = validate_test_base_url(args.base_url, allow_test=args.allow_test_base_url)
         bridge = HarnessOneShotBridge(
             authority=authority, harness_root=args.harness_root, repo_root=REPO_ROOT,
-            api_key_env=authority.api_key_env, base_url=args.base_url,
+            api_key_env=authority.api_key_env, base_url=base_url,
         )
         transport = SmokeHarnessTransport(
             bridge=bridge,
             image_bundles=tuple(rendered.png_bytes for rendered in rendered_per_step),
+            expected_provider=authority.provider,
+            expected_model=authority.model,
         )
     else:
         transport = SmokeDeterministicTransport(provider_admitted=True)
@@ -336,7 +366,7 @@ def main() -> int:
         renderer=renderer,
     )
 
-    # --- 7. Drive call 1 -> call 2 -> forced restart -> call 3. ---
+    # --- 8. Drive call 1 -> call 2 -> forced restart -> call 3. ---
     restart_before_identity: str | None = None
     try:
         smoke_day = smoke_steps[0].trading_day
@@ -354,7 +384,7 @@ def main() -> int:
     finally:
         orchestrator.runtime.close()
 
-    # --- 8. Verify exact smoke wake binding against authority. ---
+    # --- 9. Verify exact smoke wake binding against authority. ---
     bindings = orchestrator.list_step_bindings()
     if len(bindings) != 3:
         raise ValueError("provider smoke must produce exactly three governed step bindings")
@@ -365,7 +395,7 @@ def main() -> int:
                 f"actual={binding.wake_identity}"
             )
 
-    # --- 9. Per-call usage / provider request ids (harness only; mock stays empty). ---
+    # --- 10. Per-call usage / provider request ids (harness only; mock stays empty). ---
     if args.transport == "harness":
         bridge_results = transport.calls
         per_call_usage = [dict(item.token_usage) for item in bridge_results]

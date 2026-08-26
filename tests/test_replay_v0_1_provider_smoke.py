@@ -10,6 +10,7 @@ credential is ever read.
 from __future__ import annotations
 
 from datetime import date, datetime, time, timezone
+from decimal import Decimal
 from pathlib import Path
 import json
 import subprocess
@@ -44,6 +45,13 @@ from src.replay_v0_1_smoke_visual import (
     ACTIVE_SMOKE_TIMEFRAMES,
     render_wake_charts,
 )
+from src.replay_v0_1_smoke_guard import (
+    EXECUTION_CRITICAL_PATHS,
+    bind_runtime_identities_to_authority,
+    positive_finite_decimal,
+    validate_test_base_url,
+    verify_execution_code_bound,
+)
 from src.persistent_deepseek_runtime import (
     CURRENT_MODEL,
     PINNED_HARNESS_COMMIT,
@@ -65,6 +73,17 @@ REAL_DEEPSEEK_PROVIDER_CALLS = 0
 
 def _day_start(day: date, hour: int = 9) -> datetime:
     return datetime.combine(day, time(hour), tzinfo=TZ)
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _git_rev(repo_root: Path, rev: str) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(repo_root), "rev-parse", rev],
+        capture_output=True, text=True, check=True,
+    )
+    return completed.stdout.strip()
 
 
 def _authority_payload(
@@ -281,7 +300,7 @@ class ProviderSmokeTransportTests(unittest.TestCase):
             (b"png-2a", b"png-2b", b"png-2c", b"png-2d"),
             (b"png-3a", b"png-3b", b"png-3c", b"png-3d"),
         )
-        transport = SmokeHarnessTransport(bridge=bridge, image_bundles=bundles)  # type: ignore[arg-type]
+        transport = SmokeHarnessTransport(bridge=bridge, image_bundles=bundles, expected_provider=PROVIDER, expected_model=CURRENT_MODEL)  # type: ignore[arg-type]
         self.assertTrue(transport.provider_admitted)
         self.assertFalse(transport.mock)
         for index, expected_bundle in enumerate(bundles, start=1):
@@ -381,7 +400,7 @@ class ProviderSmokeThreeCallMockChainTests(unittest.TestCase):
                 self.assertEqual(fresh_fixture.identity.identity, fixture.identity.identity)
                 payload = _authority_payload(
                     status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
-                    max_spend_cny="TEST_CNY_1_00", smoke_wakes=wakes,
+                    max_spend_cny="1.00", smoke_wakes=wakes,
                 )
                 authority = load_provider_smoke_authority(_write_authority(root, payload))
                 assert_smoke_authority_active(authority)
@@ -422,6 +441,120 @@ class ProviderSmokeThreeCallMockChainTests(unittest.TestCase):
                         rerun.run_wake_step(steps[3])
                 finally:
                     rerun.runtime.close()
+
+
+class ProviderSmokeGuardTests(unittest.TestCase):
+    def test_execution_code_bound_passes_at_clean_head(self) -> None:
+        head = _git_rev(REPO_ROOT, "HEAD")
+        # With a clean worktree at HEAD, every execution-critical path must match
+        # the pinned commit (CRLF-normalized). Raises otherwise (fail closed).
+        verify_execution_code_bound(repo_root=REPO_ROOT, execution_code_commit=head)
+
+    def test_execution_code_bound_fails_when_path_missing_at_commit(self) -> None:
+        # origin/main (HEAD~2) predates the smoke modules; binding to it must fail closed.
+        main_head = _git_rev(REPO_ROOT, "HEAD~2")
+        with self.assertRaises(ValueError):
+            verify_execution_code_bound(repo_root=REPO_ROOT, execution_code_commit=main_head)
+
+    def test_execution_code_bound_rejects_bogus_commit(self) -> None:
+        with self.assertRaises(ValueError):
+            verify_execution_code_bound(
+                repo_root=REPO_ROOT, execution_code_commit="0" * 40,
+                critical_paths=EXECUTION_CRITICAL_PATHS,
+            )
+
+    def test_bind_runtime_identities_binds_live_authority(self) -> None:
+        authority = load_provider_smoke_authority(Path("docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json"))
+        renderer = JiangheVisualRenderer()
+        bind_runtime_identities_to_authority(
+            authority=authority,
+            prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
+            context_policy_identity="98262c9ab0614b4145fe56cb8746a44d754d03a38a25584aba810991cd666371",
+            renderer_identity=f"{RENDERER_VERSION}:{renderer.config.identity}",
+            api_key_env="DEEPSEEK_API_KEY",
+        )
+        with self.assertRaises(ValueError):
+            bind_runtime_identities_to_authority(
+                authority=authority,
+                prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
+                context_policy_identity="wrong-context-policy",
+                renderer_identity=f"{RENDERER_VERSION}:{renderer.config.identity}",
+                api_key_env="DEEPSEEK_API_KEY",
+            )
+        with self.assertRaises(ValueError):
+            bind_runtime_identities_to_authority(
+                authority=authority,
+                prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
+                context_policy_identity="98262c9ab0614b4145fe56cb8746a44d754d03a38a25584aba810991cd666371",
+                renderer_identity=f"{RENDERER_VERSION}:{renderer.config.identity}",
+                api_key_env="OPENAI_API_KEY",
+            )
+
+    def test_positive_finite_decimal(self) -> None:
+        self.assertEqual(positive_finite_decimal("1.50", "x"), Decimal("1.50"))
+        self.assertEqual(positive_finite_decimal("0.01", "x"), Decimal("0.01"))
+        for bad in ("PENDING_OWNER_CONFIRMATION", "abc", "0", "-1", "NaN", "Infinity", ""):
+            with self.assertRaises(ValueError):
+                positive_finite_decimal(bad, "max_spend_cny")
+
+    def test_active_max_spend_cny_must_be_positive_finite_decimal(self) -> None:
+        for bad in (SPEND_PENDING, "abc", "0", "-5", "NaN"):
+            with tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaises(ValueError):
+                    payload = _authority_payload(
+                        status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
+                        max_spend_cny=bad,
+                        smoke_wakes=(
+                            ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
+                            ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
+                            ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
+                        ),
+                    )
+                    load_provider_smoke_authority(_write_authority(Path(tmp), payload))
+
+    def test_test_base_url_is_loopback_only_and_gated(self) -> None:
+        self.assertIsNone(validate_test_base_url(None, allow_test=False))
+        with self.assertRaises(ValueError):
+            validate_test_base_url("http://127.0.0.1:8000", allow_test=False)
+        with self.assertRaises(ValueError):
+            validate_test_base_url("https://api.deepseek.com/v1", allow_test=True)
+        self.assertEqual(validate_test_base_url("http://127.0.0.1:56533", allow_test=True), "http://127.0.0.1:56533")
+        self.assertEqual(validate_test_base_url("http://localhost:8000", allow_test=True), "http://localhost:8000")
+
+    def test_harness_transport_fails_closed_on_bad_bridge_result(self) -> None:
+        def result(status="OK", provider=PROVIDER, model=CURRENT_MODEL, image_count=4, request_count=1, error=None):
+            return SmokeBridgeResult(
+                status=status, provider=provider, model=model,
+                raw_response_text=_valid_mock_response(), finish_reason="stop",
+                token_usage={}, provider_request_id=None,
+                image_count=image_count, request_count=request_count, error=error,
+            )
+
+        class ScriptedBridge:
+            def __init__(self, entries) -> None:
+                self._entries = list(entries)
+                self.calls = 0
+
+            def execute(self, **kwargs):
+                self.calls += 1
+                entry = self._entries.pop(0)
+                return entry() if callable(entry) else entry
+
+        bundles = ((b"p", b"p", b"p", b"p"), (b"p", b"p", b"p", b"p"), (b"p", b"p", b"p", b"p"))
+        for bad in (
+            lambda: result(provider="other-provider"),
+            lambda: result(model="other-model"),
+            lambda: result(image_count=3),
+            lambda: result(request_count=2),
+            lambda: result(status="ERROR", error="boom"),
+        ):
+            bridge = ScriptedBridge([bad])
+            transport = SmokeHarnessTransport(
+                bridge=bridge, image_bundles=bundles,
+                expected_provider=PROVIDER, expected_model=CURRENT_MODEL,
+            )
+            with self.assertRaises(RuntimeError):
+                transport.execute(type("R", (), {"system_prompt": "s", "decision_prompt": "d", "context": {}})())
 
 
 if __name__ == "__main__":

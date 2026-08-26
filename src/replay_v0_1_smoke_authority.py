@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
+from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -214,10 +215,19 @@ class ProviderSmokeAuthority:
             raise ValueError("smoke authority must not authorize a full 1998-call replay")
         if not isinstance(self.max_spend_cny, str) or not self.max_spend_cny:
             raise ValueError("smoke authority max_spend_cny must be non-empty")
-        if self.status == SMOKE_STATUS_ACTIVE and self.owner_payment_confirmation is not True:
-            raise ValueError("ACTIVE smoke authority requires owner_payment_confirmation=true")
-        if self.status == SMOKE_STATUS_ACTIVE and self.max_spend_cny == SPEND_PENDING:
-            raise ValueError("ACTIVE smoke authority requires a concrete max_spend_cny")
+        if self.status == SMOKE_STATUS_ACTIVE:
+            if self.owner_payment_confirmation is not True:
+                raise ValueError("ACTIVE smoke authority requires owner_payment_confirmation=true")
+            try:
+                spend = Decimal(self.max_spend_cny)
+            except InvalidOperation as error:
+                raise ValueError(
+                    "ACTIVE smoke authority requires a positive finite max_spend_cny"
+                ) from error
+            if not spend.is_finite() or spend <= 0:
+                raise ValueError(
+                    "ACTIVE smoke authority requires a positive finite max_spend_cny"
+                )
         object.__setattr__(self, "identity", _hash(self.to_payload(include_identity=False)))
 
     def to_payload(self, *, include_identity: bool = True) -> dict[str, object]:

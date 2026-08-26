@@ -58,6 +58,7 @@ jobs:
         run: |
           cp integrations/deepseek-harness/stale-file-fail-closed.spec.ts _harness/packages/llm/llm-deepseek/tests/kpe-stale-file-fail-closed.spec.ts
           cp integrations/deepseek-harness/project-dynamic.spec.ts _harness/packages/examples/agent-spine-demo/tests/kpe-project-dynamic.spec.ts
+          cp integrations/deepseek-harness/replay-v0-1-smoke-bridge.spec.ts _harness/packages/llm/llm-deepseek/tests/kpe-replay-v0-1-smoke-bridge.spec.ts
 
       - name: Prove fail-closed vision transport and zero hidden chat retry
         working-directory: _harness
@@ -72,6 +73,13 @@ jobs:
           CI: 'true'
           DEEPSEEK_API_KEY: ''
         run: pnpm exec vitest run packages/examples/agent-spine-demo/tests/kpe-project-dynamic.spec.ts
+
+      - name: Prove one-wake one-request four-image provider smoke bridge
+        working-directory: _harness
+        env:
+          CI: 'true'
+          DEEPSEEK_API_KEY: ''
+        run: pnpm exec vitest run packages/llm/llm-deepseek/tests/kpe-replay-v0-1-smoke-bridge.spec.ts
 
       # This project gate targets the admitted persistence property itself. Running
       # every upstream SQLite backend timing/mechanics test here couples project
