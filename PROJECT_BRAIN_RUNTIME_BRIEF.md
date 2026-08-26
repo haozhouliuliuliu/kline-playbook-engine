@@ -10,8 +10,8 @@ Before substantive project work:
 2. read `PROJECT_DIRECTION.md`;
 3. read `CURRENT_STATE.md`;
 4. read task-specific authority/evidence;
-5. for spend/execution, additionally refresh the exact executable smoke authority and Owner decision;
-6. never infer current project facts from chat history or obsolete material.
+5. for spend/execution, additionally refresh exact executable authority and Owner decision;
+6. never infer current project facts from chat or stale branches.
 
 ## Current headline
 
@@ -21,10 +21,6 @@ Before substantive project work:
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`
-
-`LOCAL_WORKSTATION_ACCEPTANCE = PASS`
-
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
 `WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
@@ -33,15 +29,18 @@ Before substantive project work:
 
 `WAKE_POLICY = EVERY_NEW_CLOSED_5M_BAR`
 
-`PAPER_EXECUTION = DEFERRED`
+`PAPER_EXECUTION = DEFERRED` in current V0.1.
 
-`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
+Pinned Harness:
 
-`DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
+- version `0.1.1-rc.2`;
+- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`;
+- project fail-closed patch under `integrations/deepseek-harness/`;
+- `maxRetries = 0`.
 
-## Current evidence state
+## Current V0.1 evidence
 
-Offline V0.1 preexecution gates are complete:
+Offline preexecution evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PREEXECUTION_EVIDENCE_2026-08-26.md`
 
@@ -49,18 +48,17 @@ Offline V0.1 preexecution gates are complete:
 
 `FULL_EXACT_SLICE_MOCK_DRY_RUN = PASS`
 
-Exact sealed replay:
+Sealed V0.1:
 
-- product `cu`
-- contract `SHFE.cu2406`
-- 2 burn-in + 20 measurement days
-- 1998 governed 5m wakes
-- one persistent trader
-- R1 verified
-- R2 `NOT_OBSERVED` permitted by frozen design
-- real provider calls `0`
+- `cu / SHFE.cu2406`;
+- 20 prior days;
+- 2 burn-in + 20 measurement days;
+- 1998 governed wakes;
+- R1 verified;
+- R2 `NOT_OBSERVED` permitted by frozen design;
+- real provider calls so far `0`.
 
-## Provider smoke boundary
+## Current three-call smoke boundary
 
 Owner decision:
 
@@ -70,45 +68,18 @@ Machine authority:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
 
-The smoke preparation is complete and merged:
+Preparation is complete and CI-verified:
 
-`PROVIDER_SMOKE_PREPARATION = READY`
-
-Frozen smoke scope:
-
-- first 3 governed wakes of the sealed slice only;
-- exact model `deepseek-v4-flash-vision-exp`;
-- exactly four causal PNGs per request: `4H / 1H / 15m / 5m`;
-- exactly one provider request per wake;
-- `maxRetries = 0`;
-- no hidden second request;
-- forced project-owned restart after successful call 2, before call 3;
+- first 3 governed wakes;
+- 4 causal PNGs per call;
+- one provider request per wake;
+- zero retries;
+- forced restart after successful call 2;
 - call 4 impossible;
+- execution code / prompt / context / renderer identities bound;
 - full 1998-call replay unauthorized.
 
-Paid-safety guards include:
-
-- authority must be ACTIVE before credentials/network capability;
-- execution-critical working tree must match the full bound execution commit;
-- prompt/context/renderer/API-key identities must match authority;
-- paid production endpoint cannot be overridden;
-- Harness result must report exact provider/model, 4 images and 1 request;
-- ACTIVE `max_spend_cny` must be positive and finite.
-
-Pinned Harness:
-
-- version `0.1.1-rc.2`;
-- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`;
-- project fail-closed patch under `integrations/deepseek-harness/`;
-- retry policy `mode: normal`, `maxRetries: 0`.
-
-Final smoke-preparation CI passed Repository CI and DeepSeek Harness Dynamic Admission including the dedicated one-wake/one-request/four-image bridge gate.
-
-## Exact next task
-
-`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
-
-Current machine authority is still:
+Current machine authority remains:
 
 `status = PENDING_OWNER_PAYMENT_CONFIRMATION`
 
@@ -116,20 +87,57 @@ Current machine authority is still:
 
 `max_spend_cny = PENDING_OWNER_CONFIRMATION`
 
-Therefore:
-
 `REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
 
 `NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
 
-Do not perform additional offline research gates before asking for the payment/execution decision. If the Owner approves, activate only the bounded three-call smoke authority with the explicitly approved CNY ceiling, then execute the three-call smoke exactly once and fail closed on the first error.
+## Approved post-V0.1 roadmap
+
+Authority:
+
+`docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
+
+Architecture:
+
+`docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_ARCHITECTURE_V0_1.md`
+
+This roadmap applies **only after formal V0.1 closure** and must not alter current V0.1.
+
+Headline:
+
+```text
+V0.1 closure
+-> CU ~1 month historical capability replay
+-> RB ~1 month historical capability replay
+-> CU/RB comparative analysis
+-> conditional RB regime supplementation
+-> REAL-TIME PAPER
+-> constrained RMB ~100k / RB / max-1-lot real-money candidate
+-> evidence-governed later widening
+```
+
+Shadow is optional diagnostic mode, not mandatory promotion stage.
+
+Paper exit is event/gate based, with ~10 effective trading days only as the earliest review reference.
+
+RMB ~100k is a capital envelope, not a risk budget. RB is a candidate, not a profitability conclusion.
+
+## Exact next task
+
+`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
+
+Do not add another offline research gate before asking for that payment/execution decision. Do not jump to post-V0.1 implementation before V0.1 closure.
 
 ## Current locks
 
-- three-call provider smoke: pending Owner payment confirmation
-- full 1998-call replay: locked
-- learning/policy promotion: locked
-- validation/holdout: locked
-- shadow: locked
-- broker/account: locked
-- real money: locked
+- three-call provider smoke: pending Owner payment confirmation;
+- full V0.1 1998-call replay: locked;
+- post-V0.1 CU/RB paid replays: locked;
+- historical execution/PnL semantics: not yet approved;
+- learning/policy promotion: locked;
+- SHADOW: locked;
+- PAPER/account connection: locked;
+- broker/account actions: locked;
+- permanent numeric risk rules: locked;
+- real money/funding/orders: locked;
+- automatic product/size/capital widening: locked.

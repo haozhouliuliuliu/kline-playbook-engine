@@ -2,11 +2,11 @@
 
 As of: `2026-08-27`
 
-This file is the binding current product and research direction for `kline-playbook-engine`.
+This file is the binding current product/research direction for `kline-playbook-engine`.
 
 ## 1. Mission
 
-Build one persistent, single-purpose China-futures AI trader whose active model source is DeepSeek, whose initial trading foundation is Jianghe's documented experience, and whose long-run improvement comes from governed memory, chronological replay, reflection, falsifiable hypothesis generation, counterexample search and independent validation.
+Build one persistent, auditable China-futures AI trader whose active model source is DeepSeek, whose initial trading foundation is Jianghe's documented experience, and whose long-run improvement is governed rather than self-promoted.
 
 `PRODUCT = JIANGHE_PERSISTENT_DEEPSEEK_TRADER`
 
@@ -14,61 +14,33 @@ Build one persistent, single-purpose China-futures AI trader whose active model 
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-## 2. Product loop
-
-`observe market -> retrieve relevant knowledge and experience -> reason -> decide -> record -> learn under governance`
-
-Hard risk, broker/account truth, order lifecycle, reconciliation, safety, provider routing, replay scheduling and other deterministic operational mechanics remain project-owned systems.
-
-## 3. Single-purpose model boundary
+## 2. Cognitive and system boundary
 
 `MODEL_COGNITIVE_SCOPE = TRADING_ONLY`
 
-DeepSeek is the Jianghe trader, not the project operator.
+DeepSeek interprets the causal market, applies Jianghe evidence and permitted memory, identifies setup/state/levels/triggers/invalidation, and returns the normalized trading judgment.
 
-The project system pre-resolves wake timing, replay clock, data eligibility, contract mapping, session validity, chart construction, context assembly, storage, retries, audit, response validation, provider routing, experiment scheduling and cost accounting.
+Project-owned deterministic systems control data eligibility, wake timing, replay/real-time clock, charts, context assembly, persistence, provider routing, retries, schema normalization, risk, orders, broker/account truth, reconciliation, kill switches, audit and governance.
 
-DeepSeek's cognition is limited to the trading task: understand the current causal market, apply Jianghe evidence and permitted memory, identify setup/state/levels/triggers/invalidation, choose the permitted trading action, and express uncertainty without inventing missing information.
+## 3. Knowledge hierarchy
 
-## 4. Knowledge hierarchy
+- `JIANGHE_CANON`: read-only source-grounded truth.
+- `PROJECT_VALIDATED_POLICY`: independently validated extensions.
+- `DS_HYPOTHESIS_MEMORY`: non-executable candidate ideas.
+- `DS_WORKING_MEMORY`: persistent current market state.
+- `DS_JOURNAL`: auditable reflection, not source truth or active policy.
 
-- `JIANGHE_CANON`: source-grounded Jianghe claims/cases/unknowns; read-only to the trader.
-- `PROJECT_VALIDATED_POLICY`: project extensions that passed required independent validation.
-- `DS_HYPOTHESIS_MEMORY`: DeepSeek candidate ideas; never executable policy.
-- `DS_WORKING_MEMORY`: persistent current market state, regions, triggers and open questions.
-- `DS_JOURNAL`: auditable reflection/self-critique; not market fact or Jianghe canon.
-
-Promotion path:
+Promotion path remains:
 
 `OBSERVATION -> HYPOTHESIS -> COUNTEREXAMPLE SEARCH -> DEVELOPMENT EVIDENCE -> INDEPENDENT VALIDATION -> PROJECT_VALIDATED_POLICY`
 
-Profit alone does not prove reasoning correctness; loss alone does not prove reasoning error.
+## 4. Current active V0.1
 
-## 5. Context and trader identity
-
-Each DeepSeek call receives a bounded, auditable context assembled from stable trading contract, relevant Jianghe canon, validated project policy, working memory, bounded journal/hypothesis memory, causal multi-timeframe observation/charts and task-specific audited tool results.
-
-`JiangheAITraderIdentity` binds outcome-affecting model/version, prompts, context-selection policy, memory schema/policy, chart renderer, observation schema, wake policy, decision schema/normalizer, mechanical guards, inference configuration and tool capability set. Material changes create a new trader version/descendant with exposure lineage preserved.
-
-## 6. Observation baseline
-
-Active stack:
-
-`4H / 1H / 15m / 5m`
-
-4H role:
-
-`BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
-
-Future information is unavailable before its governed availability time. Working memory persists forward. Do not turn the historical corpus into independent stateless prompt exams.
-
-## 7. Active work package
-
-Replay authority:
+Current authority:
 
 `docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
 
-Provider-smoke decision:
+Current smoke decision:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
 
@@ -76,99 +48,173 @@ Provider-smoke decision:
 
 `WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
 
-The sealed V0.1 replay remains:
+Frozen V0.1:
 
-- one persistent trader;
-- product `cu`, contract `SHFE.cu2406`;
-- 20 prior eligible trading days;
-- 2 burn-in + 20 measurement trading days;
-- exact `1998` governed closed-5m wakes;
+- sealed product `cu`, contract `SHFE.cu2406`;
+- 20 prior-history days;
+- 2 burn-in + 20 measurement days;
+- 1998 governed closed-5m wakes;
 - `WAKE_POLICY = EVERY_NEW_CLOSED_5M_BAR`;
 - causal `4H / 1H / 15m / 5m` observation;
-- intent-only lifecycle state;
+- one persistent trader;
+- intent-only lifecycle;
 - `PAPER_EXECUTION = DEFERRED`;
-- no amount PnL/win-rate/outcome labels in model decision context;
+- no amount PnL/win-rate/outcome feedback in decision context;
 - no outcome-driven rerun;
-- no learning or policy promotion.
+- no learning/policy promotion.
 
-## 8. Offline completion
+The post-V0.1 roadmap must not alter these semantics.
 
-Formal evidence:
-
-`docs/evidence/JIANGHE_REPLAY_V0_1_PREEXECUTION_EVIDENCE_2026-08-26.md`
+## 5. Current evidence and paid boundary
 
 `V0_1_OFFLINE_PREEXECUTION_GATES = PASS`
 
 `FULL_EXACT_SLICE_MOCK_DRY_RUN = PASS`
 
-The full exact-slice real-corpus mock rehearsal produced:
+Three-call provider-smoke preparation is `READY` and CI-verified.
 
-`step = wake = request = mock-call = 1998`
-
-with R1 restart verified, R2 coverage recorded according to the frozen rule, and zero real provider calls.
-
-No additional offline research gate is required before the bounded real-provider smoke decision.
-
-## 9. Provider smoke direction
-
-The next possible paid action is not the full replay. It is one bounded execution-integrity smoke slot:
-
-`FIRST_3_GOVERNED_5M_WAKES_OF_THE_SEALED_SLICE`
-
-Hard scope:
-
-- maximum real provider model requests: `3`;
-- retries: `0`;
-- four causal PNG images per request: `4H / 1H / 15m / 5m`;
-- one wake -> exactly one Harness model request;
-- forced project-owned restart after successful call 2 before call 3;
-- any execution, schema, image, identity, persistence or accounting failure stops immediately;
-- no replacement wake or re-ask;
-- call 4 forbidden;
-- full 1998-call replay remains unauthorized.
-
-Machine authority:
-
-`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
-
-Current authority remains inactive:
+Current machine authority remains inactive:
 
 `status = PENDING_OWNER_PAYMENT_CONFIRMATION`
 
 `owner_payment_confirmation = false`
 
-`max_spend_cny = PENDING_OWNER_CONFIRMATION`
-
-The proposed preparation ceiling is CNY `3.00`; this is not current authorization and is not a provider-side guaranteed cap.
-
-## 10. Harness and paid-safety boundary
-
-`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
-
-Use only:
-
-- version `0.1.1-rc.2`
-- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
-- project fail-closed patch under `integrations/deepseek-harness/`
-- retry policy `maxRetries: 0`
-
-Provider-smoke execution is fail-closed unless authority, execution code, prompt/context/renderer identities, exact first-three wakes and positive finite spend ceiling all match. Production paid execution may not override the official provider endpoint.
-
-## 11. Current authorization boundary
-
-`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
-
 `REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
 
 `NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
 
+Full V0.1 1998-call replay remains unauthorized.
+
+## 6. Post-V0.1 staged direction
+
+Owner-approved roadmap authority:
+
+`docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
+
+Execution architecture:
+
+`docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_ARCHITECTURE_V0_1.md`
+
+After formal V0.1 closure, normal route is:
+
+```text
+CU ~1 trading month chronological historical capability replay
+-> RB ~1 trading month chronological historical capability replay
+-> CU/RB focused comparative analysis
+-> conditional RB regime supplementation only when evidence gaps justify it
+-> REAL-TIME PAPER
+-> constrained real-money candidate: RMB ~100,000 capital envelope / RB / max 1 lot
+-> evidence-governed later widening only by new authority
+```
+
+Product-level strategy:
+
+`HISTORICAL HIGH-SPEED REPLAY + REAL-TIME PAPER EXECUTION + MINIMAL-CONSTRAINED REAL-MONEY VALIDATION`
+
+## 7. Initial historical research rules
+
+CU and RB initial windows must be chronological, causal and outcome-blind.
+
+Adopted roadmap selector:
+
+`POST_V0_1_FORWARD_FIRST_ELIGIBLE_ALIGNED_WINDOW_V0_1`
+
+- fixed scan anchor is strictly after current V0.1 measurement end `2024-05-14`;
+- CU takes first eligible metadata-only 2+20 block with one unchanged governed contract;
+- RB first attempts those same trading dates if mechanically eligible; otherwise takes the first eligible 2+20 block from the same anchor;
+- selection never inspects Jianghe performance or market attractiveness;
+- exact slices must be separately sealed before any paid calls.
+
+Post-V0.1 historical execution/PnL evaluation is allowed only after a separate authority freezes causal fill/slippage/fee semantics; execution outcomes remain outside same-wake model cognition.
+
+## 8. Product scope
+
+Default paid research priority after V0.1:
+
+`CU -> RB -> conditional RB supplemental regimes`
+
+AU/AG/AL/NI are not default paid work. They may be proposed later only for a material unanswered generalization question.
+
+RB is the likely first real-money candidate under the Owner's approximately RMB 100,000 capital envelope because of one-lot granularity considerations. This is not a finding that RB is most profitable or most stable.
+
+## 9. Real-time execution direction
+
+Target execution modes:
+
+`SHADOW / PAPER / REAL`
+
+Normal promotion path:
+
+`HISTORICAL REPLAY -> REAL-TIME PAPER -> CONSTRAINED REAL MONEY`
+
+`SHADOW` is optional diagnostic/fault-isolation/safe-degradation capability, not a mandatory stage.
+
+Paper should reuse the future real execution chain: real-time data -> Jianghe cognition -> deterministic risk -> OMS/order adapter -> paper account -> acknowledgement/fill/cancel/reject -> position/account reconciliation -> MANAGE/EXIT -> audit.
+
+## 10. Paper exit principle
+
+Approximately 10 **effective** trading days is the earliest review point, not a pass rule.
+
+`TIME_COVERAGE != SUFFICIENT_EVIDENCE`
+
+Paper exit requires sufficient evidence across causal ingestion, session transitions, restart continuity, model/execution state consistency, lifecycle coverage, order acknowledgement/fill/cancel/reject paths, reconciliation, duplicate prevention, risk rejection, fail-closed provider/data/execution errors and complete audit.
+
+If 20+ days still provide insufficient decision/trade/event coverage, paper is not automatically promoted.
+
+## 11. Constrained real-money direction
+
+Future candidate only; not currently authorized:
+
+`CAPITAL_ENVELOPE ~= RMB 100,000`
+
+`PRODUCT = RB`
+
+`MAX_POSITION = 1 LOT`
+
+RMB 100,000 is the account/capital envelope, not a risk allowance. No automatic add-on or product expansion is allowed. Deterministic risk and reconciliation have final authority.
+
+Before REAL, a formal capital-adequacy/minimum-viable-capital analysis must evaluate actual Jianghe invalidation distances, one-lot risk, margin/headroom, fees/slippage, stress/gap exposure and drawdown behavior. If one lot violates approved risk constraints, the correct result is no trade/capital inadequate.
+
+Permanent numeric risk rules remain an Owner decision.
+
+## 12. Promotion evidence semantics
+
+Always distinguish:
+
+- `SYSTEM_READY`;
+- `TRADER_BEHAVIOR_ACCEPTABLE`;
+- `RISK_COMPATIBLE`;
+- `EVIDENCE_SUFFICIENT`;
+- `PROFITABILITY_EVIDENCE`;
+- `LONG_TERM_EDGE_EVIDENCE`.
+
+Paper profit or 10 no-loss days is not sufficient for real money. A short window also cannot be required to prove long-term statistical edge before a minimal constrained real-money validation may ever be considered.
+
+## 13. Provider/cost direction
+
+Pricing reference:
+
+`docs/evidence/DEEPSEEK_PROVIDER_PRICING_REFERENCE_2026-08-27.md`
+
+Cost is controlled per paid work package by sealed wake/request count, actual usage ledger, explicit Owner CNY ceiling and a stop-before-next-request guard. The public `deepseek-v4-flash` tariff is not assumed to be the exact tariff of the active `deepseek-v4-flash-vision-exp` model unless verified.
+
+“CU + RB about CNY 400” remains a planning hypothesis, not a fact or blanket spend authority.
+
+## 14. Current authorization boundary
+
+Current next task remains:
+
+`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
+
 Still locked:
 
-- full 1998-call provider replay
-- learning/policy promotion
-- validation/holdout
-- shadow
-- broker/account
-- real money
-
-If the Owner approves the bounded smoke payment/execution authority, execute only that three-call slot and stop on the first failure. The outcome of that smoke determines whether the project may ask for a later full-replay spend decision; it does not itself authorize the full replay.
+- three-call smoke until Owner payment confirmation;
+- full 1998-call V0.1 replay;
+- post-V0.1 paid CU/RB replays;
+- historical execution/PnL semantics until separately approved;
+- SHADOW;
+- PAPER/account connection;
+- broker/account writes;
+- permanent numeric risk rules;
+- real money / funding / real orders;
+- product/position/capital widening.

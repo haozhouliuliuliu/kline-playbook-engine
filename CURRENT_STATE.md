@@ -10,21 +10,7 @@ As of: `2026-08-27`
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-Target: one persistent, auditable, Jianghe-grounded DeepSeek China-futures trader whose deterministic operational mechanics remain project-owned and whose model cognition is reserved for trading.
-
 ## Active work package
-
-Owner-approved replay authority:
-
-`docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
-
-Provider-smoke Owner decision:
-
-`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
-
-Machine-readable smoke authority:
-
-`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
@@ -32,24 +18,34 @@ Machine-readable smoke authority:
 
 `NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
 
-## Frozen V0.1 experiment
+Current replay authority:
 
-- product: `cu`
-- concrete contract: `SHFE.cu2406`
-- prior history: 20 eligible trading days
-- burn-in: `2024-04-10`, `2024-04-11`
-- measurement: 20 trading days through `2024-05-14`
-- replay days: `22`
-- exact slice identity: `347291481968b1884635a11aa1da985d9aad1b3fb854a16087bbca662bd85a06`
-- exact slice seal: `e9bbd232fd05d320a24c80ac5570a94abdf6d4c3a167cdd5c46f4426a6c84156`
-- wake policy: `EVERY_NEW_CLOSED_5M_BAR`
-- governed wakes: `1998`
-- observation stack: `4H / 1H / 15m / 5m`
-- `PAPER_EXECUTION = DEFERRED`
-- no adaptive/event-driven wake optimization in V0.1
-- no amount PnL/win-rate/outcome labels in model decision context
-- no outcome-driven rerun
-- no learning or policy promotion
+`docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
+
+Current smoke authority:
+
+- Owner decision: `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
+- machine authority: `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
+
+## Frozen current V0.1
+
+- product: `cu`;
+- concrete contract: `SHFE.cu2406`;
+- prior history: 20 eligible trading days;
+- burn-in: 2 trading days;
+- measurement: 20 trading days through `2024-05-14`;
+- replay days: 22;
+- governed wakes: `1998`;
+- wake policy: `EVERY_NEW_CLOSED_5M_BAR`;
+- observation stack: `4H / 1H / 15m / 5m`;
+- one persistent trader;
+- intent-only lifecycle;
+- `PAPER_EXECUTION = DEFERRED`;
+- no outcome-driven rerun;
+- no model-visible PnL/outcome feedback;
+- no learning/policy promotion.
+
+The Owner-approved post-V0.1 CU/RB roadmap does not modify these semantics.
 
 ## Offline preexecution result
 
@@ -61,80 +57,44 @@ Formal evidence:
 
 `FULL_EXACT_SLICE_MOCK_DRY_RUN = PASS`
 
-Owner-workstation real-corpus mock result:
+Real-corpus mock accounting:
 
-- replay days: `22`
-- governed sessions: `87`
-- `step = wake = request = mock-call = 1998`
-- R1 phase-boundary restart: `VERIFIED`
-- R2 active-state restart coverage: `NOT_OBSERVED` as permitted by the frozen design
-- real provider calls: `0`
-- provider call authorized: `false`
+`step = wake = request = mock-call = 1998`
 
-The pre-provider implementation now includes and tests:
+R1 = `VERIFIED`.
 
-- strict trading-only prompt/context contract;
-- append-only/versioned hypothesis revision history;
-- deterministic outcome-blind exact-slice selector;
-- formal D01/D02 qualification with 116 failed partitions excluded and 32,864 qualified;
-- fixed 5m wake ledger and replay orchestrator;
-- causal 4H/1H/15m/5m context construction;
-- persistent working memory / journal / hypothesis state;
-- intent-only lifecycle state;
-- restart, leakage, request-count and audit gates;
-- exact-slice full mock/no-provider lifecycle rehearsal.
+R2 = `NOT_OBSERVED` as permitted by the frozen rule.
+
+Real provider calls so far = `0`.
 
 ## Provider smoke preparation
 
 `PROVIDER_SMOKE_PREPARATION = READY`
 
-Current merged provider-smoke execution path is zero-cost prepared and CI-verified:
+CI-verified properties:
 
-- exact first 3 governed 5m wakes only;
+- first 3 governed wakes only;
 - `max_provider_calls = 3`;
 - `max_retries = 0`;
-- exactly 4 deterministic PNG inputs per call: `4H / 1H / 15m / 5m`;
-- one governed wake -> exactly one Harness model request;
-- no hidden stale-file second request;
+- exactly 4 deterministic causal PNGs per call;
+- one governed wake -> exactly one Harness request;
+- no hidden second request;
 - forced project-owned restart after successful call 2 before call 3;
-- exact provider/model/image/request assertions after every call;
-- execution-critical source bound to full 40-hex execution commit before network capability exists;
-- live prompt/context/renderer/API-key identities bound before network capability exists;
-- provider endpoint override allowed only for explicit loopback tests;
-- ACTIVE spend field must be a positive finite CNY value;
-- fourth provider call impossible by construction;
+- exact provider/model/image/request assertions;
+- execution-critical source bound to full execution commit;
+- prompt/context/renderer/API-key identities bound pre-network;
+- production paid endpoint cannot be overridden;
+- ACTIVE spend field must be positive and finite;
+- call 4 impossible;
 - full 1998-call replay explicitly unauthorized.
 
-Pinned Harness:
-
-- version `0.1.1-rc.2`
-- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
-- project fail-closed patch under `integrations/deepseek-harness/`
-
-GitHub CI on the final smoke-preparation head passed both:
-
-- Repository CI
-- DeepSeek Harness Dynamic Admission, including the one-wake/one-request/four-image smoke bridge test
-
-## Current smoke authority
-
-The machine-readable authority remains deliberately inactive:
+Machine authority remains inactive:
 
 `status = PENDING_OWNER_PAYMENT_CONFIRMATION`
 
 `owner_payment_confirmation = false`
 
-`max_provider_calls = 3`
-
-`max_retries = 0`
-
-`images_per_call = 4`
-
 `max_spend_cny = PENDING_OWNER_CONFIRMATION`
-
-`full_replay_authorized = false`
-
-`full_replay_1998_calls_authorized = false`
 
 Therefore:
 
@@ -142,26 +102,82 @@ Therefore:
 
 `NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
 
-No real provider request may occur until the Owner explicitly confirms the smoke spend/execution authority. The proposed preparation ceiling is CNY `3.00`; it is not yet authorization and is not a provider-side guaranteed cap.
+## Approved future roadmap after V0.1 closure
 
-## Knowledge and governance boundary
+Authority:
 
-- `JIANGHE_CANON`: source-grounded and read-only.
-- `PROJECT_VALIDATED_POLICY`: independently validated project extensions.
-- `DS_HYPOTHESIS_MEMORY`: non-executable candidate ideas.
-- `DS_WORKING_MEMORY`: persistent current market state.
-- `DS_JOURNAL`: auditable reflection, not source truth or policy.
+`docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
 
-Promotion remains locked:
+Execution architecture:
 
-`OBSERVATION -> HYPOTHESIS -> COUNTEREXAMPLE SEARCH -> DEVELOPMENT EVIDENCE -> INDEPENDENT VALIDATION -> PROJECT_VALIDATED_POLICY`
+`docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_ARCHITECTURE_V0_1.md`
+
+Future normal path:
+
+```text
+V0.1 closure
+-> CU ~1 trading month chronological historical capability replay
+-> RB ~1 trading month chronological historical capability replay
+-> CU/RB comparative analysis
+-> conditional RB regime supplementation only if evidence gaps remain
+-> REAL-TIME PAPER
+-> constrained RMB ~100,000 capital envelope / RB / max 1 lot real-money candidate
+-> later widening only by evidence + new Owner authority
+```
+
+Initial CU/RB historical selection is deterministic/outcome-blind from a fixed post-V0.1 anchor. RB first attempts calendar alignment to the CU block and otherwise takes first mechanically eligible block.
+
+AU/AG/AL/NI are not default paid follow-up products.
+
+## Paper and shadow direction
+
+Target future execution modes:
+
+`SHADOW / PAPER / REAL`
+
+Normal promotion path:
+
+`HISTORICAL REPLAY -> REAL-TIME PAPER -> CONSTRAINED REAL MONEY`
+
+Shadow is optional diagnostic/fault-isolation/safe-degradation capability, not a mandatory stage.
+
+Paper exit is not “10 days without errors”. Approximately 10 effective trading days is only the earliest review reference; event coverage and engineering gates must also be sufficient. Twenty days with insufficient events is not an automatic pass.
+
+## Constrained real-money direction
+
+Future candidate only:
+
+- capital envelope approximately RMB 100,000;
+- RB only;
+- maximum 1 lot;
+- no automatic add-on;
+- deterministic risk veto;
+- mandatory broker/account reconciliation;
+- explicit kill switch/fail-closed handling;
+- formal capital-adequacy/minimum-viable-capital analysis before activation.
+
+RMB 100,000 is not a risk budget. RB is not currently proven most profitable or most stable.
+
+Permanent numeric per-trade/daily/drawdown limits are not frozen and require later Owner authority.
+
+## Cost direction
+
+Pricing reference:
+
+`docs/evidence/DEEPSEEK_PROVIDER_PRICING_REFERENCE_2026-08-27.md`
+
+Future paid packages require exact request-count ceiling, usage ledger, explicit CNY ceiling and stop-before-next-request logic. The public `deepseek-v4-flash` price is not treated as verified exact pricing for `deepseek-v4-flash-vision-exp`.
 
 ## Current locks
 
-- real provider smoke: `PENDING_OWNER_PAYMENT_CONFIRMATION`
-- full 1998-call provider replay: locked
-- learning/policy promotion: locked
-- validation/holdout: locked
-- shadow: locked
-- broker/account: locked
-- real money: locked
+- current three-call smoke: pending Owner payment confirmation;
+- full 1998-call V0.1 provider replay: locked;
+- post-V0.1 CU/RB provider replay: locked;
+- historical execution/PnL semantics: not yet approved;
+- learning/policy promotion: locked;
+- SHADOW: locked;
+- PAPER/account connection: locked;
+- broker/account actions/writes: locked;
+- permanent numeric risk rules: locked;
+- real money/capital funding/real orders: locked;
+- automatic product, position-size or capital expansion: locked.
