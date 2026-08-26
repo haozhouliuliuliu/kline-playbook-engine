@@ -12,7 +12,6 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import re
-import sys
 from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -176,7 +175,7 @@ def _check_governance_identity(root: Path) -> Iterable[str]:
     required = (
         "ADOPTED_CONTRACT_VERSION = 3.1",
         "ADOPTED_CONTRACT_SHA256 = 3b5ceaaa3696375b941fd2aaba95615cf9352dcada3696b60137650bf690101e",
-        "ONE_CONCERN",
+        "one concern, one canonical owner",
         "CURRENT_STATE.md",
     )
     for token in required:
