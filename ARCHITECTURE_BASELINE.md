@@ -105,12 +105,12 @@ Permanent numeric limits are not defined by architecture and require Owner autho
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
 
 Current V0.1 remains intent-only with `PAPER_EXECUTION = DEFERRED`.
 
-The post-V0.1 roadmap is approved as future direction only. Architecture grants no provider spend, shadow, paper, broker/account or real-money permission.
+The post-V0.1 roadmap is approved as future direction only. Architecture grants no provider spend beyond the exact three-call smoke slot authorized by `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`, and no shadow, paper, broker/account or real-money permission.
 
-Current next task remains:
+Current next task:
 
-`OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`.
+`EXECUTE_THREE_CALL_PROVIDER_SMOKE`.

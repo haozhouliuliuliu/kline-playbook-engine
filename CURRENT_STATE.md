@@ -14,9 +14,9 @@ As of: `2026-08-27`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
 
-`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
 
 Current replay authority:
 
@@ -25,6 +25,7 @@ Current replay authority:
 Current smoke authority:
 
 - Owner decision: `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
+- Owner payment/execution authority: `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`
 - machine authority: `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
 
 ## Frozen current V0.1
@@ -88,19 +89,29 @@ CI-verified properties:
 - call 4 impossible;
 - full 1998-call replay explicitly unauthorized.
 
-Machine authority remains inactive:
+Machine authority is now ACTIVE for this exact sealed slot:
 
-`status = PENDING_OWNER_PAYMENT_CONFIRMATION`
+`status = ACTIVE`
 
-`owner_payment_confirmation = false`
+`owner_payment_confirmation = true`
 
-`max_spend_cny = PENDING_OWNER_CONFIRMATION`
+`max_spend_cny = 3.00`
+
+`max_provider_calls = 3`
+
+`max_retries = 0`
+
+`full_replay_1998_calls_authorized = false`
+
+`authority_identity = 8583694f4164c7983f40d784bf21e5582b1ae7c96ca7b1fef902abf155fae905`
 
 Therefore:
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
+`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_THIS_EXACT_THREE_CALL_SLOT_ONLY`
 
-`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
+`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__EXECUTION`
+
+`FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
 ## Approved future roadmap after V0.1 closure
 

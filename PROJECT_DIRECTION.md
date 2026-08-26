@@ -46,7 +46,7 @@ Current smoke decision:
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
 
 Frozen V0.1:
 
@@ -73,15 +73,27 @@ The post-V0.1 roadmap must not alter these semantics.
 
 Three-call provider-smoke preparation is `READY` and CI-verified.
 
-Current machine authority remains inactive:
+Owner payment/execution authority:
 
-`status = PENDING_OWNER_PAYMENT_CONFIRMATION`
+`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`
 
-`owner_payment_confirmation = false`
+Current machine authority is ACTIVE for this exact sealed slot:
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
+`status = ACTIVE`
 
-`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
+`owner_payment_confirmation = true`
+
+`max_spend_cny = 3.00`
+
+`max_provider_calls = 3`
+
+`max_retries = 0`
+
+`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_THIS_EXACT_THREE_CALL_SLOT_ONLY`
+
+`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__EXECUTION`
+
+`FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
 Full V0.1 1998-call replay remains unauthorized.
 
@@ -202,13 +214,16 @@ Cost is controlled per paid work package by sealed wake/request count, actual us
 
 ## 14. Current authorization boundary
 
-Current next task remains:
+Current next task:
 
-`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
+
+Authorized for this exact sealed slot only:
+
+- three-call provider smoke: ACTIVE (owner_payment_confirmation=true, max_spend_cny=3.00, max 3 calls, 0 retries, execution authority `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`);
 
 Still locked:
 
-- three-call smoke until Owner payment confirmation;
 - full 1998-call V0.1 replay;
 - post-V0.1 paid CU/RB replays;
 - historical execution/PnL semantics until separately approved;

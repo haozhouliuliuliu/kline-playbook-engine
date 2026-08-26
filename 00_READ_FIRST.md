@@ -37,7 +37,7 @@ Do not use chat, stale branches, deleted dated handoffs or obsolete authority as
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
 
 `MODEL_COGNITIVE_SCOPE = TRADING_ONLY`
 
@@ -83,19 +83,27 @@ Frozen smoke scope:
 - call 4 forbidden;
 - full 1998-call replay unauthorized.
 
-Machine authority remains:
+Machine authority is ACTIVE for this exact sealed slot:
 
-`status = PENDING_OWNER_PAYMENT_CONFIRMATION`
+`status = ACTIVE`
 
-`owner_payment_confirmation = false`
+`owner_payment_confirmation = true`
 
-`max_spend_cny = PENDING_OWNER_CONFIRMATION`
+`max_spend_cny = 3.00`
+
+`max_provider_calls = 3`
+
+`max_retries = 0`
+
+`full_replay_1998_calls_authorized = false`
 
 Therefore:
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
+`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_THIS_EXACT_THREE_CALL_SLOT_ONLY`
 
-`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
+`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__EXECUTION`
+
+`FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
 ## Post-V0.1 approved direction
 
@@ -124,7 +132,7 @@ RMB 100,000 is a capital envelope, not a risk budget. RB is a first real-money c
 
 Still locked unless a later exact authority explicitly opens them:
 
-- current three-call provider smoke: pending Owner payment confirmation;
+- current three-call provider smoke: now ACTIVE for this exact sealed slot only (execution authority `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`);
 - full V0.1 1998-call replay;
 - post-V0.1 CU/RB paid replays;
 - learning/policy promotion;
@@ -138,7 +146,7 @@ Still locked unless a later exact authority explicitly opens them:
 
 ## Exact current next task
 
-`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
 
 Do not jump to post-V0.1 implementation before current V0.1 closes.
 

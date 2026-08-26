@@ -23,7 +23,7 @@ Before substantive project work:
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACTIVE__THREE_CALL_SLOT`
 
 `MODEL_COGNITIVE_SCOPE = TRADING_ONLY`
 
@@ -64,6 +64,10 @@ Owner decision:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
 
+Owner payment/execution authority:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`
+
 Machine authority:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
@@ -79,17 +83,23 @@ Preparation is complete and CI-verified:
 - execution code / prompt / context / renderer identities bound;
 - full 1998-call replay unauthorized.
 
-Current machine authority remains:
+Current machine authority is ACTIVE for this exact sealed slot:
 
-`status = PENDING_OWNER_PAYMENT_CONFIRMATION`
+`status = ACTIVE`
 
-`owner_payment_confirmation = false`
+`owner_payment_confirmation = true`
 
-`max_spend_cny = PENDING_OWNER_CONFIRMATION`
+`max_spend_cny = 3.00`
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
+`max_provider_calls = 3`
 
-`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
+`max_retries = 0`
+
+`REAL_DEEPSEEK_PROVIDER_CALLS = AUTHORIZED_FOR_THIS_EXACT_THREE_CALL_SLOT_ONLY`
+
+`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__EXECUTION`
+
+`FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
 ## Approved post-V0.1 roadmap
 
@@ -124,13 +134,13 @@ RMB ~100k is a capital envelope, not a risk budget. RB is a candidate, not a pro
 
 ## Exact next task
 
-`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
+`NEXT_TASK = EXECUTE_THREE_CALL_PROVIDER_SMOKE`
 
-Do not add another offline research gate before asking for that payment/execution decision. Do not jump to post-V0.1 implementation before V0.1 closure.
+The sealed three-call smoke slot is ACTIVE for this exact slot only. Do not add another offline research gate. Do not jump to post-V0.1 implementation before V0.1 closure.
 
 ## Current locks
 
-- three-call provider smoke: pending Owner payment confirmation;
+- three-call provider smoke: ACTIVE for this exact sealed slot only (execution authority `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_EXECUTION_AUTHORITY_2026-08-27.md`);
 - full V0.1 1998-call replay: locked;
 - post-V0.1 CU/RB paid replays: locked;
 - historical execution/PnL semantics: not yet approved;
