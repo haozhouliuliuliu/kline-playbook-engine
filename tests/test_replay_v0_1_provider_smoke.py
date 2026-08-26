@@ -451,10 +451,26 @@ class ProviderSmokeGuardTests(unittest.TestCase):
         verify_execution_code_bound(repo_root=REPO_ROOT, execution_code_commit=head)
 
     def test_execution_code_bound_fails_when_path_missing_at_commit(self) -> None:
-        # origin/main (HEAD~2) predates the smoke modules; binding to it must fail closed.
-        main_head = _git_rev(REPO_ROOT, "HEAD~2")
-        with self.assertRaises(ValueError):
-            verify_execution_code_bound(repo_root=REPO_ROOT, execution_code_commit=main_head)
+        # Hermetic: a tiny temp repo where the critical path is not tracked at
+        # HEAD must fail closed (no dependence on checkout history depth).
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "tracked.txt").write_text("seed\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
+            subprocess.run(
+                ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "add", "."],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "seed"],
+                check=True,
+            )
+            head = _git_rev(repo, "HEAD")
+            with self.assertRaises(ValueError):
+                verify_execution_code_bound(
+                    repo_root=repo, execution_code_commit=head,
+                    critical_paths=("missing.py",),
+                )
 
     def test_execution_code_bound_rejects_bogus_commit(self) -> None:
         with self.assertRaises(ValueError):
