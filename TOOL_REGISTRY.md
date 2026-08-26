@@ -4,25 +4,46 @@ Status: `CURRENT`
 
 Scope: `KLINE_PLAYBOOK_ENGINE_PROJECT_ONLY`
 
-This registry records material external tools, frameworks, provider/runtime surfaces and storage capabilities that are relevant to the current `kline-playbook-engine` project.
+This registry is the canonical owner for material project tools/frameworks/providers, their scoped `CANDIDATE / VERIFIED / ADOPTED` status, adopted pins, credential-location seams and revalidation triggers.
 
-It is **not** a cross-project software catalog. Unrelated global candidates do not belong here.
+It does **not** own current work-package state, current locks, current paid-slot state or `NEXT_TASK`. Those live only in `CURRENT_STATE.md`.
 
-Actual runtime/config/lockfiles and task-specific Owner authority remain authoritative for exact enabled versions and permissions. Presence in this registry never grants provider spend, broker/account access, paper execution or real-money authority.
+Presence of a credential or tool on the Owner workstation never grants project adoption or execution authority.
 
 ## Status semantics
 
-Use only:
+- `CANDIDATE` — plausible for a project role, not yet sufficiently verified;
+- `VERIFIED` — tested against project requirements for the stated role;
+- `ADOPTED` — formally selected for the stated project role/scope.
 
-- `CANDIDATE` — plausible for a project role but not yet verified sufficiently for that role;
-- `VERIFIED` — actually tested against project requirements, but not necessarily selected as the active project path;
-- `ADOPTED` — formally selected for the stated project role and scope.
+Status is role-scoped. `ADOPTED` for one role never implies blanket permission for another role.
 
-A status is always scoped to the stated role. `ADOPTED` for one narrow role does not imply blanket authorization for another role.
+## 0. Owner workstation credential convention
+
+`LOCAL_PROVIDER_SECRET_STORE = WINDOWS_CURRENT_USER_ENVIRONMENT_VARIABLES`
+
+Provider secrets used from the Owner workstation are expected to be stored as Windows **user environment variables**, not repository files.
+
+Known user-level variable names observed on the Owner workstation include:
+
+- `ANTHROPIC_API_KEY`;
+- `DASHSCOPE_API_KEY`;
+- `DEEPSEEK_API_KEY`;
+- `GEMINI_API_KEY`;
+- `SILICONFLOW_API_KEY`.
+
+These names record only where secrets are kept. Their presence does **not** mean those providers are adopted by this project.
+
+Secret handling rules:
+
+- never commit secret values;
+- never print/echo/log/serialize secret values;
+- never ask the Owner to paste a secret into project authority;
+- runtime availability checks may report only non-secret states such as `SET / UNSET`;
+- provider code loads the required value only at execution time;
+- a missing variable is an execution blocker, not a reason to move secrets into Git or chat.
 
 ## 1. DeepSeek provider / active model source
-
-### DeepSeek provider API
 
 `STATUS = ADOPTED`
 
@@ -30,25 +51,21 @@ Role:
 
 `SOLE_ACTIVE_PROVIDER_SOURCE_FOR_JIANGHE_TRADING_MODEL`
 
-Current model:
+Selected model line:
 
 `deepseek-v4-flash-vision-exp`
 
-Authority:
+Credential seam:
 
-- `PROJECT_DIRECTION.md`
-- `PROJECT_BRAIN_RUNTIME_BRIEF.md`
-- `CURRENT_STATE.md`
+`CREDENTIAL_ENV = DEEPSEEK_API_KEY`
 
-Important boundary:
+`CREDENTIAL_LOCATION = WINDOWS_CURRENT_USER_ENVIRONMENT_VARIABLES`
 
-Provider/model adoption does **not** authorize paid calls. Current executable provider permissions are governed separately by the exact work-package Owner decision and machine-readable spend authority.
+Provider/model adoption does **not** authorize paid calls. Exact current execution permission is governed by `CURRENT_STATE.md` plus the applicable exact Owner/machine execution authority.
 
-Current paid state:
+Revalidation trigger:
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
-
-`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
+Provider protocol/model-generation/authentication/request-response behavior changes materially, or the governed provider path fails.
 
 ## 2. DeepSeek Harness
 
@@ -60,17 +77,10 @@ Role:
 
 Pinned identity:
 
-- version: `0.1.1-rc.2`
-- commit: `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
-- project fail-closed transport patch: `integrations/deepseek-harness/`
-- general retry policy: `maxRetries = 0`
-
-Authority/evidence:
-
-- `PROJECT_DIRECTION.md`
-- `ARCHITECTURE_BASELINE.md`
-- `PROJECT_BRAIN_RUNTIME_BRIEF.md`
-- repository Harness admission workflows/tests
+- version: `0.1.1-rc.2`;
+- commit: `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`;
+- project fail-closed transport patch: `integrations/deepseek-harness/`;
+- general retry policy: `maxRetries = 0`.
 
 Adopted scope:
 
@@ -78,19 +88,11 @@ Adopted scope:
 - governed DeepSeek provider request bridge;
 - session/tool/UI hosting around project-owned trader semantics.
 
-Not adopted as owner of:
-
-- trader cognition semantics;
-- project memory truth;
-- data eligibility;
-- risk;
-- broker/account truth;
-- OMS/reconciliation;
-- governance.
+Not adopted as owner of trader cognition, memory truth, data eligibility, risk, OMS/reconciliation, broker/account truth or governance.
 
 Revalidation trigger:
 
-Any Harness version/commit change, provider protocol change, retry semantics change, image/request serialization change, or failure of project admission tests.
+Harness version/commit, provider protocol, retry semantics, image/request serialization or admission behavior changes materially.
 
 ## 3. TqSdk
 
@@ -106,29 +108,16 @@ Verified runtime:
 
 Authority/evidence:
 
-- `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`
-- `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
-- canonical corpus/source identity evidence
+- `docs/evidence/SOURCE_AND_SCOPE_OWNER_APPROVAL.md`;
+- `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`.
 
-Adopted scope:
+Adopted scope is historical concrete-contract 1-minute research data acquisition for the accepted canonical corpus.
 
-- historical concrete-contract 1-minute research data acquisition for the accepted canonical corpus.
-
-Explicitly not implied:
-
-- broker connectivity;
-- live/shadow/paper execution;
-- order submission;
-- paid renewal/continuity;
-- pseudo MAIN/CONTINUOUS symbol use.
-
-Current paid continuity:
-
-`PAID_CONTINUITY_AUTHORIZED = NO`
+Adoption does not imply broker connectivity, live/shadow/paper execution, order submission, paid continuity or pseudo MAIN/CONTINUOUS symbol use.
 
 Revalidation trigger:
 
-Runtime/API/entitlement behavior changes materially, source identity changes, or a different TqSdk runtime is proposed.
+Runtime/API/entitlement behavior or source identity changes materially, or another TqSdk runtime is proposed.
 
 ## 4. PyArrow / Parquet
 
@@ -140,22 +129,13 @@ Role:
 
 Authority/evidence:
 
-- `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
-- canonical dataset package/schema evidence
-- Owner-workstation exact-slice mock dry-run evidence
-
-Accepted corpus facts include:
-
-- storage: partitioned Parquet;
-- canonical normalized schema with Decimal OHLC and Asia/Shanghai timezone;
-- logical write/read equality gate;
-- 32,980 canonical Parquet partitions in the accepted corpus.
-
-Exact runtime/version compatibility for a given execution remains governed by the code/environment and the evidence for that execution. Do not infer blanket compatibility across untested PyArrow versions.
+- `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`;
+- canonical dataset/schema evidence;
+- accepted replay evidence.
 
 Revalidation trigger:
 
-Schema/storage version change, material PyArrow runtime change, or replay-read compatibility failure.
+Schema/storage version change, material PyArrow runtime change or replay-read compatibility failure.
 
 ## 5. SQLite / Python stdlib sqlite3
 
@@ -167,19 +147,11 @@ Roles:
 - project-owned persistent trader state;
 - governed wake ledger / audit-supporting local state.
 
-Authority/evidence:
-
-- `docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
-- current replay runtime/code/tests;
-- `docs/evidence/JIANGHE_REPLAY_V0_1_PREEXECUTION_EVIDENCE_2026-08-26.md`
-
-Truth boundary:
-
-SQLite is a local deterministic persistence/index mechanism. It does not replace immutable canonical evidence, broker/paper account truth, or GitHub authority.
+SQLite is a local deterministic persistence/index mechanism. It does not replace immutable canonical evidence, broker/paper account truth or GitHub authority.
 
 Revalidation trigger:
 
-Persistent-state schema change, ledger schema change, restart/reconciliation failure, or migration to another storage engine.
+Persistent-state/ledger schema change, restart/reconciliation failure or storage-engine migration.
 
 ## 6. faster-whisper
 
@@ -191,20 +163,16 @@ Role:
 
 Verified identity:
 
-- package: `faster-whisper 1.2.1`
-- model: `Systran/faster-whisper-small`
-- execution profile: CPU / `int8`
-- verification evidence commit: `1027ea40d65ff7d86e9f65ea8bd38654fd654377`
+- package: `faster-whisper 1.2.1`;
+- model: `Systran/faster-whisper-small`;
+- execution profile: CPU / `int8`;
+- verification evidence commit: `1027ea40d65ff7d86e9f65ea8bd38654fd654377`.
 
-Adopted scope:
-
-- local, free ASR transport for source review only when native subtitles are unavailable;
-- preserve timestamped transcript and low-confidence disclosure;
-- ASR output is evidence transport, not semantic authority.
+ASR output is evidence transport, not semantic authority.
 
 Revalidation trigger:
 
-Model identity, package/runtime version, CPU/int8 configuration, timestamp-validation rule, or source-review workflow changes materially.
+Model/package/runtime/configuration or timestamp-validation workflow changes materially.
 
 ## 7. DuckDB
 
@@ -218,11 +186,9 @@ Activation:
 
 `DEFERRED_UNTIL_A_REAL_CURRENT_QUERY_CAPABILITY_GAP_IS_DEMONSTRATED`
 
-It is not currently installed/adopted as required project infrastructure.
-
 Revalidation trigger:
 
-A concrete research-query workload demonstrates that current Parquet/Python/SQLite paths are materially insufficient.
+A concrete workload demonstrates current Parquet/Python/SQLite paths are materially insufficient.
 
 ## 8. GitHub Actions repository verification
 
@@ -232,32 +198,31 @@ Role:
 
 `REPOSITORY_CI_AND_DEEPSEEK_HARNESS_DYNAMIC_ADMISSION`
 
-Current workflows include:
+Workflow surfaces include:
 
-- `.github/workflows/ci.yml`
-- `.github/workflows/deepseek-harness-admission.yml`
-- `.github/workflows/deepseek-harness-dynamic-admission.yml`
+- `.github/workflows/ci.yml`;
+- `.github/workflows/deepseek-harness-admission.yml`;
+- `.github/workflows/deepseek-harness-dynamic-admission.yml`.
 
-These workflows are verification infrastructure only. A green workflow does not itself grant paid/provider, broker/account or real-money authority.
+A green workflow is verification evidence only; it grants no paid/provider/broker/real-money authority.
 
 Revalidation trigger:
 
-Workflow semantics, runner platform, dependency/runtime pin, or Harness admission path changes materially.
+Workflow semantics, runner platform, dependency/runtime pin or Harness admission path changes materially.
 
 ## 9. Local worker/helper surfaces
 
-WorkBuddy and local VS Code/worker helpers are not project authority by themselves.
+WorkBuddy and local VS Code/worker helpers are not project authority.
 
-`AGENTS.md` governs worker/worktree/integration-lane rules.
+`AGENTS.md` governs worker/worktree/integration procedure.
 
-A worker report can provide evidence for integration review, but accepted project facts, tool adoption and permissions must be written into current GitHub authority/evidence.
+Worker reports are evidence candidates; accepted facts must be written into canonical GitHub authority/evidence by the integration lane.
 
 ## Registry maintenance rule
 
-When a material tool/framework/provider capability is proposed, verified, adopted, replaced or retired for this project:
+When a material capability is proposed, verified, adopted, replaced or retired:
 
-1. record its project role and scope here when it remains relevant to active/future project operation;
-2. keep exact pins and execution permissions in their authoritative config/decision/evidence files;
-3. never treat this registry as spend or external-action authorization;
-4. update `00_READ_FIRST.md` only when the registry's role in fresh takeover changes;
-5. remove obsolete active entries rather than accumulating tombstone narratives; Git history preserves prior states.
+1. record only its project role/scope/status/pin/credential seam/revalidation rule here;
+2. keep current phase/locks/paid state out of this registry;
+3. keep exact spend/execution permission in exact Owner/machine authority;
+4. remove obsolete active entries instead of preserving tombstones; Git history keeps history.
