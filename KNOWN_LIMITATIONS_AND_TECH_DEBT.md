@@ -1,60 +1,61 @@
 # KNOWN_LIMITATIONS_AND_TECH_DEBT
 
-As of: `2026-08-26`
+Status: `CURRENT_DEBT_REGISTER`
 
-## 1. Persistent chronological replay is not implemented end-to-end
+This file owns unresolved capability limitations and technical debt only.
 
-The minimal persistent DeepSeek trader prototype is complete and locally accepted, but one life-like chronological replay of the persistent trader has not yet been implemented or executed end-to-end.
+It must not copy the current work package, phase, locks, paid-slot state or next task. Read `CURRENT_STATE.md` for current project status.
 
-A future replay package must preserve causal availability, persistent memory, trader identity, bounded context/retrieval, auditable wake decisions and the existing mechanical guards. It must not be confused with mass independent stateless prompt exams.
-
-Status: `OPEN_FUTURE_WORK_PACKAGE`
-
-## 2. Harness patch is project-required
-
-The admitted local Harness runtime is pinned to `0.1.1-rc.2` / `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` and requires the project fail-closed DeepSeek transport patch under `integrations/deepseek-harness/` plus `maxRetries: 0`.
-
-Do not replace it with an unpatched upstream build without a new admission verification.
-
-Status: `CONTROLLED_DEPENDENCY`
-
-## 3. Windows rejected-constructor SQLite cleanup remains imperfect
+## 1. Windows rejected-constructor SQLite cleanup
 
 A deliberately rejected mismatched-trader `PersistentTraderStore` constructor can leave its SQLite connection open until Python cleanup/GC. On Windows, same-process immediate deletion of that temporary database may therefore receive `WinError 32`.
 
-The identity mismatch itself remains fail-closed. Native Windows prototype acceptance and the real offline CLI probe both pass. This is cleanup/resource-lifetime technical debt, not a failed prototype objective.
+The identity mismatch itself remains fail-closed. This is cleanup/resource-lifetime technical debt, not a trader-state acceptance failure.
 
 Status: `OPEN_TECH_DEBT__NON_ACCEPTANCE_BLOCKING`
 
-## 4. Experience-derived policy promotion pipeline is not implemented
+## 2. Experience-derived policy promotion pipeline is incomplete
 
-Still required later:
+Later governed learning still requires a complete evidence/promotion path at production/replay scale, including as applicable:
 
-- governed hypothesis identity/lineage at replay scale;
-- falsification/counterexample search workflow;
+- hypothesis identity and lineage;
+- falsification/counterexample search;
 - discovery-exposure lineage;
 - independent validation;
 - policy promotion/versioning.
 
-`DS_HYPOTHESIS_MEMORY` remains non-executable and may not self-promote into active policy.
+`DS_HYPOTHESIS_MEMORY` remains non-executable until such a path is explicitly governed and accepted.
 
-Status: `OPEN_FUTURE_WORK`
+Status: `OPEN_FUTURE_CAPABILITY`
 
-## 5. Protected lanes are locked
+## 3. Long-run trading quality is not demonstrated
 
-- paid provider calls: `PAUSED`;
-- `NEXT_EXPLICIT_PAID_SLOT = NONE`;
-- validation/holdout: locked;
-- shadow: locked;
-- broker/account: locked;
-- real money: locked.
+Existing engineering/replay evidence can establish runtime, lifecycle, causality, memory, audit and execution-path properties without establishing long-horizon profitability or robust cross-market generalization.
 
-Status: `LOCKED_BY_CURRENT_AUTHORITY`
-
-## 6. Long-run stability and profitability are not demonstrated
-
-Prototype completion proves the governed local runtime/memory/retrieval/tool/audit composition, not long-horizon trading quality, production reliability or profitability.
-
-No current evidence establishes profitable historical performance, robust generalization, live/shadow performance, or production readiness. Those require later explicitly governed research/protected evidence.
+Long-term edge remains a separate evidence question.
 
 Status: `OPEN_FUTURE_EVIDENCE`
+
+## 4. Paper/real execution reliability remains future evidence
+
+Future consequential execution requires real-time ingestion, OMS/order lifecycle, reconciliation, restart/reconnect safety, duplicate prevention, risk rejection, provider/data failure handling and account truth to be proven under the applicable future authority.
+
+Architecture direction alone is not evidence that these future modes are ready.
+
+Status: `OPEN_FUTURE_CAPABILITY_AND_EVIDENCE`
+
+## 5. Governance anti-drift enforcement
+
+The repository historically allowed duplicated volatile state and did not mechanically check authority ownership. The governance ownership repair introduces a canonical-owner model and repository consistency checker.
+
+Until that checker is integrated and passing on `main`, governance drift prevention remains incomplete.
+
+Status: `OPEN_UNTIL_GOVERNANCE_REPAIR_ACCEPTED`
+
+## Maintenance rule
+
+A debt item belongs here only while it is genuinely unresolved and useful for future work.
+
+When resolved, remove it from the active file and rely on Git history/evidence for historical record.
+
+Do not add current phase/authorization status here.
