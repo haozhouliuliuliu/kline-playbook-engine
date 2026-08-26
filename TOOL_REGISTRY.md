@@ -210,13 +210,86 @@ Revalidation trigger:
 
 Workflow semantics, runner platform, dependency/runtime pin or Harness admission path changes materially.
 
-## 9. Local worker/helper surfaces
+## 9. VS Code DeepSeek Flash worker
 
-WorkBuddy and local VS Code/worker helpers are not project authority.
+`STATUS = ADOPTED`
 
-`AGENTS.md` governs worker/worktree/integration procedure.
+Role:
 
-Worker reports are evidence candidates; accepted facts must be written into canonical GitHub authority/evidence by the integration lane.
+`DEFAULT_LOCAL_IMPLEMENTATION_AND_PARALLEL_WORKER`
+
+Stable worker/model family:
+
+`VS CODE DEEPSEEK FLASH WORKER` (`deepseek-v4-flash` family; no volatile exact
+build is hard-coded here unless separately pinned by an exact authority)
+
+Adopted scope:
+
+- ordinary authorized engineering;
+- tests, bug fixing and documentation;
+- Git/GitHub work;
+- local repository/file/runtime inspection;
+- local-machine tasks;
+- data work;
+- bounded parallel implementation on independent scopes.
+
+It may act as the integration lane only when explicitly assigned.
+
+Worker availability grants no project authority, paid permission, provider
+permission, broker/account permission or real-money permission.
+
+Revalidation trigger:
+
+material change to VS Code agent behavior, DeepSeek Flash worker family,
+local/GitHub permissions, or repository interaction behavior.
+
+## 10. Codex worker
+
+`STATUS = ADOPTED`
+
+Role:
+
+`HIGH_ASSURANCE_CRITICAL_ENGINEERING_AND_REVIEW_WORKER`
+
+Stable worker/model family:
+
+`CODEX WORKER` (no volatile Codex model name is hard-coded here; the exact
+model/reasoning choice is selected per task by the project brain, consistent
+with the adopted parent contract)
+
+Adopted scope (difficult/high-criticality work where stronger implementation or
+independent assurance is materially useful):
+
+- critical architecture;
+- difficult correctness problems;
+- fragile runtime/infrastructure;
+- hard debugging;
+- evidence-critical implementation;
+- research-semantics-sensitive implementation/review;
+- consequential-action safety boundaries;
+- major migration/refactor;
+- independent factual/adversarial review when stronger assurance is warranted.
+
+Codex is not the default worker for routine engineering.
+
+Worker availability grants no project authority, paid permission, provider
+permission, broker/account permission or real-money permission.
+
+Revalidation trigger:
+
+material change to Codex agent behavior, local/GitHub permissions, or repository
+interaction behavior.
+
+## 11. Worker surface status rule
+
+Both worker surfaces are implementation/helper capabilities, not
+project-management or authority owners.
+
+`AGENTS.md` governs worker routing, worktree/integration procedure and worker-prompt
+discipline.
+
+Worker reports are evidence candidates; accepted facts must be written into canonical
+GitHub authority/evidence by the integration lane.
 
 ## Registry maintenance rule
 

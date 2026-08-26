@@ -84,6 +84,39 @@ class AuthorityConsistencyTests(unittest.TestCase):
             registry,
         )
 
+    def test_runtime_brief_retains_refresh_and_dereference_rules(self) -> None:
+        brief = (REPO_ROOT / "PROJECT_BRAIN_RUNTIME_BRIEF.md").read_text(encoding="utf-8").lower()
+        for token in (
+            "Mandatory minimum pre-answer refresh",
+            "Binding-parent dereference rule",
+            "CROSS_PROJECT_OPERATING_CONTRACT",
+            "PROJECT_GOVERNANCE.md",
+            "PROJECT_DIRECTION.md",
+            "CURRENT_STATE.md",
+        ):
+            self.assertIn(token.lower(), brief)
+
+    def test_agents_retains_worker_routing_and_single_lane(self) -> None:
+        agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8").lower()
+        for token in (
+            "exactly one integration lane",
+            "VS Code DeepSeek Flash",
+            "Codex is reserved for high-end / high-assurance work",
+            "Worker-prompt discipline",
+        ):
+            self.assertIn(token.lower(), agents)
+
+    def test_tool_registry_retains_role_scoped_worker_surfaces(self) -> None:
+        registry = (REPO_ROOT / "TOOL_REGISTRY.md").read_text(encoding="utf-8").lower()
+        for token in (
+            "VS CODE DEEPSEEK FLASH WORKER",
+            "DEFAULT_LOCAL_IMPLEMENTATION_AND_PARALLEL_WORKER",
+            "CODEX WORKER",
+            "HIGH_ASSURANCE_CRITICAL_ENGINEERING_AND_REVIEW_WORKER",
+            "implementation/helper capabilities",
+        ):
+            self.assertIn(token.lower(), registry)
+
 
 if __name__ == "__main__":
     unittest.main()

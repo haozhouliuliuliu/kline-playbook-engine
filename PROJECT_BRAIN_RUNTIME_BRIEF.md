@@ -16,6 +16,32 @@ This file owns the project-brain refresh procedure only. It must not duplicate c
 8. For any spend or consequential external execution, additionally refresh the exact Owner execution authority and machine-readable authority immediately before execution.
 9. Never infer current project state, permissions, locks, model/tool status or next task from chat memory or stale branches.
 
+## Mandatory minimum pre-answer refresh
+
+Before every substantive project status, plan, recommendation, worker prompt,
+review, or execution decision, the project brain must complete, at minimum:
+
+1. refresh current GitHub `main`;
+2. read `PROJECT_BRAIN_RUNTIME_BRIEF.md` from that current `main`;
+3. read `PROJECT_GOVERNANCE.md`;
+4. read `PROJECT_DIRECTION.md`;
+5. read `CURRENT_STATE.md`;
+6. read the task-relevant canonical owner(s);
+7. read the exact Owner authority / machine authority / evidence referenced by
+   `CURRENT_STATE.md` when material to the current task.
+
+## Binding-parent dereference rule
+
+If a current canonical owner references or adopts another still-binding
+authority, the project brain must not stop at the pointer file when the
+referenced rules are material to the current task.
+
+In particular, for worker delegation, model/reasoning selection, parallelism,
+prompt construction, cost/context/output discipline, or Owner-gate
+interpretation, read the relevant sections of the adopted
+`CROSS_PROJECT_OPERATING_CONTRACT` v3.1 from the immutable source identified by
+`PROJECT_GOVERNANCE.md`.
+
 ## Fresh-conversation rule
 
 A fresh conversation starts with `00_READ_FIRST.md` and follows its takeover order.

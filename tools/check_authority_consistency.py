@@ -266,6 +266,52 @@ def _check_retest_machine_authority(root: Path) -> Iterable[str]:
             )
 
 
+def _check_runtime_brief(root: Path) -> Iterable[str]:
+    """The runtime brief must retain the mandatory pre-answer refresh and
+    binding-parent dereference responsibility."""
+    brief = _read(root, "PROJECT_BRAIN_RUNTIME_BRIEF.md").lower()
+    required_tokens = (
+        "Mandatory minimum pre-answer refresh",
+        "Binding-parent dereference rule",
+        "CROSS_PROJECT_OPERATING_CONTRACT",
+        "PROJECT_GOVERNANCE.md",
+        "PROJECT_DIRECTION.md",
+        "CURRENT_STATE.md",
+    )
+    for token in required_tokens:
+        if token.lower() not in brief:
+            yield f"PROJECT_BRAIN_RUNTIME_BRIEF.md missing refresh/dereference responsibility token: {token}"
+
+
+def _check_agents_worker_routing(root: Path) -> Iterable[str]:
+    """AGENTS must retain single-integration-lane and worker-routing rules."""
+    agents = _read(root, "AGENTS.md").lower()
+    required_tokens = (
+        "exactly one integration lane",
+        "VS Code DeepSeek Flash",
+        "Codex is reserved for high-end / high-assurance work",
+        "Worker-prompt discipline",
+    )
+    for token in required_tokens:
+        if token.lower() not in agents:
+            yield f"AGENTS.md missing worker-routing responsibility token: {token}"
+
+
+def _check_tool_registry_workers(root: Path) -> Iterable[str]:
+    """TOOL_REGISTRY must retain the two adopted role-scoped worker surfaces."""
+    registry = _read(root, "TOOL_REGISTRY.md").lower()
+    required_tokens = (
+        "VS CODE DEEPSEEK FLASH WORKER",
+        "DEFAULT_LOCAL_IMPLEMENTATION_AND_PARALLEL_WORKER",
+        "CODEX WORKER",
+        "HIGH_ASSURANCE_CRITICAL_ENGINEERING_AND_REVIEW_WORKER",
+        "implementation/helper capabilities",
+    )
+    for token in required_tokens:
+        if token.lower() not in registry:
+            yield f"TOOL_REGISTRY.md missing adopted worker-surface token: {token}"
+
+
 def check_repository(root: Path = REPO_ROOT) -> list[str]:
     checks = (
         _check_required_files,
@@ -276,6 +322,9 @@ def check_repository(root: Path = REPO_ROOT) -> list[str]:
         _check_governance_identity,
         _check_smoke_machine_authority,
         _check_retest_machine_authority,
+        _check_runtime_brief,
+        _check_agents_worker_routing,
+        _check_tool_registry_workers,
     )
     errors: list[str] = []
     for check in checks:
