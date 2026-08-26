@@ -4,6 +4,8 @@ Status: `CURRENT`
 
 Product direction authority: `PROJECT_DIRECTION.md`
 
+Execution/promotion detail: `docs/architecture/JIANGHE_EXECUTION_AND_PROMOTION_ARCHITECTURE_V0_1.md`
+
 ## Core runtime
 
 ```text
@@ -24,7 +26,7 @@ Market Data
 -> Reconciliation / Safety / Immutable Ledger
 ```
 
-AI interprets markets and proposes discretionary intent. Deterministic project code owns capital/risk limits, broker/account truth, order lifecycle, reconciliation, safety and kill-switch behavior.
+DeepSeek interprets markets and proposes discretionary intent. Deterministic project code owns capital/risk limits, broker/account truth, order lifecycle, reconciliation, safety, request accounting and kill-switch behavior.
 
 ## Model/runtime boundary
 
@@ -32,24 +34,18 @@ AI interprets markets and proposes discretionary intent. Deterministic project c
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-Runtime shell:
-
 `DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
 Pinned shell:
 
-- version `0.1.1-rc.2`
-- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
-- project fail-closed transport patch under `integrations/deepseek-harness/`
-- general retry `maxRetries: 0`
+- version `0.1.1-rc.2`;
+- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`;
+- project fail-closed transport patch under `integrations/deepseek-harness/`;
+- general retry `maxRetries: 0`.
 
-Deployment baseline:
+Deployment baseline: `LOCAL_WORKSTATION_FIRST`.
 
-`LOCAL_WORKSTATION_FIRST`
-
-The local Harness process may expose a localhost browser UI. Project-owned memory, K-line data/tools, Jianghe knowledge and trader state stay local/project-controlled. Public/cloud hosting is outside the adopted local product boundary unless later authority changes it.
-
-Harness hosts sessions/tools/UI but does not own core trader semantics. The trader core must remain portable behind another thin shell.
+Harness hosts sessions/tools/UI but does not own core trader semantics. The trader core remains project-owned and portable.
 
 ## Observation semantics
 
@@ -57,25 +53,13 @@ Active stack: `4H / 1H / 15m / 5m`.
 
 4H role: `BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`.
 
-Decision-time observations are causal. Historical replay, when explicitly opened, uses completed 1-minute data and does not invent sub-minute paths.
+All decision-time observations are causal. Historical replay uses governed completed data; real-time mode must preserve the same causal availability boundary.
 
 ## Persistent trader state
 
-Project-owned persistent state includes:
+Project-owned persistent state includes attention/state, timeframe interpretations, hypotheses, key/watch/invalidation regions, family/setup candidate, expected trigger, open questions, meaningful prior decisions, journal, hypothesis memory and validated-policy references.
 
-- instrument/session attention state;
-- timeframe interpretations;
-- active market hypotheses;
-- key/watch/invalidation regions;
-- family/setup candidate;
-- expected trigger;
-- open questions/UNKNOWNs;
-- prior meaningful decisions still relevant;
-- `DS_JOURNAL`;
-- `DS_HYPOTHESIS_MEMORY`;
-- project-validated policy references.
-
-Every mutation is attributable and auditable. Restart preserves governed working state; this was proven by the completed minimal persistent trader prototype and Owner-workstation acceptance.
+Every mutation is attributable and auditable. Restart preserves governed working state.
 
 ## Knowledge separation
 
@@ -85,25 +69,48 @@ Every mutation is attributable and auditable. Restart preserves governed working
 - `DS_WORKING_MEMORY` — current market state/hypotheses.
 - `DS_JOURNAL` — reflection, never source truth.
 
-## Mechanical guards
+## Execution-mode architecture direction
 
-- `STRICT_OUTPUT_ENUM_ENFORCEMENT`
-- `NO_4H_EXACT_VOLUME_RECONCILIATION`
+Future execution modes share the same cognition/risk/OMS contracts:
 
-Both are implemented and CI verified.
+`EXECUTION_MODE = SHADOW / PAPER / REAL`
 
-## Learning architecture
+- `SHADOW`: no external order; diagnostics/fault isolation/safe degradation; not a mandatory promotion stage.
+- `PAPER`: real-time end-to-end execution semantics through a paper/simulation account.
+- `REAL`: real broker/account adapter under exact external-risk authority.
 
-`Observation -> Falsifiable DS Hypothesis -> Counterexample Search -> Development Evidence -> Independent Validation -> Project-Validated Policy`
+Normal promotion path after historical research:
 
-Discovery exposure and redesign history remain recorded. Outcome and process correctness remain separate.
+`HISTORICAL REPLAY -> REAL-TIME PAPER -> CONSTRAINED REAL MONEY`
 
-## Current implementation boundary
+Switching PAPER -> REAL should primarily change account/execution authority and adapter configuration, not trader cognition.
 
-`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`.
+## OMS/reconciliation boundary
 
-The accepted local composition proves persistent project-owned memory, bounded Jianghe retrieval, causal multi-timeframe observation/charts, audited tools, journal/hypothesis separation, reconstructable request/response state, portability and fail-closed provider/runtime guards.
+Each order intent must be idempotently bound to trader/wake/decision/risk/order identities. Restart/reconnect must reconstruct account/order truth before new risk.
 
-`CURRENT_WORK_PACKAGE = NONE__AWAITING_EXPLICIT_NEXT_WORK_PACKAGE`.
+Truth hierarchy:
 
-Persistent chronological replay is a future work package, not an automatic consequence of prototype completion. Architecture alone grants no replay/learning, provider-call, validation, shadow, broker/account or real-money permission.
+`BROKER/PAPER ACCOUNT -> PROJECT OMS LEDGER -> PROJECT POSITION STATE -> MODEL-VISIBLE POSITION SUMMARY`
+
+Unknown order/position/account state means no new risk and fail-closed adjudication.
+
+## Deterministic risk boundary
+
+RiskGate has final veto. Required future controls include product whitelist, max position, add-on permission, per-trade/daily/cumulative risk, margin/headroom, duplicate prevention, reconciliation, data/provider/runtime health and kill-switch state.
+
+Permanent numeric limits are not defined by architecture and require Owner authority before real-money use.
+
+## Current work package boundary
+
+`CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
+
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
+
+Current V0.1 remains intent-only with `PAPER_EXECUTION = DEFERRED`.
+
+The post-V0.1 roadmap is approved as future direction only. Architecture grants no provider spend, shadow, paper, broker/account or real-money permission.
+
+Current next task remains:
+
+`OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`.
