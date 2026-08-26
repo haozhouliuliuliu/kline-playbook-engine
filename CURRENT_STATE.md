@@ -1,6 +1,6 @@
 # CURRENT_STATE
 
-As of: `2026-08-26`
+As of: `2026-08-27`
 
 ## Mission
 
@@ -10,181 +10,158 @@ As of: `2026-08-26`
 
 `CURRENT_MODEL = deepseek-v4-flash-vision-exp`
 
-Target: one persistent, auditable, Jianghe-grounded DeepSeek China-futures trader whose operational distractions are handled deterministically by the project system and whose model cognition is reserved for trading.
-
-## Knowledge boundary
-
-- `JIANGHE_CANON`: source-grounded and read-only.
-- `PROJECT_VALIDATED_POLICY`: independently validated project extensions.
-- `DS_HYPOTHESIS_MEMORY`: DeepSeek candidate ideas; never executable policy.
-- `DS_WORKING_MEMORY`: persistent current market state, regions, triggers and open questions.
-- `DS_JOURNAL`: reflection/self-critique; not source truth or policy.
-
-Promotion path remains:
-
-`OBSERVATION -> HYPOTHESIS -> COUNTEREXAMPLE SEARCH -> DEVELOPMENT EVIDENCE -> INDEPENDENT VALIDATION -> PROJECT_VALIDATED_POLICY`
-
-No replay result or model opinion may bypass that governance path.
-
-## Observation/runtime baseline
-
-Active stack:
-
-`4H / 1H / 15m / 5m`
-
-4H role:
-
-`BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY`
-
-Mandatory guards:
-
-- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_CI_VERIFIED`
-- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_CI_VERIFIED`
-
-## DeepSeek Harness
-
-`DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
-
-`PINNED_HARNESS_VERSION = 0.1.1-rc.2`
-
-`PINNED_HARNESS_COMMIT = b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
-
-`DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
-
-Use the pinned Harness only with the project fail-closed patch under `integrations/deepseek-harness/` and `maxRetries: 0`.
-
-## Completed prototype
-
-`MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_V0_1 = COMPLETE`
-
-`PROTOTYPE_12_OBJECTIVE_AUTOMATED_GATE = PASS`
-
-`NATIVE_WINDOWS_PROJECT_ACCEPTANCE_CI = PASS`
-
-`LOCAL_WORKSTATION_ACCEPTANCE = PASS`
-
-Formal evidence:
-
-- `docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_AUTOMATED_GATE_EVIDENCE_2026-08-26.md`
-- `docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_WINDOWS_LOCAL_ACCEPTANCE_REPAIR_2026-08-26.md`
-- `docs/evidence/MINIMAL_PERSISTENT_DEEPSEEK_TRADER_PROTOTYPE_LOCAL_WORKSTATION_ACCEPTANCE_2026-08-26.md`
-
-Implemented prototype capabilities include project-owned SQLite working/journal/hypothesis state, restart persistence, bounded read-only Jianghe retrieval, causal 4H/1H/15m/5m observation/charts, audited tools, strict response normalization, prompt/tool identity binding and Harness-independent portable export.
-
-A separate non-acceptance Windows cleanup limitation remains recorded in the Windows repair evidence: one deliberately rejected mismatched-trader constructor can retain a SQLite handle until cleanup/GC and cause immediate same-process temp-directory deletion to hit `WinError 32`. It is not a current V0.1 blocker unless replay engineering touches that failure path.
-
-## Historical data foundation
-
-Accepted canonical corpus:
-
-- 2024-01-01..2025-12-31
-- product order `cu/al/ni/au/ag/rb`
-- 32,980 partitions
-- 212 contracts
-- 15,280,452 normalized 1-minute rows
-- corpus identity `1d03fd230b4603715b7ea01e13c4e21eb30b8118d0270571d136b17c886774a8`
-
-Authority:
-
-`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
-
-Point-in-time research-symbol -> concrete-contract runtime mapping remains governed by the existing E07 machinery; no post-hoc volume/OI fallback is allowed.
+Target: one persistent, auditable, Jianghe-grounded DeepSeek China-futures trader whose deterministic operational mechanics remain project-owned and whose model cognition is reserved for trading.
 
 ## Active work package
 
-Owner-approved authority:
+Owner-approved replay authority:
 
 `docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
 
+Provider-smoke Owner decision:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
+
+Machine-readable smoke authority:
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
+
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = OFFLINE_PREEXECUTION_ENGINEERING`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
 
-`NEXT_TASK = IMPLEMENT_V0_1_OFFLINE_REPLAY_PREEXECUTION_GATES`
+`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
 
-### Frozen experiment headline
+## Frozen V0.1 experiment
 
-- deterministic outcome-blind first eligible product/window;
-- start from canonical product order `cu -> al -> ni -> au -> ag -> rb`;
-- at least 20 prior eligible trading days of causal chart/context history;
-- 2 burn-in trading days + 20 measurement trading days;
-- unchanged governed concrete contract across the 22 replay days;
-- `WAKE_POLICY = EVERY_NEW_CLOSED_5M_BAR`;
-- no adaptive/event-driven wake optimization in V0.1;
-- `PAPER_EXECUTION = DEFERRED`;
-- no amount PnL/cumulative return/win-rate/previous-win-loss labels in model decision context;
-- no outcome-driven rerun;
-- no learning or policy promotion.
+- product: `cu`
+- concrete contract: `SHFE.cu2406`
+- prior history: 20 eligible trading days
+- burn-in: `2024-04-10`, `2024-04-11`
+- measurement: 20 trading days through `2024-05-14`
+- replay days: `22`
+- exact slice identity: `347291481968b1884635a11aa1da985d9aad1b3fb854a16087bbca662bd85a06`
+- exact slice seal: `e9bbd232fd05d320a24c80ac5570a94abdf6d4c3a167cdd5c46f4426a6c84156`
+- wake policy: `EVERY_NEW_CLOSED_5M_BAR`
+- governed wakes: `1998`
+- observation stack: `4H / 1H / 15m / 5m`
+- `PAPER_EXECUTION = DEFERRED`
+- no adaptive/event-driven wake optimization in V0.1
+- no amount PnL/win-rate/outcome labels in model decision context
+- no outcome-driven rerun
+- no learning or policy promotion
 
-## Model cognitive scope
+## Offline preexecution result
 
-`MODEL_COGNITIVE_SCOPE = TRADING_ONLY`
+Formal evidence:
 
-Owner direction is explicit: reduce non-trading mental load on DeepSeek as far as the project can deterministically handle it.
+`docs/evidence/JIANGHE_REPLAY_V0_1_PREEXECUTION_EVIDENCE_2026-08-26.md`
 
-Project/system responsibilities include:
+`V0_1_OFFLINE_PREEXECUTION_GATES = PASS`
 
-- wake scheduling;
-- replay clock/time progression;
-- data/mapping/session eligibility;
-- chart construction;
-- bounded context assembly;
-- storage/restart mechanics;
-- provider routing/retry/failure handling;
-- audit/request accounting/cost logging;
-- schema normalization;
-- experiment control;
-- governance/risk/broker mechanics.
+`FULL_EXACT_SLICE_MOCK_DRY_RUN = PASS`
 
-DeepSeek's task is limited to current trading cognition: read the supplied causal market context, apply Jianghe evidence and permitted memory, identify state/levels/setup/triggers/invalidation, choose the permitted trading action/state, and declare uncertainty instead of inventing missing facts.
+Owner-workstation real-corpus mock result:
 
-Prompt strictness must reduce meta/engineering distraction without predetermining legitimate trading conclusions.
+- replay days: `22`
+- governed sessions: `87`
+- `step = wake = request = mock-call = 1998`
+- R1 phase-boundary restart: `VERIFIED`
+- R2 active-state restart coverage: `NOT_OBSERVED` as permitted by the frozen design
+- real provider calls: `0`
+- provider call authorized: `false`
 
-## Memory/restart prerequisites for V0.1
+The pre-provider implementation now includes and tests:
 
-`DS_WORKING_MEMORY`: active and causally mutable.
-
-`DS_JOURNAL`: governed writes only; no V0.1 PnL/outcome reflection.
-
-`DS_HYPOTHESIS_MEMORY`: non-executable; may create/revise/falsify/retire candidates only.
-
-Repository-verified audit gap to repair before real provider replay:
-
-- the current hypothesis store updates one current row per hypothesis;
-- full previous hypothesis bodies are not first-class append-only revisions in final portable evidence.
-
-Required pre-provider fix:
-
-`APPEND_ONLY_HYPOTHESIS_REVISION_HISTORY = REQUIRED`
-
-Restart requirements:
-
-- R1 after burn-in day 2, before measurement;
-- R2 after measurement day 3 at the first persisted WATCH/CANDIDATE/IN_POSITION state, before the next 5m wake; otherwise record `ACTIVE_STATE_RESTART_COVERAGE = NOT_OBSERVED`.
-
-## Current authorization boundary
-
-Authorized now:
-
-- authority/status synchronization;
-- offline engineering and tests;
 - strict trading-only prompt/context contract;
-- hypothesis revision-history repair;
-- deterministic slice selector;
-- replay orchestrator and wake ledger;
+- append-only/versioned hypothesis revision history;
+- deterministic outcome-blind exact-slice selector;
+- formal D01/D02 qualification with 116 failed partitions excluded and 32,864 qualified;
+- fixed 5m wake ledger and replay orchestrator;
+- causal 4H/1H/15m/5m context construction;
+- persistent working memory / journal / hypothesis state;
 - intent-only lifecycle state;
-- restart/leakage/audit invariants;
-- mock/no-provider dry run;
-- pre-execution evidence.
+- restart, leakage, request-count and audit gates;
+- exact-slice full mock/no-provider lifecycle rehearsal.
 
-Still locked:
+## Provider smoke preparation
 
-- real DeepSeek/provider replay calls: `PAUSED`
-- `NEXT_EXPLICIT_PAID_SLOT = NONE`
+`PROVIDER_SMOKE_PREPARATION = READY`
+
+Current merged provider-smoke execution path is zero-cost prepared and CI-verified:
+
+- exact first 3 governed 5m wakes only;
+- `max_provider_calls = 3`;
+- `max_retries = 0`;
+- exactly 4 deterministic PNG inputs per call: `4H / 1H / 15m / 5m`;
+- one governed wake -> exactly one Harness model request;
+- no hidden stale-file second request;
+- forced project-owned restart after successful call 2 before call 3;
+- exact provider/model/image/request assertions after every call;
+- execution-critical source bound to full 40-hex execution commit before network capability exists;
+- live prompt/context/renderer/API-key identities bound before network capability exists;
+- provider endpoint override allowed only for explicit loopback tests;
+- ACTIVE spend field must be a positive finite CNY value;
+- fourth provider call impossible by construction;
+- full 1998-call replay explicitly unauthorized.
+
+Pinned Harness:
+
+- version `0.1.1-rc.2`
+- commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
+- project fail-closed patch under `integrations/deepseek-harness/`
+
+GitHub CI on the final smoke-preparation head passed both:
+
+- Repository CI
+- DeepSeek Harness Dynamic Admission, including the one-wake/one-request/four-image smoke bridge test
+
+## Current smoke authority
+
+The machine-readable authority remains deliberately inactive:
+
+`status = PENDING_OWNER_PAYMENT_CONFIRMATION`
+
+`owner_payment_confirmation = false`
+
+`max_provider_calls = 3`
+
+`max_retries = 0`
+
+`images_per_call = 4`
+
+`max_spend_cny = PENDING_OWNER_CONFIRMATION`
+
+`full_replay_authorized = false`
+
+`full_replay_1998_calls_authorized = false`
+
+Therefore:
+
+`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
+
+`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
+
+No real provider request may occur until the Owner explicitly confirms the smoke spend/execution authority. The proposed preparation ceiling is CNY `3.00`; it is not yet authorization and is not a provider-side guaranteed cap.
+
+## Knowledge and governance boundary
+
+- `JIANGHE_CANON`: source-grounded and read-only.
+- `PROJECT_VALIDATED_POLICY`: independently validated project extensions.
+- `DS_HYPOTHESIS_MEMORY`: non-executable candidate ideas.
+- `DS_WORKING_MEMORY`: persistent current market state.
+- `DS_JOURNAL`: auditable reflection, not source truth or policy.
+
+Promotion remains locked:
+
+`OBSERVATION -> HYPOTHESIS -> COUNTEREXAMPLE SEARCH -> DEVELOPMENT EVIDENCE -> INDEPENDENT VALIDATION -> PROJECT_VALIDATED_POLICY`
+
+## Current locks
+
+- real provider smoke: `PENDING_OWNER_PAYMENT_CONFIRMATION`
+- full 1998-call provider replay: locked
 - learning/policy promotion: locked
 - validation/holdout: locked
 - shadow: locked
 - broker/account: locked
 - real money: locked
-
-No current authority permits a real provider call.
