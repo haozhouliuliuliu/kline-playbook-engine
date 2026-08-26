@@ -8,19 +8,17 @@ Scope: `GOVERNANCE / CONTEXT CONTINUITY / AUTHORITY OWNERSHIP ONLY`
 
 ## Trigger
 
-The Owner observed repeated fresh-conversation loss and authority drift, including a concrete local-runtime continuity failure where a new conversation did not know the already-established DeepSeek credential location contract.
+The Owner observed repeated fresh-conversation loss and authority drift, including a concrete local-runtime continuity failure where a new conversation did not know the already-established provider credential-location contract.
 
 The Owner explicitly directed the project to stop provider-smoke execution for now and repair the governance/context structure instead of delegating the smoke to another fresh conversation.
 
 ## Owner decision
 
-The project adopts the operating principle:
+The project adopts:
 
 `ONE_CONCERN__ONE_CANONICAL_OWNER`
 
 Dynamic facts must not be copied across many active files merely for convenience.
-
-The following ownership split is approved:
 
 | Concern | Canonical owner |
 | --- | --- |
@@ -36,23 +34,35 @@ The following ownership split is approved:
 | unresolved capability limitations / technical debt | `KNOWN_LIMITATIONS_AND_TECH_DEBT.md` |
 | exact paid/external execution permission | exact Owner execution authority + machine-readable authority |
 
-## DeepSeek credential continuity
+## Owner workstation credential convention
 
-The repository must record only the credential **location contract**, never the secret value.
+The Owner confirmed that provider secrets are stored as Windows **current-user environment variables**.
 
-For the current adopted DeepSeek provider path:
+The repository records variable names and location rules only, never secret values.
+
+Known user-level variable names observed include:
+
+- `ANTHROPIC_API_KEY`;
+- `DASHSCOPE_API_KEY`;
+- `DEEPSEEK_API_KEY`;
+- `GEMINI_API_KEY`;
+- `SILICONFLOW_API_KEY`.
+
+Their existence does not mean those providers are adopted by this project.
+
+For the currently adopted DeepSeek provider path:
 
 `CREDENTIAL_ENV = DEEPSEEK_API_KEY`
 
-`CREDENTIAL_LOCATION = OWNER_WINDOWS_USER_ENVIRONMENT`
+`CREDENTIAL_LOCATION = WINDOWS_CURRENT_USER_ENVIRONMENT_VARIABLES`
 
-The secret value must never be committed, printed, logged, copied into project authority, or requested for storage in chat. Runtime checks may report only `SET / UNSET` or equivalent non-secret availability state.
+Secret values must never be committed, printed, logged, serialized, copied into project authority, or requested for storage in chat. Runtime checks may report only `SET / UNSET` or equivalent non-secret availability state.
 
-The canonical owner for this credential seam is `TOOL_REGISTRY.md`.
+The canonical owner for this credential convention and provider credential seam is `TOOL_REGISTRY.md`.
 
 ## Provider-smoke hold
 
-The previously approved exact three-call provider-smoke authority remains an immutable record of the approved sealed slot, but the Owner now directs:
+The previously approved three-call provider-smoke scope remains historical Owner authority, but the Owner now directs:
 
 `PROVIDER_SMOKE_EXECUTION = OWNER_HOLD_BEFORE_FIRST_CALL`
 
@@ -60,9 +70,11 @@ The previously approved exact three-call provider-smoke authority remains an imm
 
 Do not delegate or resume the provider smoke in a fresh conversation while this hold is current.
 
-The hold does not consume or widen the prior paid slot. It does not authorize a fourth call, full 1998-call replay, post-V0.1 paid replay, broker/account action, paper execution, or real money.
+For machine safety, the current smoke machine authority must be made non-executable by changing its machine status to `REVOKED`. This is an execution lock, not a claim that the original three-call design was invalid.
 
-A later explicit Owner instruction is required to resume the held three-call smoke.
+The hold/revocation does not widen or consume the three-call scope and does not authorize a fourth call, full 1998-call replay, post-V0.1 paid replay, broker/account action, paper execution or real money.
+
+A later explicit Owner instruction is required before any resumed smoke. Resumption must create/reseal an executable machine authority against the then-current code and governance state rather than silently flipping old text back to ACTIVE.
 
 ## Migration boundary
 
@@ -74,11 +86,11 @@ This repair does **not** change:
 - 1998 governed-wake identity;
 - DeepSeek model selection;
 - Harness pin;
-- the already-approved post-V0.1 CU/RB roadmap;
+- the approved post-V0.1 CU/RB roadmap;
 - historical evidence;
 - permanent risk rules.
 
-It repairs only governance ownership, takeover continuity and anti-drift enforcement.
+It repairs governance ownership, takeover continuity, secret-location continuity and anti-drift enforcement.
 
 ## Legacy Contract 3.1
 
