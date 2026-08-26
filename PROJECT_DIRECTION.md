@@ -1,6 +1,6 @@
 # PROJECT_DIRECTION
 
-As of: `2026-08-26`
+As of: `2026-08-27`
 
 This file is the binding current product and research direction for `kline-playbook-engine`.
 
@@ -26,11 +26,9 @@ Hard risk, broker/account truth, order lifecycle, reconciliation, safety, provid
 
 DeepSeek is the Jianghe trader, not the project operator.
 
-The project system should pre-resolve mechanically decidable operational work such as wake timing, replay clock, data eligibility, contract mapping, session validity, chart construction, context assembly, storage, retries, audit, response validation, provider routing, experiment scheduling and cost accounting.
+The project system pre-resolves wake timing, replay clock, data eligibility, contract mapping, session validity, chart construction, context assembly, storage, retries, audit, response validation, provider routing, experiment scheduling and cost accounting.
 
-DeepSeek's cognition should be spent only on the trading task: understand the current causal market, apply Jianghe evidence and permitted memory, identify setup/state/levels/triggers/invalidation, choose the permitted trading action, and express uncertainty without inventing missing information.
-
-Prompts must be strict about scope and output contract, not about predetermined market conclusions. Machine-resolvable facts should be passed as structured context rather than left for DeepSeek to infer.
+DeepSeek's cognition is limited to the trading task: understand the current causal market, apply Jianghe evidence and permitted memory, identify setup/state/levels/triggers/invalidation, choose the permitted trading action, and express uncertainty without inventing missing information.
 
 ## 4. Knowledge hierarchy
 
@@ -66,55 +64,84 @@ Future information is unavailable before its governed availability time. Working
 
 ## 7. Active work package
 
-Owner-approved authority:
+Replay authority:
 
 `docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`
 
+Provider-smoke decision:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_OWNER_DECISION.md`
+
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = OFFLINE_PREEXECUTION_ENGINEERING`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_PREPAYMENT_READY`
 
-V0.1 frozen design headline:
+The sealed V0.1 replay remains:
 
 - one persistent trader;
-- deterministic outcome-blind first eligible product/window selection;
-- product order `cu -> al -> ni -> au -> ag -> rb`;
-- at least 20 prior eligible trading days for causal chart/context history;
-- 2 burn-in trading days + 20 measurement trading days;
-- one unchanged governed concrete contract across the 22 replay days;
+- product `cu`, contract `SHFE.cu2406`;
+- 20 prior eligible trading days;
+- 2 burn-in + 20 measurement trading days;
+- exact `1998` governed closed-5m wakes;
 - `WAKE_POLICY = EVERY_NEW_CLOSED_5M_BAR`;
-- no event/adaptive wake optimization in V0.1;
+- causal `4H / 1H / 15m / 5m` observation;
+- intent-only lifecycle state;
 - `PAPER_EXECUTION = DEFERRED`;
 - no amount PnL/win-rate/outcome labels in model decision context;
-- working memory active;
-- journal governed and outcome-blind in V0.1;
-- hypothesis memory remains non-executable;
-- append-only hypothesis revision history is mandatory before real replay;
-- mandatory restart continuity gates;
-- replay integrity and trader reasoning quality are separate evidence dimensions;
-- no learning/policy promotion in V0.1.
+- no outcome-driven rerun;
+- no learning or policy promotion.
 
-## 8. Current implementation sequence
+## 8. Offline completion
 
-Proceed autonomously through:
+Formal evidence:
 
-1. strict single-purpose system/decision prompt contract;
-2. append-only/versioned hypothesis revision-history implementation and tests;
-3. deterministic outcome-blind V0.1 slice selector;
-4. replay orchestrator and fixed 5m wake ledger;
-5. causal observation/context wiring to the persistent runtime;
-6. intent-only lifecycle state required for legal ENTER/MANAGE/EXIT reasoning;
-7. restart checkpoints;
-8. leakage/request-count/audit invariants;
-9. mock/no-provider dry run on the exact selected slice;
-10. seal pre-execution evidence.
+`docs/evidence/JIANGHE_REPLAY_V0_1_PREEXECUTION_EVIDENCE_2026-08-26.md`
 
-Then stop at the exact first real-provider-call boundary unless a later provider-execution authority opens it.
+`V0_1_OFFLINE_PREEXECUTION_GATES = PASS`
 
-## 9. Mechanical guards and Harness
+`FULL_EXACT_SLICE_MOCK_DRY_RUN = PASS`
 
-- `STRICT_OUTPUT_ENUM_ENFORCEMENT = IMPLEMENTED_AND_CI_VERIFIED`
-- `NO_4H_EXACT_VOLUME_RECONCILIATION = IMPLEMENTED_AND_CI_VERIFIED`
+The full exact-slice real-corpus mock rehearsal produced:
+
+`step = wake = request = mock-call = 1998`
+
+with R1 restart verified, R2 coverage recorded according to the frozen rule, and zero real provider calls.
+
+No additional offline research gate is required before the bounded real-provider smoke decision.
+
+## 9. Provider smoke direction
+
+The next possible paid action is not the full replay. It is one bounded execution-integrity smoke slot:
+
+`FIRST_3_GOVERNED_5M_WAKES_OF_THE_SEALED_SLICE`
+
+Hard scope:
+
+- maximum real provider model requests: `3`;
+- retries: `0`;
+- four causal PNG images per request: `4H / 1H / 15m / 5m`;
+- one wake -> exactly one Harness model request;
+- forced project-owned restart after successful call 2 before call 3;
+- any execution, schema, image, identity, persistence or accounting failure stops immediately;
+- no replacement wake or re-ask;
+- call 4 forbidden;
+- full 1998-call replay remains unauthorized.
+
+Machine authority:
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json`
+
+Current authority remains inactive:
+
+`status = PENDING_OWNER_PAYMENT_CONFIRMATION`
+
+`owner_payment_confirmation = false`
+
+`max_spend_cny = PENDING_OWNER_CONFIRMATION`
+
+The proposed preparation ceiling is CNY `3.00`; this is not current authorization and is not a provider-side guaranteed cap.
+
+## 10. Harness and paid-safety boundary
 
 `DEEPSEEK_HARNESS = ADOPTED_FOR_LOCAL_PROTOTYPE_RUNTIME_SHELL`
 
@@ -125,24 +152,23 @@ Use only:
 - project fail-closed patch under `integrations/deepseek-harness/`
 - retry policy `maxRetries: 0`
 
-`DEPLOYMENT = LOCAL_WORKSTATION_FIRST`
+Provider-smoke execution is fail-closed unless authority, execution code, prompt/context/renderer identities, exact first-three wakes and positive finite spend ceiling all match. Production paid execution may not override the official provider endpoint.
 
-The unpatched stale-file recovery path is not admissible because it can issue a hidden second request.
+## 11. Current authorization boundary
 
-## 10. Current locks
+`NEXT_TASK = OWNER_PAYMENT_CONFIRMATION_FOR_THREE_CALL_PROVIDER_SMOKE`
 
-Authorized: V0.1 offline engineering, tests, selector, mock/dry-run and pre-execution evidence.
+`REAL_DEEPSEEK_PROVIDER_CALLS = PAUSED`
+
+`NEXT_EXPLICIT_PAID_SLOT = THREE_CALL_PROVIDER_SMOKE__PENDING_OWNER_PAYMENT_CONFIRMATION`
 
 Still locked:
 
-- real provider calls: `PAUSED`
-- `NEXT_EXPLICIT_PAID_SLOT = NONE`
+- full 1998-call provider replay
 - learning/policy promotion
 - validation/holdout
 - shadow
 - broker/account
 - real money
 
-## 11. Success definition
-
-The project succeeds when it produces an auditable DeepSeek futures trader that begins with high-fidelity Jianghe reasoning, remembers what it is watching and why, receives only causally valid and task-relevant context, is protected from operational distractions that the system can deterministically handle, learns without corrupting source truth, promotes only independently validated improvements, and keeps deterministic operational/risk/safety responsibilities outside AI discretion.
+If the Owner approves the bounded smoke payment/execution authority, execute only that three-call slot and stop on the first failure. The outcome of that smoke determines whether the project may ask for a later full-replay spend decision; it does not itself authorize the full replay.
