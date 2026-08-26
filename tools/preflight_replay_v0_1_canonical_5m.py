@@ -15,7 +15,8 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from src.replay_v0_1_canonical_feed import ReplayMinuteBar, build_fixed_5m_preflight, governed_windows_for_days
-from src.replay_v0_1_exact_slice import _parse_calendar, select_and_seal_exact_v0_1_slice
+from src.replay_v0_1_exact_slice import _parse_calendar
+from src.replay_v0_1_qualified_manifest import select_and_seal_revalidated_exact_v0_1_slice
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -85,12 +86,11 @@ def main() -> int:
     sessions_path = REPO_ROOT / "docs/evidence/CANONICAL_SESSION_SCHEDULES.json"
     e07_path = REPO_ROOT / "docs/evidence/E07_SOURCE_GOVERNED_TQSDK_MAIN_MAPPING_V0_1.json"
     corpus_path = REPO_ROOT / "docs/evidence/CANONICAL_CORPUS_IDENTITY.json"
-    seal = select_and_seal_exact_v0_1_slice(
-        manifest_path=args.manifest,
-        trading_calendar_path=calendar_path,
-        session_schedule_path=sessions_path,
-        e07_path=e07_path,
-        corpus_identity_path=corpus_path,
+    revalidation_path = REPO_ROOT / "docs/evidence/CANONICAL_CORPUS_REVALIDATION_D01_D02_V0_1.json"
+    seal = select_and_seal_revalidated_exact_v0_1_slice(
+        manifest_path=args.manifest, revalidation_path=revalidation_path,
+        trading_calendar_path=calendar_path, session_schedule_path=sessions_path,
+        e07_path=e07_path, corpus_identity_path=corpus_path,
     )
     calendar_payload = _load_json(calendar_path)
     session_payload = _load_json(sessions_path)
@@ -107,11 +107,14 @@ def main() -> int:
         replay_days=replay_days, windows=windows, minute_bars=rows,
     )
     payload = {
-        "status": "PASS",
-        "exact_slice_seal_identity": seal.identity,
+        "status": "PASS", "exact_slice_seal_identity": seal.identity,
+        "base_exact_slice_seal_identity": seal.base_seal.identity,
         "slice_identity": seal.slice.identity,
         "canonical_corpus_identity": seal.canonical_corpus_identity,
         "raw_manifest_root_identity": seal.raw_manifest_root_identity,
+        "revalidation_identity": seal.revalidation_identity,
+        "qualified_partition_count": seal.qualified_partition_count,
+        "excluded_partition_count": seal.excluded_partition_count,
         "trading_calendar_identity": seal.trading_calendar_identity,
         "session_authority_root_identity": seal.session_authority_root_identity,
         "e07_schedule_identity": seal.e07_schedule_identity,
