@@ -15,7 +15,8 @@ from src.jianghe_ai_trader import AttentionMode, DecisionAction, Direction, Stra
 from src.jianghe_response_normalizer import RESPONSE_SCHEMA_VERSION
 
 
-PROMPT_CONTRACT_VERSION = "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1"
+PROMPT_CONTRACT_VERSION_V0_1 = "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1"
+PROMPT_CONTRACT_VERSION = "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2"
 MODEL_COGNITIVE_SCOPE = "TRADING_ONLY"
 
 
@@ -91,7 +92,7 @@ audit.
 """.strip()
 
 
-DECISION_PROMPT = f"""
+DECISION_PROMPT_V0_1 = f"""
 Analyze only the supplied governed trading context and produce exactly one JSON
 object. No markdown, no prose before or after the JSON, no extra keys.
 
@@ -126,6 +127,77 @@ Rules:
 7. If evidence is insufficient, use a permitted conservative action rather than
    fabricating missing facts.
 """.strip()
+
+
+DECISION_PROMPT_V0_2 = f"""
+Analyze only the supplied governed trading context and produce exactly one JSON
+object. No markdown, no code fence, no prose before or after the JSON, no extra keys,
+no trailing commentary.
+
+Required schema_version: {RESPONSE_SCHEMA_VERSION}
+
+EXACT TOP-LEVEL JSON SHAPES (strict serialization contract)
+
+The response MUST be exactly one JSON object with exactly the following
+top-level keys, each with exactly these JSON types:
+
+- schema_version: string, must equal "{RESPONSE_SCHEMA_VERSION}"
+- family: string, one of: {_enum_values(StrategyFamily)}
+- action: string, one of: {_enum_values(DecisionAction)}
+- direction: string, one of: {_enum_values(Direction)}
+- attention_mode: string, one of: {_enum_values(AttentionMode)}
+- decision_state: non-empty string
+- rationale: non-empty string
+- declared_unknown: JSON array of strings
+- principle_references: JSON array of strings
+- source_references: JSON array of strings
+- numeric_claims: MUST be a JSON array. It MUST NOT be a JSON object/map, and
+  MUST NOT be a single value. When there are no numeric claims, use an empty
+  array: []. Every numeric_claims element MUST be exactly an object with exactly
+  these keys:
+  - claim: non-empty string
+  - value: finite decimal encoded as a JSON string (never a bare JSON number)
+  - unit: string or null
+  - source_reference: string or null
+  No additional keys are allowed inside any numeric_claims element, and no
+  additional top-level keys are allowed.
+
+Structural template (bracketed placeholders are serialization placeholders only;
+never invent market facts not present in the supplied context):
+{{
+  "schema_version": "{RESPONSE_SCHEMA_VERSION}",
+  "family": "<FAMILY>",
+  "action": "<ACTION>",
+  "direction": "<DIRECTION>",
+  "attention_mode": "<ATTENTION_MODE>",
+  "decision_state": "<DECISION_STATE>",
+  "rationale": "<RATIONALE>",
+  "declared_unknown": ["<UNKNOWN_ITEM>"],
+  "principle_references": ["<PRINCIPLE_ID>"],
+  "source_references": ["<SOURCE_REF>"],
+  "numeric_claims": [
+    {{"claim": "<CLAIM>", "value": "<DECIMAL_STRING>", "unit": null, "source_reference": null}}
+  ]
+}}
+
+Substitute the bracketed placeholders with the actual decision content using the
+permitted enum values above. If there are no numeric claims, set numeric_claims
+to [].
+
+Rules:
+1. Base the decision only on the current causal trading context.
+2. Keep rationale concise and decision-relevant; do not narrate hidden reasoning.
+3. Put genuine missing/contradictory trading evidence in declared_unknown.
+4. Cite applicable Jianghe principles/source references when they support the call.
+5. Do not create outcome/PnL/self-evaluation fields.
+6. Do not discuss runtime engineering, scheduling, provider/API behavior, costs,
+   experiments, storage, retries, or unrelated topics.
+7. If evidence is insufficient, use a permitted conservative action rather than
+   fabricating missing facts.
+""".strip()
+
+
+DECISION_PROMPT = DECISION_PROMPT_V0_2
 
 
 @dataclass(frozen=True)
@@ -167,8 +239,11 @@ TRADING_ONLY_PROMPT_CONTRACT = TradingOnlyPromptContract()
 
 __all__ = [
     "DECISION_PROMPT",
+    "DECISION_PROMPT_V0_1",
+    "DECISION_PROMPT_V0_2",
     "MODEL_COGNITIVE_SCOPE",
     "PROMPT_CONTRACT_VERSION",
+    "PROMPT_CONTRACT_VERSION_V0_1",
     "SYSTEM_PROMPT",
     "TRADING_ONLY_PROMPT_CONTRACT",
     "TradingOnlyPromptContract",

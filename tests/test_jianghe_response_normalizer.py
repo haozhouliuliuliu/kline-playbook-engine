@@ -146,6 +146,52 @@ class JiangheResponseNormalizerTests(unittest.TestCase):
         self.assertEqual(judgment.evaluation_extractor_identity, EVALUATION_EXTRACTOR_IDENTITY)
         self.assertTrue(judgment.grounded)
 
+    def test_accepts_strict_array_shaped_numeric_claims(self):
+        raw = json.dumps(valid_payload(), ensure_ascii=False)
+        decision = JiangheResponseNormalizer().normalize(raw)
+        self.assertEqual(len(decision.numeric_claims), 1)
+        claim = decision.numeric_claims[0]
+        self.assertEqual(claim.claim, "观察价")
+        self.assertEqual(claim.value, "100.5")
+        self.assertEqual(claim.unit, "PRICE")
+        self.assertIsNone(claim.source_reference)
+        # Zero numeric claims must normalize to an empty tuple.
+        payload = valid_payload()
+        payload["numeric_claims"] = []
+        decision = JiangheResponseNormalizer().normalize(json.dumps(payload, ensure_ascii=False))
+        self.assertEqual(decision.numeric_claims, ())
+
+    def test_rejects_object_shaped_numeric_claims(self):
+        payload = valid_payload()
+        payload["numeric_claims"] = {
+            "latest_5m_close": 76780,
+            "latest_5m_high": 76810,
+        }
+        with self.assertRaisesRegex(ValueError, "numeric_claims 必须是 JSON 数组"):
+            JiangheResponseNormalizer().normalize(json.dumps(payload, ensure_ascii=False))
+
+    def test_rejects_numeric_claim_value_as_json_number(self):
+        payload = valid_payload()
+        payload["numeric_claims"] = [
+            {"claim": "观察价", "value": 100.5, "unit": "PRICE", "source_reference": None}
+        ]
+        with self.assertRaises(ValueError):
+            JiangheResponseNormalizer().normalize(json.dumps(payload, ensure_ascii=False))
+
+    def test_rejects_extra_and_missing_numeric_claim_keys(self):
+        extra = valid_payload()
+        extra["numeric_claims"] = [
+            {"claim": "观察价", "value": "100.5", "unit": "PRICE", "source_reference": None, "extra": "x"}
+        ]
+        with self.assertRaises(ValueError):
+            JiangheResponseNormalizer().normalize(json.dumps(extra, ensure_ascii=False))
+        missing = valid_payload()
+        missing["numeric_claims"] = [
+            {"claim": "观察价", "value": "100.5", "unit": "PRICE"}
+        ]
+        with self.assertRaises(ValueError):
+            JiangheResponseNormalizer().normalize(json.dumps(missing, ensure_ascii=False))
+
     def test_fidelity_response_payload_requires_evaluator_side_identity_match(self):
         decision = JiangheResponseNormalizer().normalize(
             json.dumps(valid_payload(), ensure_ascii=False)

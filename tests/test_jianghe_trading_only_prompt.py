@@ -6,7 +6,10 @@ from src.jianghe_ai_trader import AttentionMode, DecisionAction, Direction, Stra
 from src.jianghe_response_normalizer import RESPONSE_SCHEMA_VERSION
 from src.jianghe_trading_only_prompt import (
     DECISION_PROMPT,
+    DECISION_PROMPT_V0_1,
     MODEL_COGNITIVE_SCOPE,
+    PROMPT_CONTRACT_VERSION,
+    PROMPT_CONTRACT_VERSION_V0_1,
     SYSTEM_PROMPT,
     TRADING_ONLY_PROMPT_CONTRACT,
     TradingOnlyPromptContract,
@@ -75,6 +78,32 @@ class TradingOnlyPromptContractTests(unittest.TestCase):
         self.assertEqual(rebuilt.identity, TRADING_ONLY_PROMPT_CONTRACT.identity)
         self.assertEqual(rebuilt.system_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.system_prompt_sha256)
         self.assertEqual(rebuilt.decision_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.decision_prompt_sha256)
+
+    def test_v0_2_contract_version_and_identity_are_distinct_from_v0_1(self) -> None:
+        self.assertEqual(PROMPT_CONTRACT_VERSION, "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2")
+        self.assertEqual(PROMPT_CONTRACT_VERSION_V0_1, "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1")
+        self.assertEqual(TRADING_ONLY_PROMPT_CONTRACT.version, PROMPT_CONTRACT_VERSION)
+        v1 = TradingOnlyPromptContract(
+            version=PROMPT_CONTRACT_VERSION_V0_1, decision_prompt=DECISION_PROMPT_V0_1
+        )
+        self.assertNotEqual(v1.identity, TRADING_ONLY_PROMPT_CONTRACT.identity)
+        self.assertNotEqual(v1.decision_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.decision_prompt_sha256)
+        # The system prompt (trading scope) stays materially unchanged.
+        self.assertEqual(v1.system_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.system_prompt_sha256)
+
+    def test_decision_prompt_explicitly_requires_numeric_claims_array_form(self) -> None:
+        for phrase in (
+            "numeric_claims: MUST be a JSON array",
+            "MUST NOT be a JSON object/map",
+            "use an empty\n",
+            "claim: non-empty string",
+            "value: finite decimal encoded as a JSON string",
+            "unit: string or null",
+            "source_reference: string or null",
+            "No additional keys are allowed inside any numeric_claims element",
+        ):
+            self.assertIn(phrase, DECISION_PROMPT)
+        self.assertNotIn("```", DECISION_PROMPT)
 
 
 if __name__ == "__main__":

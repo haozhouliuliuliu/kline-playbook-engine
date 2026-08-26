@@ -447,7 +447,13 @@ class PersistentDeepSeekTraderPrototype:
             runtime_contract_identity=self.runtime_contract.identity,
         )
 
-    def record_model_response(self, *, request_id: str, raw_response: str) -> NormalizedJiangheDecision:
+    def record_model_response(
+        self,
+        *,
+        request_id: str,
+        raw_response: str,
+        provider_metadata: Mapping[str, object] | None = None,
+    ) -> NormalizedJiangheDecision:
         request_events = [event for event in self.store.audit_for_request(request_id) if event.event_kind == "MODEL_REQUEST_PREPARED_OFFLINE"]
         if len(request_events) != 1:
             raise ValueError("response must bind exactly one reconstructed prepared request")
@@ -463,6 +469,28 @@ class PersistentDeepSeekTraderPrototype:
             request_id=request_id,
             payload={"raw_response": raw_response, "raw_response_sha256": response_sha},
         )
+        # Durably retain the non-secret provider/billing metadata the moment the
+        # response arrives, BEFORE normalization, so a schema rejection cannot
+        # cause already-received usage/request metadata to be lost.
+        if provider_metadata:
+            safe_metadata = {
+                key: value
+                for key, value in provider_metadata.items()
+                if key in (
+                    "provider", "model", "finish_reason", "provider_request_id",
+                    "token_usage", "status", "request_count", "image_count",
+                )
+                and value is not None
+            }
+            if safe_metadata:
+                self.store.append_audit(
+                    event_id=f"{request_id}-provider-metadata",
+                    occurred_at=occurred_at,
+                    event_kind="MODEL_PROVIDER_RESPONSE_METADATA",
+                    observation_identity=request_events[0].observation_identity,
+                    request_id=request_id,
+                    payload={"raw_response_sha256": response_sha, **safe_metadata},
+                )
         try:
             normalized = self.normalizer.normalize(raw_response)
         except ValueError as error:

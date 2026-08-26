@@ -74,8 +74,18 @@ class ReplayV01Runtime:
             decision_prompt=TRADING_ONLY_PROMPT_CONTRACT.decision_prompt,
         )
 
-    def record_model_response(self, *, request_id: str, raw_response: str) -> Any:
-        return self.base_runtime.record_model_response(request_id=request_id, raw_response=raw_response)
+    def record_model_response(
+        self,
+        *,
+        request_id: str,
+        raw_response: str,
+        provider_metadata: Any = None,
+    ) -> Any:
+        return self.base_runtime.record_model_response(
+            request_id=request_id,
+            raw_response=raw_response,
+            provider_metadata=provider_metadata,
+        )
 
     def mutate_working_memory(
         self,

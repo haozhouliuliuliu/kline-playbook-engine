@@ -27,6 +27,8 @@ from src.persistent_deepseek_runtime import (
 )
 
 SMOKE_AUTHORITY_VERSION = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_1"
+SMOKE_RETEST_AUTHORITY_VERSION = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_1"
+ALLOWED_AUTHORITY_VERSIONS = frozenset({SMOKE_AUTHORITY_VERSION, SMOKE_RETEST_AUTHORITY_VERSION})
 SMOKE_STATUS_PENDING = "PENDING_OWNER_PAYMENT_CONFIRMATION"
 SMOKE_STATUS_ACTIVE = "ACTIVE"
 SMOKE_STATUS_REVOKED = "REVOKED"
@@ -168,7 +170,7 @@ class ProviderSmokeAuthority:
     identity: str = field(init=False)
 
     def __post_init__(self) -> None:
-        if self.authority_version != SMOKE_AUTHORITY_VERSION:
+        if self.authority_version not in ALLOWED_AUTHORITY_VERSIONS:
             raise ValueError("smoke authority version is not supported")
         if self.status not in ALLOWED_STATUSES:
             raise ValueError(f"smoke authority status {self.status!r} is not allowed")
@@ -376,6 +378,7 @@ __all__ = [
     "SMOKE_MAX_PROVIDER_CALLS",
     "SMOKE_MAX_RETRIES",
     "SMOKE_RESTART_AFTER_CALL",
+    "SMOKE_RETEST_AUTHORITY_VERSION",
     "SMOKE_STATUS_ACTIVE",
     "SMOKE_STATUS_PENDING",
     "SMOKE_STATUS_REVOKED",

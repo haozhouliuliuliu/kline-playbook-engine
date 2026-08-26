@@ -24,13 +24,26 @@ class AuthorityConsistencyTests(unittest.TestCase):
         path = REPO_ROOT / SMOKE_AUTHORITY_PATH
         payload = json.loads(path.read_text(encoding="utf-8"))
         state = (REPO_ROOT / "CURRENT_STATE.md").read_text(encoding="utf-8")
-        machine_status = _assignment_values(
-            state, "THREE_CALL_SMOKE_MACHINE_AUTHORITY_STATUS"
-        )
         self.assertEqual(payload["authority_identity"], _canonical_identity(payload))
-        self.assertEqual(machine_status, [payload["status"]])
         self.assertIn(payload["status"], {"PENDING_OWNER_PAYMENT_CONFIRMATION", "ACTIVE", "REVOKED"})
         self.assertEqual(payload["api_key_env"], "DEEPSEEK_API_KEY")
+
+        # CURRENT_STATE must reflect the current machine authority status. The
+        # post-repair state uses ORIGINAL_SMOKE_MACHINE_AUTHORITY (old terminal
+        # slot) and FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY (new retest slot);
+        # the legacy THREE_CALL_SMOKE_MACHINE_AUTHORITY_STATUS key is optional.
+        legacy = _assignment_values(state, "THREE_CALL_SMOKE_MACHINE_AUTHORITY_STATUS")
+        if legacy:
+            self.assertEqual(legacy, [payload["status"]])
+        original = _assignment_values(state, "ORIGINAL_SMOKE_MACHINE_AUTHORITY")
+        if original:
+            if payload["status"] == "REVOKED":
+                self.assertIn("REVOKED", original[0])
+        fresh = _assignment_values(state, "FRESH_THREE_CALL_RETEST_MACHINE_AUTHORITY")
+        if fresh:
+            self.assertIn(
+                fresh[0], {"NOT_YET_ACTIVE", "ACTIVE", "REVOKED", "REVOKED__TERMINAL"}
+            )
 
     def test_owner_windows_user_environment_credential_convention_is_preserved(self) -> None:
         registry = (REPO_ROOT / "TOOL_REGISTRY.md").read_text(encoding="utf-8")

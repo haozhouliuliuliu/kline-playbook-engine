@@ -244,6 +244,21 @@ class SmokeHarnessTransport:
     def provider_admitted(self) -> bool:
         return True
 
+    @property
+    def last_response_metadata(self) -> dict[str, object]:
+        """Non-secret provider/billing metadata of the most recent bridge call."""
+        if not self.calls:
+            return {}
+        result = self.calls[-1]
+        return {
+            "provider": result.provider,
+            "model": result.model,
+            "finish_reason": result.finish_reason,
+            "provider_request_id": result.provider_request_id,
+            "token_usage": dict(result.token_usage),
+            "status": result.status,
+        }
+
     def execute(self, request: Any) -> str:
         if not self._bundles:
             raise RuntimeError("provider smoke transport exhausted; a fourth request is forbidden")
@@ -288,6 +303,7 @@ class SmokeDeterministicTransport:
     def __init__(self, *, provider_admitted: bool = False) -> None:
         self.provider_admitted = provider_admitted
         self.calls: list[Any] = []
+        self.last_response_metadata: dict[str, object] = {}
 
     def execute(self, request: Any) -> str:
         self.calls.append(request)

@@ -256,6 +256,18 @@ def _verify_smoke_wake_bindings(authority, bindings) -> None:
             )
 
 
+def _write_evidence_file(output: Path, encoded: str) -> None:
+    """Atomically write evidence via a .partial temp file (utf-8, no BOM)."""
+    output.parent.mkdir(parents=True, exist_ok=True)
+    partial = output.with_name(output.name + ".partial")
+    try:
+        partial.write_text(encoded, encoding="utf-8")
+        partial.replace(output)
+    finally:
+        if partial.exists():
+            partial.unlink()
+
+
 def main() -> int:
     args = _parser().parse_args()
     state_dir = args.state_dir.resolve()
@@ -389,117 +401,161 @@ def main() -> int:
         renderer=renderer,
     )
 
-    # --- 8. Drive call 1 -> call 2 -> forced restart -> call 3. ---
-    restart_before_identity: str | None = None
-    exported: dict | None = None
+    # --- 8..11. Drive call 1 -> call 2 -> forced restart -> call 3, then write
+    # PASS or FAIL-closed machine evidence (a rejection still stops immediately).
+    bindings: tuple = ()
     try:
-        smoke_day = smoke_steps[0].trading_day
-        session_identity = smoke_steps[0].session_identity
-        orchestrator.begin_session(
-            phase=PHASE_BURN_IN, trading_day=smoke_day, replay_day_index=0,
-            session_identity=session_identity, steps=smoke_steps,
+        restart_before_identity: str | None = None
+        exported: dict | None = None
+        try:
+            smoke_day = smoke_steps[0].trading_day
+            session_identity = smoke_steps[0].session_identity
+            orchestrator.begin_session(
+                phase=PHASE_BURN_IN, trading_day=smoke_day, replay_day_index=0,
+                session_identity=session_identity, steps=smoke_steps,
+            )
+            for call_index, step in enumerate(smoke_steps, start=1):
+                orchestrator.run_wake_step(step)
+                if call_index == 2:
+                    restart_before_identity = orchestrator.restart()
+            orchestrator.end_session()
+            result = orchestrator.finalize()
+            # Capture the portable export while the store is still open; the
+            # runtime is closed in the finally block below.
+            exported = orchestrator.runtime.portable_export()
+        finally:
+            orchestrator.runtime.close()
+        if exported is None:
+            raise RuntimeError("provider smoke runtime export was not produced before close")
+
+        # --- 9. Verify exact smoke wake binding against authority. ---
+        bindings = orchestrator.list_step_bindings()
+        _verify_smoke_wake_bindings(authority, bindings)
+
+        # --- 10. Per-call usage / provider request ids (harness only; mock stays empty). ---
+        if args.transport == "harness":
+            bridge_results = transport.calls
+            per_call_usage = [dict(item.token_usage) for item in bridge_results]
+            per_call_provider_request_ids = [item.provider_request_id for item in bridge_results]
+            per_call_finish_reasons = [item.finish_reason for item in bridge_results]
+        else:
+            per_call_usage = [{} for _ in bindings]
+            per_call_provider_request_ids = [None for _ in bindings]
+            per_call_finish_reasons = ["mock" for _ in bindings]
+
+        audit_events = exported.get("audit", [])
+        audit_counts = Counter(
+            str(item.get("event_kind")) for item in audit_events if isinstance(item, dict)
         )
-        for call_index, step in enumerate(smoke_steps, start=1):
-            orchestrator.run_wake_step(step)
-            if call_index == 2:
-                restart_before_identity = orchestrator.restart()
-        orchestrator.end_session()
-        result = orchestrator.finalize()
-        # Capture the portable export while the store is still open; the runtime
-        # is closed in the finally block below.
-        exported = orchestrator.runtime.portable_export()
-    finally:
-        orchestrator.runtime.close()
-    if exported is None:
-        raise RuntimeError("provider smoke runtime export was not produced before close")
 
-    # --- 9. Verify exact smoke wake binding against authority. ---
-    bindings = orchestrator.list_step_bindings()
-    _verify_smoke_wake_bindings(authority, bindings)
-
-    # --- 10. Per-call usage / provider request ids (harness only; mock stays empty). ---
-    if args.transport == "harness":
-        bridge_results = transport.calls
-        per_call_usage = [dict(item.token_usage) for item in bridge_results]
-        per_call_provider_request_ids = [item.provider_request_id for item in bridge_results]
-        per_call_finish_reasons = [item.finish_reason for item in bridge_results]
-    else:
-        per_call_usage = [{} for _ in bindings]
-        per_call_provider_request_ids = [None for _ in bindings]
-        per_call_finish_reasons = ["mock" for _ in bindings]
-
-    audit_events = exported.get("audit", [])
-    audit_counts = Counter(str(item.get("event_kind")) for item in audit_events if isinstance(item, dict))
-
-    evidence = {
-        "status": "PASS",
-        "runner_version": PROVIDER_SMOKE_RUNNER_VERSION,
-        "provider_call_count": 3 if args.transport == "harness" else 0,
-        "network_request_count": 3 if args.transport == "harness" else 0,
-        "admitted_wake_count": 3,
-        "request_count": 3,
-        "retry_count": 0,
-        "hidden_second_requests": 0,
-        "provider": authority.provider,
-        "model": authority.model,
-        "harness_version": authority.harness_version,
-        "harness_commit": authority.harness_commit,
-        "project_transport_patch": authority.project_transport_patch,
-        "transport": args.transport,
-        "exact_slice_seal_identity": authority.exact_slice_seal_identity,
-        "slice_identity": authority.slice_identity,
-        "product": authority.product,
-        "concrete_contract": authority.concrete_contract,
-        "trader_identity": trader_identity.identity,
-        "runtime_contract_identity": runtime_contract.identity,
-        "context_policy_identity": context_index.policy_identity,
-        "context_index_identity": context_index.identity,
-        "renderer_identity": f"{RENDERER_VERSION}:{renderer.config.identity}",
-        "canonical_fixed_5m_preflight_identity": preflight.identity,
-        "constructed_bar_counts": context_index.bar_counts(),
-        "smoke_wakes": [
-            {
-                "call": name,
-                "wake_identity": binding.wake_identity,
-                "close_time": binding.close_time.isoformat(),
-                "observation_identity": binding.observation_identity,
-                "request_id": binding.request_id,
-                "decision_identity": binding.decision_identity,
-                "png_sha256": list(rendered_per_step[index].png_sha256s),
-                "visual_artifact_identities": [
-                    artifact.visual_artifact_identity
-                    for artifact in rendered_per_step[index].artifacts
-                ],
-                "finish_reason": per_call_finish_reasons[index],
-                "provider_request_id": per_call_provider_request_ids[index],
-                "token_usage": per_call_usage[index],
-            }
-            for index, (name, binding) in enumerate(zip(("call_1", "call_2", "call_3"), bindings))
-        ],
-        "restart_after_call": 2,
-        "restart_before_identity": restart_before_identity,
-        "restart_after_identity": restart_before_identity,
-        "restart_continuity_result": "VERIFIED" if restart_before_identity else "NOT_RUN",
-        "final_state_identity": result.state_identity,
-        "audit_event_count": len(audit_events),
-        "audit_event_counts": dict(sorted(audit_counts.items())),
-        "full_replay_authorized": authority.full_replay_authorized,
-        "full_replay_1998_calls_authorized": authority.full_replay_1998_calls_authorized,
-        "max_provider_calls": authority.max_provider_calls,
-        "max_retries": authority.max_retries,
-        "images_per_call": authority.images_per_call,
-    }
-    encoded = json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    output.parent.mkdir(parents=True, exist_ok=True)
-    partial = output.with_name(output.name + ".partial")
-    try:
-        partial.write_text(encoded, encoding="utf-8")
-        partial.replace(output)
-    finally:
-        if partial.exists():
-            partial.unlink()
-    sys.stdout.write(encoded)
-    return 0
+        evidence = {
+            "status": "PASS",
+            "runner_version": PROVIDER_SMOKE_RUNNER_VERSION,
+            "provider_call_count": 3 if args.transport == "harness" else 0,
+            "network_request_count": 3 if args.transport == "harness" else 0,
+            "admitted_wake_count": 3,
+            "request_count": 3,
+            "retry_count": 0,
+            "hidden_second_requests": 0,
+            "provider": authority.provider,
+            "model": authority.model,
+            "harness_version": authority.harness_version,
+            "harness_commit": authority.harness_commit,
+            "project_transport_patch": authority.project_transport_patch,
+            "transport": args.transport,
+            "exact_slice_seal_identity": authority.exact_slice_seal_identity,
+            "slice_identity": authority.slice_identity,
+            "product": authority.product,
+            "concrete_contract": authority.concrete_contract,
+            "trader_identity": trader_identity.identity,
+            "runtime_contract_identity": runtime_contract.identity,
+            "context_policy_identity": context_index.policy_identity,
+            "context_index_identity": context_index.identity,
+            "renderer_identity": f"{RENDERER_VERSION}:{renderer.config.identity}",
+            "canonical_fixed_5m_preflight_identity": preflight.identity,
+            "constructed_bar_counts": context_index.bar_counts(),
+            "smoke_wakes": [
+                {
+                    "call": name,
+                    "wake_identity": binding.wake_identity,
+                    "close_time": binding.close_time.isoformat(),
+                    "observation_identity": binding.observation_identity,
+                    "request_id": binding.request_id,
+                    "decision_identity": binding.decision_identity,
+                    "png_sha256": list(rendered_per_step[index].png_sha256s),
+                    "visual_artifact_identities": [
+                        artifact.visual_artifact_identity
+                        for artifact in rendered_per_step[index].artifacts
+                    ],
+                    "finish_reason": per_call_finish_reasons[index],
+                    "provider_request_id": per_call_provider_request_ids[index],
+                    "token_usage": per_call_usage[index],
+                }
+                for index, (name, binding) in enumerate(
+                    zip(("call_1", "call_2", "call_3"), bindings)
+                )
+            ],
+            "restart_after_call": 2,
+            "restart_before_identity": restart_before_identity,
+            "restart_after_identity": restart_before_identity,
+            "restart_continuity_result": "VERIFIED" if restart_before_identity else "NOT_RUN",
+            "final_state_identity": result.state_identity,
+            "audit_event_count": len(audit_events),
+            "audit_event_counts": dict(sorted(audit_counts.items())),
+            "full_replay_authorized": authority.full_replay_authorized,
+            "full_replay_1998_calls_authorized": authority.full_replay_1998_calls_authorized,
+            "max_provider_calls": authority.max_provider_calls,
+            "max_retries": authority.max_retries,
+            "images_per_call": authority.images_per_call,
+        }
+        encoded = json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        _write_evidence_file(output, encoded)
+        sys.stdout.write(encoded)
+        return 0
+    except Exception as error:  # noqa: BLE001 - fail-closed terminal evidence
+        fail_audit_counts: dict[str, int] = {}
+        try:
+            from src.persistent_trader_store import PersistentTraderStore
+            store = PersistentTraderStore(
+                state_dir / "trader.sqlite3", trader_identity=trader_identity.identity
+            )
+            export = store.portable_export()
+            fail_audit_counts = Counter(
+                str(item.get("event_kind"))
+                for item in export.get("audit", [])
+                if isinstance(item, dict)
+            )
+            store.close()
+        except Exception:
+            fail_audit_counts = {}
+        fail_payload = {
+            "status": "FAIL",
+            "runner_version": PROVIDER_SMOKE_RUNNER_VERSION,
+            "authority_status": authority.status,
+            "authority_identity": authority.identity,
+            "authority_version": authority.authority_version,
+            "provider": authority.provider,
+            "model": authority.model,
+            "transport": args.transport,
+            "reason": f"{type(error).__name__}: {error}",
+            "provider_call_count": len(getattr(transport, "calls", [])),
+            "network_request_count": len(getattr(transport, "calls", [])),
+            "admitted_wake_count": len(bindings),
+            "request_count": len(bindings),
+            "retry_count": 0,
+            "hidden_second_requests": 0,
+            "state_dir": str(state_dir),
+            "audit_event_counts": dict(sorted(fail_audit_counts.items())),
+            "full_replay_authorized": authority.full_replay_authorized,
+            "full_replay_1998_calls_authorized": authority.full_replay_1998_calls_authorized,
+            "max_provider_calls": authority.max_provider_calls,
+            "max_retries": authority.max_retries,
+            "images_per_call": authority.images_per_call,
+        }
+        encoded = json.dumps(fail_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        _write_evidence_file(output, encoded)
+        sys.stdout.write(encoded)
+        return 1
 
 
 if __name__ == "__main__":

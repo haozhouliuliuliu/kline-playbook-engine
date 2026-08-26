@@ -99,6 +99,7 @@ def _authority_payload(
     concrete_contract: str = "SHFE.cu2406",
     api_key_env: str = "DEEPSEEK_API_KEY",
     execution_code_commit: str = "TEST_COMMIT",
+    context_policy_identity: str = "context-policy-test",
 ) -> dict:
     authority = ProviderSmokeAuthority(
         authority_version="KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_1",
@@ -129,7 +130,7 @@ def _authority_payload(
             system_prompt_sha256=TRADING_ONLY_PROMPT_CONTRACT.system_prompt_sha256,
             decision_prompt_sha256=TRADING_ONLY_PROMPT_CONTRACT.decision_prompt_sha256,
         ),
-        context_policy_identity="context-policy-test",
+        context_policy_identity=context_policy_identity,
         renderer_identity=f"{RENDERER_VERSION}:{JiangheVisualRenderer().config.identity}",
         api_key_env=api_key_env,
         execution_code_commit=execution_code_commit,
@@ -442,7 +443,93 @@ class ProviderSmokeThreeCallMockChainTests(unittest.TestCase):
                         rerun.run_wake_step(steps[3])
                 finally:
                     rerun.runtime.close()
+    def test_provider_metadata_retained_and_execution_stops_on_rejection(self) -> None:
+        """A schema rejection must retain provider usage metadata and stop immediately."""
+        with tempfile.TemporaryDirectory() as tmp1:
+            throwaway_root = Path(tmp1)
+            fixture = ReplayV01RuntimeFixture(throwaway_root)
+            slice_ = build_slice()
+            replay_days = slice_.burn_in_days + slice_.measurement_days
+            trading_day = replay_days[0]
+            steps = build_session_steps(
+                trading_day=trading_day, session_identity="sess-smoke",
+                start=_day_start(trading_day), count=8,
+            )
+            smoke_steps = steps[:3]
+            renderer = JiangheVisualRenderer()
 
+            bad_response = json.dumps({
+                "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+                "family": "NONE",
+                "action": "WAIT",
+                "direction": "NONE",
+                "attention_mode": "SCAN",
+                "decision_state": "no_active_setup",
+                "rationale": "test",
+                "declared_unknown": [],
+                "principle_references": [],
+                "source_references": [],
+                "numeric_claims": {"latest_5m_close": 76780},  # object shape -> rejected
+            })
+
+            class BadBridge:
+                def execute(self, *, system_prompt, decision_prompt, context, png_images):
+                    return SmokeBridgeResult(
+                        status="OK", provider=PROVIDER, model=CURRENT_MODEL,
+                        raw_response_text=bad_response, finish_reason="stop",
+                        token_usage={"inputTokens": 5, "outputTokens": 3},
+                        provider_request_id="prov-req-1", image_count=4, request_count=1, error=None,
+                    )
+
+            bundles = (
+                (b"p", b"p", b"p", b"p"),
+                (b"p", b"p", b"p", b"p"),
+                (b"p", b"p", b"p", b"p"),
+            )
+            transport = SmokeHarnessTransport(
+                bridge=BadBridge(), image_bundles=bundles,
+                expected_provider=PROVIDER, expected_model=CURRENT_MODEL,
+            )
+
+            with tempfile.TemporaryDirectory() as tmp2:
+                root = Path(tmp2)
+                fresh_fixture = ReplayV01RuntimeFixture(root)
+                orchestrator = ReplayV01Orchestrator(
+                    runtime_factory=fresh_fixture.make_runtime_factory(),
+                    clock=ReplayClock(current_time=smoke_steps[0].wake_bar.open_time),
+                    slice_=slice_, transport=transport, state_dir=root / "state", renderer=renderer,
+                )
+                try:
+                    orchestrator.begin_session(
+                        phase=PHASE_BURN_IN, trading_day=trading_day, replay_day_index=0,
+                        session_identity="sess-smoke", steps=smoke_steps,
+                    )
+                    # Immediate stop: the rejection raises and no second wake is driven.
+                    with self.assertRaises(ValueError):
+                        orchestrator.run_wake_step(smoke_steps[0])
+                    self.assertEqual(len(transport.calls), 1)
+                    self.assertEqual(len(orchestrator.list_step_bindings()), 0)
+                    events = orchestrator.runtime.store.list_audit()
+                    kinds = [event.event_kind for event in events]
+                    self.assertIn("MODEL_PROVIDER_RESPONSE_METADATA", kinds)
+                    self.assertIn("MODEL_RESPONSE_RAW", kinds)
+                    self.assertIn("MODEL_RESPONSE_REJECTED", kinds)
+                    self.assertNotIn("MODEL_RESPONSE_NORMALIZED", kinds)
+                    metadata = next(
+                        event for event in events
+                        if event.event_kind == "MODEL_PROVIDER_RESPONSE_METADATA"
+                    )
+                    self.assertEqual(metadata.payload["token_usage"], {"inputTokens": 5, "outputTokens": 3})
+                    self.assertEqual(metadata.payload["provider_request_id"], "prov-req-1")
+                    self.assertEqual(metadata.payload["model"], CURRENT_MODEL)
+                    self.assertEqual(metadata.payload["provider"], PROVIDER)
+                    rejected = next(
+                        event for event in events
+                        if event.event_kind == "MODEL_RESPONSE_REJECTED"
+                    )
+                    self.assertIn("numeric_claims", str(rejected.payload.get("error")))
+                finally:
+                    orchestrator.runtime.close()
 
 class ProviderSmokeGuardTests(unittest.TestCase):
     def test_execution_code_bound_passes_at_clean_head(self) -> None:
@@ -481,31 +568,48 @@ class ProviderSmokeGuardTests(unittest.TestCase):
             )
 
     def test_bind_runtime_identities_binds_live_authority(self) -> None:
-        authority = load_provider_smoke_authority(Path("docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT.json"))
-        renderer = JiangheVisualRenderer()
-        bind_runtime_identities_to_authority(
-            authority=authority,
-            prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
-            context_policy_identity="98262c9ab0614b4145fe56cb8746a44d754d03a38a25584aba810991cd666371",
-            renderer_identity=f"{RENDERER_VERSION}:{renderer.config.identity}",
-            api_key_env="DEEPSEEK_API_KEY",
-        )
-        with self.assertRaises(ValueError):
+        # Use a synthetic ACTIVE authority built from the LIVE prompt contract so
+        # the mechanical identity binding is exercised against the current
+        # prompt/context/renderer/credential identities (independent of the
+        # terminal old-slot machine authority).
+        context_policy = "98262c9ab0614b4145fe56cb8746a44d754d03a38a25584aba810991cd666371"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            payload = _authority_payload(
+                status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
+                max_spend_cny="3.00",
+                context_policy_identity=context_policy,
+                smoke_wakes=(
+                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
+                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
+                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
+                ),
+            )
+            authority = load_provider_smoke_authority(_write_authority(root, payload))
+            renderer = JiangheVisualRenderer()
             bind_runtime_identities_to_authority(
                 authority=authority,
                 prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
-                context_policy_identity="wrong-context-policy",
+                context_policy_identity=context_policy,
                 renderer_identity=f"{RENDERER_VERSION}:{renderer.config.identity}",
                 api_key_env="DEEPSEEK_API_KEY",
             )
-        with self.assertRaises(ValueError):
-            bind_runtime_identities_to_authority(
-                authority=authority,
-                prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
-                context_policy_identity="98262c9ab0614b4145fe56cb8746a44d754d03a38a25584aba810991cd666371",
-                renderer_identity=f"{RENDERER_VERSION}:{renderer.config.identity}",
-                api_key_env="OPENAI_API_KEY",
-            )
+            with self.assertRaises(ValueError):
+                bind_runtime_identities_to_authority(
+                    authority=authority,
+                    prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
+                    context_policy_identity="wrong-context-policy",
+                    renderer_identity=f"{RENDERER_VERSION}:{renderer.config.identity}",
+                    api_key_env="DEEPSEEK_API_KEY",
+                )
+            with self.assertRaises(ValueError):
+                bind_runtime_identities_to_authority(
+                    authority=authority,
+                    prompt_contract=TRADING_ONLY_PROMPT_CONTRACT,
+                    context_policy_identity=context_policy,
+                    renderer_identity=f"{RENDERER_VERSION}:{renderer.config.identity}",
+                    api_key_env="OPENAI_API_KEY",
+                )
 
     def test_positive_finite_decimal(self) -> None:
         self.assertEqual(positive_finite_decimal("1.50", "x"), Decimal("1.50"))

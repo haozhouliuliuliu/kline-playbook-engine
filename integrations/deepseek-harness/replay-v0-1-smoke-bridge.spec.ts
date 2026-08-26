@@ -133,7 +133,7 @@ describe('kline-playbook-engine replay V0.1 provider smoke bridge', () => {
     await drain(adapter.stream({
       provider: PROJECT_PROVIDER,
       model: PROJECT_MODEL,
-      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1',
+      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2',
       messages: [wakeMessage([1, 2, 3, 4])],
     }))
 
@@ -153,13 +153,13 @@ describe('kline-playbook-engine replay V0.1 provider smoke bridge', () => {
     await drain(adapter.stream({
       provider: PROJECT_PROVIDER,
       model: PROJECT_MODEL,
-      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1',
+      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2',
       messages: [wakeMessage([11, 12, 13, 14])],
     }))
     await drain(adapter.stream({
       provider: PROJECT_PROVIDER,
       model: PROJECT_MODEL,
-      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1',
+      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2',
       messages: [wakeMessage([21, 22, 23, 24])],
     }))
 
@@ -177,7 +177,7 @@ describe('kline-playbook-engine replay V0.1 provider smoke bridge', () => {
     await expect(drain(adapter.stream({
       provider: PROJECT_PROVIDER,
       model: PROJECT_MODEL,
-      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1',
+      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2',
       messages: [wakeMessage([1, 2, 3, 4])],
     }))).rejects.toThrow()
     expect(server.requests).toHaveLength(1)
@@ -192,7 +192,7 @@ describe('kline-playbook-engine replay V0.1 provider smoke bridge', () => {
     await expect(drain(adapter.stream({
       provider: PROJECT_PROVIDER,
       model: PROJECT_MODEL,
-      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1',
+      system: 'KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2',
       messages: [wakeMessage([1, 2, 3, 4])],
     }))).rejects.toThrow()
     expect(server.requests).toHaveLength(1)

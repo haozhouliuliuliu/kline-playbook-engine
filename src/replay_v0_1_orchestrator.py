@@ -518,8 +518,14 @@ class ReplayV01Orchestrator:
         )
         self._ledger.bind_request(wake.wake_identity, request.request_id, retry_count=0)
         raw_response = self._transport.execute(request)
+        # Provider/billing metadata (when a real transport supplies it) is passed
+        # into record_model_response so it is durably retained before normalization;
+        # a schema rejection must not lose already-received usage metadata.
+        provider_metadata = getattr(self._transport, "last_response_metadata", None)
         decision = self._runtime.record_model_response(
-            request_id=request.request_id, raw_response=raw_response
+            request_id=request.request_id,
+            raw_response=raw_response,
+            provider_metadata=provider_metadata if isinstance(provider_metadata, dict) else {},
         )
         before_mode = self._runtime.store.load_working_memory().attention_mode
         jianghe_decision = _project_to_jianghe_decision(decision)
