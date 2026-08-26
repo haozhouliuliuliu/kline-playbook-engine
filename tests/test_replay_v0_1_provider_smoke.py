@@ -12,6 +12,7 @@ from __future__ import annotations
 from datetime import date, datetime, time, timezone
 from decimal import Decimal
 from pathlib import Path
+import importlib.util
 import json
 import subprocess
 import sys
@@ -571,6 +572,59 @@ class ProviderSmokeGuardTests(unittest.TestCase):
             )
             with self.assertRaises(RuntimeError):
                 transport.execute(type("R", (), {"system_prompt": "s", "decision_prompt": "d", "context": {}})())
+
+
+class ProviderSmokeRunnerWakeBindingVerificationTests(unittest.TestCase):
+    """Regression: the runner's step-9 wake-binding check must unpack the
+    ``(name, SmokeWakeBinding)`` pairs of ``authority.smoke_wakes`` correctly."""
+
+    def _runner_module(self):
+        path = REPO_ROOT / "tools" / "run_replay_v0_1_provider_smoke.py"
+        spec = importlib.util.spec_from_file_location("kpe_smoke_runner_mod", path)
+        self.assertIsNotNone(spec)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+        return module
+
+    def test_wake_binding_verification_matches_authority(self) -> None:
+        module = self._runner_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            payload = _authority_payload(
+                status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
+                max_spend_cny="3.00",
+                smoke_wakes=(
+                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
+                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
+                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
+                ),
+            )
+            authority = load_provider_smoke_authority(_write_authority(root, payload))
+
+            class _Binding:
+                def __init__(self, wake_identity):
+                    self.wake_identity = wake_identity
+
+            # Exact match passes (regression for the tuple-decomposition bug).
+            module._verify_smoke_wake_bindings(authority, [
+                _Binding("a" * 64), _Binding("b" * 64), _Binding("c" * 64),
+            ])
+            # Reordered wakes fail closed (order is sealed).
+            with self.assertRaises(ValueError):
+                module._verify_smoke_wake_bindings(authority, [
+                    _Binding("c" * 64), _Binding("b" * 64), _Binding("a" * 64),
+                ])
+            # Any identity mismatch fails closed.
+            with self.assertRaises(ValueError):
+                module._verify_smoke_wake_bindings(authority, [
+                    _Binding("a" * 64), _Binding("d" * 64), _Binding("c" * 64),
+                ])
+            # Wrong count fails closed.
+            with self.assertRaises(ValueError):
+                module._verify_smoke_wake_bindings(authority, [
+                    _Binding("a" * 64), _Binding("b" * 64),
+                ])
 
 
 if __name__ == "__main__":

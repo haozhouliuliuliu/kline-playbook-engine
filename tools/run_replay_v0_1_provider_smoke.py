@@ -233,6 +233,29 @@ def _authority_mismatch(authority, seal) -> str | None:
     return None
 
 
+def _verify_smoke_wake_bindings(authority, bindings) -> None:
+    """Fail closed unless the driven step bindings match the sealed wakes.
+
+    ``authority.smoke_wakes`` is an ordered tuple of ``(name, SmokeWakeBinding)``
+    pairs; each driven ``ReplayStepBinding`` must match the sealed wake identity
+    in the same call order.
+    """
+    if len(bindings) != 3:
+        raise ValueError("provider smoke must produce exactly three governed step bindings")
+    for name, binding, (expected_name, expected) in zip(
+        ("call_1", "call_2", "call_3"), bindings, authority.smoke_wakes
+    ):
+        if name != expected_name:
+            raise ValueError(
+                f"authority smoke wake order mismatch: expected {expected_name}, got {name}"
+            )
+        if binding.wake_identity != expected.wake_identity:
+            raise ValueError(
+                f"authority {name} wake identity mismatch: sealed={expected.wake_identity} "
+                f"actual={binding.wake_identity}"
+            )
+
+
 def main() -> int:
     args = _parser().parse_args()
     state_dir = args.state_dir.resolve()
@@ -368,6 +391,7 @@ def main() -> int:
 
     # --- 8. Drive call 1 -> call 2 -> forced restart -> call 3. ---
     restart_before_identity: str | None = None
+    exported: dict | None = None
     try:
         smoke_day = smoke_steps[0].trading_day
         session_identity = smoke_steps[0].session_identity
@@ -381,19 +405,17 @@ def main() -> int:
                 restart_before_identity = orchestrator.restart()
         orchestrator.end_session()
         result = orchestrator.finalize()
+        # Capture the portable export while the store is still open; the runtime
+        # is closed in the finally block below.
+        exported = orchestrator.runtime.portable_export()
     finally:
         orchestrator.runtime.close()
+    if exported is None:
+        raise RuntimeError("provider smoke runtime export was not produced before close")
 
     # --- 9. Verify exact smoke wake binding against authority. ---
     bindings = orchestrator.list_step_bindings()
-    if len(bindings) != 3:
-        raise ValueError("provider smoke must produce exactly three governed step bindings")
-    for name, binding, expected in zip(("call_1", "call_2", "call_3"), bindings, authority.smoke_wakes):
-        if binding.wake_identity != expected.wake_identity:
-            raise ValueError(
-                f"authority {name} wake identity mismatch: sealed={expected.wake_identity} "
-                f"actual={binding.wake_identity}"
-            )
+    _verify_smoke_wake_bindings(authority, bindings)
 
     # --- 10. Per-call usage / provider request ids (harness only; mock stays empty). ---
     if args.transport == "harness":
@@ -406,7 +428,6 @@ def main() -> int:
         per_call_provider_request_ids = [None for _ in bindings]
         per_call_finish_reasons = ["mock" for _ in bindings]
 
-    exported = orchestrator.runtime.portable_export()
     audit_events = exported.get("audit", [])
     audit_counts = Counter(str(item.get("event_kind")) for item in audit_events if isinstance(item, dict))
 
