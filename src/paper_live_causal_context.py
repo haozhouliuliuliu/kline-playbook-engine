@@ -68,20 +68,19 @@ from zoneinfo import ZoneInfo
 
 from src.data_substrate import BarQuality, CompletedBar
 from src.replay_v0_1_canonical_feed import governed_windows_for_days
+from src.causal_context_semantics import (
+    ACTIVE_TIMEFRAMES,
+    CONTEXT_WINDOW_COUNTS,
+    FOUR_HOUR_AGGREGATION_VERSION,
+    FOUR_HOUR_CIVIL_GRID_HOURS,
+    FOUR_HOUR_ROLE,
+    LOWER_AGGREGATION_VERSION,
+    LOWER_TIMEFRAME_PERIODS,
+)
 
 PAPER_LIVE_CAUSAL_CONTEXT_VERSION = "KPE_PAPER_LIVE_CAUSAL_CONTEXT_V0_1"
 PAPER_LIVE_AGGREGATION_POLICY_VERSION = "KPE_PAPER_LIVE_AGGREGATION_POLICY_V0_1"
 PAPER_LIVE_CAUSAL_CHECKPOINT_VERSION = "KPE_PAPER_LIVE_CAUSAL_CHECKPOINT_V0_1"
-
-# Mechanically reused frozen Jianghe labels (reference only; not frozen here).
-LOWER_AGGREGATION_VERSION = "SESSION_AUTHORITY_CONTIGUOUS_WINDOW_GRID_V0_1"
-FOUR_HOUR_AGGREGATION_VERSION = "SESSION_AUTHORITY_CIVIL_4H_GRID_V0_1"
-FOUR_HOUR_ROLE = "BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY"
-
-CONTEXT_WINDOW_COUNTS = {"4H": 2, "1H": 3, "15m": 12, "5m": 36}
-ACTIVE_TIMEFRAMES = ("4H", "1H", "15m", "5m")
-LOWER_TIMEFRAME_PERIODS = {"5m": 5, "15m": 15, "1H": 60}
-FOUR_HOUR_CIVIL_GRID_HOURS = 4
 
 _SHANGHAI = ZoneInfo("Asia/Shanghai")
 _ONE_MINUTE = timedelta(minutes=1)
@@ -342,18 +341,29 @@ class LiveSessionCalendar:
         Enumerated directly from governed windows, so an absent session window
         still yields expected starts. Session breaks produce no expected starts
         and are therefore never filled or bridged.
+
+        The scan bounds are trading-day-aware: a night session of trading day
+        ``D`` starts on the previous trading day's evening and ends at ``D 01:00``,
+        so ``D`` can be several civil days after ``coverage_end``'s calendar date
+        across weekends/holidays. Using the nearest trading days (not civil
+        ``+/- 1 day``) guarantees the governing night window is always visited and
+        matches the frozen replay index's per-window enumeration.
         """
         start_local = _aware(coverage_start, "live coverage start").astimezone(self._tz)
         end_local = _aware(coverage_end, "live coverage end").astimezone(self._tz)
         if end_local <= start_local:
             raise ValueError("live coverage end must follow its start")
         result: list[datetime] = []
-        lower = start_local.date() - timedelta(days=1)
-        upper = end_local.date() + timedelta(days=1)
+        lower = self._trading_day_at_or_before(start_local.date())
+        last_before_end = self._trading_day_at_or_before(end_local.date())
+        # A night session of trading day D spans [prev(D) 21:00, D 01:00), so D
+        # can be the next trading day after the last trading day at/before the
+        # coverage end (weekends/holidays make that more than one civil day).
+        upper = None if last_before_end is None else self.next_trading_day_after(last_before_end)
         for day in self._calendar:
-            if day < lower:
+            if lower is not None and day < lower:
                 continue
-            if day > upper:
+            if upper is not None and day > upper:
                 break
             for window in self.session_windows_for(day):
                 lo = max(window.start, start_local)
@@ -365,6 +375,15 @@ class LiveSessionCalendar:
                     result.append(cursor)
                     cursor += _ONE_MINUTE
         return tuple(sorted(result))
+
+    def _trading_day_at_or_before(self, civil: date) -> date | None:
+        """Last trading day at or before a civil date, if any."""
+        selected: date | None = None
+        for day in self._calendar:
+            if day > civil:
+                break
+            selected = day
+        return selected
 
     def next_expected_minute_start_after(self, timestamp: datetime) -> datetime | None:
         """Immediately next governed 1m bar start after ``timestamp``, if any."""
@@ -804,6 +823,7 @@ class LiveCausalContextBuilder:
         prepared: list[_AdmittedMinute] = []
         last = self._last_accepted_start
         prior: datetime | None = None
+        batch_minutes: dict[datetime, _AdmittedMinute] = {}
         for bar in bars:
             minute = self._minute_of(bar, observed_at)
             if prior is not None and minute.start < prior:
@@ -814,6 +834,16 @@ class LiveCausalContextBuilder:
                 if self._minute_equal(existing, minute):
                     continue
                 raise ValueError("LIVE_CAUSAL_DUPLICATE_MINUTE_CONFLICT")
+            # The batch commits atomically below, so a second delivery of the
+            # same start inside this batch is not yet in ``_admitted``; detect
+            # it here to keep the fail-closed duplicate signal precise (identical
+            # re-delivery is still idempotently deduped, as across calls).
+            batch_existing = batch_minutes.get(minute.start)
+            if batch_existing is not None:
+                if self._minute_equal(batch_existing, minute):
+                    continue
+                raise ValueError("LIVE_CAUSAL_DUPLICATE_MINUTE_CONFLICT")
+            batch_minutes[minute.start] = minute
             if last is not None:
                 expected = self._calendar.next_expected_minute_start_after(last)
                 if expected is None or minute.start != expected:
