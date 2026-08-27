@@ -27,6 +27,12 @@ import tempfile
 from typing import Any, Mapping
 
 from src.persistent_deepseek_runtime import CURRENT_MODEL
+from src.replay_v0_1_provider_attempt_ledger import (
+    ATTEMPT_STARTED,
+    RESULT_RECEIVED,
+    UNKNOWN_AFTER_ATTEMPT_START,
+    ProviderAttemptLedger,
+)
 from src.replay_v0_1_smoke_authority import ProviderSmokeAuthority, assert_smoke_authority_active
 
 PROVIDER_SMOKE_MOCK_IDENTITY = "NO_PROVIDER_PROVIDER_SMOKE_MOCK_V0_1"
@@ -228,6 +234,8 @@ class SmokeHarnessTransport:
         image_bundles: tuple[tuple[bytes, ...], ...],
         expected_provider: str,
         expected_model: str,
+        attempt_ledger: ProviderAttemptLedger | None = None,
+        attempt_identities: tuple[Mapping[str, Any], ...] | None = None,
     ) -> None:
         # Duck-typed so tests can substitute a fake one-shot bridge; production
         # construction always uses a HarnessOneShotBridge (which itself enforces
@@ -240,10 +248,19 @@ class SmokeHarnessTransport:
             raise ValueError("SmokeHarnessTransport requires the exact expected provider")
         if not isinstance(expected_model, str) or not expected_model:
             raise ValueError("SmokeHarnessTransport requires the exact expected model")
+        if attempt_ledger is not None:
+            if attempt_identities is None or len(attempt_identities) != 3:
+                raise ValueError(
+                    "SmokeHarnessTransport with an attempt ledger requires three attempt identities"
+                )
         self._bridge = bridge
         self._bundles = list(image_bundles)
         self._expected_provider = expected_provider
         self._expected_model = expected_model
+        self._attempt_ledger = attempt_ledger
+        self._attempt_identities = tuple(attempt_identities or ())
+        self._call_index = 0
+        self._unknown_attempt_blocked = False
         self.calls: list[SmokeBridgeResult] = []
 
     @property
@@ -266,16 +283,65 @@ class SmokeHarnessTransport:
         }
 
     def execute(self, request: Any) -> str:
+        if self._unknown_attempt_blocked:
+            raise RuntimeError(
+                "provider smoke transport is terminally blocked by an unknown "
+                "attempt; no further call, retry or replacement wake is permitted"
+            )
         if not self._bundles:
             raise RuntimeError("provider smoke transport exhausted; a fourth request is forbidden")
+        if self._attempt_ledger is not None and self._call_index >= len(self._attempt_identities):
+            raise RuntimeError("provider smoke transport attempt identities exhausted")
         png_images = self._bundles.pop(0)
-        result = self._bridge.execute(
-            system_prompt=request.system_prompt,
-            decision_prompt=request.decision_prompt,
-            context=request.context,
-            png_images=png_images,
-        )
+        sequence = self._call_index
+        attempt_identity: Mapping[str, Any] | None = None
+        if self._attempt_ledger is not None:
+            base = dict(self._attempt_identities[sequence])
+            attempt_identity = {
+                **base,
+                "request_id": request.request_id,
+                "retry_count": 0,
+            }
+            # Durable ATTEMPT_STARTED MUST be written BEFORE the bridge child
+            # process is launched.  If persistence fails, the child is NOT
+            # launched because the exception propagates before bridge.execute.
+            self._attempt_ledger.record_attempt_started(**attempt_identity)
+        try:
+            bridge_kwargs: dict[str, Any] = {
+                "system_prompt": request.system_prompt,
+                "decision_prompt": request.decision_prompt,
+                "context": request.context,
+                "png_images": png_images,
+            }
+            if attempt_identity is not None:
+                bridge_kwargs["attempt_identity"] = attempt_identity
+            result = self._bridge.execute(**bridge_kwargs)
+        except Exception as error:  # noqa: BLE001 - post-launch failure is fail-closed
+            if self._attempt_ledger is not None:
+                try:
+                    self._attempt_ledger.record_unknown_after_attempt_start(
+                        sequence=sequence, reason=str(error)
+                    )
+                    self._unknown_attempt_blocked = True
+                except Exception:  # never mask the original fail-closed error
+                    pass
+            raise
+        self._call_index += 1
         self.calls.append(result)
+        if self._attempt_ledger is not None:
+            self._attempt_ledger.record_result_received(
+                sequence=sequence,
+                metadata={
+                    "provider": result.provider,
+                    "model": result.model,
+                    "provider_request_id": result.provider_request_id,
+                    "request_count": result.request_count,
+                    "image_count": result.image_count,
+                    "finish_reason": result.finish_reason,
+                    "token_usage": json.dumps(dict(result.token_usage), ensure_ascii=False, sort_keys=True),
+                    "bridge_status": result.status,
+                },
+            )
         if result.status != "OK" or result.error:
             raise RuntimeError(f"provider smoke bridge failed closed: {result.error}")
         # Post-call fail-closed: exact provider/model, exactly four images, exactly one request.

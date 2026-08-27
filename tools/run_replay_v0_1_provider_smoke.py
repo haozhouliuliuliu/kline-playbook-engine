@@ -45,6 +45,11 @@ from src.jianghe_response_normalizer import NORMALIZER_IDENTITY, RESPONSE_SCHEMA
 from src.jianghe_trading_only_prompt import TRADING_ONLY_PROMPT_CONTRACT
 from src.jianghe_visual_renderer import JiangheVisualRenderer, RENDERER_VERSION
 from src.fixed_5m_wake_ledger import WakeLedgerArchive, wake_ledger_path_for
+from src.replay_v0_1_provider_attempt_ledger import (
+    UNKNOWN_AFTER_ATTEMPT_START,
+    ProviderAttemptLedger,
+    provider_attempt_ledger_path_for,
+)
 from src.persistent_deepseek_runtime import (
     CURRENT_MODEL,
     DeepSeekHarnessRuntimeContract,
@@ -428,6 +433,53 @@ def _read_audit_counts(state_dir, trader_identity) -> dict[str, int]:
         return {}
 
 
+def _read_attempt_ledger(state_dir, authority_identity: str):
+    """Read the durable provider-attempt ledger if present; else None."""
+    ledger_path = provider_attempt_ledger_path_for(state_dir)
+    if not ledger_path.exists():
+        return None
+    return ProviderAttemptLedger(ledger_path, authority_identity=authority_identity)
+
+
+def _provider_attempt_evidence(state_dir, authority, transport) -> dict:
+    """Provider-attempt accounting for terminal evidence.
+
+    Conservative semantics: when the durable provider-attempt ledger is present
+    (real Harness path), ``provider_call_count`` / ``network_request_count`` are
+    the total ATTEMPT_STARTED attempts (the safe upper bound), and a separate
+    ``known_result_count`` reports confirmed RESULT_RECEIVED completions.  An
+    ``UNKNOWN_AFTER_ATTEMPT_START`` attempt is never presented as zero calls;
+    it sets ``slot_requires_adjudication``.  When no attempt ledger exists
+    (mock/no-network path), the compatibility counts come from the transport's
+    recorded calls.
+    """
+    ledger = _read_attempt_ledger(state_dir, authority.identity)
+    if ledger is None:
+        transport_calls = len(getattr(transport, "calls", []))
+        return {
+            "provider_attempt_count": 0,
+            "provider_attempt_state": {},
+            "unknown_after_attempt_start_count": 0,
+            "known_result_count": 0,
+            "slot_requires_adjudication": False,
+            "provider_call_count": transport_calls,
+            "network_request_count": transport_calls,
+        }
+    attempts = ledger.attempts()
+    unknown_count = ledger.unknown_after_attempt_start_count()
+    known_count = ledger.result_received_count()
+    total = len(attempts)
+    return {
+        "provider_attempt_count": total,
+        "provider_attempt_state": {attempt.call: attempt.attempt_state for attempt in attempts},
+        "unknown_after_attempt_start_count": unknown_count,
+        "known_result_count": known_count,
+        "slot_requires_adjudication": unknown_count > 0,
+        "provider_call_count": total,
+        "network_request_count": total,
+    }
+
+
 def _assemble_fail_evidence(
     *,
     authority,
@@ -447,7 +499,8 @@ def _assemble_fail_evidence(
     """
     fail_audit_counts = _read_audit_counts(state_dir, trader_identity)
     bound_wakes = _read_bound_wakes(state_dir)
-    return {
+    attempt_evidence = _provider_attempt_evidence(state_dir, authority, transport)
+    payload = {
         "status": "FAIL",
         "runner_version": PROVIDER_SMOKE_RUNNER_VERSION,
         "authority_status": authority.status,
@@ -457,8 +510,6 @@ def _assemble_fail_evidence(
         "model": authority.model,
         "transport": transport_name,
         "reason": f"{type(error).__name__}: {error}",
-        "provider_call_count": len(getattr(transport, "calls", [])),
-        "network_request_count": len(getattr(transport, "calls", [])),
         "admitted_wake_count": len(bound_wakes),
         "admitted_wakes": _build_bound_wake_evidence(bound_wakes, bindings),
         "request_count": len(bound_wakes),
@@ -472,6 +523,8 @@ def _assemble_fail_evidence(
         "max_retries": authority.max_retries,
         "images_per_call": authority.images_per_call,
     }
+    payload.update(attempt_evidence)
+    return payload
 
 
 def _write_evidence_file(output: Path, encoded: str) -> None:
@@ -593,6 +646,7 @@ def main() -> int:
     )
 
     # --- 7. Build transport + orchestrator. ---
+    attempt_ledger: ProviderAttemptLedger | None = None
     if args.transport == "harness":
         if not args.harness_root:
             raise ValueError("--transport harness requires --harness-root")
@@ -601,11 +655,29 @@ def main() -> int:
             authority=authority, harness_root=args.harness_root, repo_root=REPO_ROOT,
             api_key_env=authority.api_key_env, base_url=base_url,
         )
+        # Durable provider-attempt ledger: created before any bridge child is
+        # launched; records ATTEMPT_STARTED before each child launch.
+        attempt_ledger = ProviderAttemptLedger(
+            provider_attempt_ledger_path_for(state_dir),
+            authority_identity=authority.identity,
+        )
+        attempt_identities = tuple(
+            {
+                "sequence": sequence,
+                "call": name,
+                "logical_wake_selection_identity": binding.logical_wake_selection_identity,
+                "wake_identity": binding.wake_identity,
+                "close_time": binding.close_time.astimezone(timezone.utc).isoformat(timespec="microseconds"),
+            }
+            for sequence, (name, binding) in enumerate(authority.smoke_wakes)
+        )
         transport = SmokeHarnessTransport(
             bridge=bridge,
             image_bundles=tuple(rendered.png_bytes for rendered in rendered_per_step),
             expected_provider=authority.provider,
             expected_model=authority.model,
+            attempt_ledger=attempt_ledger,
+            attempt_identities=attempt_identities,
         )
     else:
         transport = SmokeDeterministicTransport(provider_admitted=True)
@@ -673,8 +745,6 @@ def main() -> int:
         evidence = {
             "status": "PASS",
             "runner_version": PROVIDER_SMOKE_RUNNER_VERSION,
-            "provider_call_count": 3 if args.transport == "harness" else 0,
-            "network_request_count": 3 if args.transport == "harness" else 0,
             "admitted_wake_count": 3,
             "request_count": 3,
             "retry_count": 0,
@@ -722,6 +792,7 @@ def main() -> int:
             "max_retries": authority.max_retries,
             "images_per_call": authority.images_per_call,
         }
+        evidence.update(_provider_attempt_evidence(state_dir, authority, transport))
         encoded = json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
         _write_evidence_file(output, encoded)
         sys.stdout.write(encoded)

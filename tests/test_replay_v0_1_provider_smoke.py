@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timezone
 from decimal import Decimal
+from hashlib import sha256
 from pathlib import Path
 import importlib.util
 import json
@@ -27,10 +28,22 @@ from src.replay_v0_1_orchestrator import (
     ReplayV01Orchestrator,
     SyntheticScriptedTransport,
 )
+from src.replay_v0_1_provider_attempt_ledger import (
+    ATTEMPT_STARTED,
+    RESULT_RECEIVED,
+    UNKNOWN_AFTER_ATTEMPT_START,
+    ProviderAttemptLedger,
+    provider_attempt_ledger_path_for,
+)
 from src.replay_v0_1_smoke_authority import (
+    CNY_CEILING_MODE_NUMERIC,
+    CNY_CEILING_MODE_WAIVED,
+    OWNER_CNY_CEILING_WAIVED,
     PROVIDER,
     SMOKE_AUTHORITY_VERSION,
     SMOKE_AUTHORITY_VERSION_V0_2,
+    SMOKE_RETEST_AUTHORITY_VERSION_V0_2,
+    SMOKE_RETEST_AUTHORITY_VERSION_V0_3,
     SMOKE_STATUS_ACTIVE,
     SMOKE_STATUS_PENDING,
     SMOKE_STATUS_REVOKED,
@@ -118,6 +131,7 @@ def _authority_payload(
     max_spend_cny: str,
     smoke_wakes: tuple[tuple[str, SmokeWakeBinding], ...],
     authority_version: str = SMOKE_AUTHORITY_VERSION_V0_2,
+    cny_ceiling_mode: str = CNY_CEILING_MODE_NUMERIC,
     slice_identity: str = "slice-test",
     exact_slice_seal_identity: str = "seal-test",
     product: str = "cu",
@@ -162,6 +176,7 @@ def _authority_payload(
         full_replay_authorized=False,
         full_replay_1998_calls_authorized=False,
         max_spend_cny=max_spend_cny,
+        cny_ceiling_mode=cny_ceiling_mode,
         created_at=datetime(2026, 8, 26, 12, 0, 0, tzinfo=TZ),
     )
     return authority.to_payload()
@@ -628,6 +643,35 @@ class ProviderSmokeGuardTests(unittest.TestCase):
                 verify_execution_code_bound(
                     repo_root=repo, execution_code_commit=head,
                     critical_paths=("missing.py",),
+                )
+
+    def test_execution_code_bound_covers_and_detects_drift_in_attempt_ledger_module(self) -> None:
+        # The new provider-attempt ledger is on the real execution path, so it
+        # must be inside the machine authority's code-binding surface and drift
+        # must be detected.
+        self.assertIn("src/replay_v0_1_provider_attempt_ledger.py", EXECUTION_CRITICAL_PATHS)
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            critical = repo / "src" / "replay_v0_1_provider_attempt_ledger.py"
+            critical.parent.mkdir(parents=True)
+            critical.write_text("content-a\n", encoding="utf-8")
+            (repo / "tracked.txt").write_text("seed\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
+            subprocess.run(
+                ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "add", "."],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "seed"],
+                check=True,
+            )
+            head = _git_rev(repo, "HEAD")
+            # Drift the working tree of the execution-critical module.
+            critical.write_text("content-b\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                verify_execution_code_bound(
+                    repo_root=repo, execution_code_commit=head,
+                    critical_paths=("src/replay_v0_1_provider_attempt_ledger.py",),
                 )
 
     def test_execution_code_bound_rejects_bogus_commit(self) -> None:
@@ -1195,6 +1239,516 @@ class ProviderSmokeFailClosedEvidenceTests(unittest.TestCase):
             [wake.logical_wake_selection_identity for wake in first],
             [wake.logical_wake_selection_identity for wake in reopened],
         )
+
+
+def _attempt_identities() -> tuple[dict, ...]:
+    """Three attempt identities matching ``_three_wakes()``."""
+    return tuple(
+        {
+            "sequence": index,
+            "call": name,
+            "logical_wake_selection_identity": "l" + char * 63,
+            "wake_identity": char * 64,
+            "close_time": _day_start(date(2024, 1, 22), 9 + index).isoformat(),
+        }
+        for index, (name, char) in enumerate(
+            zip(("call_1", "call_2", "call_3"), "abc")
+        )
+    )
+
+
+def _fake_request(request_id: str = "req-1"):
+    return type("R", (), {
+        "request_id": request_id,
+        "system_prompt": "system",
+        "decision_prompt": "decision",
+        "context": {},
+    })()
+
+
+def _valid_bridge_result(**kwargs) -> SmokeBridgeResult:
+    return SmokeBridgeResult(
+        status="OK", provider=PROVIDER, model=CURRENT_MODEL,
+        raw_response_text=_valid_mock_response(), finish_reason="stop",
+        token_usage={"inputTokens": 5, "outputTokens": 3},
+        provider_request_id="prov-req-1", image_count=4, request_count=1, error=None,
+    )
+
+
+def _canonical_identity(payload: dict) -> str:
+    without = dict(payload)
+    without.pop("authority_identity", None)
+    return sha256(json.dumps(
+        without, ensure_ascii=False, separators=(",", ":"), sort_keys=True, allow_nan=False,
+    ).encode("utf-8")).hexdigest()
+
+
+def _raw_authority_payload(**overrides) -> dict:
+    """Build a raw authority JSON payload from a valid base with overrides.
+
+    Used to author intentionally INVALID authorities whose loader rejection is
+    the thing under test (the dataclass constructor cannot build them).
+    """
+    base = _authority_payload(
+        status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
+        max_spend_cny="3.00", smoke_wakes=_three_wakes(),
+    )
+    payload = dict(base)
+    payload.update(overrides)
+    payload["authority_identity"] = _canonical_identity(payload)
+    return payload
+
+
+class _ScriptedBridge:
+    """Fake one-shot bridge; records launches and can raise / return per script."""
+
+    def __init__(self, behavior) -> None:
+        self._behavior = behavior
+        self.launches = 0
+
+    def execute(self, **kwargs):
+        self.launches += 1
+        if isinstance(self._behavior, Exception):
+            raise self._behavior
+        return self._behavior(**kwargs)
+
+
+class ProviderAttemptLedgerTests(unittest.TestCase):
+    """Durable provider-attempt ledger state machine."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.ledger = ProviderAttemptLedger(
+            provider_attempt_ledger_path_for(self.root / "state"),
+            authority_identity="auth-1",
+        )
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def test_attempt_started_persisted_before_any_result(self) -> None:
+        attempt = self.ledger.record_attempt_started(
+            sequence=0, call="call_1",
+            logical_wake_selection_identity="l" + "a" * 63,
+            wake_identity="a" * 64, close_time=_day_start(date(2024, 1, 22)),
+            request_id="req-1", retry_count=0,
+        )
+        self.assertEqual(attempt.attempt_state, ATTEMPT_STARTED)
+        # Reopen -> durable.
+        reopened = ProviderAttemptLedger(
+            provider_attempt_ledger_path_for(self.root / "state"),
+            authority_identity="auth-1",
+        )
+        self.assertEqual(reopened.attempts()[0].attempt_state, ATTEMPT_STARTED)
+        self.assertEqual(reopened.attempts()[0].request_id, "req-1")
+
+    def test_valid_transition_to_result_received(self) -> None:
+        self.ledger.record_attempt_started(
+            sequence=0, call="call_1",
+            logical_wake_selection_identity="l" + "a" * 63,
+            wake_identity="a" * 64, close_time=_day_start(date(2024, 1, 22)),
+            request_id="req-1",
+        )
+        attempt = self.ledger.record_result_received(sequence=0, metadata={"provider": "deepseek"})
+        self.assertEqual(attempt.attempt_state, RESULT_RECEIVED)
+        self.assertEqual(attempt.result_metadata, (("provider", "deepseek"),))
+
+    def test_transition_to_unknown_after_attempt_start(self) -> None:
+        self.ledger.record_attempt_started(
+            sequence=0, call="call_1",
+            logical_wake_selection_identity="l" + "a" * 63,
+            wake_identity="a" * 64, close_time=_day_start(date(2024, 1, 22)),
+            request_id="req-1",
+        )
+        attempt = self.ledger.record_unknown_after_attempt_start(sequence=0, reason="timeout")
+        self.assertEqual(attempt.attempt_state, UNKNOWN_AFTER_ATTEMPT_START)
+        self.assertEqual(attempt.reason, "timeout")
+        self.assertEqual(self.ledger.unknown_after_attempt_start_count(), 1)
+        self.assertEqual(self.ledger.result_received_count(), 0)
+
+    def test_terminal_state_cannot_transition(self) -> None:
+        self.ledger.record_attempt_started(
+            sequence=0, call="call_1",
+            logical_wake_selection_identity="l" + "a" * 63,
+            wake_identity="a" * 64, close_time=_day_start(date(2024, 1, 22)),
+            request_id="req-1",
+        )
+        self.ledger.record_result_received(sequence=0, metadata={})
+        with self.assertRaises(ValueError):
+            self.ledger.record_unknown_after_attempt_start(sequence=0, reason="late")
+        with self.assertRaises(ValueError):
+            self.ledger.record_result_received(sequence=0, metadata={})
+
+    def test_unknown_cannot_transition_to_result(self) -> None:
+        self.ledger.record_attempt_started(
+            sequence=0, call="call_1",
+            logical_wake_selection_identity="l" + "a" * 63,
+            wake_identity="a" * 64, close_time=_day_start(date(2024, 1, 22)),
+            request_id="req-1",
+        )
+        self.ledger.record_unknown_after_attempt_start(sequence=0, reason="no-result")
+        with self.assertRaises(ValueError):
+            self.ledger.record_result_received(sequence=0, metadata={})
+
+    def test_retry_count_must_be_zero(self) -> None:
+        with self.assertRaises(ValueError):
+            self.ledger.record_attempt_started(
+                sequence=0, call="call_1",
+                logical_wake_selection_identity="l" + "a" * 63,
+                wake_identity="a" * 64, close_time=_day_start(date(2024, 1, 22)),
+                request_id="req-1", retry_count=1,
+            )
+
+
+class SmokeHarnessTransportAttemptTests(unittest.TestCase):
+    """F-03: transport records ATTEMPT_STARTED before the bridge child launch."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.state_dir = self.root / "state"
+        self.ledger = ProviderAttemptLedger(
+            provider_attempt_ledger_path_for(self.state_dir), authority_identity="auth-1"
+        )
+        self.bundles = ((b"p", b"p", b"p", b"p"),) * 3
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def _transport(self, bridge, *, ledger=None):
+        return SmokeHarnessTransport(
+            bridge=bridge,
+            image_bundles=self.bundles,
+            expected_provider=PROVIDER,
+            expected_model=CURRENT_MODEL,
+            attempt_ledger=ledger if ledger is not None else self.ledger,
+            attempt_identities=_attempt_identities(),
+        )
+
+    def test_attempt_start_persisted_before_child_launch(self) -> None:
+        bridge = _ScriptedBridge(_valid_bridge_result)
+        transport = self._transport(bridge)
+        transport.execute(_fake_request("req-1"))
+        # ATTEMPT_STARTED was durable before launch; now RESULT_RECEIVED.
+        self.assertEqual(self.ledger.attempts()[0].attempt_state, RESULT_RECEIVED)
+        self.assertEqual(self.ledger.attempts()[0].request_id, "req-1")
+        self.assertEqual(bridge.launches, 1)
+
+    def test_attempt_persistence_failure_prevents_child_launch(self) -> None:
+        class _FailingLedger:
+            def record_attempt_started(self, **kwargs):
+                raise RuntimeError("persistence failed")
+        bridge = _ScriptedBridge(_valid_bridge_result)
+        transport = self._transport(bridge, ledger=_FailingLedger())
+        with self.assertRaisesRegex(RuntimeError, "persistence failed"):
+            transport.execute(_fake_request("req-1"))
+        self.assertEqual(bridge.launches, 0, "child must not launch when attempt persistence fails")
+
+    def test_child_timeout_transitions_to_unknown_and_blocks_next_call(self) -> None:
+        bridge = _ScriptedBridge(subprocess.TimeoutExpired("tsx", 300))
+        transport = self._transport(bridge)
+        with self.assertRaises(subprocess.TimeoutExpired):
+            transport.execute(_fake_request("req-1"))
+        attempt = self.ledger.attempts()[0]
+        self.assertEqual(attempt.attempt_state, UNKNOWN_AFTER_ATTEMPT_START)
+        self.assertEqual(attempt.wake_identity, "a" * 64)
+        self.assertEqual(attempt.logical_wake_selection_identity, "l" + "a" * 63)
+        self.assertEqual(attempt.request_id, "req-1")
+        self.assertEqual(attempt.retry_count, 0)
+        self.assertEqual(self.ledger.unknown_after_attempt_start_count(), 1)
+        self.assertEqual(len(transport.calls), 0)
+        # Terminal barrier: a second call is refused outright (no child launch).
+        with self.assertRaisesRegex(RuntimeError, "terminally blocked"):
+            transport.execute(_fake_request("req-2"))
+        self.assertEqual(bridge.launches, 1, "no second child launch after an unknown attempt")
+
+    def test_no_result_after_child_launch_transitions_to_unknown(self) -> None:
+        bridge = _ScriptedBridge(RuntimeError("provider-smoke bridge produced no result"))
+        transport = self._transport(bridge)
+        with self.assertRaisesRegex(RuntimeError, "no result"):
+            transport.execute(_fake_request("req-1"))
+        self.assertEqual(self.ledger.attempts()[0].attempt_state, UNKNOWN_AFTER_ATTEMPT_START)
+        self.assertEqual(self.ledger.unknown_after_attempt_start_count(), 1)
+
+    def test_malformed_result_after_child_launch_transitions_to_unknown(self) -> None:
+        def _malformed(**kwargs):
+            raise ValueError("invalid result artifact")
+        bridge = _ScriptedBridge(_malformed)
+        transport = self._transport(bridge)
+        with self.assertRaises(ValueError):
+            transport.execute(_fake_request("req-1"))
+        self.assertEqual(self.ledger.attempts()[0].attempt_state, UNKNOWN_AFTER_ATTEMPT_START)
+
+    def test_valid_result_transitions_to_result_received_and_normal_path_unchanged(self) -> None:
+        bridge = _ScriptedBridge(_valid_bridge_result)
+        transport = self._transport(bridge)
+        raw = transport.execute(_fake_request("req-1"))
+        self.assertEqual(raw, _valid_mock_response())
+        self.assertEqual(len(transport.calls), 1)
+        self.assertEqual(self.ledger.attempts()[0].attempt_state, RESULT_RECEIVED)
+        self.assertEqual(self.ledger.result_received_count(), 1)
+        self.assertEqual(self.ledger.unknown_after_attempt_start_count(), 0)
+
+
+class ProviderAttemptEvidenceTests(unittest.TestCase):
+    """F-03: terminal evidence must distinguish no-attempt / known / unknown."""
+
+    def _runner_module(self):
+        path = REPO_ROOT / "tools" / "run_replay_v0_1_provider_smoke.py"
+        spec = importlib.util.spec_from_file_location("kpe_smoke_runner_mod3", path)
+        self.assertIsNotNone(spec)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+        return module
+
+    def _load_authority(self):
+        payload = _authority_payload(
+            status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
+            max_spend_cny="3.00", smoke_wakes=_three_wakes(),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            return load_provider_smoke_authority(_write_authority(Path(tmp), payload))
+
+    def test_no_attempt_ever_started_is_zero_and_not_adjudication(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        transport = SmokeDeterministicTransport(provider_admitted=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp) / "state"
+            state_dir.mkdir()
+            evidence = module._provider_attempt_evidence(state_dir, authority, transport)
+        self.assertEqual(evidence["provider_attempt_count"], 0)
+        self.assertEqual(evidence["unknown_after_attempt_start_count"], 0)
+        self.assertEqual(evidence["known_result_count"], 0)
+        self.assertFalse(evidence["slot_requires_adjudication"])
+        self.assertEqual(evidence["provider_call_count"], 0)
+
+    def test_known_result_evidence(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp) / "state"
+            ledger = ProviderAttemptLedger(
+                provider_attempt_ledger_path_for(state_dir), authority_identity=authority.identity
+            )
+            for index in range(3):
+                ledger.record_attempt_started(
+                    sequence=index, call=("call_1", "call_2", "call_3")[index],
+                    logical_wake_selection_identity="l" + "abc"[index] * 63,
+                    wake_identity="abc"[index] * 64,
+                    close_time=_day_start(date(2024, 1, 22), 9 + index),
+                    request_id=f"req-{index}",
+                )
+                ledger.record_result_received(sequence=index, metadata={"provider": "deepseek"})
+            evidence = module._provider_attempt_evidence(state_dir, authority, object())
+        self.assertEqual(evidence["provider_attempt_count"], 3)
+        self.assertEqual(evidence["known_result_count"], 3)
+        self.assertEqual(evidence["unknown_after_attempt_start_count"], 0)
+        self.assertFalse(evidence["slot_requires_adjudication"])
+        self.assertEqual(evidence["provider_call_count"], 3)
+
+    def test_unknown_attempt_is_never_zero_and_requires_adjudication(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        transport = SmokeDeterministicTransport(provider_admitted=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp) / "state"
+            ledger = ProviderAttemptLedger(
+                provider_attempt_ledger_path_for(state_dir), authority_identity=authority.identity
+            )
+            ledger.record_attempt_started(
+                sequence=0, call="call_1",
+                logical_wake_selection_identity="l" + "a" * 63,
+                wake_identity="a" * 64,
+                close_time=_day_start(date(2024, 1, 22)),
+                request_id="req-1",
+            )
+            ledger.record_unknown_after_attempt_start(sequence=0, reason="timeout")
+            evidence = module._provider_attempt_evidence(state_dir, authority, transport)
+        self.assertEqual(evidence["provider_attempt_count"], 1)
+        self.assertEqual(evidence["unknown_after_attempt_start_count"], 1)
+        self.assertEqual(evidence["known_result_count"], 0)
+        self.assertTrue(evidence["slot_requires_adjudication"])
+        self.assertEqual(evidence["provider_attempt_state"], {"call_1": UNKNOWN_AFTER_ATTEMPT_START})
+        self.assertEqual(evidence["provider_call_count"], 1, "unknown started attempt must never be zero")
+
+    def test_unknown_attempt_terminal_barrier_in_driven_run(self) -> None:
+        """An unknown attempt in a real orchestrator run must stop before call 2."""
+        module = self._runner_module()
+        authority = self._load_authority()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            state_dir = root / "state"
+            fixture = ReplayV01RuntimeFixture(root)
+            slice_ = build_slice()
+            replay_days = slice_.burn_in_days + slice_.measurement_days
+            trading_day = replay_days[0]
+            steps = build_session_steps(
+                trading_day=trading_day, session_identity="sess-f03",
+                start=_day_start(trading_day), count=3,
+            )
+            ledger = ProviderAttemptLedger(
+                provider_attempt_ledger_path_for(state_dir), authority_identity=authority.identity
+            )
+            bridge = _ScriptedBridge(subprocess.TimeoutExpired("tsx", 300))
+            transport = SmokeHarnessTransport(
+                bridge=bridge,
+                image_bundles=((b"p", b"p", b"p", b"p"),) * 3,
+                expected_provider=PROVIDER,
+                expected_model=CURRENT_MODEL,
+                attempt_ledger=ledger,
+                attempt_identities=_attempt_identities(),
+            )
+            orchestrator = ReplayV01Orchestrator(
+                runtime_factory=fixture.make_runtime_factory(),
+                clock=ReplayClock(current_time=steps[0].wake_bar.open_time),
+                slice_=slice_, transport=transport, state_dir=state_dir,
+            )
+            try:
+                orchestrator.begin_session(
+                    phase=PHASE_BURN_IN, trading_day=trading_day, replay_day_index=0,
+                    session_identity="sess-f03", steps=steps,
+                )
+                failure = None
+                for step in steps:
+                    try:
+                        orchestrator.run_wake_step(step)
+                    except Exception as exc:
+                        failure = exc
+                        break
+                self.assertIsInstance(failure, subprocess.TimeoutExpired)
+                self.assertEqual(bridge.launches, 1, "no call 2 after an unknown attempt")
+                # Terminal evidence from the durable attempt ledger.
+                payload = module._assemble_fail_evidence(
+                    authority=authority,
+                    state_dir=state_dir,
+                    transport=transport,
+                    bindings=orchestrator.list_step_bindings(),
+                    transport_name="harness",
+                    error=failure,
+                    trader_identity=fixture.identity.identity,
+                )
+                self.assertEqual(payload["provider_attempt_count"], 1)
+                self.assertEqual(payload["unknown_after_attempt_start_count"], 1)
+                self.assertTrue(payload["slot_requires_adjudication"])
+                self.assertEqual(payload["provider_call_count"], 1)
+                self.assertEqual(payload["admitted_wake_count"], 1)
+                self.assertEqual(payload["admitted_wakes"][0]["call"], "call_1")
+                # The attempt ledger recorded the exact attempt identity it was
+                # given (authority-sealed), while the bound-wake evidence carries
+                # the actual ledger wake identity.
+                self.assertEqual(ledger.attempts()[0].wake_identity, "a" * 64)
+                self.assertEqual(
+                    ledger.attempts()[0].logical_wake_selection_identity, "l" + "a" * 63,
+                )
+                self.assertEqual(ledger.attempts()[0].attempt_state, UNKNOWN_AFTER_ATTEMPT_START)
+                self.assertTrue(payload["admitted_wakes"][0]["wake_identity"])
+                self.assertNotIn("decision_identity", payload["admitted_wakes"][0])
+            finally:
+                orchestrator.runtime.close()
+
+
+class CostWaiverAuthorityTests(unittest.TestCase):
+    """Part B: forward V0_3 authority with explicit Owner CNY-ceiling waiver."""
+
+    def _write_and_load(self, payload):
+        with tempfile.TemporaryDirectory() as tmp:
+            return load_provider_smoke_authority(_write_authority(Path(tmp), payload))
+
+    def test_forward_waiver_authority_loads(self) -> None:
+        payload = _authority_payload(
+            authority_version=SMOKE_RETEST_AUTHORITY_VERSION_V0_3,
+            status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
+            max_spend_cny=OWNER_CNY_CEILING_WAIVED,
+            cny_ceiling_mode=CNY_CEILING_MODE_WAIVED,
+            smoke_wakes=_three_wakes(),
+        )
+        authority = self._write_and_load(payload)
+        self.assertEqual(authority.authority_version, SMOKE_RETEST_AUTHORITY_VERSION_V0_3)
+        self.assertEqual(authority.cny_ceiling_mode, CNY_CEILING_MODE_WAIVED)
+        self.assertEqual(authority.max_spend_cny, OWNER_CNY_CEILING_WAIVED)
+        self.assertEqual(authority.max_provider_calls, 3)
+        self.assertEqual(authority.max_retries, 0)
+        self.assertEqual(authority.images_per_call, 4)
+        self.assertEqual(authority.restart_after_call, 2)
+        assert_smoke_authority_active(authority)
+
+    def test_waiver_requires_owner_payment_confirmation_for_active(self) -> None:
+        payload = _raw_authority_payload(
+            authority_version=SMOKE_RETEST_AUTHORITY_VERSION_V0_3,
+            owner_payment_confirmation=False,
+            max_spend_cny=OWNER_CNY_CEILING_WAIVED,
+            cny_ceiling_mode=CNY_CEILING_MODE_WAIVED,
+        )
+        with self.assertRaises(ValueError):
+            self._write_and_load(payload)
+
+    def test_waiver_requires_explicit_sentinel_max_spend_cny(self) -> None:
+        payload = _raw_authority_payload(
+            authority_version=SMOKE_RETEST_AUTHORITY_VERSION_V0_3,
+            max_spend_cny="3.00",
+            cny_ceiling_mode=CNY_CEILING_MODE_WAIVED,
+        )
+        with self.assertRaises(ValueError):
+            self._write_and_load(payload)
+
+    def test_deleting_max_spend_cny_from_old_authority_still_fails(self) -> None:
+        payload = _raw_authority_payload()
+        payload.pop("max_spend_cny")
+        payload["authority_identity"] = _canonical_identity(payload)
+        with self.assertRaises(ValueError):
+            self._write_and_load(payload)
+
+    def test_waiver_cannot_be_applied_to_historical_v0_2_authority(self) -> None:
+        payload = _raw_authority_payload(
+            authority_version=SMOKE_AUTHORITY_VERSION_V0_2,
+            max_spend_cny=OWNER_CNY_CEILING_WAIVED,
+            cny_ceiling_mode=CNY_CEILING_MODE_WAIVED,
+        )
+        with self.assertRaises(ValueError):
+            self._write_and_load(payload)
+
+    def test_old_numeric_active_rules_remain_strict(self) -> None:
+        # V0_2 ACTIVE with non-finite / non-positive max_spend_cny still fails.
+        for bad in ("abc", "0", "-1", "NaN", "Infinity"):
+            payload = _raw_authority_payload(max_spend_cny=bad)
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    self._write_and_load(payload)
+        # Valid V0_2 numeric ACTIVE still loads.
+        ok = _authority_payload(
+            status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
+            max_spend_cny="3.00", smoke_wakes=_three_wakes(),
+        )
+        authority = self._write_and_load(ok)
+        self.assertEqual(authority.cny_ceiling_mode, CNY_CEILING_MODE_NUMERIC)
+
+    def test_forward_numeric_mode_requires_positive_finite(self) -> None:
+        payload = _raw_authority_payload(
+            authority_version=SMOKE_RETEST_AUTHORITY_VERSION_V0_3,
+            max_spend_cny="abc", cny_ceiling_mode=CNY_CEILING_MODE_NUMERIC,
+        )
+        with self.assertRaises(ValueError):
+            self._write_and_load(payload)
+
+    def test_historical_terminal_authorities_still_readable(self) -> None:
+        for payload in (
+            _authority_payload(
+                authority_version=SMOKE_AUTHORITY_VERSION, status=SMOKE_STATUS_REVOKED,
+                owner_payment_confirmation=True, max_spend_cny="1.00",
+                smoke_wakes=_three_wakes(logical=False),
+            ),
+            _authority_payload(
+                authority_version=SMOKE_RETEST_AUTHORITY_VERSION_V0_2, status=SMOKE_STATUS_REVOKED,
+                owner_payment_confirmation=True, max_spend_cny="1.00",
+                smoke_wakes=_three_wakes(),
+            ),
+        ):
+            with self.subTest(version=payload["authority_version"]):
+                authority = self._write_and_load(payload)
+                self.assertEqual(authority.status, SMOKE_STATUS_REVOKED)
 
 
 if __name__ == "__main__":

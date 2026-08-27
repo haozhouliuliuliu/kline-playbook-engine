@@ -33,12 +33,26 @@ SMOKE_RETEST_AUTHORITY_VERSION = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_1"
 # V0_1 terminal authorities remain readable with runtime-only wakes.
 SMOKE_AUTHORITY_VERSION_V0_2 = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_2"
 SMOKE_RETEST_AUTHORITY_VERSION_V0_2 = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_2"
+# Forward cost-waiver authority form: can explicitly encode the Owner's scoped
+# CNY-ceiling waiver for THIS exact post-repair three-call revalidation.  It is
+# the ONLY version family allowed to carry the non-numeric waiver state; it does
+# not weaken any historical or existing V0_2 numeric-spend behavior.
+SMOKE_AUTHORITY_VERSION_V0_3 = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_3"
+SMOKE_RETEST_AUTHORITY_VERSION_V0_3 = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_3"
 ALLOWED_AUTHORITY_VERSIONS = frozenset({
     SMOKE_AUTHORITY_VERSION,
     SMOKE_RETEST_AUTHORITY_VERSION,
     SMOKE_AUTHORITY_VERSION_V0_2,
     SMOKE_RETEST_AUTHORITY_VERSION_V0_2,
+    SMOKE_AUTHORITY_VERSION_V0_3,
+    SMOKE_RETEST_AUTHORITY_VERSION_V0_3,
 })
+
+# Owner CNY-ceiling waiver sentinel + ceiling-mode states (explicit, strict).
+OWNER_CNY_CEILING_WAIVED = "OWNER_CNY_CEILING_WAIVED"
+CNY_CEILING_MODE_NUMERIC = "NUMERIC"
+CNY_CEILING_MODE_WAIVED = OWNER_CNY_CEILING_WAIVED
+ALLOWED_CNY_CEILING_MODES = frozenset({CNY_CEILING_MODE_NUMERIC, CNY_CEILING_MODE_WAIVED})
 SMOKE_STATUS_PENDING = "PENDING_OWNER_PAYMENT_CONFIRMATION"
 SMOKE_STATUS_ACTIVE = "ACTIVE"
 SMOKE_STATUS_REVOKED = "REVOKED"
@@ -191,6 +205,7 @@ class ProviderSmokeAuthority:
     full_replay_1998_calls_authorized: bool
     max_spend_cny: str
     created_at: datetime
+    cny_ceiling_mode: str = CNY_CEILING_MODE_NUMERIC
     identity: str = field(init=False)
 
     def __post_init__(self) -> None:
@@ -232,6 +247,8 @@ class ProviderSmokeAuthority:
         two_identity_required = self.authority_version in (
             SMOKE_AUTHORITY_VERSION_V0_2,
             SMOKE_RETEST_AUTHORITY_VERSION_V0_2,
+            SMOKE_AUTHORITY_VERSION_V0_3,
+            SMOKE_RETEST_AUTHORITY_VERSION_V0_3,
         )
         runtime_only = any(
             binding.logical_wake_selection_identity is None for _, binding in self.smoke_wakes
@@ -257,19 +274,38 @@ class ProviderSmokeAuthority:
             raise ValueError("smoke authority must not authorize a full 1998-call replay")
         if not isinstance(self.max_spend_cny, str) or not self.max_spend_cny:
             raise ValueError("smoke authority max_spend_cny must be non-empty")
+        waiver_capable = self.authority_version in (
+            SMOKE_AUTHORITY_VERSION_V0_3,
+            SMOKE_RETEST_AUTHORITY_VERSION_V0_3,
+        )
+        if self.cny_ceiling_mode not in ALLOWED_CNY_CEILING_MODES:
+            raise ValueError(
+                f"smoke authority cny_ceiling_mode {self.cny_ceiling_mode!r} is not supported"
+            )
+        if not waiver_capable and self.cny_ceiling_mode != CNY_CEILING_MODE_NUMERIC:
+            raise ValueError(
+                "the CNY-ceiling waiver is only allowed on the forward V0_3 authority version"
+            )
         if self.status == SMOKE_STATUS_ACTIVE:
             if self.owner_payment_confirmation is not True:
                 raise ValueError("ACTIVE smoke authority requires owner_payment_confirmation=true")
-            try:
-                spend = Decimal(self.max_spend_cny)
-            except InvalidOperation as error:
-                raise ValueError(
-                    "ACTIVE smoke authority requires a positive finite max_spend_cny"
-                ) from error
-            if not spend.is_finite() or spend <= 0:
-                raise ValueError(
-                    "ACTIVE smoke authority requires a positive finite max_spend_cny"
-                )
+            if self.cny_ceiling_mode == CNY_CEILING_MODE_WAIVED:
+                if self.max_spend_cny != OWNER_CNY_CEILING_WAIVED:
+                    raise ValueError(
+                        "OWNER_CNY_CEILING_WAIVED authority requires "
+                        f"max_spend_cny={OWNER_CNY_CEILING_WAIVED}"
+                    )
+            else:
+                try:
+                    spend = Decimal(self.max_spend_cny)
+                except InvalidOperation as error:
+                    raise ValueError(
+                        "ACTIVE smoke authority requires a positive finite max_spend_cny"
+                    ) from error
+                if not spend.is_finite() or spend <= 0:
+                    raise ValueError(
+                        "ACTIVE smoke authority requires a positive finite max_spend_cny"
+                    )
         object.__setattr__(self, "identity", _hash(self.to_payload(include_identity=False)))
 
     def to_payload(self, *, include_identity: bool = True) -> dict[str, object]:
@@ -308,6 +344,10 @@ class ProviderSmokeAuthority:
             "max_spend_cny": self.max_spend_cny,
             "created_at": self.created_at.astimezone(timezone.utc).isoformat(timespec="microseconds"),
         }
+        if self.authority_version in (SMOKE_AUTHORITY_VERSION_V0_3, SMOKE_RETEST_AUTHORITY_VERSION_V0_3):
+            # Only the forward V0_3 form exposes the explicit ceiling mode; this
+            # keeps historical V0_1/V0_2 payloads (and identities) unchanged.
+            payload["cny_ceiling_mode"] = self.cny_ceiling_mode
         if include_identity:
             payload["authority_identity"] = self.identity
         return payload
@@ -381,6 +421,7 @@ def load_provider_smoke_authority(path: str | Path) -> ProviderSmokeAuthority:
             raw.get("full_replay_1998_calls_authorized"), "full_replay_1998_calls_authorized"
         ),
         max_spend_cny=_non_empty(raw.get("max_spend_cny"), "max_spend_cny"),
+        cny_ceiling_mode=raw.get("cny_ceiling_mode", CNY_CEILING_MODE_NUMERIC),
         created_at=_parse_dt(raw.get("created_at"), "created_at"),
     )
     if stored_identity != authority.identity:
@@ -415,16 +456,22 @@ def assert_smoke_authority_active(authority: ProviderSmokeAuthority) -> None:
 
 
 __all__ = [
+    "ALLOWED_CNY_CEILING_MODES",
+    "CNY_CEILING_MODE_NUMERIC",
+    "CNY_CEILING_MODE_WAIVED",
+    "OWNER_CNY_CEILING_WAIVED",
     "PROVIDER",
     "ProviderSmokeAuthority",
     "SMOKE_AUTHORITY_VERSION",
     "SMOKE_AUTHORITY_VERSION_V0_2",
+    "SMOKE_AUTHORITY_VERSION_V0_3",
     "SMOKE_IMAGES_PER_CALL",
     "SMOKE_MAX_PROVIDER_CALLS",
     "SMOKE_MAX_RETRIES",
     "SMOKE_RESTART_AFTER_CALL",
     "SMOKE_RETEST_AUTHORITY_VERSION",
     "SMOKE_RETEST_AUTHORITY_VERSION_V0_2",
+    "SMOKE_RETEST_AUTHORITY_VERSION_V0_3",
     "SMOKE_STATUS_ACTIVE",
     "SMOKE_STATUS_PENDING",
     "SMOKE_STATUS_REVOKED",

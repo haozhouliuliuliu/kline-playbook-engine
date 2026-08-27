@@ -28,6 +28,7 @@ from src.replay_v0_1_smoke_authority import ProviderSmokeAuthority
 EXECUTION_CRITICAL_PATHS: tuple[str, ...] = (
     "src/fixed_5m_wake_ledger.py",
     "src/replay_v0_1_orchestrator.py",
+    "src/replay_v0_1_provider_attempt_ledger.py",
     "src/replay_v0_1_smoke_authority.py",
     "src/replay_v0_1_smoke_bridge.py",
     "src/replay_v0_1_smoke_guard.py",
