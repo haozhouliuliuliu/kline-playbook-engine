@@ -10,13 +10,13 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_PREEXECUTION_REPAIR_REQUIRED`
+`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_OFFLINE_REPAIR_VERIFIED__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__BLOCKED_BY_LOGICAL_IDENTITY_PROOF_DEFECT`
+`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__F01_REPAIRED_OFFLINE__FRESH_INDEPENDENT_REVIEW_PENDING`
 
-`NEXT_TASK = REPAIR_F01_LOGICAL_WAKE_IDENTITY_PROPAGATION__OFFLINE_VERIFY__FRESH_INDEPENDENT_REVIEW__THEN_RESEAL_AND_RUN_APPROVED_3CALL_SLOT`
+`NEXT_TASK = FRESH_INDEPENDENT_HIGH_ASSURANCE_REVIEW_OF_F01_CLOSURE__THEN_RESEAL_V02_TWO_IDENTITY_MACHINE_AUTHORITY__THEN_RUN_APPROVED_3CALL_SLOT`
 
 The structured trading-memory and logical/runtime wake-identity offline repair remains offline-verified. Active model-visible contracts remain:
 
@@ -31,20 +31,14 @@ The Owner explicitly requires a fresh post-repair three-call real-provider reval
 
 That approval is valid for this exact revalidation but does not bypass fail-closed pre-execution assurance.
 
-The independent Codex pre-execution review found one material blocker (`F-01`): although the core two-identity data model contains both stable logical wake-selection identity and runtime wake identity, the real-provider boundary does not yet carry/prove the logical identity end to end. Specifically, current preflight omits it from each smoke-wake blueprint record, the real runner verifies only runtime wake identity, and PASS/fail-closed admitted-wake evidence does not durably record the logical identity. Therefore a fresh paid slot must not yet be prepared or activated.
+The independent Codex pre-execution review found one material blocker (`F-01`): the real-provider boundary did not carry/prove the logical wake-selection identity end to end. An offline repair under existing authority has now closed F-01 deterministically with zero provider calls:
 
-Required repair under existing authority:
+1. provider-smoke preflight smoke-wakes blueprint now carries `logical_wake_selection_identity`, `wake_identity` and `close_time` per call_1/2/3, sourced from the actual `ReplayStepBinding`;
+2. the real runner fails closed on BOTH identities (independent checks) via a pre-call guard and post-drive verification;
+3. PASS and fail-closed admitted-wake evidence durably record both identities;
+4. deterministic tamper/regression coverage proves logical-only mismatch is rejected and preflight/evidence retain both fields.
 
-1. propagate `logical_wake_selection_identity` from actual `ReplayStepBinding` into provider-smoke preflight output;
-2. fail closed in the real runner unless BOTH logical and runtime wake identities exactly match the fresh authority for calls 1–3;
-3. include both identities in PASS and fail-closed evidence for every admitted wake;
-4. add deterministic tamper/regression coverage proving logical-only mismatch is rejected and preflight/evidence retain both fields;
-5. rerun focused + broad deterministic verification;
-6. obtain a fresh independent high-assurance review of the repaired execution path;
-7. only after an acceptable review, reseal a new V0_2 two-identity machine authority bound to the exact execution commit and the already Owner-approved `MAX_SPEND_CNY = 3.00`;
-8. immediately revalidate authority/machine/credential availability and only then run the three calls.
-
-No provider call has been made under this post-repair revalidation authority yet.
+No provider call has been made under this post-repair revalidation authority yet, no machine slot was activated or resealed, and the identity model / trading semantics / active prompt-schema contract were not changed.
 
 ## Current exact task authorities and evidence
 
@@ -106,6 +100,10 @@ Current independent pre-execution review (blocked by F-01):
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_PROVIDER_REVALIDATION_INDEPENDENT_REVIEW_2026-08-27.md`
 
+F-01 offline closure evidence:
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_F01_CLOSURE_2026-08-27.md`
+
 Approved post-V0.1 roadmap:
 
 `docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
@@ -120,13 +118,15 @@ Approved post-V0.1 roadmap:
 
 `HISTORICAL_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__SPEND_APPROVED__EXECUTION_BLOCKED_BY_F01`
+`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__SPEND_APPROVED__F01_REPAIRED_OFFLINE__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
 
-`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = BLOCKED_BY_MATERIAL_PREEXECUTION_DEFECT__F01`
+`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = F01_CLOSED_OFFLINE__FRESH_REVIEW_PENDING`
 
 `POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = NOT_YET_RESEALED`
 
 `POST_REPAIR_REVALIDATION_MAX_SPEND_CNY = 3.00__OWNER_APPROVED`
+
+`POST_REPAIR_REVALIDATION_PROVIDER_CALLS = 0`
 
 `REAL_DEEPSEEK_PROVIDER_CALLS = NO_CURRENT_ACTIVE_SLOT`
 
@@ -143,8 +143,7 @@ Approved post-V0.1 roadmap:
 ## Current locks
 
 - original smoke and historical retest slots: `CONSUMED / CLOSED / NEVER REACTIVATE`;
-- post-repair three-call execution before F-01 repair: `LOCKED`;
-- post-repair three-call execution before a fresh acceptable independent review: `LOCKED`;
+- post-repair three-call execution before a fresh acceptable independent review of F-01 closure: `LOCKED`;
 - post-repair three-call execution before a fresh exact V0_2 logical+runtime two-identity machine authority: `LOCKED`;
 - fourth call, retry, replacement wake or outcome-driven re-asking: `LOCKED`;
 - full V0.1 1998-call replay: `LOCKED`;
@@ -157,4 +156,4 @@ Approved post-V0.1 roadmap:
 
 Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, and the exact task authorities/evidence above.
 
-The immediate next step is routine offline engineering closure of Codex finding F-01 under existing authority. This repair must produce zero provider calls. After deterministic verification, obtain a fresh independent review. If and only if that review returns acceptable, reseal the new exact V0_2 two-identity machine authority using the already Owner-approved maximum spend of CNY 3.00, then perform the final immediate pre-execution refresh/verification before any credential/network capability is used.
+The immediate next step is a fresh independent high-assurance review of the F-01 offline closure. That review is the gate before resealing the new exact V0_2 two-identity machine authority (using the already Owner-approved maximum spend of CNY 3.00) and performing the final immediate pre-execution refresh/verification before any credential/network capability is used. No provider call, slot activation, or reseal may occur before that review returns acceptable.
