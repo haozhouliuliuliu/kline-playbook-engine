@@ -1,0 +1,2808 @@
+{
+  "calls": [
+    {
+      "CAUSAL_INPUT_SNAPSHOT": {
+        "bars": [
+          {
+            "available_at": "2024-04-09T02:00:00.000000+00:00",
+            "close": "76330",
+            "close_time": "2024-04-09T02:00:00.000000+00:00",
+            "high": "76510",
+            "is_closed": true,
+            "low": "76310",
+            "open": "76350",
+            "open_time": "2024-04-09T01:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3855"
+          },
+          {
+            "available_at": "2024-04-09T02:15:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:15:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76270",
+            "open": "76330",
+            "open_time": "2024-04-09T02:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3218"
+          },
+          {
+            "available_at": "2024-04-09T02:45:00.000000+00:00",
+            "close": "76180",
+            "close_time": "2024-04-09T02:45:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "6207"
+          },
+          {
+            "available_at": "2024-04-09T03:00:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T03:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76180",
+            "open_time": "2024-04-09T02:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3323"
+          },
+          {
+            "available_at": "2024-04-09T03:15:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T03:15:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76200",
+            "open": "76280",
+            "open_time": "2024-04-09T03:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2177"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76300",
+            "open_time": "2024-04-09T03:15:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2701"
+          },
+          {
+            "available_at": "2024-04-09T05:45:00.000000+00:00",
+            "close": "76270",
+            "close_time": "2024-04-09T05:45:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3683"
+          },
+          {
+            "available_at": "2024-04-09T06:00:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:00:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76270",
+            "open_time": "2024-04-09T05:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "1646"
+          },
+          {
+            "available_at": "2024-04-09T06:15:00.000000+00:00",
+            "close": "76200",
+            "close_time": "2024-04-09T06:15:00.000000+00:00",
+            "high": "76260",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76190",
+            "open_time": "2024-04-09T06:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2066"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76240",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76200",
+            "open_time": "2024-04-09T06:15:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "5216"
+          },
+          {
+            "available_at": "2024-04-09T06:45:00.000000+00:00",
+            "close": "76100",
+            "close_time": "2024-04-09T06:45:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "75970",
+            "open": "75970",
+            "open_time": "2024-04-09T06:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "4525"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76060",
+            "open": "76100",
+            "open_time": "2024-04-09T06:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "4076"
+          },
+          {
+            "available_at": "2024-04-09T02:00:00.000000+00:00",
+            "close": "76330",
+            "close_time": "2024-04-09T02:00:00.000000+00:00",
+            "high": "76560",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76490",
+            "open_time": "2024-04-09T01:00:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "23544"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "14408"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "12611"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76560",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76490",
+            "open_time": "2024-04-09T01:00:00.000000+00:00",
+            "timeframe": "4H",
+            "volume": "41170"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "4H",
+            "volume": "21212"
+          },
+          {
+            "available_at": "2024-04-09T01:55:00.000000+00:00",
+            "close": "76360",
+            "close_time": "2024-04-09T01:55:00.000000+00:00",
+            "high": "76500",
+            "is_closed": true,
+            "low": "76350",
+            "open": "76490",
+            "open_time": "2024-04-09T01:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1199"
+          },
+          {
+            "available_at": "2024-04-09T02:00:00.000000+00:00",
+            "close": "76330",
+            "close_time": "2024-04-09T02:00:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76310",
+            "open": "76360",
+            "open_time": "2024-04-09T01:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1319"
+          },
+          {
+            "available_at": "2024-04-09T02:05:00.000000+00:00",
+            "close": "76370",
+            "close_time": "2024-04-09T02:05:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76270",
+            "open": "76330",
+            "open_time": "2024-04-09T02:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1196"
+          },
+          {
+            "available_at": "2024-04-09T02:10:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:10:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76290",
+            "open": "76370",
+            "open_time": "2024-04-09T02:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1177"
+          },
+          {
+            "available_at": "2024-04-09T02:15:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:15:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76280",
+            "open": "76290",
+            "open_time": "2024-04-09T02:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "845"
+          },
+          {
+            "available_at": "2024-04-09T02:35:00.000000+00:00",
+            "close": "76160",
+            "close_time": "2024-04-09T02:35:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76140",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "3521"
+          },
+          {
+            "available_at": "2024-04-09T02:40:00.000000+00:00",
+            "close": "76150",
+            "close_time": "2024-04-09T02:40:00.000000+00:00",
+            "high": "76210",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76160",
+            "open_time": "2024-04-09T02:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1647"
+          },
+          {
+            "available_at": "2024-04-09T02:45:00.000000+00:00",
+            "close": "76180",
+            "close_time": "2024-04-09T02:45:00.000000+00:00",
+            "high": "76220",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76150",
+            "open_time": "2024-04-09T02:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1039"
+          },
+          {
+            "available_at": "2024-04-09T02:50:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T02:50:00.000000+00:00",
+            "high": "76230",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76180",
+            "open_time": "2024-04-09T02:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "880"
+          },
+          {
+            "available_at": "2024-04-09T02:55:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T02:55:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76220",
+            "open_time": "2024-04-09T02:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1564"
+          },
+          {
+            "available_at": "2024-04-09T03:00:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T03:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76260",
+            "open": "76280",
+            "open_time": "2024-04-09T02:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "879"
+          },
+          {
+            "available_at": "2024-04-09T03:05:00.000000+00:00",
+            "close": "76260",
+            "close_time": "2024-04-09T03:05:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76200",
+            "open": "76280",
+            "open_time": "2024-04-09T03:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "890"
+          },
+          {
+            "available_at": "2024-04-09T03:10:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T03:10:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76260",
+            "open_time": "2024-04-09T03:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "692"
+          },
+          {
+            "available_at": "2024-04-09T03:15:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T03:15:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76290",
+            "open_time": "2024-04-09T03:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "595"
+          },
+          {
+            "available_at": "2024-04-09T03:20:00.000000+00:00",
+            "close": "76260",
+            "close_time": "2024-04-09T03:20:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76220",
+            "open": "76300",
+            "open_time": "2024-04-09T03:15:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "592"
+          },
+          {
+            "available_at": "2024-04-09T03:25:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:25:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76260",
+            "open_time": "2024-04-09T03:20:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "969"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76190",
+            "open": "76220",
+            "open_time": "2024-04-09T03:25:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1140"
+          },
+          {
+            "available_at": "2024-04-09T05:35:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T05:35:00.000000+00:00",
+            "high": "76220",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1634"
+          },
+          {
+            "available_at": "2024-04-09T05:40:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T05:40:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76190",
+            "open_time": "2024-04-09T05:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1067"
+          },
+          {
+            "available_at": "2024-04-09T05:45:00.000000+00:00",
+            "close": "76270",
+            "close_time": "2024-04-09T05:45:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76260",
+            "open": "76300",
+            "open_time": "2024-04-09T05:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "982"
+          },
+          {
+            "available_at": "2024-04-09T05:50:00.000000+00:00",
+            "close": "76310",
+            "close_time": "2024-04-09T05:50:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76270",
+            "open_time": "2024-04-09T05:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "483"
+          },
+          {
+            "available_at": "2024-04-09T05:55:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T05:55:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76280",
+            "open": "76310",
+            "open_time": "2024-04-09T05:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "246"
+          },
+          {
+            "available_at": "2024-04-09T06:00:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:00:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76290",
+            "open_time": "2024-04-09T05:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "917"
+          },
+          {
+            "available_at": "2024-04-09T06:05:00.000000+00:00",
+            "close": "76170",
+            "close_time": "2024-04-09T06:05:00.000000+00:00",
+            "high": "76230",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76190",
+            "open_time": "2024-04-09T06:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "843"
+          },
+          {
+            "available_at": "2024-04-09T06:10:00.000000+00:00",
+            "close": "76240",
+            "close_time": "2024-04-09T06:10:00.000000+00:00",
+            "high": "76260",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76170",
+            "open_time": "2024-04-09T06:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "662"
+          },
+          {
+            "available_at": "2024-04-09T06:15:00.000000+00:00",
+            "close": "76200",
+            "close_time": "2024-04-09T06:15:00.000000+00:00",
+            "high": "76250",
+            "is_closed": true,
+            "low": "76190",
+            "open": "76240",
+            "open_time": "2024-04-09T06:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "561"
+          },
+          {
+            "available_at": "2024-04-09T06:20:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:20:00.000000+00:00",
+            "high": "76240",
+            "is_closed": true,
+            "low": "76180",
+            "open": "76200",
+            "open_time": "2024-04-09T06:15:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "651"
+          },
+          {
+            "available_at": "2024-04-09T06:25:00.000000+00:00",
+            "close": "76000",
+            "close_time": "2024-04-09T06:25:00.000000+00:00",
+            "high": "76210",
+            "is_closed": true,
+            "low": "75960",
+            "open": "76190",
+            "open_time": "2024-04-09T06:20:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "2635"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76100",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76000",
+            "open_time": "2024-04-09T06:25:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1930"
+          },
+          {
+            "available_at": "2024-04-09T06:35:00.000000+00:00",
+            "close": "76090",
+            "close_time": "2024-04-09T06:35:00.000000+00:00",
+            "high": "76110",
+            "is_closed": true,
+            "low": "75970",
+            "open": "75970",
+            "open_time": "2024-04-09T06:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1985"
+          },
+          {
+            "available_at": "2024-04-09T06:40:00.000000+00:00",
+            "close": "76010",
+            "close_time": "2024-04-09T06:40:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "76000",
+            "open": "76090",
+            "open_time": "2024-04-09T06:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1682"
+          },
+          {
+            "available_at": "2024-04-09T06:45:00.000000+00:00",
+            "close": "76100",
+            "close_time": "2024-04-09T06:45:00.000000+00:00",
+            "high": "76100",
+            "is_closed": true,
+            "low": "76000",
+            "open": "76010",
+            "open_time": "2024-04-09T06:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "858"
+          },
+          {
+            "available_at": "2024-04-09T06:50:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T06:50:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76080",
+            "open": "76100",
+            "open_time": "2024-04-09T06:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "802"
+          },
+          {
+            "available_at": "2024-04-09T06:55:00.000000+00:00",
+            "close": "76090",
+            "close_time": "2024-04-09T06:55:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "76070",
+            "open": "76130",
+            "open_time": "2024-04-09T06:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1309"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76060",
+            "open": "76090",
+            "open_time": "2024-04-09T06:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1965"
+          },
+          {
+            "available_at": "2024-04-09T13:05:00.000000+00:00",
+            "close": "76780",
+            "close_time": "2024-04-09T13:05:00.000000+00:00",
+            "high": "76810",
+            "is_closed": true,
+            "low": "76620",
+            "open": "76720",
+            "open_time": "2024-04-09T13:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "9956"
+          }
+        ],
+        "charts": [
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "2d8879e3acad0e48be99805d0628ac4d0593e90ed6b32bec100fa9a2120219df",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "4H",
+            "visual_artifact_identity": "027f77d0932d26c0b6f11feb607eb541daf680ffc059af0bfc3851687ed3fa90"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "8274da4f11b8e6acf0a40c06c344d2562752f50798743de9b36fc7e405b5f942",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "1H",
+            "visual_artifact_identity": "51c5bfdfe80ae77c11ee1c2dc0ab8ed0a3e0a51d058c122cb104147043f5cc67"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "f9e5b22b0a61258f81da9cf8d7395ae469b6e59ba4a4abbbabbc278c6b0e2074",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "15m",
+            "visual_artifact_identity": "dfdd7516bb0058a96470321b1f8907744a765d4a5e6922a3754fb9c147ec8850"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "4ef00403ff8b3719ad1ac7a390dccaf60a69d19c8457934b7634a1c94aad400e",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "5m",
+            "visual_artifact_identity": "4b58b394850521b4b0734622efa52625efced5e3c76094b6c12028d1c37eff17"
+          }
+        ],
+        "knowledge_jianghe_canon_hits": [
+          {
+            "document_path": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_034_039_V0_3.jsonl",
+            "document_sha256": "7fc42a1fb5fa4f1af72726ad329ab51cbd435f7a97a99997486b467806707f75",
+            "excerpt": "{\"claim_id\":\"JH-CLM-034-002\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:02:32.000\",\"source_timestamp_end\":\"00:03:53.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"推动-回撤-推动形成新发力点后上移止损；二推无法有效突破前高时离场\",\"visual_anchor_description\":\"图表同步显示新N结构/发力点、移动止损线以及前高附近二推失败。\",\"before_after_visual_change\":\"新结构形成→止损推进；随后前高二推失败→退出。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MANAGEMENT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"盈利订单可随新发力/防守结构推进止损；二推不能突破前高是动能减弱退出线索。\",\"dossier_section_ids\":\"07|08\",\"strategy_family_ids\":\"JH-FAMILY-A|JH-FAMILY-C\",\"case_ids\":\"JH-CASE-034-001\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"新的防守/发力结构被破坏会削弱延续\",\"source_exit_or_management_if_explicit\":\"移动止损；二推动能不足时离场\",\"ambiguity_notes\":\"NONE\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-034-003\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:05:14.550\",\"source_timestamp_end\":\"00:05:21.570\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"价格既能创出新的低点又能创出新的高点，可以认为是震荡\",\"visual_anchor_description\":\"图表同步画出上下摆动并标示上、下区域。\",\"before_after_visual_change\":\"原多头防守被破后未形成空头延续，随后又破前高→重新分类为震荡。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MARKET_CONTEXT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"当同一级别价格同时能向上下两侧创出新极值、缺少单向延续时，来源将其重新分类为震荡。\",\"dossier_section_ids\":\"01|02\",\"strategy_family_ids\":\"JH-FAMILY-D\",\"case_ids\":\"JH-CASE-034-002\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"NONE\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-034-004\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:05:33.450\",\"source_timestamp_end\":\"00:06:44.710\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"震荡下方关键点出现阳线吞没做多；初始仓位很轻，留给成本区二次确认后的加仓\",\"visual_anchor_description\":\"图表显示震荡下沿黄色区域、阳线吞没、止损与预设目标；后续画出成本区和潜在加仓。\",\"before_after_visual_change\":\"到下沿→吞没确认→轻仓进入；若回成本区出现二次确认可再加仓。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"RISK_PROCESS\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"震荡边界交易可采用轻初始仓，若价格回成本区并产生新的二次确认，再设计加仓；该案例使用预设区间目标。\",\"dossier_section_ids\":\"05|08|09|14\",\"strategy_family_ids\":\"JH-FAMILY-D\",\"case_ids\":\"JH-CASE-034-002\",\"source_no_trade_if_explicit\":\"震荡中间区域不属于该设置；没有二次确认不因回成本区自动加仓\",\"source_invalidation_if_explicit\":\"下方结构极值被破\",\"source_exit_or_management_if_explicit\":\"预设目标；二次确认后才考虑加仓\",\"ambiguity_notes\":\"本案例约1:1.3仅为案例，不是Family D统一目标。\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}"
+          },
+          {
+            "document_path": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_040_043_V0_3.jsonl",
+            "document_sha256": "9a7b368ef90bf57c9381767f85e5ac538786903e67b21c141b9db9901a54fec4",
+            "excerpt": "{\"claim_id\":\"JH-CLM-041-001\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"041\",\"bvid\":\"BV1qbZDBUE4b\",\"material_title\":\"致交易者\",\"source_timestamp_start\":\"00:02:20.000\",\"source_timestamp_end\":\"00:03:15.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_BURNED_SUBTITLE\",\"language_anchor_short\":\"很多复杂内容不能为了简单而简单；过度简化会失真，文字表达本身也会带立场\",\"visual_anchor_description\":\"面对镜头讲解，烧录字幕与语言一致。\",\"before_after_visual_change\":\"NOT_APPLICABLE\",\"timeframe_visible_or_stated\":\"NOT_APPLICABLE\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"SOURCE_INTERPRETATION\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"来源明确反对把复杂交易认知压成易懂口号；这支持项目保留上下文、案例和UNKNOWN，而不是为了机器化强行压缩语义。\",\"dossier_section_ids\":\"13\",\"strategy_family_ids\":\"\",\"case_ids\":\"\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"这是知识表达哲学，不是市场交易条件。\",\"machineability\":\"HUMAN_DISCRETION_REQUIRED\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-042-001\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"042\",\"bvid\":\"BV1ZQfqBEE1j\",\"material_title\":\"裸k交易实战复盘\",\"source_timestamp_start\":\"00:03:45.000\",\"source_timestamp_end\":\"00:04:18.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"这段既可当震荡也可当弱空；两种分类都指向高位找空，因此可锁定重叠的高空区域\",\"visual_anchor_description\":\"图表同步展示弱空/区间重叠，上方绿色区域被标为共同高空候选。\",\"before_after_visual_change\":\"不同市场标签→在该具体位置产生相同方向动作，形成决策重叠。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MARKET_CONTEXT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"市场分类不必强行唯一：当震荡与弱空两种合理解释导向同一交易动作时，江河会利用条件重叠锁定区域。\",\"dossier_section_ids\":\"01|02|03\",\"strategy_family_ids\":\"JH-FAMILY-A|JH-FAMILY-D\",\"case_ids\":\"JH-CASE-042-001\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"不同分类何时允许‘等价处理’没有统一状态机。\",\"machineability\":\"HUMAN_DISCRETION_REQUIRED\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-042-002\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"042\",\"bvid\":\"BV1ZQfqBEE1j\",\"material_title\":\"裸k交易实战复盘\",\"source_timestamp_start\":\"00:04:32.000\",\"source_timestamp_end\":\"00:05:38.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"防守位是上一段上涨极值/结束与下一段下跌起始的交界；有方向、动能、位置后仍需明确排斥/进场信号\",\"visual_anchor_description\":\"图表同步用一推回撤二推和最高K标出防守/高空区域，价格到位后出现排斥。\",\"before_after_visual_change\":\"确定方向与动能→找交界防守区→价格到位→排斥确认才开。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"LOCATION\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"V042 进一步解释防守区域的来源语义：一段运动结束与下一段反向运动开始的交界/极值；位置本身仍不自动触发交易。\",\"dossier_section_ids\":\"03|04|05|06\",\"strategy_family_ids\":\"JH-FAMILY-B|JH-FAMILY-D\",\"ca"
+          }
+        ],
+        "prior_working_memory": {
+          "active_family_hypothesis": "NONE",
+          "annotation_history": [],
+          "attention_mode": "SCAN",
+          "current_market_hypothesis": null,
+          "directional_bias": "NONE",
+          "expected_trigger": null,
+          "invalidation_hypothesis": null,
+          "key_location_hypotheses": [],
+          "last_meaningful_decision": null,
+          "mutation_history": [],
+          "open_questions": [],
+          "review_at": null,
+          "timeframe_trend_view": [],
+          "transition_reason": null,
+          "watch_regions": []
+        },
+        "retrieval_identities": [
+          "b180adc9a6c1f3bf40ad12587e1d4cb24820c938cbe233d4b085f42af51eb3cf",
+          "5eb69afff4313eb9dc53392d34b80ca7401cc6a97134bc388450819dfdbcd78e"
+        ],
+        "visual_artifact_identities": [
+          "027f77d0932d26c0b6f11feb607eb541daf680ffc059af0bfc3851687ed3fa90",
+          "51c5bfdfe80ae77c11ee1c2dc0ab8ed0a3e0a51d058c122cb104147043f5cc67",
+          "dfdd7516bb0058a96470321b1f8907744a765d4a5e6922a3754fb9c147ec8850",
+          "4b58b394850521b4b0734622efa52625efced5e3c76094b6c12028d1c37eff17"
+        ]
+      },
+      "MODEL_OUTPUT": {
+        "action": "WATCH",
+        "attention_mode": "WATCH",
+        "decision_state": "Strong bullish night-session 5m impulse after prior down/range day; no confirmed Jianghe setup yet, watching for pullback/retest or secondary confirmation before a potential Family A long entry.",
+        "declared_unknown": [
+          "No 15m/1H/4H closed bar after the night-session open is available at the decision time.",
+          "No pullback/retest or secondary confirmation is available yet.",
+          "Whether the night-session impulse will hold or reverse is unknown."
+        ],
+        "direction": "LONG",
+        "family": "NONE",
+        "normalized_decision_identity": "2f4432b15ccc1323d7314dc90d7fc946d5bf066267126d720c1e33be584ef6a5",
+        "normalizer_identity": "e0aa2c29da77786a496079fd2b5816206fd1381fd9ad0312a918cee450cca0fc",
+        "numeric_claims": [
+          {
+            "claim": "5m close at decision time",
+            "source_reference": null,
+            "unit": null,
+            "value": "76780"
+          },
+          {
+            "claim": "5m high at decision time",
+            "source_reference": null,
+            "unit": null,
+            "value": "76810"
+          },
+          {
+            "claim": "5m low at decision time",
+            "source_reference": null,
+            "unit": null,
+            "value": "76620"
+          },
+          {
+            "claim": "Prior 4H high before night-session open",
+            "source_reference": null,
+            "unit": null,
+            "value": "76560"
+          }
+        ],
+        "principle_references": [
+          "JH-CLM-034-002",
+          "JH-CLM-042-002"
+        ],
+        "rationale": "The 5m close jumped to 76780 (high 76810) on the first night-session bar, above the prior 76560 high, after the earlier session had fallen to 75930 and recovered near 76130. This is a clear long momentum signal, but it is a single unconfirmed bar with no defined defensive zone/launch point and no higher-timeframe confirmation. Per JH-CLM-042-002, direction and momentum alone are insufficient without an explicit rejection/entry signal at a defined position; per JH-CLM-034-002, a real entry usually appears after a new launch point from a push-pull-push. Therefore watch, do not enter yet.",
+        "raw_response_sha256": "cb0295488a1e99d94084be65998d2f8788c52a681ba0f4cf5e6a4b6cd24234e0",
+        "response_schema_identity": "60a008ff4e64a74a413f2f198f675dd3e3293ff7b891ed9e466b531d3bb32289",
+        "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+        "source_references": [
+          "JH-CLM-034-002",
+          "JH-CLM-042-002"
+        ]
+      },
+      "MODEL_PROVIDER_METADATA": {
+        "finish_reason": "stop",
+        "model": "deepseek-v4-flash-vision-exp",
+        "provider": "deepseek",
+        "status": "OK",
+        "token_usage": {
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0,
+          "inputTokens": 13955,
+          "outputTokens": 10917,
+          "reasoningTokens": 10474
+        }
+      },
+      "PROJECT_PERSISTED_STATE": {
+        "intent_only_decision": {
+          "action": "WATCH",
+          "attention_mode_after": "WATCH",
+          "attention_mode_before": "SCAN",
+          "decision_identity": "2f4432b15ccc1323d7314dc90d7fc946d5bf066267126d720c1e33be584ef6a5",
+          "direction": "LONG",
+          "execution_claim": false,
+          "family": "NONE",
+          "intent_only": true,
+          "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+          "paper_fill_claimed": false,
+          "request_id": "req-c9ade84dcb9d4aa089c775fb785c13fc",
+          "session_identity": "ce374c864bf10ba5bb2d6878579a9c12a5a1734aa9121a245c2eb7899952ee14",
+          "trading_day": "2024-04-10",
+          "wake_identity": "4000fa69c0eaeb4f3d125b31bdd09b052e1b17efc52930c67a2bedc5c53e1105"
+        },
+        "journal_appends": [],
+        "normalized_event_payload": {
+          "action": "WATCH",
+          "attention_mode": "WATCH",
+          "direction": "LONG",
+          "family": "NONE",
+          "normalizer_identity": "e0aa2c29da77786a496079fd2b5816206fd1381fd9ad0312a918cee450cca0fc",
+          "response_schema_identity": "60a008ff4e64a74a413f2f198f675dd3e3293ff7b891ed9e466b531d3bb32289",
+          "source_references": [
+            "JH-CLM-034-002",
+            "JH-CLM-042-002"
+          ],
+          "strict_output_enum_enforcement": true
+        },
+        "working_memory_mutations": [
+          {
+            "field_name": "attention_mode",
+            "new_value": "<AttentionMode.WATCH: 'WATCH'>",
+            "occurred_at": "2024-04-09T13:05:00+00:00",
+            "previous_value": "<AttentionMode.SCAN: 'SCAN'>",
+            "reason": "V0_1_GOVERNED_STATE_TRANSITION"
+          },
+          {
+            "field_name": "last_meaningful_decision",
+            "new_value": "'WATCH'",
+            "occurred_at": "2024-04-09T13:05:00+00:00",
+            "previous_value": "None",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "transition_reason",
+            "new_value": "'The 5m close jumped to 76780 (high 76810) on the first night-session bar, above the prior 76560 high, after the earlier session had fallen to 75930 and recovered near 76130. This is a clear long momentum signal, but it is a single unconfirmed bar with no defined defensive zone/launch point and no higher-timeframe confirmation. Per JH-CLM-042-002, direction and momentum alone are insufficient without an explicit rejection/entry signal at a defined position; per JH-CLM-034-002, a real entry usually appears after a new launch point from a push-pull-push. Therefore watch, do not enter yet.'",
+            "occurred_at": "2024-04-09T13:05:00+00:00",
+            "previous_value": "None",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "directional_bias",
+            "new_value": "<Direction.LONG: 'LONG'>",
+            "occurred_at": "2024-04-09T13:05:00+00:00",
+            "previous_value": "<Direction.NONE: 'NONE'>",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "active_family_hypothesis",
+            "new_value": "<StrategyFamily.NONE: 'NONE'>",
+            "occurred_at": "2024-04-09T13:05:00+00:00",
+            "previous_value": "<StrategyFamily.NONE: 'NONE'>",
+            "reason": "V0_1_GOVERNED_DECISION"
+          }
+        ]
+      },
+      "call": "call_1",
+      "close_time": "2024-04-09T13:05:00.000000+00:00",
+      "concrete_contract": "SHFE.cu2406",
+      "context_sha256": "b347f6a4c1bd4d5ef599a806b938167bce4e98e892991bc590e31e8f517cec03",
+      "decision_prompt_sha256": "181387fd77090ff829339680a57d0c48f665627297bd77772c6e8b7b600a7e1a",
+      "decision_time": "2024-04-09T13:05:00.000000+00:00",
+      "four_hour_role": "BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY",
+      "mapping_identity": "28429563f4d5e93838941b901e27b76a480ece562f4d537c08121fe85f2b1a19",
+      "model": "deepseek-v4-flash-vision-exp",
+      "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+      "product": "cu",
+      "provider": "deepseek",
+      "provider_call_authorized": false,
+      "request_id": "req-c9ade84dcb9d4aa089c775fb785c13fc",
+      "retry_count": 0,
+      "sequence": 0,
+      "system_prompt_sha256": "592cdc16cb1486b7a310cd9370cd6cfbad924b0cd9055548953e0e2871145f2b",
+      "timeframes": [
+        "4H",
+        "1H",
+        "15m",
+        "5m"
+      ],
+      "wake_identity": "4000fa69c0eaeb4f3d125b31bdd09b052e1b17efc52930c67a2bedc5c53e1105"
+    },
+    {
+      "CAUSAL_INPUT_SNAPSHOT": {
+        "bars": [
+          {
+            "available_at": "2024-04-09T02:00:00.000000+00:00",
+            "close": "76330",
+            "close_time": "2024-04-09T02:00:00.000000+00:00",
+            "high": "76510",
+            "is_closed": true,
+            "low": "76310",
+            "open": "76350",
+            "open_time": "2024-04-09T01:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3855"
+          },
+          {
+            "available_at": "2024-04-09T02:15:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:15:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76270",
+            "open": "76330",
+            "open_time": "2024-04-09T02:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3218"
+          },
+          {
+            "available_at": "2024-04-09T02:45:00.000000+00:00",
+            "close": "76180",
+            "close_time": "2024-04-09T02:45:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "6207"
+          },
+          {
+            "available_at": "2024-04-09T03:00:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T03:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76180",
+            "open_time": "2024-04-09T02:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3323"
+          },
+          {
+            "available_at": "2024-04-09T03:15:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T03:15:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76200",
+            "open": "76280",
+            "open_time": "2024-04-09T03:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2177"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76300",
+            "open_time": "2024-04-09T03:15:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2701"
+          },
+          {
+            "available_at": "2024-04-09T05:45:00.000000+00:00",
+            "close": "76270",
+            "close_time": "2024-04-09T05:45:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3683"
+          },
+          {
+            "available_at": "2024-04-09T06:00:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:00:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76270",
+            "open_time": "2024-04-09T05:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "1646"
+          },
+          {
+            "available_at": "2024-04-09T06:15:00.000000+00:00",
+            "close": "76200",
+            "close_time": "2024-04-09T06:15:00.000000+00:00",
+            "high": "76260",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76190",
+            "open_time": "2024-04-09T06:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2066"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76240",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76200",
+            "open_time": "2024-04-09T06:15:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "5216"
+          },
+          {
+            "available_at": "2024-04-09T06:45:00.000000+00:00",
+            "close": "76100",
+            "close_time": "2024-04-09T06:45:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "75970",
+            "open": "75970",
+            "open_time": "2024-04-09T06:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "4525"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76060",
+            "open": "76100",
+            "open_time": "2024-04-09T06:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "4076"
+          },
+          {
+            "available_at": "2024-04-09T02:00:00.000000+00:00",
+            "close": "76330",
+            "close_time": "2024-04-09T02:00:00.000000+00:00",
+            "high": "76560",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76490",
+            "open_time": "2024-04-09T01:00:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "23544"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "14408"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "12611"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76560",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76490",
+            "open_time": "2024-04-09T01:00:00.000000+00:00",
+            "timeframe": "4H",
+            "volume": "41170"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "4H",
+            "volume": "21212"
+          },
+          {
+            "available_at": "2024-04-09T02:00:00.000000+00:00",
+            "close": "76330",
+            "close_time": "2024-04-09T02:00:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76310",
+            "open": "76360",
+            "open_time": "2024-04-09T01:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1319"
+          },
+          {
+            "available_at": "2024-04-09T02:05:00.000000+00:00",
+            "close": "76370",
+            "close_time": "2024-04-09T02:05:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76270",
+            "open": "76330",
+            "open_time": "2024-04-09T02:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1196"
+          },
+          {
+            "available_at": "2024-04-09T02:10:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:10:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76290",
+            "open": "76370",
+            "open_time": "2024-04-09T02:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1177"
+          },
+          {
+            "available_at": "2024-04-09T02:15:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:15:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76280",
+            "open": "76290",
+            "open_time": "2024-04-09T02:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "845"
+          },
+          {
+            "available_at": "2024-04-09T02:35:00.000000+00:00",
+            "close": "76160",
+            "close_time": "2024-04-09T02:35:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76140",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "3521"
+          },
+          {
+            "available_at": "2024-04-09T02:40:00.000000+00:00",
+            "close": "76150",
+            "close_time": "2024-04-09T02:40:00.000000+00:00",
+            "high": "76210",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76160",
+            "open_time": "2024-04-09T02:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1647"
+          },
+          {
+            "available_at": "2024-04-09T02:45:00.000000+00:00",
+            "close": "76180",
+            "close_time": "2024-04-09T02:45:00.000000+00:00",
+            "high": "76220",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76150",
+            "open_time": "2024-04-09T02:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1039"
+          },
+          {
+            "available_at": "2024-04-09T02:50:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T02:50:00.000000+00:00",
+            "high": "76230",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76180",
+            "open_time": "2024-04-09T02:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "880"
+          },
+          {
+            "available_at": "2024-04-09T02:55:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T02:55:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76220",
+            "open_time": "2024-04-09T02:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1564"
+          },
+          {
+            "available_at": "2024-04-09T03:00:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T03:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76260",
+            "open": "76280",
+            "open_time": "2024-04-09T02:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "879"
+          },
+          {
+            "available_at": "2024-04-09T03:05:00.000000+00:00",
+            "close": "76260",
+            "close_time": "2024-04-09T03:05:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76200",
+            "open": "76280",
+            "open_time": "2024-04-09T03:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "890"
+          },
+          {
+            "available_at": "2024-04-09T03:10:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T03:10:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76260",
+            "open_time": "2024-04-09T03:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "692"
+          },
+          {
+            "available_at": "2024-04-09T03:15:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T03:15:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76290",
+            "open_time": "2024-04-09T03:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "595"
+          },
+          {
+            "available_at": "2024-04-09T03:20:00.000000+00:00",
+            "close": "76260",
+            "close_time": "2024-04-09T03:20:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76220",
+            "open": "76300",
+            "open_time": "2024-04-09T03:15:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "592"
+          },
+          {
+            "available_at": "2024-04-09T03:25:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:25:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76260",
+            "open_time": "2024-04-09T03:20:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "969"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76190",
+            "open": "76220",
+            "open_time": "2024-04-09T03:25:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1140"
+          },
+          {
+            "available_at": "2024-04-09T05:35:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T05:35:00.000000+00:00",
+            "high": "76220",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1634"
+          },
+          {
+            "available_at": "2024-04-09T05:40:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T05:40:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76190",
+            "open_time": "2024-04-09T05:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1067"
+          },
+          {
+            "available_at": "2024-04-09T05:45:00.000000+00:00",
+            "close": "76270",
+            "close_time": "2024-04-09T05:45:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76260",
+            "open": "76300",
+            "open_time": "2024-04-09T05:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "982"
+          },
+          {
+            "available_at": "2024-04-09T05:50:00.000000+00:00",
+            "close": "76310",
+            "close_time": "2024-04-09T05:50:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76270",
+            "open_time": "2024-04-09T05:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "483"
+          },
+          {
+            "available_at": "2024-04-09T05:55:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T05:55:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76280",
+            "open": "76310",
+            "open_time": "2024-04-09T05:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "246"
+          },
+          {
+            "available_at": "2024-04-09T06:00:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:00:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76290",
+            "open_time": "2024-04-09T05:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "917"
+          },
+          {
+            "available_at": "2024-04-09T06:05:00.000000+00:00",
+            "close": "76170",
+            "close_time": "2024-04-09T06:05:00.000000+00:00",
+            "high": "76230",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76190",
+            "open_time": "2024-04-09T06:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "843"
+          },
+          {
+            "available_at": "2024-04-09T06:10:00.000000+00:00",
+            "close": "76240",
+            "close_time": "2024-04-09T06:10:00.000000+00:00",
+            "high": "76260",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76170",
+            "open_time": "2024-04-09T06:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "662"
+          },
+          {
+            "available_at": "2024-04-09T06:15:00.000000+00:00",
+            "close": "76200",
+            "close_time": "2024-04-09T06:15:00.000000+00:00",
+            "high": "76250",
+            "is_closed": true,
+            "low": "76190",
+            "open": "76240",
+            "open_time": "2024-04-09T06:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "561"
+          },
+          {
+            "available_at": "2024-04-09T06:20:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:20:00.000000+00:00",
+            "high": "76240",
+            "is_closed": true,
+            "low": "76180",
+            "open": "76200",
+            "open_time": "2024-04-09T06:15:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "651"
+          },
+          {
+            "available_at": "2024-04-09T06:25:00.000000+00:00",
+            "close": "76000",
+            "close_time": "2024-04-09T06:25:00.000000+00:00",
+            "high": "76210",
+            "is_closed": true,
+            "low": "75960",
+            "open": "76190",
+            "open_time": "2024-04-09T06:20:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "2635"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76100",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76000",
+            "open_time": "2024-04-09T06:25:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1930"
+          },
+          {
+            "available_at": "2024-04-09T06:35:00.000000+00:00",
+            "close": "76090",
+            "close_time": "2024-04-09T06:35:00.000000+00:00",
+            "high": "76110",
+            "is_closed": true,
+            "low": "75970",
+            "open": "75970",
+            "open_time": "2024-04-09T06:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1985"
+          },
+          {
+            "available_at": "2024-04-09T06:40:00.000000+00:00",
+            "close": "76010",
+            "close_time": "2024-04-09T06:40:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "76000",
+            "open": "76090",
+            "open_time": "2024-04-09T06:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1682"
+          },
+          {
+            "available_at": "2024-04-09T06:45:00.000000+00:00",
+            "close": "76100",
+            "close_time": "2024-04-09T06:45:00.000000+00:00",
+            "high": "76100",
+            "is_closed": true,
+            "low": "76000",
+            "open": "76010",
+            "open_time": "2024-04-09T06:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "858"
+          },
+          {
+            "available_at": "2024-04-09T06:50:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T06:50:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76080",
+            "open": "76100",
+            "open_time": "2024-04-09T06:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "802"
+          },
+          {
+            "available_at": "2024-04-09T06:55:00.000000+00:00",
+            "close": "76090",
+            "close_time": "2024-04-09T06:55:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "76070",
+            "open": "76130",
+            "open_time": "2024-04-09T06:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1309"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76060",
+            "open": "76090",
+            "open_time": "2024-04-09T06:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1965"
+          },
+          {
+            "available_at": "2024-04-09T13:05:00.000000+00:00",
+            "close": "76780",
+            "close_time": "2024-04-09T13:05:00.000000+00:00",
+            "high": "76810",
+            "is_closed": true,
+            "low": "76620",
+            "open": "76720",
+            "open_time": "2024-04-09T13:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "9956"
+          },
+          {
+            "available_at": "2024-04-09T13:10:00.000000+00:00",
+            "close": "76750",
+            "close_time": "2024-04-09T13:10:00.000000+00:00",
+            "high": "76830",
+            "is_closed": true,
+            "low": "76680",
+            "open": "76780",
+            "open_time": "2024-04-09T13:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "4048"
+          }
+        ],
+        "charts": [
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "23063a9859438e2f240c6995d552f60c6cadab5bfe728dc02c0ec84560e677bc",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "4H",
+            "visual_artifact_identity": "f8202b649999201d4980c30fe7d20d35922b03d7862506b2a247ea6dc4a2b5dd"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "412c98e454f2e46361b889f63f8a5d9639e1fcd2d278eca7bde1b9ed604a69f1",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "1H",
+            "visual_artifact_identity": "1970905d6625fdcd66ea509c74f8e1f7c7b211b8674cb0cbc90a689dd3782eaf"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "7b88bff4d47a672862702590aa49fd5b05d001c12b8456b5d209df9a96ce4cd9",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "15m",
+            "visual_artifact_identity": "e85c4fa6f62948124d549d9b5a30025650a2855ba19cc3da4ab575bb6cf35769"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "7783f414991f1793eaf9c2f4ea1801dec9146e8e87f13a44c0074edf0c606677",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "5m",
+            "visual_artifact_identity": "4b3617a9b915f2e787479e277fc3701ac44d645fa416dc402406e6a90c49808c"
+          }
+        ],
+        "knowledge_jianghe_canon_hits": [
+          {
+            "document_path": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_034_039_V0_3.jsonl",
+            "document_sha256": "7fc42a1fb5fa4f1af72726ad329ab51cbd435f7a97a99997486b467806707f75",
+            "excerpt": "{\"claim_id\":\"JH-CLM-034-002\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:02:32.000\",\"source_timestamp_end\":\"00:03:53.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"推动-回撤-推动形成新发力点后上移止损；二推无法有效突破前高时离场\",\"visual_anchor_description\":\"图表同步显示新N结构/发力点、移动止损线以及前高附近二推失败。\",\"before_after_visual_change\":\"新结构形成→止损推进；随后前高二推失败→退出。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MANAGEMENT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"盈利订单可随新发力/防守结构推进止损；二推不能突破前高是动能减弱退出线索。\",\"dossier_section_ids\":\"07|08\",\"strategy_family_ids\":\"JH-FAMILY-A|JH-FAMILY-C\",\"case_ids\":\"JH-CASE-034-001\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"新的防守/发力结构被破坏会削弱延续\",\"source_exit_or_management_if_explicit\":\"移动止损；二推动能不足时离场\",\"ambiguity_notes\":\"NONE\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-034-003\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:05:14.550\",\"source_timestamp_end\":\"00:05:21.570\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"价格既能创出新的低点又能创出新的高点，可以认为是震荡\",\"visual_anchor_description\":\"图表同步画出上下摆动并标示上、下区域。\",\"before_after_visual_change\":\"原多头防守被破后未形成空头延续，随后又破前高→重新分类为震荡。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MARKET_CONTEXT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"当同一级别价格同时能向上下两侧创出新极值、缺少单向延续时，来源将其重新分类为震荡。\",\"dossier_section_ids\":\"01|02\",\"strategy_family_ids\":\"JH-FAMILY-D\",\"case_ids\":\"JH-CASE-034-002\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"NONE\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-034-004\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:05:33.450\",\"source_timestamp_end\":\"00:06:44.710\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"震荡下方关键点出现阳线吞没做多；初始仓位很轻，留给成本区二次确认后的加仓\",\"visual_anchor_description\":\"图表显示震荡下沿黄色区域、阳线吞没、止损与预设目标；后续画出成本区和潜在加仓。\",\"before_after_visual_change\":\"到下沿→吞没确认→轻仓进入；若回成本区出现二次确认可再加仓。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"RISK_PROCESS\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"震荡边界交易可采用轻初始仓，若价格回成本区并产生新的二次确认，再设计加仓；该案例使用预设区间目标。\",\"dossier_section_ids\":\"05|08|09|14\",\"strategy_family_ids\":\"JH-FAMILY-D\",\"case_ids\":\"JH-CASE-034-002\",\"source_no_trade_if_explicit\":\"震荡中间区域不属于该设置；没有二次确认不因回成本区自动加仓\",\"source_invalidation_if_explicit\":\"下方结构极值被破\",\"source_exit_or_management_if_explicit\":\"预设目标；二次确认后才考虑加仓\",\"ambiguity_notes\":\"本案例约1:1.3仅为案例，不是Family D统一目标。\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}"
+          },
+          {
+            "document_path": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_040_043_V0_3.jsonl",
+            "document_sha256": "9a7b368ef90bf57c9381767f85e5ac538786903e67b21c141b9db9901a54fec4",
+            "excerpt": "{\"claim_id\":\"JH-CLM-041-001\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"041\",\"bvid\":\"BV1qbZDBUE4b\",\"material_title\":\"致交易者\",\"source_timestamp_start\":\"00:02:20.000\",\"source_timestamp_end\":\"00:03:15.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_BURNED_SUBTITLE\",\"language_anchor_short\":\"很多复杂内容不能为了简单而简单；过度简化会失真，文字表达本身也会带立场\",\"visual_anchor_description\":\"面对镜头讲解，烧录字幕与语言一致。\",\"before_after_visual_change\":\"NOT_APPLICABLE\",\"timeframe_visible_or_stated\":\"NOT_APPLICABLE\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"SOURCE_INTERPRETATION\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"来源明确反对把复杂交易认知压成易懂口号；这支持项目保留上下文、案例和UNKNOWN，而不是为了机器化强行压缩语义。\",\"dossier_section_ids\":\"13\",\"strategy_family_ids\":\"\",\"case_ids\":\"\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"这是知识表达哲学，不是市场交易条件。\",\"machineability\":\"HUMAN_DISCRETION_REQUIRED\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-042-001\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"042\",\"bvid\":\"BV1ZQfqBEE1j\",\"material_title\":\"裸k交易实战复盘\",\"source_timestamp_start\":\"00:03:45.000\",\"source_timestamp_end\":\"00:04:18.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"这段既可当震荡也可当弱空；两种分类都指向高位找空，因此可锁定重叠的高空区域\",\"visual_anchor_description\":\"图表同步展示弱空/区间重叠，上方绿色区域被标为共同高空候选。\",\"before_after_visual_change\":\"不同市场标签→在该具体位置产生相同方向动作，形成决策重叠。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MARKET_CONTEXT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"市场分类不必强行唯一：当震荡与弱空两种合理解释导向同一交易动作时，江河会利用条件重叠锁定区域。\",\"dossier_section_ids\":\"01|02|03\",\"strategy_family_ids\":\"JH-FAMILY-A|JH-FAMILY-D\",\"case_ids\":\"JH-CASE-042-001\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"不同分类何时允许‘等价处理’没有统一状态机。\",\"machineability\":\"HUMAN_DISCRETION_REQUIRED\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-042-002\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"042\",\"bvid\":\"BV1ZQfqBEE1j\",\"material_title\":\"裸k交易实战复盘\",\"source_timestamp_start\":\"00:04:32.000\",\"source_timestamp_end\":\"00:05:38.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"防守位是上一段上涨极值/结束与下一段下跌起始的交界；有方向、动能、位置后仍需明确排斥/进场信号\",\"visual_anchor_description\":\"图表同步用一推回撤二推和最高K标出防守/高空区域，价格到位后出现排斥。\",\"before_after_visual_change\":\"确定方向与动能→找交界防守区→价格到位→排斥确认才开。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"LOCATION\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"V042 进一步解释防守区域的来源语义：一段运动结束与下一段反向运动开始的交界/极值；位置本身仍不自动触发交易。\",\"dossier_section_ids\":\"03|04|05|06\",\"strategy_family_ids\":\"JH-FAMILY-B|JH-FAMILY-D\",\"ca"
+          }
+        ],
+        "prior_working_memory": {
+          "active_family_hypothesis": "NONE",
+          "annotation_history": [],
+          "attention_mode": "WATCH",
+          "current_market_hypothesis": null,
+          "directional_bias": "LONG",
+          "expected_trigger": null,
+          "invalidation_hypothesis": null,
+          "key_location_hypotheses": [],
+          "last_meaningful_decision": "WATCH",
+          "mutation_history": [
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "attention_mode",
+              "new_value": "<AttentionMode.WATCH: 'WATCH'>",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "<AttentionMode.SCAN: 'SCAN'>",
+              "reason": "V0_1_GOVERNED_STATE_TRANSITION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "last_meaningful_decision",
+              "new_value": "'WATCH'",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "None",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "transition_reason",
+              "new_value": "'The 5m close jumped to 76780 (high 76810) on the first night-session bar, above the prior 76560 high, after the earlier session had fallen to 75930 and recovered near 76130. This is a clear long momentum signal, but it is a single unconfirmed bar with no defined defensive zone/launch point and no higher-timeframe confirmation. Per JH-CLM-042-002, direction and momentum alone are insufficient without an explicit rejection/entry signal at a defined position; per JH-CLM-034-002, a real entry usually appears after a new launch point from a push-pull-push. Therefore watch, do not enter yet.'",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "None",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "directional_bias",
+              "new_value": "<Direction.LONG: 'LONG'>",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "<Direction.NONE: 'NONE'>",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "active_family_hypothesis",
+              "new_value": "<StrategyFamily.NONE: 'NONE'>",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "<StrategyFamily.NONE: 'NONE'>",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            }
+          ],
+          "open_questions": [],
+          "review_at": null,
+          "timeframe_trend_view": [],
+          "transition_reason": "The 5m close jumped to 76780 (high 76810) on the first night-session bar, above the prior 76560 high, after the earlier session had fallen to 75930 and recovered near 76130. This is a clear long momentum signal, but it is a single unconfirmed bar with no defined defensive zone/launch point and no higher-timeframe confirmation. Per JH-CLM-042-002, direction and momentum alone are insufficient without an explicit rejection/entry signal at a defined position; per JH-CLM-034-002, a real entry usually appears after a new launch point from a push-pull-push. Therefore watch, do not enter yet.",
+          "watch_regions": []
+        },
+        "retrieval_identities": [
+          "b180adc9a6c1f3bf40ad12587e1d4cb24820c938cbe233d4b085f42af51eb3cf",
+          "5eb69afff4313eb9dc53392d34b80ca7401cc6a97134bc388450819dfdbcd78e"
+        ],
+        "visual_artifact_identities": [
+          "f8202b649999201d4980c30fe7d20d35922b03d7862506b2a247ea6dc4a2b5dd",
+          "1970905d6625fdcd66ea509c74f8e1f7c7b211b8674cb0cbc90a689dd3782eaf",
+          "e85c4fa6f62948124d549d9b5a30025650a2855ba19cc3da4ab575bb6cf35769",
+          "4b3617a9b915f2e787479e277fc3701ac44d645fa416dc402406e6a90c49808c"
+        ]
+      },
+      "MODEL_OUTPUT": {
+        "action": "WATCH",
+        "attention_mode": "WATCH",
+        "decision_state": "WATCH - long bias on night-session gap breakout, awaiting confirmation",
+        "declared_unknown": [
+          "A defined launch/defensive zone has not yet formed on 5m",
+          "Higher-timeframe (15m/1H/4H) confirmation of the breakout is absent at decision time",
+          "Whether the night-session breakout will hold above the 76620 gap low is unknown"
+        ],
+        "direction": "LONG",
+        "family": "NONE",
+        "normalized_decision_identity": "e3a2f91b45faf6572ae9aba5e67268062debc913c475315d9a10eff87cd02bf9",
+        "normalizer_identity": "e0aa2c29da77786a496079fd2b5816206fd1381fd9ad0312a918cee450cca0fc",
+        "numeric_claims": [
+          {
+            "claim": "Current 5m close",
+            "source_reference": "observation",
+            "unit": null,
+            "value": "76750"
+          },
+          {
+            "claim": "Night-session first bar low (gap low)",
+            "source_reference": "observation",
+            "unit": null,
+            "value": "76620"
+          },
+          {
+            "claim": "Prior session high before gap",
+            "source_reference": "observation",
+            "unit": null,
+            "value": "76560"
+          },
+          {
+            "claim": "Recent 5m high",
+            "source_reference": "observation",
+            "unit": null,
+            "value": "76830"
+          }
+        ],
+        "principle_references": [
+          "JH-CLM-034-002",
+          "JH-CLM-042-002"
+        ],
+        "rationale": "Night-session open gapped up to 76780/76810, then second 5m bar printed 76830 high but closed 76750, holding above prior 76560 high. Directional bias remains LONG, but this is an unconfirmed single-push breakout with no defined defensive/launch zone and no higher-timeframe confirmation. Per JH-CLM-042-002, momentum/direction alone is insufficient without an explicit rejection or entry signal at a defined position; per JH-CLM-034-002, a real entry typically appears after a new launch point from a push-pull-push. WATCH for a pullback that holds above 76620 and a subsequent push above 76830, or for rejection back into the range.",
+        "raw_response_sha256": "f6fe44b8770a689dc307bb9b17c2e3e96e22e2fcf0549041d13a9cfe4140ce3e",
+        "response_schema_identity": "60a008ff4e64a74a413f2f198f675dd3e3293ff7b891ed9e466b531d3bb32289",
+        "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+        "source_references": [
+          "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_034_039_V0_3.jsonl",
+          "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_040_043_V0_3.jsonl"
+        ]
+      },
+      "MODEL_PROVIDER_METADATA": {
+        "finish_reason": "stop",
+        "model": "deepseek-v4-flash-vision-exp",
+        "provider": "deepseek",
+        "status": "OK",
+        "token_usage": {
+          "cacheReadTokens": 768,
+          "cacheWriteTokens": 0,
+          "inputTokens": 14307,
+          "outputTokens": 4739,
+          "reasoningTokens": 4263
+        }
+      },
+      "PROJECT_PERSISTED_STATE": {
+        "intent_only_decision": {
+          "action": "WATCH",
+          "attention_mode_after": "WATCH",
+          "attention_mode_before": "WATCH",
+          "decision_identity": "e3a2f91b45faf6572ae9aba5e67268062debc913c475315d9a10eff87cd02bf9",
+          "direction": "LONG",
+          "execution_claim": false,
+          "family": "NONE",
+          "intent_only": true,
+          "observation_identity": "4449e9dfc80cf2937db47ebb52ddbd05d0a267545d27d6c3905d0f1cb769c339",
+          "paper_fill_claimed": false,
+          "request_id": "req-e50137d3958e48ef96ba3297c0a3a355",
+          "session_identity": "ce374c864bf10ba5bb2d6878579a9c12a5a1734aa9121a245c2eb7899952ee14",
+          "trading_day": "2024-04-10",
+          "wake_identity": "b4785ee84a871e198d4ed72b18d87379ab4c345a7dcea0a6fe6fd1af40543962"
+        },
+        "journal_appends": [],
+        "normalized_event_payload": {
+          "action": "WATCH",
+          "attention_mode": "WATCH",
+          "direction": "LONG",
+          "family": "NONE",
+          "normalizer_identity": "e0aa2c29da77786a496079fd2b5816206fd1381fd9ad0312a918cee450cca0fc",
+          "response_schema_identity": "60a008ff4e64a74a413f2f198f675dd3e3293ff7b891ed9e466b531d3bb32289",
+          "source_references": [
+            "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_034_039_V0_3.jsonl",
+            "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_040_043_V0_3.jsonl"
+          ],
+          "strict_output_enum_enforcement": true
+        },
+        "working_memory_mutations": [
+          {
+            "field_name": "attention_mode",
+            "new_value": "<AttentionMode.WATCH: 'WATCH'>",
+            "occurred_at": "2024-04-09T13:10:00+00:00",
+            "previous_value": "<AttentionMode.WATCH: 'WATCH'>",
+            "reason": "V0_1_GOVERNED_STATE_TRANSITION"
+          },
+          {
+            "field_name": "last_meaningful_decision",
+            "new_value": "'WATCH'",
+            "occurred_at": "2024-04-09T13:10:00+00:00",
+            "previous_value": "'WATCH'",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "transition_reason",
+            "new_value": "'Night-session open gapped up to 76780/76810, then second 5m bar printed 76830 high but closed 76750, holding above prior 76560 high. Directional bias remains LONG, but this is an unconfirmed single-push breakout with no defined defensive/launch zone and no higher-timeframe confirmation. Per JH-CLM-042-002, momentum/direction alone is insufficient without an explicit rejection or entry signal at a defined position; per JH-CLM-034-002, a real entry typically appears after a new launch point from a push-pull-push. WATCH for a pullback that holds above 76620 and a subsequent push above 76830, or for rejection back into the range.'",
+            "occurred_at": "2024-04-09T13:10:00+00:00",
+            "previous_value": "'The 5m close jumped to 76780 (high 76810) on the first night-session bar, above the prior 76560 high, after the earlier session had fallen to 75930 and recovered near 76130. This is a clear long momentum signal, but it is a single unconfirmed bar with no defined defensive zone/launch point and no higher-timeframe confirmation. Per JH-CLM-042-002, direction and momentum alone are insufficient without an explicit rejection/entry signal at a defined position; per JH-CLM-034-002, a real entry usually appears after a new launch point from a push-pull-push. Therefore watch, do not enter yet.'",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "directional_bias",
+            "new_value": "<Direction.LONG: 'LONG'>",
+            "occurred_at": "2024-04-09T13:10:00+00:00",
+            "previous_value": "<Direction.LONG: 'LONG'>",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "active_family_hypothesis",
+            "new_value": "<StrategyFamily.NONE: 'NONE'>",
+            "occurred_at": "2024-04-09T13:10:00+00:00",
+            "previous_value": "<StrategyFamily.NONE: 'NONE'>",
+            "reason": "V0_1_GOVERNED_DECISION"
+          }
+        ]
+      },
+      "call": "call_2",
+      "close_time": "2024-04-09T13:10:00.000000+00:00",
+      "concrete_contract": "SHFE.cu2406",
+      "context_sha256": "897c84fe4cb8c505bf4d87971066cba3894409d6a07d64be9eb86f6f81521fef",
+      "decision_prompt_sha256": "181387fd77090ff829339680a57d0c48f665627297bd77772c6e8b7b600a7e1a",
+      "decision_time": "2024-04-09T13:10:00.000000+00:00",
+      "four_hour_role": "BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY",
+      "mapping_identity": "28429563f4d5e93838941b901e27b76a480ece562f4d537c08121fe85f2b1a19",
+      "model": "deepseek-v4-flash-vision-exp",
+      "observation_identity": "4449e9dfc80cf2937db47ebb52ddbd05d0a267545d27d6c3905d0f1cb769c339",
+      "product": "cu",
+      "provider": "deepseek",
+      "provider_call_authorized": false,
+      "request_id": "req-e50137d3958e48ef96ba3297c0a3a355",
+      "retry_count": 0,
+      "sequence": 1,
+      "system_prompt_sha256": "592cdc16cb1486b7a310cd9370cd6cfbad924b0cd9055548953e0e2871145f2b",
+      "timeframes": [
+        "4H",
+        "1H",
+        "15m",
+        "5m"
+      ],
+      "wake_identity": "b4785ee84a871e198d4ed72b18d87379ab4c345a7dcea0a6fe6fd1af40543962"
+    },
+    {
+      "CAUSAL_INPUT_SNAPSHOT": {
+        "bars": [
+          {
+            "available_at": "2024-04-09T02:15:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:15:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76270",
+            "open": "76330",
+            "open_time": "2024-04-09T02:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3218"
+          },
+          {
+            "available_at": "2024-04-09T02:45:00.000000+00:00",
+            "close": "76180",
+            "close_time": "2024-04-09T02:45:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "6207"
+          },
+          {
+            "available_at": "2024-04-09T03:00:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T03:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76180",
+            "open_time": "2024-04-09T02:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3323"
+          },
+          {
+            "available_at": "2024-04-09T03:15:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T03:15:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76200",
+            "open": "76280",
+            "open_time": "2024-04-09T03:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2177"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76300",
+            "open_time": "2024-04-09T03:15:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2701"
+          },
+          {
+            "available_at": "2024-04-09T05:45:00.000000+00:00",
+            "close": "76270",
+            "close_time": "2024-04-09T05:45:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "3683"
+          },
+          {
+            "available_at": "2024-04-09T06:00:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:00:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76270",
+            "open_time": "2024-04-09T05:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "1646"
+          },
+          {
+            "available_at": "2024-04-09T06:15:00.000000+00:00",
+            "close": "76200",
+            "close_time": "2024-04-09T06:15:00.000000+00:00",
+            "high": "76260",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76190",
+            "open_time": "2024-04-09T06:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "2066"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76240",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76200",
+            "open_time": "2024-04-09T06:15:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "5216"
+          },
+          {
+            "available_at": "2024-04-09T06:45:00.000000+00:00",
+            "close": "76100",
+            "close_time": "2024-04-09T06:45:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "75970",
+            "open": "75970",
+            "open_time": "2024-04-09T06:30:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "4525"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76060",
+            "open": "76100",
+            "open_time": "2024-04-09T06:45:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "4076"
+          },
+          {
+            "available_at": "2024-04-09T13:15:00.000000+00:00",
+            "close": "76640",
+            "close_time": "2024-04-09T13:15:00.000000+00:00",
+            "high": "76830",
+            "is_closed": true,
+            "low": "76590",
+            "open": "76720",
+            "open_time": "2024-04-09T13:00:00.000000+00:00",
+            "timeframe": "15m",
+            "volume": "17265"
+          },
+          {
+            "available_at": "2024-04-09T02:00:00.000000+00:00",
+            "close": "76330",
+            "close_time": "2024-04-09T02:00:00.000000+00:00",
+            "high": "76560",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76490",
+            "open_time": "2024-04-09T01:00:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "23544"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "14408"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "1H",
+            "volume": "12611"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76560",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76490",
+            "open_time": "2024-04-09T01:00:00.000000+00:00",
+            "timeframe": "4H",
+            "volume": "41170"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "4H",
+            "volume": "21212"
+          },
+          {
+            "available_at": "2024-04-09T02:05:00.000000+00:00",
+            "close": "76370",
+            "close_time": "2024-04-09T02:05:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76270",
+            "open": "76330",
+            "open_time": "2024-04-09T02:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1196"
+          },
+          {
+            "available_at": "2024-04-09T02:10:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:10:00.000000+00:00",
+            "high": "76370",
+            "is_closed": true,
+            "low": "76290",
+            "open": "76370",
+            "open_time": "2024-04-09T02:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1177"
+          },
+          {
+            "available_at": "2024-04-09T02:15:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T02:15:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76280",
+            "open": "76290",
+            "open_time": "2024-04-09T02:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "845"
+          },
+          {
+            "available_at": "2024-04-09T02:35:00.000000+00:00",
+            "close": "76160",
+            "close_time": "2024-04-09T02:35:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76140",
+            "open": "76300",
+            "open_time": "2024-04-09T02:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "3521"
+          },
+          {
+            "available_at": "2024-04-09T02:40:00.000000+00:00",
+            "close": "76150",
+            "close_time": "2024-04-09T02:40:00.000000+00:00",
+            "high": "76210",
+            "is_closed": true,
+            "low": "76120",
+            "open": "76160",
+            "open_time": "2024-04-09T02:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1647"
+          },
+          {
+            "available_at": "2024-04-09T02:45:00.000000+00:00",
+            "close": "76180",
+            "close_time": "2024-04-09T02:45:00.000000+00:00",
+            "high": "76220",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76150",
+            "open_time": "2024-04-09T02:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1039"
+          },
+          {
+            "available_at": "2024-04-09T02:50:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T02:50:00.000000+00:00",
+            "high": "76230",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76180",
+            "open_time": "2024-04-09T02:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "880"
+          },
+          {
+            "available_at": "2024-04-09T02:55:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T02:55:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76220",
+            "open_time": "2024-04-09T02:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1564"
+          },
+          {
+            "available_at": "2024-04-09T03:00:00.000000+00:00",
+            "close": "76280",
+            "close_time": "2024-04-09T03:00:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76260",
+            "open": "76280",
+            "open_time": "2024-04-09T02:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "879"
+          },
+          {
+            "available_at": "2024-04-09T03:05:00.000000+00:00",
+            "close": "76260",
+            "close_time": "2024-04-09T03:05:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76200",
+            "open": "76280",
+            "open_time": "2024-04-09T03:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "890"
+          },
+          {
+            "available_at": "2024-04-09T03:10:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T03:10:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76260",
+            "open_time": "2024-04-09T03:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "692"
+          },
+          {
+            "available_at": "2024-04-09T03:15:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T03:15:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76290",
+            "open_time": "2024-04-09T03:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "595"
+          },
+          {
+            "available_at": "2024-04-09T03:20:00.000000+00:00",
+            "close": "76260",
+            "close_time": "2024-04-09T03:20:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76220",
+            "open": "76300",
+            "open_time": "2024-04-09T03:15:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "592"
+          },
+          {
+            "available_at": "2024-04-09T03:25:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:25:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76160",
+            "open": "76260",
+            "open_time": "2024-04-09T03:20:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "969"
+          },
+          {
+            "available_at": "2024-04-09T03:30:00.000000+00:00",
+            "close": "76220",
+            "close_time": "2024-04-09T03:30:00.000000+00:00",
+            "high": "76280",
+            "is_closed": true,
+            "low": "76190",
+            "open": "76220",
+            "open_time": "2024-04-09T03:25:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1140"
+          },
+          {
+            "available_at": "2024-04-09T05:35:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T05:35:00.000000+00:00",
+            "high": "76220",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76220",
+            "open_time": "2024-04-09T05:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1634"
+          },
+          {
+            "available_at": "2024-04-09T05:40:00.000000+00:00",
+            "close": "76300",
+            "close_time": "2024-04-09T05:40:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76190",
+            "open_time": "2024-04-09T05:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1067"
+          },
+          {
+            "available_at": "2024-04-09T05:45:00.000000+00:00",
+            "close": "76270",
+            "close_time": "2024-04-09T05:45:00.000000+00:00",
+            "high": "76320",
+            "is_closed": true,
+            "low": "76260",
+            "open": "76300",
+            "open_time": "2024-04-09T05:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "982"
+          },
+          {
+            "available_at": "2024-04-09T05:50:00.000000+00:00",
+            "close": "76310",
+            "close_time": "2024-04-09T05:50:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76240",
+            "open": "76270",
+            "open_time": "2024-04-09T05:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "483"
+          },
+          {
+            "available_at": "2024-04-09T05:55:00.000000+00:00",
+            "close": "76290",
+            "close_time": "2024-04-09T05:55:00.000000+00:00",
+            "high": "76310",
+            "is_closed": true,
+            "low": "76280",
+            "open": "76310",
+            "open_time": "2024-04-09T05:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "246"
+          },
+          {
+            "available_at": "2024-04-09T06:00:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:00:00.000000+00:00",
+            "high": "76300",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76290",
+            "open_time": "2024-04-09T05:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "917"
+          },
+          {
+            "available_at": "2024-04-09T06:05:00.000000+00:00",
+            "close": "76170",
+            "close_time": "2024-04-09T06:05:00.000000+00:00",
+            "high": "76230",
+            "is_closed": true,
+            "low": "76130",
+            "open": "76190",
+            "open_time": "2024-04-09T06:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "843"
+          },
+          {
+            "available_at": "2024-04-09T06:10:00.000000+00:00",
+            "close": "76240",
+            "close_time": "2024-04-09T06:10:00.000000+00:00",
+            "high": "76260",
+            "is_closed": true,
+            "low": "76170",
+            "open": "76170",
+            "open_time": "2024-04-09T06:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "662"
+          },
+          {
+            "available_at": "2024-04-09T06:15:00.000000+00:00",
+            "close": "76200",
+            "close_time": "2024-04-09T06:15:00.000000+00:00",
+            "high": "76250",
+            "is_closed": true,
+            "low": "76190",
+            "open": "76240",
+            "open_time": "2024-04-09T06:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "561"
+          },
+          {
+            "available_at": "2024-04-09T06:20:00.000000+00:00",
+            "close": "76190",
+            "close_time": "2024-04-09T06:20:00.000000+00:00",
+            "high": "76240",
+            "is_closed": true,
+            "low": "76180",
+            "open": "76200",
+            "open_time": "2024-04-09T06:15:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "651"
+          },
+          {
+            "available_at": "2024-04-09T06:25:00.000000+00:00",
+            "close": "76000",
+            "close_time": "2024-04-09T06:25:00.000000+00:00",
+            "high": "76210",
+            "is_closed": true,
+            "low": "75960",
+            "open": "76190",
+            "open_time": "2024-04-09T06:20:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "2635"
+          },
+          {
+            "available_at": "2024-04-09T06:30:00.000000+00:00",
+            "close": "75970",
+            "close_time": "2024-04-09T06:30:00.000000+00:00",
+            "high": "76100",
+            "is_closed": true,
+            "low": "75930",
+            "open": "76000",
+            "open_time": "2024-04-09T06:25:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1930"
+          },
+          {
+            "available_at": "2024-04-09T06:35:00.000000+00:00",
+            "close": "76090",
+            "close_time": "2024-04-09T06:35:00.000000+00:00",
+            "high": "76110",
+            "is_closed": true,
+            "low": "75970",
+            "open": "75970",
+            "open_time": "2024-04-09T06:30:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1985"
+          },
+          {
+            "available_at": "2024-04-09T06:40:00.000000+00:00",
+            "close": "76010",
+            "close_time": "2024-04-09T06:40:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "76000",
+            "open": "76090",
+            "open_time": "2024-04-09T06:35:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1682"
+          },
+          {
+            "available_at": "2024-04-09T06:45:00.000000+00:00",
+            "close": "76100",
+            "close_time": "2024-04-09T06:45:00.000000+00:00",
+            "high": "76100",
+            "is_closed": true,
+            "low": "76000",
+            "open": "76010",
+            "open_time": "2024-04-09T06:40:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "858"
+          },
+          {
+            "available_at": "2024-04-09T06:50:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T06:50:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76080",
+            "open": "76100",
+            "open_time": "2024-04-09T06:45:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "802"
+          },
+          {
+            "available_at": "2024-04-09T06:55:00.000000+00:00",
+            "close": "76090",
+            "close_time": "2024-04-09T06:55:00.000000+00:00",
+            "high": "76150",
+            "is_closed": true,
+            "low": "76070",
+            "open": "76130",
+            "open_time": "2024-04-09T06:50:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1309"
+          },
+          {
+            "available_at": "2024-04-09T07:00:00.000000+00:00",
+            "close": "76130",
+            "close_time": "2024-04-09T07:00:00.000000+00:00",
+            "high": "76160",
+            "is_closed": true,
+            "low": "76060",
+            "open": "76090",
+            "open_time": "2024-04-09T06:55:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "1965"
+          },
+          {
+            "available_at": "2024-04-09T13:05:00.000000+00:00",
+            "close": "76780",
+            "close_time": "2024-04-09T13:05:00.000000+00:00",
+            "high": "76810",
+            "is_closed": true,
+            "low": "76620",
+            "open": "76720",
+            "open_time": "2024-04-09T13:00:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "9956"
+          },
+          {
+            "available_at": "2024-04-09T13:10:00.000000+00:00",
+            "close": "76750",
+            "close_time": "2024-04-09T13:10:00.000000+00:00",
+            "high": "76830",
+            "is_closed": true,
+            "low": "76680",
+            "open": "76780",
+            "open_time": "2024-04-09T13:05:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "4048"
+          },
+          {
+            "available_at": "2024-04-09T13:15:00.000000+00:00",
+            "close": "76640",
+            "close_time": "2024-04-09T13:15:00.000000+00:00",
+            "high": "76770",
+            "is_closed": true,
+            "low": "76590",
+            "open": "76750",
+            "open_time": "2024-04-09T13:10:00.000000+00:00",
+            "timeframe": "5m",
+            "volume": "3261"
+          }
+        ],
+        "charts": [
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "326d221c408d98118b0cf913477bed4e558a1ade0092f607b968b4ac493dcb37",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "4H",
+            "visual_artifact_identity": "7f7214266f223aa3a25311467f84fce786acf88b1986e8ba27f285e848e9c72d"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "7e4dd2b3a4561f7d311980ed374ba335e7df91abe9816a2abb52b6fe851cd770",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "1H",
+            "visual_artifact_identity": "a0654503ae904c351ab2cf601a7a19ac87bf1bc5bb90935023b6e7f45f5a3959"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "f43d2f0d2c9bab7855f170b0c42c671b501d189158b213aeb334981e11d998bd",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "15m",
+            "visual_artifact_identity": "5bd78b47ab005e8c1c978e01d55ac057f188159fdda8367fef921ef35cad8b1e"
+          },
+          {
+            "mime_type": "image/png",
+            "partial_bar_marked": false,
+            "render_content_hash": "ea1c8da5717971e94362ae172435cd392bdeb5a87ee49bd9d1816b480f5a59dc",
+            "renderer_config_identity": "2397764a0f3e2b453456fd8735caeb59881d19ea5a2399fc91fb7e7307525851",
+            "renderer_identity": "JIANGHE_VISUAL_RENDERER_V0_1",
+            "timeframe": "5m",
+            "visual_artifact_identity": "78ad5076a8a09789212212db8ac0316551274a9b19fc8cb2601f9f23f83e9d65"
+          }
+        ],
+        "knowledge_jianghe_canon_hits": [
+          {
+            "document_path": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_034_039_V0_3.jsonl",
+            "document_sha256": "7fc42a1fb5fa4f1af72726ad329ab51cbd435f7a97a99997486b467806707f75",
+            "excerpt": "{\"claim_id\":\"JH-CLM-034-002\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:02:32.000\",\"source_timestamp_end\":\"00:03:53.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"推动-回撤-推动形成新发力点后上移止损；二推无法有效突破前高时离场\",\"visual_anchor_description\":\"图表同步显示新N结构/发力点、移动止损线以及前高附近二推失败。\",\"before_after_visual_change\":\"新结构形成→止损推进；随后前高二推失败→退出。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MANAGEMENT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"盈利订单可随新发力/防守结构推进止损；二推不能突破前高是动能减弱退出线索。\",\"dossier_section_ids\":\"07|08\",\"strategy_family_ids\":\"JH-FAMILY-A|JH-FAMILY-C\",\"case_ids\":\"JH-CASE-034-001\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"新的防守/发力结构被破坏会削弱延续\",\"source_exit_or_management_if_explicit\":\"移动止损；二推动能不足时离场\",\"ambiguity_notes\":\"NONE\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-034-003\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:05:14.550\",\"source_timestamp_end\":\"00:05:21.570\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"价格既能创出新的低点又能创出新的高点，可以认为是震荡\",\"visual_anchor_description\":\"图表同步画出上下摆动并标示上、下区域。\",\"before_after_visual_change\":\"原多头防守被破后未形成空头延续，随后又破前高→重新分类为震荡。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MARKET_CONTEXT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"当同一级别价格同时能向上下两侧创出新极值、缺少单向延续时，来源将其重新分类为震荡。\",\"dossier_section_ids\":\"01|02\",\"strategy_family_ids\":\"JH-FAMILY-D\",\"case_ids\":\"JH-CASE-034-002\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"NONE\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-034-004\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"034\",\"bvid\":\"BV1iS6KByEL1\",\"material_title\":\"裸k实盘教学-日内交易实战指导\",\"source_timestamp_start\":\"00:05:33.450\",\"source_timestamp_end\":\"00:06:44.710\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"震荡下方关键点出现阳线吞没做多；初始仓位很轻，留给成本区二次确认后的加仓\",\"visual_anchor_description\":\"图表显示震荡下沿黄色区域、阳线吞没、止损与预设目标；后续画出成本区和潜在加仓。\",\"before_after_visual_change\":\"到下沿→吞没确认→轻仓进入；若回成本区出现二次确认可再加仓。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"RISK_PROCESS\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"震荡边界交易可采用轻初始仓，若价格回成本区并产生新的二次确认，再设计加仓；该案例使用预设区间目标。\",\"dossier_section_ids\":\"05|08|09|14\",\"strategy_family_ids\":\"JH-FAMILY-D\",\"case_ids\":\"JH-CASE-034-002\",\"source_no_trade_if_explicit\":\"震荡中间区域不属于该设置；没有二次确认不因回成本区自动加仓\",\"source_invalidation_if_explicit\":\"下方结构极值被破\",\"source_exit_or_management_if_explicit\":\"预设目标；二次确认后才考虑加仓\",\"ambiguity_notes\":\"本案例约1:1.3仅为案例，不是Family D统一目标。\",\"machineability\":\"MULTI_CASE_INFERABLE\",\"review_status\":\"READY\"}"
+          },
+          {
+            "document_path": "docs/research/jianghe/JIANGHE_CLAIM_LEDGER_DELTA_040_043_V0_3.jsonl",
+            "document_sha256": "9a7b368ef90bf57c9381767f85e5ac538786903e67b21c141b9db9901a54fec4",
+            "excerpt": "{\"claim_id\":\"JH-CLM-041-001\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"041\",\"bvid\":\"BV1qbZDBUE4b\",\"material_title\":\"致交易者\",\"source_timestamp_start\":\"00:02:20.000\",\"source_timestamp_end\":\"00:03:15.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_BURNED_SUBTITLE\",\"language_anchor_short\":\"很多复杂内容不能为了简单而简单；过度简化会失真，文字表达本身也会带立场\",\"visual_anchor_description\":\"面对镜头讲解，烧录字幕与语言一致。\",\"before_after_visual_change\":\"NOT_APPLICABLE\",\"timeframe_visible_or_stated\":\"NOT_APPLICABLE\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"SOURCE_INTERPRETATION\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"来源明确反对把复杂交易认知压成易懂口号；这支持项目保留上下文、案例和UNKNOWN，而不是为了机器化强行压缩语义。\",\"dossier_section_ids\":\"13\",\"strategy_family_ids\":\"\",\"case_ids\":\"\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"这是知识表达哲学，不是市场交易条件。\",\"machineability\":\"HUMAN_DISCRETION_REQUIRED\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-042-001\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"042\",\"bvid\":\"BV1ZQfqBEE1j\",\"material_title\":\"裸k交易实战复盘\",\"source_timestamp_start\":\"00:03:45.000\",\"source_timestamp_end\":\"00:04:18.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"这段既可当震荡也可当弱空；两种分类都指向高位找空，因此可锁定重叠的高空区域\",\"visual_anchor_description\":\"图表同步展示弱空/区间重叠，上方绿色区域被标为共同高空候选。\",\"before_after_visual_change\":\"不同市场标签→在该具体位置产生相同方向动作，形成决策重叠。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"MARKET_CONTEXT\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"市场分类不必强行唯一：当震荡与弱空两种合理解释导向同一交易动作时，江河会利用条件重叠锁定区域。\",\"dossier_section_ids\":\"01|02|03\",\"strategy_family_ids\":\"JH-FAMILY-A|JH-FAMILY-D\",\"case_ids\":\"JH-CASE-042-001\",\"source_no_trade_if_explicit\":\"UNKNOWN\",\"source_invalidation_if_explicit\":\"UNKNOWN\",\"source_exit_or_management_if_explicit\":\"UNKNOWN\",\"ambiguity_notes\":\"不同分类何时允许‘等价处理’没有统一状态机。\",\"machineability\":\"HUMAN_DISCRETION_REQUIRED\",\"review_status\":\"READY\"}\n{\"claim_id\":\"JH-CLM-042-002\",\"trader_id\":\"JIANGHE_TRADER\",\"source_ordinal\":\"042\",\"bvid\":\"BV1ZQfqBEE1j\",\"material_title\":\"裸k交易实战复盘\",\"source_timestamp_start\":\"00:04:32.000\",\"source_timestamp_end\":\"00:05:38.000\",\"source_anchor_type\":\"VIDEO_LANGUAGE_AND_SAME_TIME_VISUAL\",\"language_anchor_short\":\"防守位是上一段上涨极值/结束与下一段下跌起始的交界；有方向、动能、位置后仍需明确排斥/进场信号\",\"visual_anchor_description\":\"图表同步用一推回撤二推和最高K标出防守/高空区域，价格到位后出现排斥。\",\"before_after_visual_change\":\"确定方向与动能→找交界防守区→价格到位→排斥确认才开。\",\"timeframe_visible_or_stated\":\"UNKNOWN\",\"instrument_if_explicit\":\"UNKNOWN\",\"claim_category\":\"LOCATION\",\"claim_status\":\"EXPLICIT\",\"interpretation_status\":\"SOURCE_FAITHFUL\",\"interpretation_text\":\"V042 进一步解释防守区域的来源语义：一段运动结束与下一段反向运动开始的交界/极值；位置本身仍不自动触发交易。\",\"dossier_section_ids\":\"03|04|05|06\",\"strategy_family_ids\":\"JH-FAMILY-B|JH-FAMILY-D\",\"ca"
+          }
+        ],
+        "prior_working_memory": {
+          "active_family_hypothesis": "NONE",
+          "annotation_history": [],
+          "attention_mode": "WATCH",
+          "current_market_hypothesis": null,
+          "directional_bias": "LONG",
+          "expected_trigger": null,
+          "invalidation_hypothesis": null,
+          "key_location_hypotheses": [],
+          "last_meaningful_decision": "WATCH",
+          "mutation_history": [
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "attention_mode",
+              "new_value": "<AttentionMode.WATCH: 'WATCH'>",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "<AttentionMode.SCAN: 'SCAN'>",
+              "reason": "V0_1_GOVERNED_STATE_TRANSITION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "last_meaningful_decision",
+              "new_value": "'WATCH'",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "None",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "transition_reason",
+              "new_value": "'The 5m close jumped to 76780 (high 76810) on the first night-session bar, above the prior 76560 high, after the earlier session had fallen to 75930 and recovered near 76130. This is a clear long momentum signal, but it is a single unconfirmed bar with no defined defensive zone/launch point and no higher-timeframe confirmation. Per JH-CLM-042-002, direction and momentum alone are insufficient without an explicit rejection/entry signal at a defined position; per JH-CLM-034-002, a real entry usually appears after a new launch point from a push-pull-push. Therefore watch, do not enter yet.'",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "None",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "directional_bias",
+              "new_value": "<Direction.LONG: 'LONG'>",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "<Direction.NONE: 'NONE'>",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "active_family_hypothesis",
+              "new_value": "<StrategyFamily.NONE: 'NONE'>",
+              "observation_identity": "bf3017885a8129beb95338e942478bb940dec5d18f22e5b6d2fa003d820cc63c",
+              "previous_value": "<StrategyFamily.NONE: 'NONE'>",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:05:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "attention_mode",
+              "new_value": "<AttentionMode.WATCH: 'WATCH'>",
+              "observation_identity": "4449e9dfc80cf2937db47ebb52ddbd05d0a267545d27d6c3905d0f1cb769c339",
+              "previous_value": "<AttentionMode.WATCH: 'WATCH'>",
+              "reason": "V0_1_GOVERNED_STATE_TRANSITION",
+              "timestamp": "2024-04-09T13:10:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "last_meaningful_decision",
+              "new_value": "'WATCH'",
+              "observation_identity": "4449e9dfc80cf2937db47ebb52ddbd05d0a267545d27d6c3905d0f1cb769c339",
+              "previous_value": "'WATCH'",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:10:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "transition_reason",
+              "new_value": "'Night-session open gapped up to 76780/76810, then second 5m bar printed 76830 high but closed 76750, holding above prior 76560 high. Directional bias remains LONG, but this is an unconfirmed single-push breakout with no defined defensive/launch zone and no higher-timeframe confirmation. Per JH-CLM-042-002, momentum/direction alone is insufficient without an explicit rejection or entry signal at a defined position; per JH-CLM-034-002, a real entry typically appears after a new launch point from a push-pull-push. WATCH for a pullback that holds above 76620 and a subsequent push above 76830, or for rejection back into the range.'",
+              "observation_identity": "4449e9dfc80cf2937db47ebb52ddbd05d0a267545d27d6c3905d0f1cb769c339",
+              "previous_value": "'The 5m close jumped to 76780 (high 76810) on the first night-session bar, above the prior 76560 high, after the earlier session had fallen to 75930 and recovered near 76130. This is a clear long momentum signal, but it is a single unconfirmed bar with no defined defensive zone/launch point and no higher-timeframe confirmation. Per JH-CLM-042-002, direction and momentum alone are insufficient without an explicit rejection/entry signal at a defined position; per JH-CLM-034-002, a real entry usually appears after a new launch point from a push-pull-push. Therefore watch, do not enter yet.'",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:10:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "directional_bias",
+              "new_value": "<Direction.LONG: 'LONG'>",
+              "observation_identity": "4449e9dfc80cf2937db47ebb52ddbd05d0a267545d27d6c3905d0f1cb769c339",
+              "previous_value": "<Direction.LONG: 'LONG'>",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:10:00.000000+00:00"
+            },
+            {
+              "ai_trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+              "field_name": "active_family_hypothesis",
+              "new_value": "<StrategyFamily.NONE: 'NONE'>",
+              "observation_identity": "4449e9dfc80cf2937db47ebb52ddbd05d0a267545d27d6c3905d0f1cb769c339",
+              "previous_value": "<StrategyFamily.NONE: 'NONE'>",
+              "reason": "V0_1_GOVERNED_DECISION",
+              "timestamp": "2024-04-09T13:10:00.000000+00:00"
+            }
+          ],
+          "open_questions": [],
+          "review_at": null,
+          "timeframe_trend_view": [],
+          "transition_reason": "Night-session open gapped up to 76780/76810, then second 5m bar printed 76830 high but closed 76750, holding above prior 76560 high. Directional bias remains LONG, but this is an unconfirmed single-push breakout with no defined defensive/launch zone and no higher-timeframe confirmation. Per JH-CLM-042-002, momentum/direction alone is insufficient without an explicit rejection or entry signal at a defined position; per JH-CLM-034-002, a real entry typically appears after a new launch point from a push-pull-push. WATCH for a pullback that holds above 76620 and a subsequent push above 76830, or for rejection back into the range.",
+          "watch_regions": []
+        },
+        "retrieval_identities": [
+          "b180adc9a6c1f3bf40ad12587e1d4cb24820c938cbe233d4b085f42af51eb3cf",
+          "5eb69afff4313eb9dc53392d34b80ca7401cc6a97134bc388450819dfdbcd78e"
+        ],
+        "visual_artifact_identities": [
+          "7f7214266f223aa3a25311467f84fce786acf88b1986e8ba27f285e848e9c72d",
+          "a0654503ae904c351ab2cf601a7a19ac87bf1bc5bb90935023b6e7f45f5a3959",
+          "5bd78b47ab005e8c1c978e01d55ac057f188159fdda8367fef921ef35cad8b1e",
+          "78ad5076a8a09789212212db8ac0316551274a9b19fc8cb2601f9f23f83e9d65"
+        ]
+      },
+      "MODEL_OUTPUT": {
+        "action": "WATCH",
+        "attention_mode": "WATCH",
+        "decision_state": "WATCH: LONG bias intact while price holds above prior high 76560; 15m pullback from 76830 gap high closed at 76640 with bearish rejection, low 76590; prior watch level 76620 broken; no defined launch/defense zone or higher-timeframe confirmation; awaiting reaction at 76560.",
+        "declared_unknown": [
+          "No explicit rejection/entry signal at a defined position has formed",
+          "No higher-timeframe (1H/4H) confirmation of the long breakout",
+          "Whether the pullback will hold above 76560 or break it"
+        ],
+        "direction": "LONG",
+        "family": "NONE",
+        "normalized_decision_identity": "5011041c0b7971eae39a5ce078db2909706bf7cb44db06f43485d5fa399deb5b",
+        "normalizer_identity": "e0aa2c29da77786a496079fd2b5816206fd1381fd9ad0312a918cee450cca0fc",
+        "numeric_claims": [
+          {
+            "claim": "15m close",
+            "source_reference": "JIANGHE_OBSERVATION_V0_1",
+            "unit": "cu price",
+            "value": "76640"
+          },
+          {
+            "claim": "5m pullback low",
+            "source_reference": "JIANGHE_OBSERVATION_V0_1",
+            "unit": "cu price",
+            "value": "76590"
+          },
+          {
+            "claim": "Prior 4H/1H swing high",
+            "source_reference": "JIANGHE_OBSERVATION_V0_1",
+            "unit": "cu price",
+            "value": "76560"
+          },
+          {
+            "claim": "Recent 15m high",
+            "source_reference": "JIANGHE_OBSERVATION_V0_1",
+            "unit": "cu price",
+            "value": "76830"
+          }
+        ],
+        "principle_references": [
+          "JH-CLM-034-002",
+          "JH-CLM-042-002"
+        ],
+        "rationale": "Breakout gap to 76720/76830 then pullback to 76590; 15m closed bearish rejection at 76640, breaking below prior 5m support 76620 but holding above prior swing high 76560. Per JH-CLM-042-002, direction and momentum alone are insufficient without explicit rejection/entry signal at a defined position; per JH-CLM-034-002, real entry follows a new launch point after push-pull-push. No second push or rejection confirmation yet, so WATCH for price action at 76560: hold + reversal = long candidate; break 76560 = rejection/invalidation of long.",
+        "raw_response_sha256": "5ccb73cc9f70bb3673ced9a955c548525e02d23c53a8caecbddbaf53bded04ab",
+        "response_schema_identity": "60a008ff4e64a74a413f2f198f675dd3e3293ff7b891ed9e466b531d3bb32289",
+        "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+        "source_references": [
+          "JIANGHE_CANON:JH-CLM-034-002",
+          "JIANGHE_CANON:JH-CLM-042-002",
+          "JIANGHE_OBSERVATION_V0_1:14c754ae4fd77ac515f27f986ff4d0837a8599599a9517f4039a966d9ba7d458"
+        ]
+      },
+      "MODEL_PROVIDER_METADATA": {
+        "finish_reason": "stop",
+        "model": "deepseek-v4-flash-vision-exp",
+        "provider": "deepseek",
+        "status": "OK",
+        "token_usage": {
+          "cacheReadTokens": 1536,
+          "cacheWriteTokens": 0,
+          "inputTokens": 14671,
+          "outputTokens": 10571,
+          "reasoningTokens": 10010
+        }
+      },
+      "PROJECT_PERSISTED_STATE": {
+        "intent_only_decision": {
+          "action": "WATCH",
+          "attention_mode_after": "WATCH",
+          "attention_mode_before": "WATCH",
+          "decision_identity": "5011041c0b7971eae39a5ce078db2909706bf7cb44db06f43485d5fa399deb5b",
+          "direction": "LONG",
+          "execution_claim": false,
+          "family": "NONE",
+          "intent_only": true,
+          "observation_identity": "14c754ae4fd77ac515f27f986ff4d0837a8599599a9517f4039a966d9ba7d458",
+          "paper_fill_claimed": false,
+          "request_id": "req-8634d66056ac467488fb99d530e97584",
+          "session_identity": "ce374c864bf10ba5bb2d6878579a9c12a5a1734aa9121a245c2eb7899952ee14",
+          "trading_day": "2024-04-10",
+          "wake_identity": "149e93dc899b9e63ff08104a8222535f68561639306fcb08cc260619e19de94b"
+        },
+        "journal_appends": [],
+        "normalized_event_payload": {
+          "action": "WATCH",
+          "attention_mode": "WATCH",
+          "direction": "LONG",
+          "family": "NONE",
+          "normalizer_identity": "e0aa2c29da77786a496079fd2b5816206fd1381fd9ad0312a918cee450cca0fc",
+          "response_schema_identity": "60a008ff4e64a74a413f2f198f675dd3e3293ff7b891ed9e466b531d3bb32289",
+          "source_references": [
+            "JIANGHE_CANON:JH-CLM-034-002",
+            "JIANGHE_CANON:JH-CLM-042-002",
+            "JIANGHE_OBSERVATION_V0_1:14c754ae4fd77ac515f27f986ff4d0837a8599599a9517f4039a966d9ba7d458"
+          ],
+          "strict_output_enum_enforcement": true
+        },
+        "working_memory_mutations": [
+          {
+            "field_name": "attention_mode",
+            "new_value": "<AttentionMode.WATCH: 'WATCH'>",
+            "occurred_at": "2024-04-09T13:15:00+00:00",
+            "previous_value": "<AttentionMode.WATCH: 'WATCH'>",
+            "reason": "V0_1_GOVERNED_STATE_TRANSITION"
+          },
+          {
+            "field_name": "last_meaningful_decision",
+            "new_value": "'WATCH'",
+            "occurred_at": "2024-04-09T13:15:00+00:00",
+            "previous_value": "'WATCH'",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "transition_reason",
+            "new_value": "'Breakout gap to 76720/76830 then pullback to 76590; 15m closed bearish rejection at 76640, breaking below prior 5m support 76620 but holding above prior swing high 76560. Per JH-CLM-042-002, direction and momentum alone are insufficient without explicit rejection/entry signal at a defined position; per JH-CLM-034-002, real entry follows a new launch point after push-pull-push. No second push or rejection confirmation yet, so WATCH for price action at 76560: hold + reversal = long candidate; break 76560 = rejection/invalidation of long.'",
+            "occurred_at": "2024-04-09T13:15:00+00:00",
+            "previous_value": "'Night-session open gapped up to 76780/76810, then second 5m bar printed 76830 high but closed 76750, holding above prior 76560 high. Directional bias remains LONG, but this is an unconfirmed single-push breakout with no defined defensive/launch zone and no higher-timeframe confirmation. Per JH-CLM-042-002, momentum/direction alone is insufficient without an explicit rejection or entry signal at a defined position; per JH-CLM-034-002, a real entry typically appears after a new launch point from a push-pull-push. WATCH for a pullback that holds above 76620 and a subsequent push above 76830, or for rejection back into the range.'",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "directional_bias",
+            "new_value": "<Direction.LONG: 'LONG'>",
+            "occurred_at": "2024-04-09T13:15:00+00:00",
+            "previous_value": "<Direction.LONG: 'LONG'>",
+            "reason": "V0_1_GOVERNED_DECISION"
+          },
+          {
+            "field_name": "active_family_hypothesis",
+            "new_value": "<StrategyFamily.NONE: 'NONE'>",
+            "occurred_at": "2024-04-09T13:15:00+00:00",
+            "previous_value": "<StrategyFamily.NONE: 'NONE'>",
+            "reason": "V0_1_GOVERNED_DECISION"
+          }
+        ]
+      },
+      "call": "call_3",
+      "close_time": "2024-04-09T13:15:00.000000+00:00",
+      "concrete_contract": "SHFE.cu2406",
+      "context_sha256": "36bab449eb6a54e3c2cb8c6ef302721f6af17faed87690c3fff9db08a25ed5b4",
+      "decision_prompt_sha256": "181387fd77090ff829339680a57d0c48f665627297bd77772c6e8b7b600a7e1a",
+      "decision_time": "2024-04-09T13:15:00.000000+00:00",
+      "four_hour_role": "BACKGROUND_STATE_KEY_ZONE_POSITION_AND_REMAINING_SPACE_ONLY",
+      "mapping_identity": "28429563f4d5e93838941b901e27b76a480ece562f4d537c08121fe85f2b1a19",
+      "model": "deepseek-v4-flash-vision-exp",
+      "observation_identity": "14c754ae4fd77ac515f27f986ff4d0837a8599599a9517f4039a966d9ba7d458",
+      "product": "cu",
+      "provider": "deepseek",
+      "provider_call_authorized": false,
+      "request_id": "req-8634d66056ac467488fb99d530e97584",
+      "retry_count": 0,
+      "sequence": 2,
+      "system_prompt_sha256": "592cdc16cb1486b7a310cd9370cd6cfbad924b0cd9055548953e0e2871145f2b",
+      "timeframes": [
+        "4H",
+        "1H",
+        "15m",
+        "5m"
+      ],
+      "wake_identity": "149e93dc899b9e63ff08104a8222535f68561639306fcb08cc260619e19de94b"
+    }
+  ],
+  "date": "2026-08-27",
+  "evidence_kind": "JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_DECISIONS",
+  "execution_time_fresh_retest_authority_identity": "93ab34e088bdece221625dee23d30ee6d4330137365a19def154e52940ff368c",
+  "extraction_note": "Retained LOCAL evidence only; no provider/network call; historical responses parsed with the CURRENT strict schema without modification.",
+  "integrity": {
+    "all_bars_causal_no_future": true,
+    "call_4_occurred": false,
+    "call_order": [
+      "call_1",
+      "call_2",
+      "call_3"
+    ],
+    "close_time_matches_committed": true,
+    "extra_provider_request": false,
+    "normalized_identity_matches_committed": true,
+    "raw_sha256_verified": true,
+    "request_ids_match": true,
+    "restart_after_call_2_boundary": true,
+    "retry_counts": [
+      0,
+      0,
+      0
+    ],
+    "wake_identity_matches_committed": true,
+    "wake_sequences": [
+      0,
+      1,
+      2
+    ]
+  },
+  "response_schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+  "retest_machine_authority_now": "REVOKED_TERMINAL",
+  "trader_identity": "bf233fb7e166b7ca7a36e46dfab50428092a265a6cb2a6a8d2d5a4606241e8a4",
+  "work_package": "SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1"
+}
