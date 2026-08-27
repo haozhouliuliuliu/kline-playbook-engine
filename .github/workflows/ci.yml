@@ -80,6 +80,7 @@ jobs:
           tests.test_paper_live_replay_equivalence
           tests.test_paper_order_recovery
           tests.test_paper_offline_runtime_drill
+          tests.test_paper_runtime_coordinator
 
       - name: Run native Windows offline acceptance probe
         env:
