@@ -95,6 +95,22 @@ class ActivationAndJournalTests(unittest.TestCase):
             self.assertEqual(journal.get("req-1").status, UNKNOWN_AFTER_SUBMIT); journal.close()
 
 class BrokerMirrorTests(unittest.TestCase):
+    def test_old_broker_fact_is_stale_even_when_received_now(self) -> None:
+        now = _dt(9, 30)
+        mirror = PaperBrokerTruthMirror(broker_id="tqkq")
+        mirror.set_connection_state(BrokerConnectionState.CONNECTED)
+        account = BrokerAccountSnapshot(
+            account_id="paper-account", snapshot_at=now - timedelta(minutes=1),
+            cash_balance=Decimal("100000"), reserved_margin=Decimal("0"),
+            charged_costs=Decimal("0"), realized_pnl=Decimal("0"),
+            unrealized_pnl=Decimal("0"), currency="CNY")
+        mirror.refresh(account=account, positions=(), orders=(), observed_at=now)
+        assessment = mirror.assess(
+            expected_client_request_ids=(), assessed_at=now,
+            max_snapshot_age_seconds=30)
+        self.assertFalse(assessment.ok)
+        self.assertIn("BROKER_SNAPSHOT_STALE", assessment.reasons)
+
     def test_unknown_broker_order_blocks_mirror(self) -> None:
         now = _dt(9, 30); mirror = PaperBrokerTruthMirror(broker_id="tqkq")
         mirror.set_connection_state(BrokerConnectionState.CONNECTED)

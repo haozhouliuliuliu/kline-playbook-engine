@@ -189,7 +189,7 @@ class PaperOfflineRuntimeDrill:
         _aware(observed_at, "offline market bootstrap time")
         if self.broker.connection_state is not BrokerConnectionState.CONNECTED:
             raise RuntimeError("OFFLINE_PAPER_BOOTSTRAP_REQUIRES_CONNECTED_BROKER")
-        if self.broker_mirror.snapshot is None:
+        if self.broker_mirror.account is None or self.broker_mirror.snapshot_at is None:
             raise RuntimeError("OFFLINE_PAPER_BOOTSTRAP_REQUIRES_BROKER_TRUTH")
         self.context_builder.bootstrap(bars, observed_at=observed_at)
         self.market_bootstrapped = True
@@ -208,10 +208,21 @@ class PaperOfflineRuntimeDrill:
         self._set_clock(at)
         self.broker_mirror.set_connection_state(self.broker.connection_state)
         if self.broker.connection_state is not BrokerConnectionState.CONNECTED:
+            self.broker_mirror.invalidate_truth()
             return ("BROKER_DISCONNECTED",)
-        account = self.broker.fetch_account_snapshot()
-        positions = tuple(self.broker.fetch_position_snapshot())
-        orders = tuple(self.broker.fetch_order_snapshot())
+        # A failed partial read must not leave the previous truth snapshot
+        # eligible for a new order.  Only a complete replacement restores it.
+        self.broker_mirror.invalidate_truth()
+        try:
+            account = self.broker.fetch_account_snapshot()
+            positions = tuple(self.broker.fetch_position_snapshot())
+            orders = tuple(self.broker.fetch_order_snapshot())
+        except Exception:
+            self.broker_mirror.set_connection_state(self.broker.connection_state)
+            raise
+        if self.broker.connection_state is not BrokerConnectionState.CONNECTED:
+            self.broker_mirror.set_connection_state(self.broker.connection_state)
+            return ("BROKER_DISCONNECTED",)
         self.broker_mirror.refresh(account=account, positions=positions, orders=orders, observed_at=at)
         return self.order_journal.reconcile_broker_orders(orders, observed_at=at)
 
@@ -223,7 +234,10 @@ class PaperOfflineRuntimeDrill:
             raise RuntimeError("OFFLINE_PAPER_MARKET_NOT_READY")
         if not self.trader_runtime_ready:
             raise RuntimeError("OFFLINE_PAPER_TRADER_NOT_READY")
-        self._set_clock(observed_at)
+        # Every live processing cycle starts from freshly reconstructed broker
+        # truth.  A snapshot used for market bootstrap is not evidence that
+        # account/order truth remains current at the next governed wake.
+        self.refresh_broker_truth(at=observed_at)
         results: list[OfflinePaperWakeResult] = []
         for wake in self.context_builder.observe(bars, observed_at=observed_at):
             context = self.context_builder.context_for_wake(wake)

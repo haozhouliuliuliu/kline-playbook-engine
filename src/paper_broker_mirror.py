@@ -79,6 +79,19 @@ class PaperBrokerTruthMirror:
         if not isinstance(state, BrokerConnectionState):
             raise ValueError("mirror connection state must be explicit")
         self._connection_state = state
+        if state is not BrokerConnectionState.CONNECTED:
+            self.invalidate_truth()
+
+    def invalidate_truth(self) -> None:
+        """Discard a snapshot that was not fully reconstructed this cycle.
+
+        Retaining a previous snapshot after a partial refresh could make an
+        order gate mistake old broker truth for a fresh reconciliation result.
+        """
+        self._account = None
+        self._positions = ()
+        self._orders = ()
+        self._snapshot_at = None
 
     def refresh(self, *, account: BrokerAccountSnapshot, positions: Iterable[BrokerPositionSnapshot],
                 orders: Iterable[BrokerOrderSnapshot], observed_at: datetime) -> None:
@@ -101,7 +114,10 @@ class PaperBrokerTruthMirror:
         self._account = account
         self._positions = tuple(sorted(pos, key=lambda item: (item.concrete_contract_id, item.direction.value)))
         self._orders = tuple(sorted(ords, key=lambda item: item.order_id))
-        self._snapshot_at = observed_at
+        # The oldest constituent fact bounds the freshness of the complete
+        # account/position/order truth set.  `observed_at` is merely local
+        # receipt time and must not disguise an older broker snapshot.
+        self._snapshot_at = min(item.snapshot_at for item in (account, *pos, *ords))
 
     def position_for(self, concrete_contract_id: str, direction: PositionDirection) -> BrokerPositionSnapshot | None:
         for item in self._positions:

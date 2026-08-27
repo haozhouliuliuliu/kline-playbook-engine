@@ -44,6 +44,7 @@ class FakeJournaledPaperBroker:
         self.submit_calls = 0
         self.cancel_calls = 0
         self.fail_after_submit = False
+        self.fail_order_snapshot = False
         self.cancel_stuck = False
 
     @property
@@ -122,6 +123,8 @@ class FakeJournaledPaperBroker:
 
     def fetch_order_snapshot(self):
         self._connected()
+        if self.fail_order_snapshot:
+            raise RuntimeError("OFFLINE_FAULT_FETCH_ORDER_SNAPSHOT")
         return tuple(sorted(self.orders.values(), key=lambda item: item.order_id))
 
 
@@ -281,6 +284,18 @@ class PaperOfflineRuntimeDrillTests(unittest.TestCase):
         with self.assertRaisesRegex(PermissionError, "PAPER_ORDER_NOT_READY"):
             self.runtime.process_closed_minutes(self._slice(AT_0920, AT_0925), observed_at=AT_0925)
         self.assertEqual(1, self.broker.submit_calls)
+
+    def test_failed_truth_refresh_invalidates_previous_snapshot(self):
+        self._start()
+        self.broker.fail_order_snapshot = True
+        with self.assertRaisesRegex(RuntimeError, "OFFLINE_FAULT_FETCH_ORDER_SNAPSHOT"):
+            self.runtime.refresh_broker_truth(at=_morning_until())
+        assessment = self.runtime.assess(
+            at=_morning_until(), concrete_contract_id=CONTRACT)
+        self.assertFalse(assessment.can_observe)
+        self.assertFalse(assessment.can_submit_order)
+        self.assertIn("BROKER_MIRROR:BROKER_SNAPSHOT_MISSING",
+                      assessment.observation_blockers)
 
     def test_cancel_then_replace_waits_for_cancelled_broker_truth(self):
         self._start()
