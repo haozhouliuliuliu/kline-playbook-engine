@@ -126,7 +126,7 @@ class PaperRuntimeLayoutTests(unittest.TestCase):
             else:
                 root = Path(tmp)
                 layout = _layout(root)
-                self.assertEqual(layout.order_journal_path.parent.parent.name, "journals")
+                self.assertEqual(layout.order_journal_path.parent.name, "journals")
 
     def test_checkpoint_roundtrip(self) -> None:
         with TemporaryDirectory() as tmp:
