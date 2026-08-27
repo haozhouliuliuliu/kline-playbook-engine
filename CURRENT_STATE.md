@@ -10,11 +10,11 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_VERIFIED__F02_VERIFIED__F03_OFFLINE_VERIFIED__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
+`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_VERIFIED__F02_VERIFIED__F03_OFFLINE_VERIFIED__F04_OFFLINE_REPAIRED__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__F01_F02_AND_F03_VERIFIED_OFFLINE__FRESH_INDEPENDENT_REVIEW_PENDING`
+`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__F01_F02_F03_VERIFIED__F04_REPAIRED_OFFLINE__FRESH_INDEPENDENT_REVIEW_PENDING`
 
 `NEXT_TASK = FRESH_INDEPENDENT_HIGH_ASSURANCE_REVIEW_OF_F03_CLOSURE_AND_FORWARD_AUTHORITY_WAIVER_PATH__THEN_RESEAL_AND_RUN_APPROVED_3CALL_SLOT`
 
@@ -49,6 +49,8 @@ No fixed CNY ceiling and no per-request CNY budget guard are required for this s
 
 `F03_CHILD_BRIDGE_UNKNOWN_ATTEMPT_ACCOUNTING = OFFLINE_VERIFIED_CLOSED`
 
+`F04_POST_RESULT_LEDGER_PERSISTENCE_FAILURE_BARRIER = OFFLINE_REPAIRED__FRESH_REVIEW_PENDING`
+
 F-03 has been repaired offline under existing authority with zero provider calls:
 
 1. a durable provider-attempt ledger (`src/replay_v0_1_provider_attempt_ledger.py`) records `ATTEMPT_STARTED` bound to authority identity, call/sequence, both wake identities, close time, request_id and `retry_count = 0` BEFORE the real bridge child process is launched; if persistence fails the child is not launched;
@@ -58,6 +60,8 @@ F-03 has been repaired offline under existing authority with zero provider calls
 5. deterministic timeout / no-result / malformed / valid / persistence-failure / terminal-barrier / evidence-distinction regressions were added and pass.
 
 The forward V0_3 machine-authority form (`KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_3` / `..._RETEST_V0_3`) now explicitly encodes the Owner CNY-ceiling waiver; historical V0_1/V0_2 authority behavior and identities are unchanged, and the waiver cannot be accidentally applied to historical versions.
+
+The first fresh independent review of the F-03 closure found a further ordinary persistence-window defect before any provider action: failure to record `RESULT_RECEIVED` (and a subsequent failure to record `UNKNOWN_AFTER_ATTEMPT_START`) could leave a durable `ATTEMPT_STARTED` row while allowing a second child launch in the same process. It is repaired offline at execution commit `12d7000801a3711e5e7ac22400a315a2c66e0d16`: the transport sets its terminal barrier before any best-effort unknown transition, result persistence failure also terminally blocks the transport, and terminal evidence treats residual `ATTEMPT_STARTED` rows as nonzero unresolved attempts requiring adjudication. No provider call, credential read, active slot, or machine-authority reseal occurred during this repair. A fresh independent review remains mandatory.
 
 No provider call has been made under this post-repair revalidation authority yet. No new machine slot has been created/resealed/activated. Execution remains locked pending a fresh independent high-assurance review.
 
@@ -141,6 +145,10 @@ F-03 offline closure evidence (including the forward V0_3 cost-waiver authority)
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_F03_CLOSURE_2026-08-27.md`
 
+F-04 offline closure evidence (post-result persistence terminal barrier):
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_F04_CLOSURE_2026-08-27.md`
+
 Approved post-V0.1 roadmap:
 
 `docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
@@ -155,9 +163,9 @@ Approved post-V0.1 roadmap:
 
 `HISTORICAL_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_EXACT_SLOT__F01_F02_F03_VERIFIED_OFFLINE__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
+`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_EXACT_SLOT__F01_F02_F03_VERIFIED__F04_REPAIRED_OFFLINE__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
 
-`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = F01_F02_ACCEPTED__F03_CLOSED_OFFLINE__FRESH_REVIEW_PENDING`
+`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = F01_F02_ACCEPTED__F03_CLOSED_OFFLINE__F04_REPAIRED_OFFLINE__FRESH_REVIEW_PENDING`
 
 `POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = NOT_YET_RESEALED`
 
