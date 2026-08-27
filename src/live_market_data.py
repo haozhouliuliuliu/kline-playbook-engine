@@ -194,8 +194,24 @@ class TqSdkClosedBarTracker:
             ))
         return tuple(result)
 
+    def normalize_closed(self, rows: list[Mapping[str, Any]] | tuple[Mapping[str, Any], ...], *,
+                         observed_at: datetime) -> tuple[LiveClosedBar, ...]:
+        """Return only the completed/causal closed bars in a serial (no state change).
+
+        A transport uses this to obtain the closed bars it must seed into the
+        causal context builder, while ``bootstrap`` separately establishes the
+        watermark. Bootstrap itself remains wake-suppressing and returns ``()``.
+        """
+        return self._closed_rows(rows, observed_at)
+
     def bootstrap(self, rows: list[Mapping[str, Any]] | tuple[Mapping[str, Any], ...], *,
                   observed_at: datetime) -> tuple[LiveClosedBar, ...]:
+        """Normalize a current/recent closed-bar serial and set the watermark.
+
+        Bootstrap never emits historical wakes; it only establishes the
+        watermark and returns ``()``. Use ``normalize_closed`` when the caller
+        also needs the normalized closed bars (e.g. to seed a context builder).
+        """
         closed = self._closed_rows(rows, observed_at)
         if closed:
             self._watermark_start = closed[-1].completed_bar.start
