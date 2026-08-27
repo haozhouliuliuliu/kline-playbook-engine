@@ -10,13 +10,13 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_VERIFIED__F02_VERIFIED__F03_OFFLINE_VERIFIED__F04_OFFLINE_REPAIRED__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
+`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_F02_F03_F04_VERIFIED__INDEPENDENT_REVIEW_ACCEPTED__AWAITING_FINAL_PREFLIGHT_AND_FRESH_V03_RESEAL`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__F01_F02_F03_VERIFIED__F04_REPAIRED_OFFLINE__FRESH_INDEPENDENT_REVIEW_PENDING`
+`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__INDEPENDENT_REVIEW_ACCEPTED__FINAL_ZERO_COST_PREFLIGHT_AND_FRESH_V03_RESEAL_REQUIRED`
 
-`NEXT_TASK = FRESH_INDEPENDENT_HIGH_ASSURANCE_REVIEW_OF_F03_CLOSURE_AND_FORWARD_AUTHORITY_WAIVER_PATH__THEN_RESEAL_AND_RUN_APPROVED_3CALL_SLOT`
+`NEXT_TASK = FINAL_ZERO_COST_PREFLIGHT__RESEAL_FRESH_FORWARD_V03_AUTHORITY__CONSEQUENTIAL_CHECK__ACTIVATE_AND_RUN_APPROVED_3CALL_SLOT_ONCE`
 
 Active model-visible contracts remain:
 
@@ -149,6 +149,10 @@ F-04 offline closure evidence (post-result persistence terminal barrier):
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_F04_CLOSURE_2026-08-27.md`
 
+Accepted fresh independent high-assurance review of F-03/F-04 and V0.3 path:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_PROVIDER_REVALIDATION_F04_CLOSURE_INDEPENDENT_REVIEW_2026-08-27.md`
+
 Approved post-V0.1 roadmap:
 
 `docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
@@ -163,9 +167,9 @@ Approved post-V0.1 roadmap:
 
 `HISTORICAL_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_EXACT_SLOT__F01_F02_F03_VERIFIED__F04_REPAIRED_OFFLINE__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
+`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_EXACT_SLOT__F01_F02_F03_F04_VERIFIED__INDEPENDENT_REVIEW_ACCEPTED__FINAL_PREFLIGHT_RESEAL_AND_ACTIVATION_PENDING`
 
-`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = F01_F02_ACCEPTED__F03_CLOSED_OFFLINE__F04_REPAIRED_OFFLINE__FRESH_REVIEW_PENDING`
+`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = ACCEPTABLE_FOR_FRESH_THREE_CALL_SLOT_PREPARATION__F01_F02_F03_F04_COVERED`
 
 `POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = NOT_YET_RESEALED`
 
@@ -188,7 +192,7 @@ Approved post-V0.1 roadmap:
 ## Current locks
 
 - original smoke and historical retest slots: `CONSUMED / CLOSED / NEVER REACTIVATE`;
-- post-repair three-call execution before a fresh acceptable independent high-assurance review of the F-03 closure + forward V0_3 waiver authority path: `LOCKED`;
+- post-repair three-call execution before final zero-cost preflight, fresh exact forward V0_3 two-identity authority and immediate consequential-action verification: `LOCKED`;
 - post-repair three-call execution before a fresh exact forward V0_3 two-identity machine authority: `LOCKED`;
 - retry, replacement wake, outcome-driven re-asking, call 4: `LOCKED`;
 - an `UNKNOWN_AFTER_ATTEMPT_START` state, once recorded during real execution, must terminate the slot and forbid automatic continuation/rerun;
@@ -202,4 +206,4 @@ Approved post-V0.1 roadmap:
 
 Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, and the exact task authorities/evidence above.
 
-The immediate next step is a fresh independent high-assurance review of the F-03 offline closure and the forward V0_3 cost-waiver authority path. That review is the gate before resealing the new exact forward V0_3 two-identity machine authority (explicitly encoding the Owner CNY-ceiling waiver) and performing the final immediate pre-execution refresh/verification before any credential/network capability is used. No provider call, slot activation, or reseal may occur before that review returns acceptable. This exact slot has no fixed CNY ceiling by current Owner decision. Full V0.1 remains locked.
+The fresh independent high-assurance review accepted the F-03/F-04 closure and forward V0_3 cost-waiver authority path at `66d2530f3c3633e130e5d57922b4a725e7bf8aef`, with zero provider/network calls. The next steps are final zero-cost preflight, resealing a new exact forward V0_3 two-identity machine authority (explicitly encoding the Owner CNY-ceiling waiver), and immediate final pre-execution refresh/verification before any credential/network capability is used. No provider call or slot activation may occur before those steps complete. This exact slot has no fixed CNY ceiling by current Owner decision. Full V0.1 remains locked.
