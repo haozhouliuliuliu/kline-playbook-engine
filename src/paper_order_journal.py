@@ -12,7 +12,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
 
-PAPER_ORDER_JOURNAL_SCHEMA_VERSION = "KPE_PAPER_ORDER_JOURNAL_V0_2"
+from src.broker_adapter import BrokerOrderInstruction
+
+PAPER_ORDER_JOURNAL_SCHEMA_VERSION = "KPE_PAPER_ORDER_JOURNAL_V0_3"
 PREPARED = "PREPARED"
 ATTEMPT_STARTED = "ATTEMPT_STARTED"
 BROKER_ORDER_ID_KNOWN = "BROKER_ORDER_ID_KNOWN"
@@ -64,6 +66,9 @@ class PaperOrderAttempt:
     intent_identity: str
     risk_identity: str
     concrete_contract_id: str
+    expected_direction: str | None
+    expected_action: str | None
+    expected_quantity: str | None
     execution_mode: str
     status: str
     broker_order_id: str | None
@@ -119,6 +124,9 @@ class PaperOrderJournal:
                 intent_identity TEXT NOT NULL UNIQUE,
                 risk_identity TEXT NOT NULL,
                 concrete_contract_id TEXT NOT NULL,
+                expected_direction TEXT,
+                expected_action TEXT,
+                expected_quantity TEXT,
                 execution_mode TEXT NOT NULL,
                 status TEXT NOT NULL,
                 broker_order_id TEXT,
@@ -153,11 +161,26 @@ class PaperOrderJournal:
                 UNIQUE(original_client_request_id, replacement_generation)
             );
         """)
+        # V0.1/V0.2 journals may exist from an interrupted offline drill.  Their
+        # order envelopes are unknowable, so recovery will fail closed below.
+        existing_columns = {
+            row[1] for row in self._connection.execute("PRAGMA table_info(order_attempts)")
+        }
+        for column, definition in (
+            ("expected_direction", "TEXT"),
+            ("expected_action", "TEXT"),
+            ("expected_quantity", "TEXT"),
+        ):
+            if column not in existing_columns:
+                self._connection.execute(
+                    f"ALTER TABLE order_attempts ADD COLUMN {column} {definition}"
+                )
         existing = self._connection.execute(
             "SELECT value FROM metadata WHERE key='schema_version'"
         ).fetchone()
         if existing is not None and existing[0] not in (
-            "KPE_PAPER_ORDER_JOURNAL_V0_1", PAPER_ORDER_JOURNAL_SCHEMA_VERSION,
+            "KPE_PAPER_ORDER_JOURNAL_V0_1", "KPE_PAPER_ORDER_JOURNAL_V0_2",
+            PAPER_ORDER_JOURNAL_SCHEMA_VERSION,
         ):
             raise ValueError("unsupported paper order journal schema")
         self._connection.execute(
@@ -175,22 +198,31 @@ class PaperOrderJournal:
 
     def prepare(self, *, client_request_id: str, trader_identity: str, wake_identity: str,
                 decision_identity: str, intent_identity: str, risk_identity: str,
-                concrete_contract_id: str, prepared_at: datetime) -> PaperOrderAttempt:
+                concrete_contract_id: str, instruction: BrokerOrderInstruction,
+                prepared_at: datetime) -> PaperOrderAttempt:
         values = (client_request_id, trader_identity, wake_identity, decision_identity,
                   intent_identity, risk_identity, concrete_contract_id)
         if any(not isinstance(value, str) or not value.strip() for value in values):
             raise ValueError("paper order prepare requires complete non-empty identities")
+        if not isinstance(instruction, BrokerOrderInstruction):
+            raise ValueError("paper order prepare requires BrokerOrderInstruction")
+        if (instruction.client_request_id != client_request_id or
+                instruction.concrete_contract_id != concrete_contract_id):
+            raise ValueError("PAPER_ORDER_PREPARE_INSTRUCTION_IDENTITY_MISMATCH")
         at = _iso(prepared_at)
         try:
             self._connection.execute("""
                 INSERT INTO order_attempts(
                     client_request_id, trader_identity, wake_identity,
                     decision_identity, intent_identity, risk_identity,
-                    concrete_contract_id, execution_mode, status,
+                    concrete_contract_id, expected_direction, expected_action,
+                    expected_quantity, execution_mode, status,
                     broker_order_id, prepared_at, updated_at, safe_reason
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, 'PAPER', ?, NULL, ?, ?, NULL)
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PAPER', ?, NULL, ?, ?, NULL)
             """, (client_request_id, trader_identity, wake_identity, decision_identity,
-                    intent_identity, risk_identity, concrete_contract_id, PREPARED, at, at))
+                    intent_identity, risk_identity, concrete_contract_id,
+                    instruction.direction.value, instruction.action.value,
+                    str(instruction.quantity), PREPARED, at, at))
             self._connection.commit()
         except sqlite3.IntegrityError as error:
             raise ValueError("DUPLICATE_PAPER_ORDER_IDENTITY") from error
@@ -484,6 +516,28 @@ class PaperOrderJournal:
                 blockers.append("UNKNOWN_BROKER_ORDER")
                 continue
             snapshot = matches[0]
+            envelope = (
+                attempt.expected_direction,
+                attempt.expected_action,
+                attempt.expected_quantity,
+            )
+            if any(value is None for value in envelope):
+                self._mark_unknown_if_needed(
+                    attempt, "ORDER_ENVELOPE_MISSING", observed_at
+                )
+                blockers.append("ORDER_ENVELOPE_MISSING")
+                continue
+            if (
+                snapshot.concrete_contract_id != attempt.concrete_contract_id
+                or snapshot.direction.value != attempt.expected_direction
+                or snapshot.action.value != attempt.expected_action
+                or str(snapshot.requested_quantity) != attempt.expected_quantity
+            ):
+                self._mark_unknown_if_needed(
+                    attempt, "BROKER_ORDER_ENVELOPE_MISMATCH", observed_at
+                )
+                blockers.append("ORDER_ENVELOPE_MISMATCH")
+                continue
             if attempt.broker_order_id is not None and snapshot.order_id != attempt.broker_order_id:
                 self._mark_unknown_if_needed(attempt, "BROKER_ORDER_IDENTITY_MISMATCH", observed_at)
                 blockers.append("ORDER_IDENTITY_MISMATCH")
@@ -610,6 +664,8 @@ class PaperOrderJournal:
             wake_identity=row["wake_identity"], decision_identity=row["decision_identity"],
             intent_identity=row["intent_identity"], risk_identity=row["risk_identity"],
             concrete_contract_id=row["concrete_contract_id"], execution_mode=row["execution_mode"],
+            expected_direction=row["expected_direction"], expected_action=row["expected_action"],
+            expected_quantity=row["expected_quantity"],
             status=status, broker_order_id=row["broker_order_id"],
             prepared_at=_parse(row["prepared_at"]), updated_at=_parse(row["updated_at"]),
             safe_reason=row["safe_reason"],

@@ -90,22 +90,61 @@ class PaperRuntimeCoordinatorTests(unittest.TestCase):
                 broker_orders.close()
                 wakes.close()
 
+    def test_coordinator_rejects_supervisor_state_split_brain(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            runtime_orders = PaperOrderJournal(root / "runtime.sqlite3")
+            supervisor_orders = PaperOrderJournal(root / "supervisor.sqlite3")
+            wakes = PaperWakeJournal(root / "wakes.sqlite3")
+            try:
+                builder = _new_builder()
+                mirror = PaperBrokerTruthMirror(broker_id="OFFLINE_FAKE_BROKER")
+                broker = GenericJournaledFakeBroker(runtime_orders)
+                supervisor = PaperRuntimeSupervisor(
+                    actual_tqsdk_runtime_version="3.10.1",
+                    authority=_authority(), activation_profile=_profile(),
+                    broker_mirror=mirror, order_journal=supervisor_orders,
+                    wake_journal=wakes,
+                )
+                with self.assertRaisesRegex(
+                    ValueError, "PAPER_RUNTIME_SUPERVISOR_ORDER_JOURNAL_MISMATCH"
+                ):
+                    PaperRuntimeCoordinator(
+                        trader_identity="GENERIC_TEST_TRADER",
+                        concrete_contract_id=CONTRACT,
+                        context_builder=builder, wake_journal=wakes,
+                        order_journal=runtime_orders, broker_mirror=mirror,
+                        supervisor=supervisor, broker=broker,
+                        trader=FakeTrader(), risk_planner=FixtureRiskPlanner(),
+                    )
+            finally:
+                runtime_orders.close()
+                supervisor_orders.close()
+                wakes.close()
+
     def test_tqsdk_candidate_exposes_exact_driver_order_journal(self) -> None:
         with TemporaryDirectory() as tmp:
             journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
             try:
-                driver = TqSdkPaperExecutionDriver(
-                    broker_id="tqsdk-paper", account_identity="paper-account",
-                    session_factory=lambda: None, order_journal=journal,
-                )
                 authority = PaperExecutionAuthority(
                     authority_id="test-pending", broker_kind="TQSDK", account_kind="PAPER",
                     status=PaperAuthorityStatus.PENDING, allow_connect=False,
                     allow_order_submit=False,
                 )
+                driver = TqSdkPaperExecutionDriver(
+                    broker_id="tqsdk-paper", account_identity="paper-account",
+                    session_factory=lambda: None, order_journal=journal, authority=authority,
+                )
                 adapter = TqSdkPaperBrokerAdapter(driver=driver, authority=authority)
                 self.assertTrue(adapter.journal_managed_execution)
                 self.assertIs(adapter.order_journal, journal)
+                different_authority = PaperExecutionAuthority(
+                    authority_id="different-pending", broker_kind="TQSDK", account_kind="PAPER",
+                    status=PaperAuthorityStatus.PENDING, allow_connect=False,
+                    allow_order_submit=False,
+                )
+                with self.assertRaisesRegex(ValueError, "TQSDK_PAPER_DRIVER_AUTHORITY_MISMATCH"):
+                    TqSdkPaperBrokerAdapter(driver=driver, authority=different_authority)
             finally:
                 journal.close()
 

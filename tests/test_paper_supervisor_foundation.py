@@ -7,7 +7,8 @@ import tempfile
 import unittest
 from zoneinfo import ZoneInfo
 
-from src.broker_adapter import BrokerAccountSnapshot
+from src.broker_adapter import BrokerAccountSnapshot, BrokerOrderInstruction, OrderType
+from src.contract_semantics import OrderAction, PositionDirection
 from src.paper_activation_profile import PaperActivationProfile, PaperActivationStatus
 from src.paper_broker_mirror import PaperBrokerTruthMirror
 from src.paper_execution_authority import PaperAuthorityStatus, PaperExecutionAuthority
@@ -145,6 +146,12 @@ class PaperSupervisorFoundationTests(unittest.TestCase):
             intent_identity="intent-1",
             risk_identity="risk-1",
             concrete_contract_id=self.contract,
+            instruction=BrokerOrderInstruction(
+                client_request_id="request-1", concrete_contract_id=self.contract,
+                direction=PositionDirection.LONG, action=OrderAction.OPEN,
+                order_type=OrderType.LIMIT, quantity=Decimal("1"),
+                limit_price=Decimal("1"),
+            ),
             prepared_at=self.now,
         )
         self.order_journal.mark_attempt_started("request-1", at=self.now)
