@@ -10,13 +10,13 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_F02_F03_F04_VERIFIED__F05_RUNNER_TIMESTAMP_DEFECT_FOUND_AND_REPAIRED_OFFLINE__CANONICAL_DATASET_FOUND_AND_VERIFIED__FINAL_PREFLIGHT_PASS_ZERO_COST__V03_AUTHORITY_NONACTIVE__EXECUTION_LOCKED_PENDING_FRESH_REVIEW__NO_PROVIDER_ATTEMPT`
+`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_F02_F03_F04_VERIFIED__F05_REPAIRED_OFFLINE__OWNER_F05_FRESH_REVIEW_WAIVED_FOR_EXACT_SLOT__CANONICAL_DATASET_FOUND_AND_VERIFIED__FINAL_PREFLIGHT_PASS_ZERO_COST__V03_AUTHORITY_NONACTIVE__READY_FOR_RESEAL_ACTIVATE_RUN__NO_PROVIDER_ATTEMPT`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__INDEPENDENT_REVIEW_ACCEPTED__F05_EXECUTION_CRITICAL_DEFECT_FOUND_AND_REPAIRED_OFFLINE__FRESH_INDEPENDENT_REVIEW_REQUIRED_BEFORE_ANY_PAID_EXECUTION`
+`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__F05_FRESH_REVIEW_WAIVED_BY_OWNER_FOR_EXACT_SLOT__READY_FOR_FINAL_RESEAL_ACTIVATION_AND_EXACTLY_ONCE_3CALL_EXECUTION`
 
-`NEXT_TASK = FRESH_INDEPENDENT_HIGH_ASSURANCE_REVIEW_OF_F05_CLOSURE_AND_UPDATED_EXECUTION_COMMIT__THEN_RESEAL_ACTIVATE_AND_RUN_APPROVED_3CALL_SLOT_ONCE`
+`NEXT_TASK = RESEAL_V03_AGAINST_CURRENT_F05_EXECUTION_COMMIT__FINAL_CONSEQUENTIAL_CHECK__ACTIVATE__RUN_APPROVED_3CALL_SLOT_ONCE__TERMINALIZE_AND_ADJUDICATE`
 
 Active model-visible contracts remain:
 
@@ -39,7 +39,15 @@ The Owner explicitly superseded the earlier `MAX_SPEND_CNY = 3.00` requirement f
 
 `POST_REPAIR_REVALIDATION_CNY_CEILING = OWNER_WAIVED_FOR_THIS_EXACT_SLOT`
 
-No fixed CNY ceiling and no per-request CNY budget guard are required for this slot. Actual provider token/usage accounting must still be retained. This is a scoped exception only; it does not modify the stable default cost doctrine for future paid packages in `PROJECT_DIRECTION.md`. The forward machine-authority form (V0_3) now explicitly encodes the waiver (`OWNER_CNY_CEILING_WAIVED`) instead of fabricating a numeric ceiling; historical and existing V0_2 numeric-spend behavior is unchanged.
+No fixed CNY ceiling and no per-request CNY budget guard are required for this slot. Actual provider token/usage accounting must still be retained. This is a scoped exception only; it does not modify the stable default cost doctrine for future paid packages in `PROJECT_DIRECTION.md`. The forward machine-authority form (V0_3) explicitly encodes the waiver (`OWNER_CNY_CEILING_WAIVED`) instead of fabricating a numeric ceiling; historical and existing V0_2 numeric-spend behavior is unchanged.
+
+### Scoped F-05 review decision for this exact slot
+
+The Owner explicitly waived a new F-05-only independent review for this exact post-repair three-call revalidation after the narrow F-05 defect was repaired offline with zero provider attempts.
+
+`F05_FRESH_INDEPENDENT_REVIEW = OWNER_WAIVED_FOR_THIS_EXACT_SLOT`
+
+This removes only the F-05-specific review hold for this exact slot. It does not remove the deterministic final preflight, fresh exact V0_3 reseal, immediate consequential-action verification, three-call/zero-retry/no-call-4 limits, fail-closed attempt accounting, or terminalization requirements. It does not change the project's general future independent-review doctrine.
 
 ## Current repair/review findings
 
@@ -51,7 +59,7 @@ No fixed CNY ceiling and no per-request CNY budget guard are required for this s
 
 `F04_POST_RESULT_LEDGER_PERSISTENCE_FAILURE_BARRIER = OFFLINE_REPAIRED__INDEPENDENT_REVIEW_ACCEPTED`
 
-`F05_RUNNER_HARNESS_ATTEMPT_IDENTITY_TIMESTAMP_DEFECT = OFFLINE_REPAIRED__FRESH_INDEPENDENT_REVIEW_REQUIRED`
+`F05_RUNNER_HARNESS_ATTEMPT_IDENTITY_TIMESTAMP_DEFECT = OFFLINE_REPAIRED__OWNER_FRESH_REVIEW_WAIVED_FOR_EXACT_SLOT`
 
 F-03 has been repaired offline under existing authority with zero provider calls:
 
@@ -61,11 +69,11 @@ F-03 has been repaired offline under existing authority with zero provider calls
 4. safe non-secret diagnostics are retained without treating absent output as proof of no request;
 5. deterministic timeout / no-result / malformed / valid / persistence-failure / terminal-barrier / evidence-distinction regressions were added and pass.
 
-The forward V0_3 machine-authority form (`KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_3` / `..._RETEST_V0_3`) now explicitly encodes the Owner CNY-ceiling waiver; historical V0_1/V0_2 authority behavior and identities are unchanged, and the waiver cannot be accidentally applied to historical versions.
+The forward V0_3 machine-authority form (`KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_3` / `..._RETEST_V0_3`) explicitly encodes the Owner CNY-ceiling waiver; historical V0_1/V0_2 authority behavior and identities are unchanged, and the waiver cannot be accidentally applied to historical versions.
 
-The first fresh independent review of the F-03 closure found a further ordinary persistence-window defect before any provider action: failure to record `RESULT_RECEIVED` (and a subsequent failure to record `UNKNOWN_AFTER_ATTEMPT_START`) could leave a durable `ATTEMPT_STARTED` row while allowing a second child launch in the same process. It is repaired offline at execution commit `12d7000801a3711e5e7ac22400a315a2c66e0d16`: the transport sets its terminal barrier before any best-effort unknown transition, result persistence failure also terminally blocks the transport, and terminal evidence treats residual `ATTEMPT_STARTED` rows as nonzero unresolved attempts requiring adjudication. No provider call, credential read, active slot, or machine-authority reseal occurred during this repair. A fresh independent review remains mandatory.
+The first fresh independent review of the F-03 closure found a further ordinary persistence-window defect before any provider action: failure to record `RESULT_RECEIVED` (and a subsequent failure to record `UNKNOWN_AFTER_ATTEMPT_START`) could leave a durable `ATTEMPT_STARTED` row while allowing a second child launch in the same process. It was repaired offline at execution commit `12d7000801a3711e5e7ac22400a315a2c66e0d16`; the subsequent F-04 independent review accepted the repaired F-01/F-02/F-03/F-04 and V0.3 execution path.
 
-At the final pre-execution gate, after dataset restoration and a zero-cost preflight PASS, a further material pre-execution defect (F-05) was found and repaired offline: `tools/run_replay_v0_1_provider_smoke.py` constructed the harness `attempt_identities` with `timezone.utc` without importing `timezone`, raising `NameError` before any bridge child launch. The path is only reachable with `--transport harness`, so prior mock/fake-transport unit tests and reviews did not exercise it. Repair commit `c5338aa` adds the import and extracts `_build_attempt_identities(authority)` with a deterministic timezone-aware regression. The durable attempt ledger recorded **0 provider attempts**; no provider/network/credential activity occurred. Because this is an execution-critical change, the exactly-once three-call slot must wait for a fresh isolated high-assurance review of the F-05 closure before reseal/activation/execution.
+At the final pre-execution gate, after dataset restoration and a zero-cost preflight PASS, F-05 was found and repaired offline: `tools/run_replay_v0_1_provider_smoke.py` constructed harness `attempt_identities` with `timezone.utc` without importing `timezone`, raising `NameError` before any bridge child launch. Repair commit `c5338aa12c9e4ce6edc40be009f2e0d670d209b8` adds the import and extracts `_build_attempt_identities(authority)` with a deterministic timezone-aware regression. The durable attempt ledger recorded **0 provider attempts**; no provider/network/credential activity occurred. The Owner has now explicitly waived an additional F-05-only independent review for this exact slot, so the project may proceed to fresh reseal/activation/execution after the remaining mechanical gates pass.
 
 ## Current exact task authorities and evidence
 
@@ -119,7 +127,7 @@ Offline memory & wake-identity repair evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PRE_FULL_REPLAY_MEMORY_AND_WAKE_IDENTITY_REPAIR_2026-08-27.md`
 
-Current Owner-required revalidation authority (including scoped CNY-ceiling waiver):
+Current Owner-required revalidation authority (including scoped CNY-ceiling waiver and scoped F-05 review waiver):
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION_OWNER_DECISION_2026-08-27.md`
 
@@ -173,7 +181,7 @@ Final zero-cost preflight PASS evidence (explicit dataset paths, deterministic b
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_FINAL_PREFLIGHT_BLUEPRINT_2026-08-27.json`
 
-Fresh forward V0_3 two-identity RETEST machine authority (non-ACTIVE):
+Fresh forward V0_3 two-identity RETEST machine authority (non-ACTIVE and stale with respect to F-05 execution commit; must be freshly resealed before execution):
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_SLOT_V0_3.json`
 
@@ -191,11 +199,11 @@ Approved post-V0.1 roadmap:
 
 `HISTORICAL_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_EXACT_SLOT__F01_F02_F03_F04_VERIFIED__F05_REPAIRED_OFFLINE__DATASET_RESTORED_AND_VERIFIED__FINAL_PREFLIGHT_PASS_ZERO_COST__V03_AUTHORITY_NONACTIVE__EXECUTION_LOCKED_PENDING_FRESH_REVIEW__NO_PROVIDER_ATTEMPT`
+`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED__F01_F02_F03_F04_VERIFIED__F05_REPAIRED_OFFLINE__F05_FRESH_REVIEW_WAIVED_BY_OWNER_FOR_EXACT_SLOT__DATASET_RESTORED_AND_VERIFIED__FINAL_PREFLIGHT_PASS_ZERO_COST__READY_FOR_FRESH_RESEAL_ACTIVATE_RUN__NO_PROVIDER_ATTEMPT`
 
-`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = ACCEPTABLE_FOR_FRESH_THREE_CALL_SLOT_PREPARATION__F01_F02_F03_F04_COVERED__F05_FRESH_REVIEW_PENDING`
+`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = ACCEPTABLE_FOR_FRESH_THREE_CALL_SLOT_PREPARATION__F01_F02_F03_F04_COVERED__F05_FRESH_REVIEW_OWNER_WAIVED_FOR_EXACT_SLOT`
 
-`POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = AUTHORED_NON_ACTIVE__REQUIRES_RESEAL_AGAINST_F05_EXECUTION_COMMIT_AFTER_FRESH_REVIEW`
+`POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = AUTHORED_NON_ACTIVE__STALE_EXECUTION_COMMIT__MUST_RESEAL_AGAINST_CURRENT_F05_EXECUTION_COMMIT_BEFORE_ACTIVATION`
 
 `POST_REPAIR_REVALIDATION_PROVIDER_CALLS = 0`
 
@@ -220,8 +228,8 @@ Approved post-V0.1 roadmap:
 ## Current locks
 
 - original smoke and historical retest slots: `CONSUMED / CLOSED / NEVER REACTIVATE`;
-- post-repair three-call execution before a fresh isolated high-assurance review of the F-05 closure and updated execution commit: `LOCKED`;
-- post-repair three-call execution before resealing/activating the fresh exact forward V0_3 two-identity machine authority against the F-05 execution commit: `LOCKED`;
+- F-05-specific fresh independent review for this exact three-call slot: `OWNER_WAIVED`;
+- post-repair three-call execution before resealing/activating a fresh exact forward V0_3 two-identity machine authority against the current F-05 execution commit: `LOCKED`;
 - retry, replacement wake, outcome-driven re-asking, call 4: `LOCKED`;
 - an `UNKNOWN_AFTER_ATTEMPT_START` state, once recorded during real execution, must terminate the slot and forbid automatic continuation/rerun;
 - full V0.1 1998-call replay: `LOCKED`;
@@ -232,8 +240,6 @@ Approved post-V0.1 roadmap:
 
 ## Continuity rule for the next integration lane
 
-Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, and the exact task authorities/evidence above.
+Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, the exact Owner revalidation authority, the fresh machine authority, `TOOL_REGISTRY.md`, and the required evidence above.
 
-The fresh independent high-assurance review accepted the F-03/F-04 closure and forward V0_3 cost-waiver authority path. The original accepted canonical dataset was located in the local `data/canonical/` directory and mechanically verified against the accepted manifest/corpus identities (manifest `7510a4a9…d324`, corpus `1d03fd23…74a8`, 32,980 partitions/parquet, exact `cu`/`SHFE.cu2406` frozen slice). The final zero-cost preflight passed deterministically against the verified dataset with explicit `--manifest`/`--parquet-root` paths, producing the persisted blueprint (`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_FINAL_PREFLIGHT_BLUEPRINT_2026-08-27.json`) with exactly three governed wakes (logical + runtime identities, exact close times, 4 PNGs each) and `real_provider_calls = 0`. A non-ACTIVE V0_3 RETEST authority (`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_SLOT_V0_3.json`, identity `24d2409a…c94d`) explicitly encodes the Owner CNY-ceiling waiver.
-
-At the final pre-execution gate a further material pre-execution defect (F-05) was found and repaired offline at commit `c5338aa`: the runner's harness attempt-identity construction used `timezone.utc` without importing `timezone` (`NameError` before any bridge child launch; durable attempt ledger recorded 0 provider attempts). Because this is an execution-critical change, the exactly-once three-call slot must wait for a fresh isolated high-assurance review of the F-05 closure; only after that review returns acceptable may the project reseal/activate the fresh V0_3 authority against the updated execution commit and run the approved three-call slot. No provider call, credential read, slot activation, or reseal has occurred. Full V0.1 remains locked.
+The accepted F-03/F-04 review remains valid for the previously reviewed execution path; the narrow F-05 timestamp defect was repaired offline at `c5338aa12c9e4ce6edc40be009f2e0d670d209b8` with zero provider attempts. The Owner has now explicitly waived another F-05-only independent review for this exact slot. The original accepted canonical dataset is found and mechanically verified, and final zero-cost preflight has already passed with exactly three governed wakes and four PNGs each. The existing non-ACTIVE V0_3 authority predates the F-05 execution commit and must therefore be freshly resealed against the current clean executable commit, followed by the immediate consequential-action check and activation. If those mechanical gates pass, execute the already-approved three-call slot exactly once: max 3 calls, 0 retries, no replacement wake, no call 4. Any real-attempt failure or `UNKNOWN_AFTER_ATTEMPT_START` terminalizes the slot with no rerun. After completion or failure, terminalize the machine authority and preserve evidence. Full V0.1 remains locked pending project-brain adjudication of the real three-call result.
