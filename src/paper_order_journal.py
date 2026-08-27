@@ -196,6 +196,13 @@ class PaperOrderJournal:
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
         self.close()
 
+    def total_count(self) -> int:
+        """Read-only total durable order-attempt count (restart preservation)."""
+        row = self._connection.execute(
+            "SELECT COUNT(*) AS count FROM order_attempts"
+        ).fetchone()
+        return int(row["count"])
+
     def prepare(self, *, client_request_id: str, trader_identity: str, wake_identity: str,
                 decision_identity: str, intent_identity: str, risk_identity: str,
                 concrete_contract_id: str, instruction: BrokerOrderInstruction,
