@@ -426,6 +426,15 @@ class Fixed5MWakeLedger:
     def unbound_wakes(self) -> tuple[GovernedWake, ...]:
         return tuple(wake for wake in self.list_wakes() if wake.request_id is None)
 
+    def bound_wakes(self) -> tuple[GovernedWake, ...]:
+        """All wakes that have been admitted AND bound to a model request.
+
+        A wake counts as admitted/request-bound only when it has a non-null
+        bound ``request_id``, which ``bind_request`` durably persists BEFORE
+        transport execution.  Unbound/future wakes are excluded.
+        """
+        return tuple(wake for wake in self.list_wakes() if wake.request_id is not None)
+
     def bound_wake_for_request(self, request_id: str) -> GovernedWake | None:
         for wake in self.list_wakes():
             if wake.request_id == request_id:
@@ -569,6 +578,15 @@ class WakeLedgerArchive:
         with closing(self._connect()) as connection:
             rows = connection.execute("SELECT * FROM wake_records ORDER BY sequence").fetchall()
         return tuple(Fixed5MWakeLedger._wake_from_row(row) for row in rows)
+
+    def bound_wakes(self) -> tuple[GovernedWake, ...]:
+        """Read-only request-bound wakes across all governed sessions.
+
+        A wake is admitted/request-bound only when it has a non-null bound
+        ``request_id``.  Unbound/future wakes are excluded.  Never fabricates a
+        wake that was not actually admitted.
+        """
+        return tuple(wake for wake in self.all_wakes() if wake.request_id is not None)
 
     def bindings(self, session_identity: str) -> tuple[WakeBinding, ...]:
         with closing(self._connect()) as connection:

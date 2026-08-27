@@ -44,6 +44,7 @@ from src.jianghe_canon_retrieval import JiangheCanonRetriever
 from src.jianghe_response_normalizer import NORMALIZER_IDENTITY, RESPONSE_SCHEMA_VERSION
 from src.jianghe_trading_only_prompt import TRADING_ONLY_PROMPT_CONTRACT
 from src.jianghe_visual_renderer import JiangheVisualRenderer, RENDERER_VERSION
+from src.fixed_5m_wake_ledger import WakeLedgerArchive, wake_ledger_path_for
 from src.persistent_deepseek_runtime import (
     CURRENT_MODEL,
     DeepSeekHarnessRuntimeContract,
@@ -360,6 +361,119 @@ def _build_admitted_wake_evidence(bindings) -> list[dict]:
     ]
 
 
+def _read_bound_wakes(state_dir) -> tuple:
+    """Read ALL actually request-bound wakes from the durable wake ledger.
+
+    The wake ledger durably persists the request binding (with both wake
+    identities, close time, sequence, request_id and retry_count) BEFORE the
+    transport/provider call, so it is the factual source for every admitted
+    wake even when response normalization fails inside ``run_wake_step``.
+    """
+    ledger_path = wake_ledger_path_for(state_dir)
+    if not ledger_path.exists():
+        return ()
+    archive = WakeLedgerArchive(ledger_path)
+    return archive.bound_wakes()
+
+
+def _build_bound_wake_evidence(bound_wakes, completed_bindings) -> list[dict]:
+    """Fail-closed evidence for actually request-bound wakes.
+
+    Each request-bound ``GovernedWake`` contributes its exact identities and
+    request identity.  ``decision_identity`` / ``observation_identity`` are
+    included ONLY when a completed ``ReplayStepBinding`` exists for that wake
+    (a normalized decision actually exists); nothing is fabricated for a wake
+    whose response normalization failed.
+    """
+    completed_by_wake = {
+        getattr(binding, "wake_identity", None): binding
+        for binding in completed_bindings
+        if getattr(binding, "wake_identity", None)
+    }
+    evidence = []
+    for wake in bound_wakes:
+        record = {
+            "call": ("call_1", "call_2", "call_3")[wake.sequence],
+            "sequence": wake.sequence,
+            "wake_identity": wake.wake_identity,
+            "logical_wake_selection_identity": wake.logical_wake_selection_identity,
+            "close_time": wake.close_time.isoformat(),
+            "request_id": wake.request_id,
+            "retry_count": wake.retry_count,
+        }
+        completed = completed_by_wake.get(wake.wake_identity)
+        if completed is not None:
+            record["decision_identity"] = completed.decision_identity
+            record["observation_identity"] = completed.observation_identity
+        evidence.append(record)
+    return evidence
+
+
+def _read_audit_counts(state_dir, trader_identity) -> dict[str, int]:
+    """Read store audit event counts; best-effort (store may be absent/closed)."""
+    try:
+        from src.persistent_trader_store import PersistentTraderStore
+        store = PersistentTraderStore(
+            Path(state_dir) / "trader.sqlite3", trader_identity=trader_identity
+        )
+        export = store.portable_export()
+        counts = Counter(
+            str(item.get("event_kind"))
+            for item in export.get("audit", [])
+            if isinstance(item, dict)
+        )
+        store.close()
+        return dict(counts)
+    except Exception:
+        return {}
+
+
+def _assemble_fail_evidence(
+    *,
+    authority,
+    state_dir,
+    transport,
+    bindings,
+    transport_name: str,
+    error: Exception,
+    trader_identity: str,
+) -> dict:
+    """Assemble terminal fail-closed evidence from actually request-bound wakes.
+
+    ``admitted_wake_count`` and ``admitted_wakes`` are based on the durable wake
+    ledger's request-bound wakes (the factual admission source), not only on
+    completed ``ReplayStepBinding`` objects, so a wake whose provider request
+    already occurred but whose response failed normalization is still proven.
+    """
+    fail_audit_counts = _read_audit_counts(state_dir, trader_identity)
+    bound_wakes = _read_bound_wakes(state_dir)
+    return {
+        "status": "FAIL",
+        "runner_version": PROVIDER_SMOKE_RUNNER_VERSION,
+        "authority_status": authority.status,
+        "authority_identity": authority.identity,
+        "authority_version": authority.authority_version,
+        "provider": authority.provider,
+        "model": authority.model,
+        "transport": transport_name,
+        "reason": f"{type(error).__name__}: {error}",
+        "provider_call_count": len(getattr(transport, "calls", [])),
+        "network_request_count": len(getattr(transport, "calls", [])),
+        "admitted_wake_count": len(bound_wakes),
+        "admitted_wakes": _build_bound_wake_evidence(bound_wakes, bindings),
+        "request_count": len(bound_wakes),
+        "retry_count": 0,
+        "hidden_second_requests": 0,
+        "state_dir": str(state_dir),
+        "audit_event_counts": dict(sorted(fail_audit_counts.items())),
+        "full_replay_authorized": authority.full_replay_authorized,
+        "full_replay_1998_calls_authorized": authority.full_replay_1998_calls_authorized,
+        "max_provider_calls": authority.max_provider_calls,
+        "max_retries": authority.max_retries,
+        "images_per_call": authority.images_per_call,
+    }
+
+
 def _write_evidence_file(output: Path, encoded: str) -> None:
     """Atomically write evidence via a .partial temp file (utf-8, no BOM)."""
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -613,46 +727,15 @@ def main() -> int:
         sys.stdout.write(encoded)
         return 0
     except Exception as error:  # noqa: BLE001 - fail-closed terminal evidence
-        fail_audit_counts: dict[str, int] = {}
-        try:
-            from src.persistent_trader_store import PersistentTraderStore
-            store = PersistentTraderStore(
-                state_dir / "trader.sqlite3", trader_identity=trader_identity.identity
-            )
-            export = store.portable_export()
-            fail_audit_counts = Counter(
-                str(item.get("event_kind"))
-                for item in export.get("audit", [])
-                if isinstance(item, dict)
-            )
-            store.close()
-        except Exception:
-            fail_audit_counts = {}
-        fail_payload = {
-            "status": "FAIL",
-            "runner_version": PROVIDER_SMOKE_RUNNER_VERSION,
-            "authority_status": authority.status,
-            "authority_identity": authority.identity,
-            "authority_version": authority.authority_version,
-            "provider": authority.provider,
-            "model": authority.model,
-            "transport": args.transport,
-            "reason": f"{type(error).__name__}: {error}",
-            "provider_call_count": len(getattr(transport, "calls", [])),
-            "network_request_count": len(getattr(transport, "calls", [])),
-            "admitted_wake_count": len(bindings),
-            "admitted_wakes": _build_admitted_wake_evidence(bindings),
-            "request_count": len(bindings),
-            "retry_count": 0,
-            "hidden_second_requests": 0,
-            "state_dir": str(state_dir),
-            "audit_event_counts": dict(sorted(fail_audit_counts.items())),
-            "full_replay_authorized": authority.full_replay_authorized,
-            "full_replay_1998_calls_authorized": authority.full_replay_1998_calls_authorized,
-            "max_provider_calls": authority.max_provider_calls,
-            "max_retries": authority.max_retries,
-            "images_per_call": authority.images_per_call,
-        }
+        fail_payload = _assemble_fail_evidence(
+            authority=authority,
+            state_dir=state_dir,
+            transport=transport,
+            bindings=bindings,
+            transport_name=args.transport,
+            error=error,
+            trader_identity=trader_identity.identity,
+        )
         encoded = json.dumps(fail_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
         _write_evidence_file(output, encoded)
         sys.stdout.write(encoded)

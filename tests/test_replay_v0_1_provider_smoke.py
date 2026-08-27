@@ -20,8 +20,13 @@ import tempfile
 import unittest
 
 from src.jianghe_ai_trader import ReplayClock
+from src.fixed_5m_wake_ledger import WakeLedgerArchive, wake_ledger_path_for
 from src.jianghe_visual_renderer import JiangheVisualRenderer, RENDERER_VERSION
-from src.replay_v0_1_orchestrator import PHASE_BURN_IN, ReplayV01Orchestrator
+from src.replay_v0_1_orchestrator import (
+    PHASE_BURN_IN,
+    ReplayV01Orchestrator,
+    SyntheticScriptedTransport,
+)
 from src.replay_v0_1_smoke_authority import (
     PROVIDER,
     SMOKE_AUTHORITY_VERSION,
@@ -62,6 +67,7 @@ from src.persistent_deepseek_runtime import (
     PROJECT_TRANSPORT_PATCH,
 )
 from src.jianghe_trading_only_prompt import TRADING_ONLY_PROMPT_CONTRACT
+from src.persistent_trader_store import PersistentTraderStore
 from tests.replay_v0_1_synthetic_fixture import (
     ReplayV01RuntimeFixture,
     build_session_steps,
@@ -968,6 +974,227 @@ class ProviderSmokeRunnerWakeBindingVerificationTests(unittest.TestCase):
                 item["logical_wake_selection_identity"],
                 binding.logical_wake_selection_identity,
             )
+
+
+def _malformed_response() -> str:
+    """A V0_2 strict-schema response with object-shaped numeric_claims -> rejected."""
+    return json.dumps({
+        "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_2",
+        "family": "NONE",
+        "action": "WAIT",
+        "direction": "NONE",
+        "attention_mode": "SCAN",
+        "decision_state": "malformed",
+        "rationale": "malformed response for F-02 regression",
+        "declared_unknown": [],
+        "principle_references": [],
+        "source_references": [],
+        "numeric_claims": {"latest_5m_close": 76780},  # object shape -> rejected
+        "current_market_hypothesis": None,
+        "timeframe_trend_view": [],
+        "key_location_hypotheses": [],
+        "expected_trigger": None,
+        "invalidation_hypothesis": None,
+        "open_questions": [],
+    }, ensure_ascii=False)
+
+
+class ProviderSmokeFailClosedEvidenceTests(unittest.TestCase):
+    """F-02: terminal fail-closed evidence must prove EVERY actually
+    admitted/request-bound wake, including the wake whose provider response
+    failed normalization AFTER the transport was invoked (no completed
+    ReplayStepBinding exists for it)."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.state_dir = self.root / "state"
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def _runner_module(self):
+        path = REPO_ROOT / "tools" / "run_replay_v0_1_provider_smoke.py"
+        spec = importlib.util.spec_from_file_location("kpe_smoke_runner_mod2", path)
+        self.assertIsNotNone(spec)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+        return module
+
+    def _load_authority(self):
+        payload = _authority_payload(
+            status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
+            max_spend_cny="3.00",
+            smoke_wakes=_three_wakes(),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            return load_provider_smoke_authority(_write_authority(Path(tmp), payload))
+
+    def _run_until_failure(self, responses: list[str]) -> dict:
+        """Drive the real orchestrator until a response fails; return context.
+
+        Exercises the REAL failure window: wake registration -> pre-call guard ->
+        request binding (durably persisted) -> transport invocation -> malformed
+        response -> normalization failure -> durable request-bound wakes.
+        """
+        fixture = ReplayV01RuntimeFixture(self.root)
+        slice_ = build_slice()
+        replay_days = slice_.burn_in_days + slice_.measurement_days
+        trading_day = replay_days[0]
+        steps = build_session_steps(
+            trading_day=trading_day, session_identity="sess-f02",
+            start=_day_start(trading_day), count=3,
+        )
+        transport = SyntheticScriptedTransport(responses)
+        orchestrator = ReplayV01Orchestrator(
+            runtime_factory=fixture.make_runtime_factory(),
+            clock=ReplayClock(current_time=steps[0].wake_bar.open_time),
+            slice_=slice_, transport=transport, state_dir=self.state_dir,
+        )
+        try:
+            orchestrator.begin_session(
+                phase=PHASE_BURN_IN, trading_day=trading_day, replay_day_index=0,
+                session_identity="sess-f02", steps=steps,
+            )
+            bindings: list = []
+            failure: Exception | None = None
+            for step in steps:
+                try:
+                    orchestrator.run_wake_step(step)
+                except Exception as exc:  # normalization/recording failure
+                    failure = exc
+                    break
+                bindings = list(orchestrator.list_step_bindings())
+            return {
+                "root": self.root,
+                "state_dir": self.state_dir,
+                "fixture": fixture,
+                "transport": transport,
+                "bindings": bindings,
+                "failure": failure,
+                "trader_identity": fixture.identity.identity,
+            }
+        finally:
+            orchestrator.runtime.close()
+
+    def test_first_call_post_transport_normalization_failure(self) -> None:
+        module = self._runner_module()
+        ctx = self._run_until_failure([_malformed_response()])
+        self.assertIsInstance(ctx["failure"], ValueError)
+        # Fake transport invoked exactly once; no second call.
+        self.assertEqual(len(ctx["transport"].calls), 1)
+        ledger = WakeLedgerArchive(wake_ledger_path_for(ctx["state_dir"]))
+        bound = ledger.bound_wakes()
+        self.assertEqual(len(bound), 1)
+        wake = bound[0]
+        self.assertEqual(wake.sequence, 0)
+        self.assertTrue(wake.request_id)
+        self.assertEqual(wake.retry_count, 0)
+        # No unadmitted/future wake was fabricated.
+        self.assertEqual(len(ledger.all_wakes()), 1)
+        # Evidence helper: exact call_1 identity pair + request identity, no decision identity.
+        evidence = module._build_bound_wake_evidence(bound, ctx["bindings"])
+        self.assertEqual(len(evidence), 1)
+        record = evidence[0]
+        self.assertEqual(record["call"], "call_1")
+        self.assertEqual(record["sequence"], 0)
+        self.assertEqual(record["wake_identity"], wake.wake_identity)
+        self.assertEqual(
+            record["logical_wake_selection_identity"],
+            wake.logical_wake_selection_identity,
+        )
+        self.assertEqual(record["request_id"], wake.request_id)
+        self.assertEqual(record["retry_count"], 0)
+        self.assertNotIn("decision_identity", record)
+        # Full fail-closed terminal evidence.
+        authority = self._load_authority()
+        payload = module._assemble_fail_evidence(
+            authority=authority,
+            state_dir=ctx["state_dir"],
+            transport=ctx["transport"],
+            bindings=ctx["bindings"],
+            transport_name="mock",
+            error=ctx["failure"],
+            trader_identity=ctx["trader_identity"],
+        )
+        self.assertEqual(payload["provider_call_count"], 1)
+        self.assertEqual(payload["network_request_count"], 1)
+        self.assertEqual(payload["admitted_wake_count"], 1)
+        self.assertEqual(payload["request_count"], 1)
+        self.assertEqual(payload["retry_count"], 0)
+        self.assertEqual(len(payload["admitted_wakes"]), 1)
+        self.assertEqual(payload["admitted_wakes"][0]["call"], "call_1")
+        self.assertEqual(payload["admitted_wakes"][0]["wake_identity"], wake.wake_identity)
+        self.assertEqual(
+            payload["admitted_wakes"][0]["logical_wake_selection_identity"],
+            wake.logical_wake_selection_identity,
+        )
+        self.assertNotIn("decision_identity", payload["admitted_wakes"][0])
+
+    def test_later_call_post_transport_normalization_failure(self) -> None:
+        module = self._runner_module()
+        ctx = self._run_until_failure([valid_response(), _malformed_response()])
+        self.assertIsInstance(ctx["failure"], ValueError)
+        # call_1 succeeded; call_2 provider request occurred then failed normalization.
+        self.assertEqual(len(ctx["transport"].calls), 2)
+        ledger = WakeLedgerArchive(wake_ledger_path_for(ctx["state_dir"]))
+        bound = ledger.bound_wakes()
+        self.assertEqual(len(bound), 2)
+        call1, call2 = bound
+        self.assertEqual(call1.sequence, 0)
+        self.assertEqual(call2.sequence, 1)
+        self.assertTrue(call1.request_id)
+        self.assertTrue(call2.request_id)
+        self.assertEqual(call1.retry_count, 0)
+        self.assertEqual(call2.retry_count, 0)
+        # call_1 has a completed decision; call_2 must NOT fabricate one.
+        evidence = module._build_bound_wake_evidence(bound, ctx["bindings"])
+        self.assertEqual(len(evidence), 2)
+        self.assertEqual(evidence[0]["call"], "call_1")
+        self.assertEqual(evidence[1]["call"], "call_2")
+        self.assertIn("decision_identity", evidence[0])
+        self.assertNotIn("decision_identity", evidence[1])
+        self.assertEqual(evidence[1]["wake_identity"], call2.wake_identity)
+        self.assertEqual(
+            evidence[1]["logical_wake_selection_identity"],
+            call2.logical_wake_selection_identity,
+        )
+        # No call_3.
+        self.assertEqual(len(ctx["transport"].calls), 2)
+        # Full fail-closed terminal evidence.
+        authority = self._load_authority()
+        payload = module._assemble_fail_evidence(
+            authority=authority,
+            state_dir=ctx["state_dir"],
+            transport=ctx["transport"],
+            bindings=ctx["bindings"],
+            transport_name="mock",
+            error=ctx["failure"],
+            trader_identity=ctx["trader_identity"],
+        )
+        self.assertEqual(payload["provider_call_count"], 2)
+        self.assertEqual(payload["admitted_wake_count"], 2)
+        self.assertEqual(len(payload["admitted_wakes"]), 2)
+        self.assertIn("decision_identity", payload["admitted_wakes"][0])
+        self.assertNotIn("decision_identity", payload["admitted_wakes"][1])
+        self.assertEqual(payload["admitted_wakes"][1]["call"], "call_2")
+
+    def test_bound_wakes_survive_restart_model(self) -> None:
+        # The durable request-bound ledger is a file; reopening it after the
+        # runtime is closed (restart/persistence model) yields the same wakes.
+        ctx = self._run_until_failure([valid_response(), _malformed_response()])
+        first = WakeLedgerArchive(wake_ledger_path_for(ctx["state_dir"])).bound_wakes()
+        reopened = WakeLedgerArchive(wake_ledger_path_for(ctx["state_dir"])).bound_wakes()
+        self.assertEqual(len(first), 2)
+        self.assertEqual(
+            [wake.wake_identity for wake in first],
+            [wake.wake_identity for wake in reopened],
+        )
+        self.assertEqual(
+            [wake.logical_wake_selection_identity for wake in first],
+            [wake.logical_wake_selection_identity for wake in reopened],
+        )
 
 
 if __name__ == "__main__":
