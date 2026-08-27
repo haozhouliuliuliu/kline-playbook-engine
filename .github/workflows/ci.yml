@@ -77,6 +77,7 @@ jobs:
           tests.test_paper_live_execution_foundation
           tests.test_paper_supervisor_foundation
           tests.test_paper_live_causal_context
+          tests.test_paper_live_replay_equivalence
           tests.test_paper_order_recovery
           tests.test_paper_offline_runtime_drill
 
