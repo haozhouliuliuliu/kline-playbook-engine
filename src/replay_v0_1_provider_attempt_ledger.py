@@ -330,6 +330,15 @@ class ProviderAttemptLedger:
     def unknown_after_attempt_start_count(self) -> int:
         return sum(1 for attempt in self.attempts() if attempt.attempt_state == UNKNOWN_AFTER_ATTEMPT_START)
 
+    def unresolved_attempt_started_count(self) -> int:
+        """Count durable starts lacking a terminal handoff state.
+
+        A process crash or a failed terminal-state write after a child launch
+        cannot prove a result.  Callers must therefore treat these rows as
+        adjudication-required attempted calls, never as an unused slot.
+        """
+        return sum(1 for attempt in self.attempts() if attempt.attempt_state == ATTEMPT_STARTED)
+
     def result_received_count(self) -> int:
         return sum(1 for attempt in self.attempts() if attempt.attempt_state == RESULT_RECEIVED)
 

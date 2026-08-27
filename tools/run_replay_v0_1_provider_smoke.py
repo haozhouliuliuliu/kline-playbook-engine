@@ -448,8 +448,9 @@ def _provider_attempt_evidence(state_dir, authority, transport) -> dict:
     (real Harness path), ``provider_call_count`` / ``network_request_count`` are
     the total ATTEMPT_STARTED attempts (the safe upper bound), and a separate
     ``known_result_count`` reports confirmed RESULT_RECEIVED completions.  An
-    ``UNKNOWN_AFTER_ATTEMPT_START`` attempt is never presented as zero calls;
-    it sets ``slot_requires_adjudication``.  When no attempt ledger exists
+    ``UNKNOWN_AFTER_ATTEMPT_START`` or unresolved ``ATTEMPT_STARTED`` attempt
+    is never presented as zero calls; either sets
+    ``slot_requires_adjudication``.  When no attempt ledger exists
     (mock/no-network path), the compatibility counts come from the transport's
     recorded calls.
     """
@@ -460,6 +461,7 @@ def _provider_attempt_evidence(state_dir, authority, transport) -> dict:
             "provider_attempt_count": 0,
             "provider_attempt_state": {},
             "unknown_after_attempt_start_count": 0,
+            "unresolved_attempt_started_count": 0,
             "known_result_count": 0,
             "slot_requires_adjudication": False,
             "provider_call_count": transport_calls,
@@ -467,14 +469,16 @@ def _provider_attempt_evidence(state_dir, authority, transport) -> dict:
         }
     attempts = ledger.attempts()
     unknown_count = ledger.unknown_after_attempt_start_count()
+    unresolved_count = ledger.unresolved_attempt_started_count()
     known_count = ledger.result_received_count()
     total = len(attempts)
     return {
         "provider_attempt_count": total,
         "provider_attempt_state": {attempt.call: attempt.attempt_state for attempt in attempts},
         "unknown_after_attempt_start_count": unknown_count,
+        "unresolved_attempt_started_count": unresolved_count,
         "known_result_count": known_count,
-        "slot_requires_adjudication": unknown_count > 0,
+        "slot_requires_adjudication": unknown_count > 0 or unresolved_count > 0,
         "provider_call_count": total,
         "network_request_count": total,
     }

@@ -1508,6 +1508,32 @@ class SmokeHarnessTransportAttemptTests(unittest.TestCase):
         self.assertEqual(self.ledger.result_received_count(), 1)
         self.assertEqual(self.ledger.unknown_after_attempt_start_count(), 0)
 
+    def test_terminal_barrier_holds_when_result_and_unknown_persistence_both_fail(self) -> None:
+        """A residual ATTEMPT_STARTED row can never permit a second child launch."""
+        class _ResultTransitionFailingLedger:
+            def __init__(self, ledger) -> None:
+                self._ledger = ledger
+
+            def record_attempt_started(self, **kwargs):
+                return self._ledger.record_attempt_started(**kwargs)
+
+            def record_result_received(self, **kwargs):
+                raise OSError("result ledger write failed")
+
+            def record_unknown_after_attempt_start(self, **kwargs):
+                raise OSError("unknown ledger write failed")
+
+        bridge = _ScriptedBridge(_valid_bridge_result)
+        transport = self._transport(bridge, ledger=_ResultTransitionFailingLedger(self.ledger))
+
+        with self.assertRaisesRegex(RuntimeError, "slot is terminally blocked"):
+            transport.execute(_fake_request("req-1"))
+        self.assertEqual(self.ledger.attempts()[0].attempt_state, ATTEMPT_STARTED)
+        self.assertEqual(bridge.launches, 1)
+        with self.assertRaisesRegex(RuntimeError, "terminally blocked"):
+            transport.execute(_fake_request("req-2"))
+        self.assertEqual(bridge.launches, 1, "residual attempted state must block call 2")
+
 
 class ProviderAttemptEvidenceTests(unittest.TestCase):
     """F-03: terminal evidence must distinguish no-attempt / known / unknown."""
@@ -1591,6 +1617,27 @@ class ProviderAttemptEvidenceTests(unittest.TestCase):
         self.assertTrue(evidence["slot_requires_adjudication"])
         self.assertEqual(evidence["provider_attempt_state"], {"call_1": UNKNOWN_AFTER_ATTEMPT_START})
         self.assertEqual(evidence["provider_call_count"], 1, "unknown started attempt must never be zero")
+
+    def test_unresolved_attempt_started_requires_adjudication(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp) / "state"
+            ledger = ProviderAttemptLedger(
+                provider_attempt_ledger_path_for(state_dir), authority_identity=authority.identity
+            )
+            ledger.record_attempt_started(
+                sequence=0, call="call_1",
+                logical_wake_selection_identity="l" + "a" * 63,
+                wake_identity="a" * 64,
+                close_time=_day_start(date(2024, 1, 22)), request_id="req-1",
+            )
+            evidence = module._provider_attempt_evidence(state_dir, authority, object())
+        self.assertEqual(evidence["provider_attempt_count"], 1)
+        self.assertEqual(evidence["unresolved_attempt_started_count"], 1)
+        self.assertEqual(evidence["unknown_after_attempt_start_count"], 0)
+        self.assertTrue(evidence["slot_requires_adjudication"])
+        self.assertEqual(evidence["provider_call_count"], 1)
 
     def test_unknown_attempt_terminal_barrier_in_driven_run(self) -> None:
         """An unknown attempt in a real orchestrator run must stop before call 2."""

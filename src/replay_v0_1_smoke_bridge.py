@@ -318,30 +318,50 @@ class SmokeHarnessTransport:
             )
         except Exception as error:  # noqa: BLE001 - post-launch failure is fail-closed
             if self._attempt_ledger is not None:
+                # Set the in-process terminal barrier first.  A secondary
+                # ledger write can itself fail, but that must never permit a
+                # second child launch in this process.
+                self._unknown_attempt_blocked = True
                 try:
                     self._attempt_ledger.record_unknown_after_attempt_start(
                         sequence=sequence, reason=str(error)
                     )
-                    self._unknown_attempt_blocked = True
                 except Exception:  # never mask the original fail-closed error
                     pass
             raise
+        if self._attempt_ledger is not None:
+            try:
+                self._attempt_ledger.record_result_received(
+                    sequence=sequence,
+                    metadata={
+                        "provider": result.provider,
+                        "model": result.model,
+                        "provider_request_id": result.provider_request_id,
+                        "request_count": result.request_count,
+                        "image_count": result.image_count,
+                        "finish_reason": result.finish_reason,
+                        "token_usage": json.dumps(dict(result.token_usage), ensure_ascii=False, sort_keys=True),
+                        "bridge_status": result.status,
+                    },
+                )
+            except Exception as error:  # result handoff is now ambiguous
+                self._unknown_attempt_blocked = True
+                try:
+                    self._attempt_ledger.record_unknown_after_attempt_start(
+                        sequence=sequence,
+                        reason=f"result persistence failed: {error}",
+                    )
+                except Exception:
+                    # The durable ATTEMPT_STARTED record remains conservative
+                    # evidence of an attempted request; the runner marks it
+                    # adjudication-required when reconstructing terminal state.
+                    pass
+                raise RuntimeError(
+                    "provider smoke result persistence failed after attempt start; "
+                    "slot is terminally blocked"
+                ) from error
         self._call_index += 1
         self.calls.append(result)
-        if self._attempt_ledger is not None:
-            self._attempt_ledger.record_result_received(
-                sequence=sequence,
-                metadata={
-                    "provider": result.provider,
-                    "model": result.model,
-                    "provider_request_id": result.provider_request_id,
-                    "request_count": result.request_count,
-                    "image_count": result.image_count,
-                    "finish_reason": result.finish_reason,
-                    "token_usage": json.dumps(dict(result.token_usage), ensure_ascii=False, sort_keys=True),
-                    "bridge_status": result.status,
-                },
-            )
         if result.status != "OK" or result.error:
             raise RuntimeError(f"provider smoke bridge failed closed: {result.error}")
         # Post-call fail-closed: exact provider/model, exactly four images, exactly one request.
