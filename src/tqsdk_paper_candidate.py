@@ -77,6 +77,9 @@ class TqSdkPaperBrokerAdapter(BrokerAdapter):
             journal = getattr(driver, "_journal", None)
         self._driver = driver
         self._authority = authority
+        driver_authority = getattr(driver, "authority", None)
+        if driver_authority is not None and driver_authority is not authority:
+            raise ValueError("TQSDK_PAPER_DRIVER_AUTHORITY_MISMATCH")
         self._order_journal = journal if isinstance(journal, PaperOrderJournal) else None
 
     @property

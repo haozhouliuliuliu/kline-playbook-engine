@@ -20,6 +20,7 @@ from src.paper_order_journal import (
     UNKNOWN_CANCEL,
     PaperOrderJournal,
 )
+from src.paper_execution_authority import PaperAuthorityStatus, PaperExecutionAuthority
 from src.tqsdk_paper_driver import TqSdkPaperExecutionDriver, map_tqsdk_orders
 
 
@@ -32,6 +33,11 @@ def _at(minute: int) -> datetime:
 
 
 def _prepare(journal: PaperOrderJournal, request_id: str, *, intent: str | None = None) -> None:
+    instruction = BrokerOrderInstruction(
+        client_request_id=request_id, concrete_contract_id=SYMBOL,
+        direction=PositionDirection.LONG, action=OrderAction.OPEN,
+        order_type=OrderType.LIMIT, quantity=Decimal("2"), limit_price=Decimal("1"),
+    )
     journal.prepare(
         client_request_id=request_id,
         trader_identity="trader-1",
@@ -40,7 +46,17 @@ def _prepare(journal: PaperOrderJournal, request_id: str, *, intent: str | None 
         intent_identity=intent or "intent-" + request_id,
         risk_identity="risk-" + request_id,
         concrete_contract_id=SYMBOL,
+        instruction=instruction,
         prepared_at=_at(0),
+    )
+
+
+def _authority() -> PaperExecutionAuthority:
+    return PaperExecutionAuthority(
+        authority_id="test-authority", broker_kind="TEST", account_kind="PAPER",
+        status=PaperAuthorityStatus.ACTIVE, allow_connect=True,
+        allow_order_submit=True, allow_order_cancel=True,
+        allowed_contracts=(SYMBOL,),
     )
 
 
@@ -115,7 +131,7 @@ class PaperOrderRecoveryTests(unittest.TestCase):
             session = FailingCancelSession()
             driver = TqSdkPaperExecutionDriver(
                 broker_id="fake", account_identity="paper", session_factory=lambda: session,
-                order_journal=journal,
+                order_journal=journal, authority=_authority(),
             )
             driver.connect()
             with self.assertRaises(TimeoutError):
@@ -152,6 +168,22 @@ class PaperOrderRecoveryTests(unittest.TestCase):
             blockers = journal.reconcile_broker_orders((_snapshot("request-1", "PARTIALLY_FILLED", order_id="broker-1", filled="1"),), observed_at=_at(5))
             self.assertIn("UNKNOWN_CANCEL", blockers)
             self.assertEqual(CANCEL_ATTEMPT_STARTED, journal.get_cancel(cancel.cancel_operation_id).status)
+            journal.close()
+
+    def test_broker_order_envelope_mismatch_becomes_unknown_and_blocks_risk(self) -> None:
+        with TemporaryDirectory() as tmp:
+            journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            _prepare(journal, "request-1")
+            journal.mark_attempt_started("request-1", at=_at(1))
+            mismatched = BrokerOrderSnapshot(
+                order_id="broker-1", client_request_id="request-1",
+                concrete_contract_id="SHFE.ag9999", direction=PositionDirection.LONG,
+                action=OrderAction.OPEN, status="LIVE", requested_quantity=Decimal("2"),
+                filled_quantity=Decimal("0"), snapshot_at=_at(5),
+            )
+            blockers = journal.reconcile_broker_orders((mismatched,), observed_at=_at(5))
+            self.assertIn("ORDER_ENVELOPE_MISMATCH", blockers)
+            self.assertEqual(UNKNOWN_BROKER_ORDER, journal.get("request-1").status)
             journal.close()
 
     def test_replacement_child_requires_resolved_cancel_and_is_single_use(self) -> None:

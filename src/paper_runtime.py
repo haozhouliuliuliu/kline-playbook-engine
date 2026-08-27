@@ -133,6 +133,12 @@ class PaperRuntimeCoordinator:
             raise ValueError("paper runtime requires PaperBrokerTruthMirror")
         if not isinstance(supervisor, PaperRuntimeSupervisor):
             raise ValueError("paper runtime requires PaperRuntimeSupervisor")
+        if supervisor.order_journal is not order_journal:
+            raise ValueError("PAPER_RUNTIME_SUPERVISOR_ORDER_JOURNAL_MISMATCH")
+        if supervisor.wake_journal is not wake_journal:
+            raise ValueError("PAPER_RUNTIME_SUPERVISOR_WAKE_JOURNAL_MISMATCH")
+        if supervisor.broker_mirror is not broker_mirror:
+            raise ValueError("PAPER_RUNTIME_SUPERVISOR_BROKER_MIRROR_MISMATCH")
         if getattr(broker, "journal_managed_execution", False) is not True:
             raise ValueError("paper runtime requires journal-managed broker execution")
         if getattr(broker, "order_journal", None) is not order_journal:
@@ -286,6 +292,7 @@ class PaperRuntimeCoordinator:
                 intent_identity=plan.intent_identity,
                 risk_identity=plan.risk_identity,
                 concrete_contract_id=self.concrete_contract_id,
+                instruction=instruction,
                 prepared_at=observed_at,
             )
             self._before_external_action(observed_at)
@@ -349,6 +356,7 @@ class PaperRuntimeCoordinator:
             intent_identity=child_plan.intent_identity,
             risk_identity=child_plan.risk_identity,
             concrete_contract_id=self.concrete_contract_id,
+            instruction=instruction,
             prepared_at=at,
         )
         cancel = self.order_journal.prepare_cancel_for_broker_order(

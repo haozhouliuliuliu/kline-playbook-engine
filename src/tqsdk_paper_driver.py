@@ -22,6 +22,7 @@ from src.broker_adapter import (
 )
 from src.contract_semantics import OrderAction, PositionDirection
 from src.paper_order_journal import PREPARED, PaperOrderJournal
+from src.paper_execution_authority import PaperExecutionAuthority
 from src.runtime_events import BrokerConnectionState, BrokerEvent, BrokerEventType, event_pairs
 
 TQSDK_PAPER_DRIVER_VERSION = "KPE_TQSDK_PAPER_DRIVER_V0_1"
@@ -209,14 +210,20 @@ class TqSdkPaperExecutionDriver:
 
     def __init__(self, *, broker_id: str, account_identity: str,
                  session_factory: Callable[[], TqSdkSession], order_journal: PaperOrderJournal,
+                 authority: PaperExecutionAuthority,
                  close_offset_policy: TqSdkCloseOffsetPolicy | None = None,
                  execution_price_policy: TqSdkExecutionPricePolicy | None = None) -> None:
         if not broker_id or not account_identity:
             raise ValueError("TqSdk driver requires broker and account identities")
+        if not isinstance(order_journal, PaperOrderJournal):
+            raise ValueError("TqSdk driver requires PaperOrderJournal")
+        if not isinstance(authority, PaperExecutionAuthority):
+            raise ValueError("TqSdk driver requires PaperExecutionAuthority")
         self._broker_id = broker_id
         self._account_identity = account_identity
         self._factory = session_factory
         self._journal = order_journal
+        self._authority = authority
         self._close_offset_policy = close_offset_policy
         self._execution_price_policy = execution_price_policy
         self._session: TqSdkSession | None = None
@@ -234,6 +241,9 @@ class TqSdkPaperExecutionDriver:
     @property
     def connection_state(self) -> BrokerConnectionState:
         return self._connection_state
+    @property
+    def authority(self) -> PaperExecutionAuthority:
+        return self._authority
 
     def _emit(self, event_type: BrokerEventType, *, occurred_at: datetime,
               order_id: str | None = None, client_request_id: str | None = None,
@@ -250,6 +260,7 @@ class TqSdkPaperExecutionDriver:
         self._sequence += 1
 
     def connect(self) -> None:
+        self._authority.require_connect()
         if self._session is not None:
             return
         session = self._factory()
@@ -308,6 +319,7 @@ class TqSdkPaperExecutionDriver:
     def submit_order(self, instruction: BrokerOrderInstruction) -> str:
         if not isinstance(instruction, BrokerOrderInstruction):
             raise ValueError("TqSdk driver requires BrokerOrderInstruction")
+        self._authority.require_order_submit(instruction.concrete_contract_id)
         session = self._require_session()
         entry = self._journal.get(instruction.client_request_id)
         if entry.status != PREPARED:
@@ -343,6 +355,7 @@ class TqSdkPaperExecutionDriver:
     def cancel_order(self, order_id: str) -> None:
         if not isinstance(order_id, str) or not order_id.strip():
             raise ValueError("cancel requires order id")
+        self._authority.require_order_cancel()
         session = self._require_session()
         now = datetime.now(ZoneInfo("Asia/Shanghai"))
         operation = self._journal.prepare_cancel_for_broker_order(order_id, at=now)

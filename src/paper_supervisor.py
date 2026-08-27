@@ -125,6 +125,21 @@ class PaperRuntimeSupervisor:
         self._order_journal = order_journal
         self._wake_journal = wake_journal
 
+    @property
+    def broker_mirror(self) -> PaperBrokerTruthMirror:
+        """Return the exact mirror used to make readiness decisions."""
+        return self._broker_mirror
+
+    @property
+    def order_journal(self) -> PaperOrderJournal:
+        """Return the exact durable order journal used by the order gate."""
+        return self._order_journal
+
+    @property
+    def wake_journal(self) -> PaperWakeJournal:
+        """Return the exact durable wake journal used by the observation gate."""
+        return self._wake_journal
+
     def assess(
         self,
         *,

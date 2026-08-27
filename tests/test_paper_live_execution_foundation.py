@@ -42,10 +42,24 @@ def _row(minute: int, price: str = "3500") -> dict[str, object]:
             "close": value+Decimal("1"), "volume": 100, "open_oi": 1000, "close_oi": 1001}
 
 def _prepare(journal: PaperOrderJournal, request_id: str = "req-1") -> None:
+    instruction = BrokerOrderInstruction(
+        client_request_id=request_id, concrete_contract_id=SYMBOL,
+        direction=PositionDirection.LONG, action=OrderAction.OPEN,
+        order_type=OrderType.LIMIT, quantity=Decimal("1"), limit_price=Decimal("3500"),
+    )
     journal.prepare(client_request_id=request_id, trader_identity="trader",
                     wake_identity=f"wake-{request_id}", decision_identity=f"decision-{request_id}",
                     intent_identity=f"intent-{request_id}", risk_identity=f"risk-{request_id}",
-                    concrete_contract_id=SYMBOL, prepared_at=_dt(9, 0))
+                    concrete_contract_id=SYMBOL, instruction=instruction, prepared_at=_dt(9, 0))
+
+
+def _driver_authority(*, status: PaperAuthorityStatus = PaperAuthorityStatus.ACTIVE) -> PaperExecutionAuthority:
+    active = status is PaperAuthorityStatus.ACTIVE
+    return PaperExecutionAuthority(
+        authority_id="test-driver-authority", broker_kind="TQSDK", account_kind="PAPER",
+        status=status, allow_connect=active, allow_order_submit=active,
+        allow_order_cancel=active, allowed_contracts=(SYMBOL,),
+    )
 
 class LiveMarketDataTests(unittest.TestCase):
     def test_bootstrap_suppresses_history_and_emits_only_new_closed_bar(self) -> None:
@@ -154,11 +168,11 @@ class TqSdkDriverTests(unittest.TestCase):
             def factory() -> FakeSession:
                 calls["count"] += 1; return FakeSession()
             journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            authority = _driver_authority(status=PaperAuthorityStatus.PENDING)
             driver = TqSdkPaperExecutionDriver(broker_id="tq", account_identity="paper",
-                session_factory=factory, order_journal=journal)
-            authority = PaperExecutionAuthority(authority_id="pending", broker_kind="TQSDK", account_kind="TQKQ",
-                status=PaperAuthorityStatus.PENDING, allow_connect=False, allow_order_submit=False)
+                session_factory=factory, order_journal=journal, authority=authority)
             adapter = TqSdkPaperBrokerAdapter(driver=driver, authority=authority)
+            with self.assertRaises(PermissionError): driver.connect()
             with self.assertRaises(PermissionError): adapter.connect()
             self.assertEqual(calls["count"], 0); journal.close()
 
@@ -166,7 +180,8 @@ class TqSdkDriverTests(unittest.TestCase):
         with TemporaryDirectory() as tmp:
             journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3"); _prepare(journal); session = FakeSession()
             driver = TqSdkPaperExecutionDriver(broker_id="tq", account_identity="paper",
-                session_factory=lambda: session, order_journal=journal); driver.connect()
+                session_factory=lambda: session, order_journal=journal,
+                authority=_driver_authority()); driver.connect()
             instruction = BrokerOrderInstruction(client_request_id="req-1", concrete_contract_id=SYMBOL,
                 direction=PositionDirection.LONG, action=OrderAction.OPEN, order_type=OrderType.LIMIT,
                 quantity=Decimal("1"), limit_price=Decimal("3500"))
@@ -180,7 +195,8 @@ class TqSdkDriverTests(unittest.TestCase):
         with TemporaryDirectory() as tmp:
             journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3"); _prepare(journal)
             driver = TqSdkPaperExecutionDriver(broker_id="tq", account_identity="paper",
-                session_factory=FakeSession, order_journal=journal); driver.connect()
+                session_factory=FakeSession, order_journal=journal,
+                authority=_driver_authority()); driver.connect()
             instruction = BrokerOrderInstruction(client_request_id="req-1", concrete_contract_id=SYMBOL,
                 direction=PositionDirection.LONG, action=OrderAction.CLOSE, order_type=OrderType.LIMIT,
                 quantity=Decimal("1"), limit_price=Decimal("3500"))
@@ -191,7 +207,8 @@ class TqSdkDriverTests(unittest.TestCase):
         with TemporaryDirectory() as tmp:
             journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3"); _prepare(journal)
             driver = TqSdkPaperExecutionDriver(broker_id="tq", account_identity="paper",
-                session_factory=FakeSession, order_journal=journal); driver.connect()
+                session_factory=FakeSession, order_journal=journal,
+                authority=_driver_authority()); driver.connect()
             instruction = BrokerOrderInstruction(client_request_id="req-1", concrete_contract_id=SYMBOL,
                 direction=PositionDirection.LONG, action=OrderAction.OPEN, order_type=OrderType.MARKET, quantity=Decimal("1"))
             with self.assertRaisesRegex(RuntimeError, "PAPER_EXECUTION_PRICE_POLICY_REQUIRED"): driver.submit_order(instruction)
@@ -201,7 +218,8 @@ class TqSdkDriverTests(unittest.TestCase):
         with TemporaryDirectory() as tmp:
             journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3"); _prepare(journal)
             driver = TqSdkPaperExecutionDriver(broker_id="tq", account_identity="paper",
-                session_factory=lambda: FakeSession(fail_insert=True), order_journal=journal); driver.connect()
+                session_factory=lambda: FakeSession(fail_insert=True), order_journal=journal,
+                authority=_driver_authority()); driver.connect()
             instruction = BrokerOrderInstruction(client_request_id="req-1", concrete_contract_id=SYMBOL,
                 direction=PositionDirection.LONG, action=OrderAction.OPEN, order_type=OrderType.LIMIT,
                 quantity=Decimal("1"), limit_price=Decimal("3500"))
