@@ -5,10 +5,13 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from src.paper_broker_mirror import PaperBrokerTruthMirror
+from src.paper_execution_authority import PaperAuthorityStatus, PaperExecutionAuthority
 from src.paper_order_journal import PaperOrderJournal
 from src.paper_runtime import PaperRuntimeCoordinator
 from src.paper_supervisor import PaperRuntimeSupervisor
 from src.paper_wake_journal import PaperWakeJournal
+from src.tqsdk_paper_candidate import TqSdkPaperBrokerAdapter
+from src.tqsdk_paper_driver import TqSdkPaperExecutionDriver
 from tests.test_paper_live_causal_context import CONTRACT, _new_builder
 from tests.test_paper_offline_runtime_drill import (
     FakeJournaledPaperBroker,
@@ -86,6 +89,25 @@ class PaperRuntimeCoordinatorTests(unittest.TestCase):
                 runtime_orders.close()
                 broker_orders.close()
                 wakes.close()
+
+    def test_tqsdk_candidate_exposes_exact_driver_order_journal(self) -> None:
+        with TemporaryDirectory() as tmp:
+            journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            try:
+                driver = TqSdkPaperExecutionDriver(
+                    broker_id="tqsdk-paper", account_identity="paper-account",
+                    session_factory=lambda: None, order_journal=journal,
+                )
+                authority = PaperExecutionAuthority(
+                    authority_id="test-pending", broker_kind="TQSDK", account_kind="PAPER",
+                    status=PaperAuthorityStatus.PENDING, allow_connect=False,
+                    allow_order_submit=False,
+                )
+                adapter = TqSdkPaperBrokerAdapter(driver=driver, authority=authority)
+                self.assertTrue(adapter.journal_managed_execution)
+                self.assertIs(adapter.order_journal, journal)
+            finally:
+                journal.close()
 
 
 if __name__ == "__main__":
