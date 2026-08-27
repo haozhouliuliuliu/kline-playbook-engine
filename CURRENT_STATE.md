@@ -10,13 +10,13 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_NORMAL_PATH_VERIFIED__F02_FAILCLOSED_EVIDENCE_REPAIR_REQUIRED`
+`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_VERIFIED__F02_OFFLINE_REPAIR_VERIFIED__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__BLOCKED_BY_F02_POST_PROVIDER_FAILURE_OBSERVABILITY_DEFECT`
+`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__F01_AND_F02_VERIFIED_OFFLINE__FRESH_INDEPENDENT_REVIEW_PENDING`
 
-`NEXT_TASK = REPAIR_F02_ADMITTED_REQUEST_BOUND_WAKE_EVIDENCE__OFFLINE_VERIFY__FRESH_INDEPENDENT_REVIEW__THEN_RESEAL_AND_RUN_APPROVED_3CALL_SLOT`
+`NEXT_TASK = FRESH_INDEPENDENT_HIGH_ASSURANCE_REVIEW_OF_F02_CLOSURE__THEN_RESEAL_V02_TWO_IDENTITY_MACHINE_AUTHORITY__THEN_RUN_APPROVED_3CALL_SLOT`
 
 The structured trading-memory and logical/runtime wake-identity offline repair remains offline-verified. Active model-visible contracts remain:
 
@@ -31,22 +31,13 @@ The Owner explicitly requires a fresh post-repair three-call real-provider reval
 
 That approval remains valid and unconsumed for this exact revalidation but does not bypass fail-closed pre-execution assurance.
 
-Codex independently confirmed the original F-01 normal-path repair: preflight carries both identities from actual governed `ReplayStepBinding`; the pre-call guard and post-drive verification independently enforce logical/runtime identity equality; PASS evidence retains both identities; future V0_2 authority rules remain intact.
+F-01 (logical wake identity propagation through preflight / runtime binding / evidence) is independently verified on the normal path. F-02 (fail-closed evidence must prove every actually admitted/request-bound wake, including the wake whose provider response failed normalization after the transport was invoked) has now been repaired offline and deterministically verified with zero provider calls:
 
-The same fresh review found a new material blocker (`F-02`): if a provider request has already occurred but strict response normalization/recording fails before `run_wake_step()` appends a complete `ReplayStepBinding`, terminal fail-closed evidence is built only from prior completed bindings and omits the current already-requested wake. Therefore a first-call malformed response can show one provider request but zero admitted-wake identity records, and a later failure can omit the final actually requested wake.
+1. the runner's terminal FAIL evidence is based on actually request-bound wakes read from the existing durable `Fixed5MWakeLedger` (`bound_wakes()` read seam on the ledger and its read-only archive);
+2. every admitted/request-bound wake retains call/sequence, logical identity, runtime identity, close time, request_id and retry_count; decision_identity is included only when a normalized decision actually exists;
+3. real no-network failure-window regressions prove first-call and later-call malformed-response normalization failures produce exact admitted-wake counts with both identities and no fabricated decision identity, no retry, no replacement wake, no call 4.
 
-Required repair under existing authority:
-
-1. persist or expose an admitted/request-bound wake record after identity admission and request binding but before transport execution;
-2. record at minimum logical wake-selection identity, runtime wake identity, close time, sequence/call identity, and request identifier as available;
-3. build fail-closed admitted-wake evidence from those actually admitted/request-bound records, not only completed decisions;
-4. do not fabricate future/unadmitted wakes or a decision identity/provider result when normalization failed;
-5. add deterministic no-network tests for first-call and later-call malformed provider responses after transport invocation;
-6. rerun focused + broad deterministic verification;
-7. obtain a fresh independent high-assurance review;
-8. only after an acceptable review, reseal the new exact V0_2 two-identity machine authority bound to the exact execution commit and the already approved CNY 3.00 ceiling, then perform immediate pre-execution refresh/verification and run the three calls.
-
-No provider call has been made under this post-repair revalidation authority yet and no new machine slot has been created/resealed/activated.
+A paid-boundary sweep verified no directly coupled pre-execution defect (call ceiling, retry ceiling, spend ceiling, stop-before-next-request, 4 images, production endpoint, `DEEPSEEK_API_KEY` only, no hidden request, execution-commit binding, ACTIVE gate, terminal evidence). No provider call has been made under this post-repair revalidation authority yet and no machine slot has been created/resealed/activated.
 
 ## Current exact task authorities and evidence
 
@@ -116,6 +107,10 @@ Fresh F-01 closure independent review (F-02 finding):
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_PROVIDER_REVALIDATION_F01_CLOSURE_INDEPENDENT_REVIEW_2026-08-27.md`
 
+F-02 offline closure evidence:
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_F02_CLOSURE_2026-08-27.md`
+
 Approved post-V0.1 roadmap:
 
 `docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
@@ -130,9 +125,9 @@ Approved post-V0.1 roadmap:
 
 `HISTORICAL_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__SPEND_APPROVED__EXECUTION_BLOCKED_BY_F02`
+`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__SPEND_APPROVED__F01_AND_F02_VERIFIED_OFFLINE__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
 
-`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = F01_NORMAL_PATH_ACCEPTED__F02_MATERIAL_DEFECT_OPEN`
+`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = F01_NORMAL_PATH_ACCEPTED__F02_CLOSED_OFFLINE__FRESH_REVIEW_PENDING`
 
 `POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = NOT_YET_RESEALED`
 
@@ -144,7 +139,7 @@ Approved post-V0.1 roadmap:
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-`FUTURE_PROVIDER_SLOT_WAKE_IDENTITY_REPAIR = TWO_IDENTITY_NORMAL_PATH_VERIFIED__F02_FAILCLOSED_EVIDENCE_REQUIRED`
+`FUTURE_PROVIDER_SLOT_WAKE_IDENTITY_REPAIR = TWO_IDENTITY_NORMAL_PATH_VERIFIED__F02_FAILCLOSED_EVIDENCE_OFFLINE_VERIFIED`
 
 `STRUCTURED_TRADING_MEMORY_FIDELITY_REPAIR = OFFLINE_VERIFIED`
 
@@ -155,8 +150,7 @@ Approved post-V0.1 roadmap:
 ## Current locks
 
 - original smoke and historical retest slots: `CONSUMED / CLOSED / NEVER REACTIVATE`;
-- post-repair three-call execution before F-02 repair: `LOCKED`;
-- post-repair three-call execution before a fresh acceptable independent review: `LOCKED`;
+- post-repair three-call execution before a fresh acceptable independent review of F-02 closure: `LOCKED`;
 - post-repair three-call execution before a fresh exact V0_2 logical+runtime two-identity machine authority: `LOCKED`;
 - fourth call, retry, replacement wake or outcome-driven re-asking: `LOCKED`;
 - full V0.1 1998-call replay: `LOCKED`;
@@ -169,4 +163,4 @@ Approved post-V0.1 roadmap:
 
 Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, and the exact task authorities/evidence above.
 
-The immediate next step is routine offline engineering closure of F-02 under existing authority. This repair must produce zero provider calls. After deterministic verification, obtain a fresh independent high-assurance review. If and only if that review returns acceptable, reseal the new exact V0_2 two-identity machine authority using the already Owner-approved maximum spend of CNY 3.00, then perform the final immediate pre-execution refresh/verification before any credential/network capability is used.
+The immediate next step is a fresh independent high-assurance review of the F-02 offline closure. That review is the gate before resealing the new exact V0_2 two-identity machine authority (using the already Owner-approved maximum spend of CNY 3.00) and performing the final immediate pre-execution refresh/verification before any credential/network capability is used. No provider call, slot activation, or reseal may occur before that review returns acceptable.
