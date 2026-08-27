@@ -12,7 +12,7 @@ performed by this module.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Protocol
+from typing import Any, Protocol
 
 from src.paper_order_journal import PaperOrderJournal
 from src.paper_runtime import (
@@ -38,10 +38,54 @@ OfflinePaperRiskPlanner = PaperRiskPlanner
 class OfflineJournaledPaperBroker(JournalManagedPaperBroker, Protocol):
     offline_test_only: bool
 
-    @property
-    def order_journal(self) -> PaperOrderJournal: ...
-
     def set_observed_at(self, at: datetime) -> None: ...
+
+
+class _LegacyOfflineBrokerProxy:
+    """Expose the old fake's ``journal`` field as the generic journal contract."""
+
+    offline_test_only = True
+    journal_managed_execution = True
+
+    def __init__(self, broker: Any, order_journal: PaperOrderJournal) -> None:
+        self._broker = broker
+        self._order_journal = order_journal
+
+    @property
+    def broker_id(self) -> str:
+        return self._broker.broker_id
+
+    @property
+    def order_journal(self) -> PaperOrderJournal:
+        return self._order_journal
+
+    @property
+    def connection_state(self):
+        return self._broker.connection_state
+
+    def set_observed_at(self, at: datetime) -> None:
+        self._broker.set_observed_at(at)
+
+    def connect(self) -> None:
+        self._broker.connect()
+
+    def disconnect(self) -> None:
+        self._broker.disconnect()
+
+    def submit_order(self, instruction):
+        return self._broker.submit_order(instruction)
+
+    def cancel_order(self, order_id: str) -> None:
+        self._broker.cancel_order(order_id)
+
+    def fetch_account_snapshot(self):
+        return self._broker.fetch_account_snapshot()
+
+    def fetch_position_snapshot(self):
+        return self._broker.fetch_position_snapshot()
+
+    def fetch_order_snapshot(self):
+        return self._broker.fetch_order_snapshot()
 
 
 class PaperOfflineRuntimeDrill(PaperRuntimeCoordinator):
@@ -53,6 +97,16 @@ class PaperOfflineRuntimeDrill(PaperRuntimeCoordinator):
             raise PermissionError("OFFLINE_PAPER_DRILL_REQUIRES_FAKE_BROKER")
         if not callable(getattr(broker, "set_observed_at", None)):
             raise ValueError("offline drill fake broker requires set_observed_at")
+        order_journal = kwargs.get("order_journal")
+        if not isinstance(order_journal, PaperOrderJournal):
+            raise ValueError("offline drill requires PaperOrderJournal")
+        broker_journal = getattr(broker, "order_journal", None)
+        if broker_journal is None:
+            broker_journal = getattr(broker, "journal", None)
+        if broker_journal is not order_journal:
+            raise ValueError("PAPER_RUNTIME_BROKER_JOURNAL_MISMATCH")
+        if getattr(broker, "order_journal", None) is None:
+            kwargs["broker"] = _LegacyOfflineBrokerProxy(broker, order_journal)
         super().__init__(**kwargs)
 
     def _before_external_action(self, at: datetime) -> None:
