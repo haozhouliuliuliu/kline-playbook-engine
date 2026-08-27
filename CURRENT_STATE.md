@@ -10,21 +10,26 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = THREE_CALL_DECISION_REVIEW_COMPLETED__MEMORY_FIDELITY_REPAIR_REQUIRED`
+`CURRENT_ACTIVITY = MEMORY_AND_WAKE_IDENTITY_OFFLINE_REPAIR_COMPLETED__OFFLINE_VERIFIED`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACCEPTED__PRE_FULL_V0_1_OFFLINE_REPAIR`
+`WORK_PACKAGE_PHASE = PRE_FULL_V0_1_OFFLINE_REPAIR_VERIFIED__AWAITING_PROVIDER_REVALIDATION_ADJUDICATION`
 
-`NEXT_TASK = REPAIR_STRUCTURED_TRADING_MEMORY_AND_LOGICAL_RUNTIME_WAKE_IDENTITY__OFFLINE_VERIFY__THEN_OWNER_DECIDE_PROVIDER_REVALIDATION_AND_FULL_V0_1`
+`NEXT_TASK = PROJECT_BRAIN_OR_HIGH_ASSURANCE_ADJUDICATION__WHETHER_A_SMALL_NEW_PAID_PROVIDER_REVALIDATION_IS_REQUIRED_BEFORE_ASKING_OWNER_ABOUT_FULL_V0_1`
 
-The fresh independent three-call provider-smoke retest completed 3/3 PASS on 2026-08-27. Independent high-assurance review accepted the retest for its narrow provider-path/schema/restart/request-accounting claims and found no true wake-selection/protocol violation. The differing V0.1/V0.2 runtime wake hashes are an identity-layer wording defect caused by the approved prompt/trader-identity change, not a different logical wake selection. No paid rerun is required for that historical discrepancy.
+An offline repair package (2026-08-27) implemented already-approved V0.1 semantics with zero provider calls and passed focused + broad deterministic verification. Historical smoke evidence and terminal machine authorities were not altered.
 
 The three successful DeepSeek decisions were recovered from retained local state without any new provider call. Project-brain trading-quality review found the three-call behavior preliminarily coherent and appropriately cautious, with two bounded model-quality findings: one Jianghe claim was used outside its canonical management meaning, and call 2 imprecisely described the first night-session bar's open/high/close values.
 
-A material forward lifecycle gap was also found: important trader-owned state such as current market hypothesis, key locations/watch state, expected trigger and invalidation is stated in model rationale but is not preserved as first-class structured working memory by the current projection/persistence path. Because V0.1 is specifically a persistent-trader lifecycle experiment, this must be repaired and deterministically verified before the Owner is asked to authorize the full paid replay.
+A material forward lifecycle gap was also found: important trader-owned state such as current market hypothesis, key locations/watch state, expected trigger and invalidation is stated in model rationale but is not preserved as first-class structured working memory by the current projection/persistence path. Because V0.1 is specifically a persistent-trader lifecycle experiment, this was repaired offline and deterministically verified before the Owner is asked to authorize the full paid replay.
 
-Before any new future provider slot is resealed, the project must also prospectively distinguish stable logical wake-selection identity from runtime wake identity. Historical slots/evidence remain immutable.
+The 2026-08-27 offline repair package (documented below) completed BOTH forward requirements:
+
+- structured trading-memory fidelity = `OFFLINE VERIFIED`;
+- logical/runtime wake identity separation = `OFFLINE VERIFIED`.
+
+The repair advanced the model-visible response contract to `JIANGHE_RUNTIME_RESPONSE_V0_2` and the trading-only prompt contract to `KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_3`. Historical V0.1/V0.2 prompt/schema constants and both historical smoke slots remain immutable. Because the model-visible prompt/schema contract changed, any later real-provider revalidation requires a new exact Owner paid authority plus a newly resealed two-identity machine authority before network execution.
 
 ## Current exact task authorities and evidence
 
@@ -74,6 +79,10 @@ Three-call trading-quality / memory-fidelity review:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_THREE_CALL_TRADING_QUALITY_REVIEW_2026-08-27.md`
 
+Offline memory & wake-identity repair evidence (this package):
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_PRE_FULL_REPLAY_MEMORY_AND_WAKE_IDENTITY_REPAIR_2026-08-27.md`
+
 Fail-closed real-provider evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_FAILCLOSED_2026-08-27.md`
@@ -100,11 +109,15 @@ Approved post-V0.1 roadmap:
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-`FUTURE_PROVIDER_SLOT_WAKE_IDENTITY_REPAIR = REQUIRED_BEFORE_ANY_NEW_SLOT_RESEAL`
+`FUTURE_PROVIDER_SLOT_WAKE_IDENTITY_REPAIR = REQUIRED_BEFORE_ANY_NEW_SLOT_RESEAL__OFFLINE_VERIFIED`
 
-`STRUCTURED_TRADING_MEMORY_FIDELITY_REPAIR = REQUIRED_BEFORE_FULL_V0_1`
+`STRUCTURED_TRADING_MEMORY_FIDELITY_REPAIR = REQUIRED_BEFORE_FULL_V0_1__OFFLINE_VERIFIED`
 
-Both the original slot and fresh retest slot are terminal/consumed. A further real provider attempt requires a new explicit Owner paid authority. The full V0.1 1998-call replay remains unauthorized and must not be started automatically.
+`ACTIVE_RESPONSE_SCHEMA = JIANGHE_RUNTIME_RESPONSE_V0_2`
+
+`ACTIVE_PROMPT_CONTRACT = KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_3`
+
+Both the original slot and fresh retest slot are terminal/consumed. A further real provider attempt requires a new explicit Owner paid authority. The full V0.1 1998-call replay remains unauthorized and must not be started automatically. Any future provider slot must use the new two-identity (logical + runtime) wake authority contract.
 
 ## Current locks
 
@@ -112,9 +125,8 @@ Both the original slot and fresh retest slot are terminal/consumed. A further re
 - any retry or continuation under the old slot: `LOCKED`;
 - fresh three-call retest provider execution: `CONSUMED / CLOSED (3/3 PASS)`;
 - fourth call, automatic retry or replacement wake inside the retest: `LOCKED`;
-- any new provider slot reseal before logical/runtime wake-identity forward repair: `LOCKED`;
-- full V0.1 before structured trading-memory fidelity repair and offline verification: `LOCKED`;
-- full V0.1 1998-call provider replay: `LOCKED`;
+- any new provider slot reseal (now requiring the two-identity logical+runtime wake contract) before a new exact Owner paid authority: `LOCKED`;
+- full V0.1 1998-call provider replay: `LOCKED` (structured-memory repair offline-verified, but real-provider revalidation adjudication and Owner authority are still required);
 - post-V0.1 CU/RB provider replay: `LOCKED`;
 - historical execution/PnL semantics: `NOT_YET_APPROVED`;
 - learning/policy promotion: `LOCKED`;
@@ -129,4 +141,4 @@ Both the original slot and fresh retest slot are terminal/consumed. A further re
 
 Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, then this file and the exact authorities/evidence above.
 
-The immediate work is offline engineering only: repair structured trading-memory fidelity and the prospective logical/runtime wake-identity separation, then run focused and broad deterministic verification. Do not call any provider during this repair. If a repair changes the model-visible response/prompt contract, any later real-provider revalidation requires a new exact Owner paid authority plus a newly resealed machine authority before network execution.
+The immediate next step is offline adjudication only: the project brain / a high-assurance review must decide whether a small new paid provider revalidation is required (the active prompt/schema contract is now V0_3/V0_2) before the Owner is asked about authorizing the full V0.1 1998-call replay. Do not call any provider, create a paid authority, activate a provider slot, or decide Owner spending permission during that adjudication. If a repair changes the model-visible response/prompt contract again, any later real-provider revalidation requires a new exact Owner paid authority plus a newly resealed two-identity machine authority before network execution.
