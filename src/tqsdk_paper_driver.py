@@ -176,9 +176,12 @@ def _project_order_status(raw: Any) -> str:
 
 def map_tqsdk_orders(raw_orders: Mapping[str, Any], *,
                       snapshot_at: datetime) -> tuple[BrokerOrderSnapshot, ...]:
+    if snapshot_at.tzinfo is None:
+        raise ValueError("order snapshot time must be timezone-aware")
     result: list[BrokerOrderSnapshot] = []
     for key, raw in sorted(raw_orders.items()):
-        order_id = str(_field(raw, "order_id", key))
+        native_order_id = _field(raw, "order_id", key)
+        order_id = native_order_id if isinstance(native_order_id, str) else ""
         exchange_id = str(_field(raw, "exchange_id", ""))
         instrument_id = str(_field(raw, "instrument_id", ""))
         symbol = f"{exchange_id}.{instrument_id}" if exchange_id and instrument_id else str(_field(raw, "symbol", ""))
@@ -186,15 +189,19 @@ def map_tqsdk_orders(raw_orders: Mapping[str, Any], *,
             str(_field(raw, "direction", "")), str(_field(raw, "offset", "")))
         original = _decimal(_field(raw, "volume_orign"), "order.volume_orign")
         left = _decimal(_field(raw, "volume_left"), "order.volume_left")
-        if not order_id or not symbol or "." not in symbol:
+        native_client_request_id = _field(raw, "client_request_id", order_id)
+        client_request_id = native_client_request_id if isinstance(native_client_request_id, str) else ""
+        if not order_id.strip() or not client_request_id.strip() or not symbol or "." not in symbol:
             raise ValueError("TqSdk order is missing stable identity")
         result.append(BrokerOrderSnapshot(
             order_id=order_id,
-            client_request_id=str(_field(raw, "client_request_id", order_id)),
+            client_request_id=client_request_id,
             concrete_contract_id=symbol, direction=project_direction, action=action,
             status=_project_order_status(raw), requested_quantity=original,
             filled_quantity=original-left, snapshot_at=snapshot_at,
         ))
+    if len({item.order_id for item in result}) != len(result):
+        raise ValueError("TqSdk snapshot contains duplicate broker order id")
     return tuple(result)
 
 class TqSdkPaperExecutionDriver:
@@ -334,9 +341,21 @@ class TqSdkPaperExecutionDriver:
         return order_id
 
     def cancel_order(self, order_id: str) -> None:
-        if not order_id:
+        if not isinstance(order_id, str) or not order_id.strip():
             raise ValueError("cancel requires order id")
-        self._require_session().cancel_order(order_id)
+        session = self._require_session()
+        now = datetime.now(ZoneInfo("Asia/Shanghai"))
+        operation = self._journal.prepare_cancel_for_broker_order(order_id, at=now)
+        self._journal.mark_cancel_attempt_started(operation.cancel_operation_id, at=now)
+        try:
+            session.cancel_order(order_id)
+        except Exception as error:
+            self._journal.mark_unknown_cancel(
+                operation.cancel_operation_id,
+                safe_reason=type(error).__name__,
+                at=datetime.now(ZoneInfo("Asia/Shanghai")),
+            )
+            raise
 
     def replace_order(self, order_id: str, new_quantity: Decimal) -> None:
         raise RuntimeError("TQSDK_REPLACE_REQUIRES_PROJECT_CANCEL_REPLACE_POLICY")
@@ -348,54 +367,56 @@ class TqSdkPaperExecutionDriver:
         self._last_snapshot_at = now
         raw_orders = session.get_orders()
         raw_trades = session.get_trades()
+        snapshots = map_tqsdk_orders(raw_orders, snapshot_at=now)
+        recovery_blockers = self._journal.reconcile_broker_orders(snapshots, observed_at=now)
+        if recovery_blockers:
+            raise RuntimeError("PAPER_ORDER_RECOVERY_BLOCKED:" + ";".join(recovery_blockers))
         known_requests = set(self._journal.expected_client_request_ids())
-        for order_id, raw in sorted(raw_orders.items()):
-            actual = str(_field(raw, "order_id", order_id))
-            if actual not in known_requests or actual in self._seen_orders:
+        snapshot_by_order_id = {item.order_id: item for item in snapshots}
+        raw_by_order_id = {
+            str(_field(raw, "order_id", order_key)): raw
+            for order_key, raw in raw_orders.items()
+        }
+        for snapshot in snapshots:
+            if snapshot.client_request_id not in known_requests or snapshot.order_id in self._seen_orders:
                 continue
-            project_direction, action = _project_side_from_tq(
-                str(_field(raw, "direction", "")), str(_field(raw, "offset", "")))
-            symbol = f"{_field(raw, 'exchange_id', '')}.{_field(raw, 'instrument_id', '')}"
-            quantity = _decimal(_field(raw, "volume_orign"), "order.volume_orign")
-            self._emit(BrokerEventType.ORDER_SUBMITTED, occurred_at=_snapshot_time(raw, now),
-                       order_id=actual, client_request_id=actual,
-                       concrete_contract_id=symbol, direction=project_direction.value,
-                       action=action.value, quantity=str(quantity),
+            self._emit(BrokerEventType.ORDER_SUBMITTED, occurred_at=snapshot.snapshot_at,
+                       order_id=snapshot.order_id, client_request_id=snapshot.client_request_id,
+                       concrete_contract_id=snapshot.concrete_contract_id, direction=snapshot.direction.value,
+                       action=snapshot.action.value, quantity=str(snapshot.requested_quantity),
                        order_type=OrderType.LIMIT.value, lifecycle_status="LIVE")
-            self._seen_orders.add(actual)
+            self._seen_orders.add(snapshot.order_id)
         trades: list[tuple[str, Any]] = []
         for trade_key, raw in raw_trades.items():
             trade_id = str(_field(raw, "trade_id", trade_key))
             order_id = str(_field(raw, "order_id", ""))
-            if trade_id not in self._seen_trades and order_id in known_requests:
+            snapshot = snapshot_by_order_id.get(order_id)
+            if trade_id not in self._seen_trades and snapshot is not None and snapshot.client_request_id in known_requests:
                 trades.append((trade_id, raw))
         trades.sort(key=lambda item: (_snapshot_time(item[1], now), item[0]))
         for trade_id, raw in trades:
             order_id = str(_field(raw, "order_id", ""))
-            order = raw_orders.get(order_id)
+            order = raw_by_order_id.get(order_id)
             if order is None:
                 raise RuntimeError("TQSDK_TRADE_REFERENCES_UNKNOWN_ORDER")
-            project_direction, action = _project_side_from_tq(
-                str(_field(order, "direction", "")), str(_field(order, "offset", "")))
-            symbol = f"{_field(order, 'exchange_id', '')}.{_field(order, 'instrument_id', '')}"
+            snapshot = snapshot_by_order_id[order_id]
             self._emit(BrokerEventType.ORDER_FILLED, occurred_at=_snapshot_time(raw, now),
-                       order_id=order_id, client_request_id=order_id,
-                       concrete_contract_id=symbol, direction=project_direction.value,
-                       action=action.value,
+                       order_id=order_id, client_request_id=snapshot.client_request_id,
+                       concrete_contract_id=snapshot.concrete_contract_id, direction=snapshot.direction.value,
+                       action=snapshot.action.value,
                        price=str(_decimal(_field(raw, "price"), "trade.price")),
                        quantity=str(_decimal(_field(raw, "volume"), "trade.volume")))
             self._seen_trades.add(trade_id)
-        for order_id, raw in sorted(raw_orders.items()):
-            actual = str(_field(raw, "order_id", order_id))
-            if actual not in known_requests or actual in self._terminal_events:
+        for snapshot in snapshots:
+            if snapshot.client_request_id not in known_requests or snapshot.order_id in self._terminal_events:
                 continue
-            status = _project_order_status(raw)
+            status = snapshot.status
             if status not in ("CANCELLED", "REJECTED"):
                 continue
             event_type = BrokerEventType.ORDER_REJECTED if status == "REJECTED" else BrokerEventType.ORDER_CANCELLED
-            self._emit(event_type, occurred_at=_snapshot_time(raw, now),
-                       order_id=actual, client_request_id=actual)
-            self._terminal_events.add(actual)
+            self._emit(event_type, occurred_at=snapshot.snapshot_at,
+                       order_id=snapshot.order_id, client_request_id=snapshot.client_request_id)
+            self._terminal_events.add(snapshot.order_id)
         return updated
 
     def drain_events(self) -> tuple[BrokerEvent, ...]:

@@ -189,6 +189,8 @@ class PaperRuntimeSupervisor:
                 order.append(str(error))
         if self._order_journal.unresolved_attempts():
             order.append("UNRESOLVED_PAPER_ORDER_SUBMISSION")
+        for blocker in self._order_journal.recovery_blockers():
+            order.append("PAPER_ORDER_RECOVERY:" + blocker)
 
         return PaperSupervisorAssessment(
             assessed_at=assessed_at,
