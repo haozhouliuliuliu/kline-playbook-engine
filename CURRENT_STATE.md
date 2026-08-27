@@ -10,13 +10,13 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_F02_F03_F04_VERIFIED__INDEPENDENT_REVIEW_ACCEPTED__PREFLIGHT_BLOCKED_MISSING_CANONICAL_DATASET__NO_PROVIDER_ATTEMPT`
+`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_F02_F03_F04_VERIFIED__INDEPENDENT_REVIEW_ACCEPTED__CANONICAL_DATASET_FOUND_AND_VERIFIED__FINAL_PREFLIGHT_PASS_ZERO_COST__V03_AUTHORITY_AUTHORED_NONACTIVE__NO_PROVIDER_ATTEMPT`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__INDEPENDENT_REVIEW_ACCEPTED__FINAL_PREFLIGHT_FAILCLOSED_MISSING_CANONICAL_DATASET`
+`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__INDEPENDENT_REVIEW_ACCEPTED__DATASET_RESTORED_AND_PREFLIGHT_PASS__V03_AUTHORITY_AWAITING_ACTIVATION`
 
-`NEXT_TASK = OWNER_DECISION_ON_VERIFIABLE_FROZEN_CANONICAL_DATASET_RESTORATION_OR_AUTHORIZED_REBUILD_BEFORE_ANY_PROVIDER_SLOT`
+`NEXT_TASK = FINAL_ZERO_COST_PREFLIGHT_USING_VERIFIED_CANONICAL_DATASET__THEN_RESEAL_AND_RUN_APPROVED_3CALL_SLOT`
 
 Active model-visible contracts remain:
 
@@ -49,7 +49,7 @@ No fixed CNY ceiling and no per-request CNY budget guard are required for this s
 
 `F03_CHILD_BRIDGE_UNKNOWN_ATTEMPT_ACCOUNTING = OFFLINE_VERIFIED_CLOSED`
 
-`F04_POST_RESULT_LEDGER_PERSISTENCE_FAILURE_BARRIER = OFFLINE_REPAIRED__FRESH_REVIEW_PENDING`
+`F04_POST_RESULT_LEDGER_PERSISTENCE_FAILURE_BARRIER = OFFLINE_REPAIRED__INDEPENDENT_REVIEW_ACCEPTED`
 
 F-03 has been repaired offline under existing authority with zero provider calls:
 
@@ -157,6 +157,20 @@ Final zero-cost preflight failure evidence (no provider attempt):
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_FINAL_PREFLIGHT_BLOCKER_2026-08-27.md`
 
+Canonical dataset local restoration verification (original dataset found + identity verified, no rebuild):
+
+`docs/evidence/JIANGHE_CANONICAL_DATASET_LOCAL_RESTORATION_VERIFICATION_2026-08-27.md`
+
+Final zero-cost preflight PASS evidence (explicit dataset paths, deterministic blueprint):
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_FINAL_PREFLIGHT_2026-08-27.md`
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_FINAL_PREFLIGHT_BLUEPRINT_2026-08-27.json`
+
+Fresh forward V0_3 two-identity RETEST machine authority (non-ACTIVE):
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_SLOT_V0_3.json`
+
 Approved post-V0.1 roadmap:
 
 `docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md`
@@ -171,17 +185,19 @@ Approved post-V0.1 roadmap:
 
 `HISTORICAL_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_EXACT_SLOT__F01_F02_F03_F04_VERIFIED__INDEPENDENT_REVIEW_ACCEPTED__PREFLIGHT_BLOCKED_MISSING_CANONICAL_DATASET__NO_PROVIDER_ATTEMPT`
+`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_EXACT_SLOT__F01_F02_F03_F04_VERIFIED__INDEPENDENT_REVIEW_ACCEPTED__DATASET_RESTORED_AND_VERIFIED__FINAL_PREFLIGHT_PASS_ZERO_COST__V03_AUTHORITY_NONACTIVE__NO_PROVIDER_ATTEMPT`
 
 `POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = ACCEPTABLE_FOR_FRESH_THREE_CALL_SLOT_PREPARATION__F01_F02_F03_F04_COVERED`
 
-`POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = NOT_YET_RESEALED`
+`POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = AUTHORED_NON_ACTIVE__AWAITING_ACTIVATION_IMMEDIATELY_BEFORE_EXECUTION`
 
 `POST_REPAIR_REVALIDATION_PROVIDER_CALLS = 0`
 
 `POST_REPAIR_REVALIDATION_PROVIDER_ATTEMPTS = 0`
 
 `POST_REPAIR_REVALIDATION_CNY_CEILING = OWNER_WAIVED_FOR_THIS_EXACT_SLOT`
+
+`CANONICAL_DATASET_LOCAL_AVAILABILITY = ORIGINAL_ACCEPTED_DATASET_FOUND_AND_VERIFIED`
 
 `REAL_DEEPSEEK_PROVIDER_CALLS = NO_CURRENT_ACTIVE_SLOT`
 
@@ -198,9 +214,8 @@ Approved post-V0.1 roadmap:
 ## Current locks
 
 - original smoke and historical retest slots: `CONSUMED / CLOSED / NEVER REACTIVATE`;
-- post-repair three-call execution before final zero-cost preflight, fresh exact forward V0_3 two-identity authority and immediate consequential-action verification: `LOCKED`;
-- final preflight cannot run because the required ignored local canonical manifest artifact and Parquet root are absent from the current worktree and the original repository worktree; no unverified substitute or external rebuild is authorized: `LOCKED`;
-- post-repair three-call execution before a fresh exact forward V0_3 two-identity machine authority: `LOCKED`;
+- post-repair three-call execution before the immediate consequential-action verification immediately before activation: `LOCKED`;
+- post-repair three-call execution before a fresh exact forward V0_3 two-identity machine authority is ACTIVATED: `LOCKED`;
 - retry, replacement wake, outcome-driven re-asking, call 4: `LOCKED`;
 - an `UNKNOWN_AFTER_ATTEMPT_START` state, once recorded during real execution, must terminate the slot and forbid automatic continuation/rerun;
 - full V0.1 1998-call replay: `LOCKED`;
@@ -213,4 +228,4 @@ Approved post-V0.1 roadmap:
 
 Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, and the exact task authorities/evidence above.
 
-The fresh independent high-assurance review accepted the F-03/F-04 closure and forward V0_3 cost-waiver authority path at `66d2530f3c3633e130e5d57922b4a725e7bf8aef`, with zero provider/network calls. The final zero-cost preflight then failed before any credential/network capability because the canonical manifest artifact and canonical Parquet root are absent from both this fresh current-main worktree and the existing repository worktree; the data directory is ignored and no matching artifact is Git-tracked. Without the exact frozen local dataset, the project cannot recompute governed wakes, causal four-PNG inputs, or a trustworthy V0.3 authority. No machine authority was created, resealed, or activated and no provider attempt occurred. Owner direction is required to restore the exact verifiable frozen dataset or authorize a governed rebuild. Full V0.1 remains locked.
+The fresh independent high-assurance review accepted the F-03/F-04 closure and forward V0_3 cost-waiver authority path. The original accepted canonical dataset was located in the local `data/canonical/` directory and mechanically verified against the accepted manifest/corpus identities (manifest `7510a4a9…d324`, corpus `1d03fd23…74a8`, 32,980 partitions/parquet, exact `cu`/`SHFE.cu2406` frozen slice). The final zero-cost preflight then passed deterministically against the verified dataset with explicit `--manifest`/`--parquet-root` paths, producing the persisted blueprint (`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_FINAL_PREFLIGHT_BLUEPRINT_2026-08-27.json`) with exactly three governed wakes (logical + runtime identities, exact close times, 4 PNGs each) and `real_provider_calls = 0`. A fresh non-ACTIVE V0_3 RETEST authority (`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_SLOT_V0_3.json`, identity `24d2409a…c94d`) now explicitly encodes the Owner CNY-ceiling waiver. The immediate consequential-action check (refresh `main`, re-read authorities, verify execution commit / dataset paths / Harness pin / provider) remains mandatory immediately before activation and the exactly-once three-call execution. No provider call, credential read, slot activation, or reseal has occurred yet. Full V0.1 remains locked.
