@@ -307,15 +307,15 @@ class SmokeHarnessTransport:
             # launched because the exception propagates before bridge.execute.
             self._attempt_ledger.record_attempt_started(**attempt_identity)
         try:
-            bridge_kwargs: dict[str, Any] = {
-                "system_prompt": request.system_prompt,
-                "decision_prompt": request.decision_prompt,
-                "context": request.context,
-                "png_images": png_images,
-            }
-            if attempt_identity is not None:
-                bridge_kwargs["attempt_identity"] = attempt_identity
-            result = self._bridge.execute(**bridge_kwargs)
+            # The attempt identity belongs exclusively to the durable parent
+            # ledger.  ``HarnessOneShotBridge.execute`` deliberately accepts
+            # only the request payload that the child bridge needs.
+            result = self._bridge.execute(
+                system_prompt=request.system_prompt,
+                decision_prompt=request.decision_prompt,
+                context=request.context,
+                png_images=png_images,
+            )
         except Exception as error:  # noqa: BLE001 - post-launch failure is fail-closed
             if self._attempt_ledger is not None:
                 try:

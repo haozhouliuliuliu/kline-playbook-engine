@@ -1435,6 +1435,24 @@ class SmokeHarnessTransportAttemptTests(unittest.TestCase):
         self.assertEqual(self.ledger.attempts()[0].request_id, "req-1")
         self.assertEqual(bridge.launches, 1)
 
+    def test_attempt_ledger_metadata_is_not_passed_to_strict_production_signature(self) -> None:
+        """The production bridge has no ``attempt_identity`` keyword argument."""
+        class _StrictProductionSignatureBridge:
+            def __init__(self) -> None:
+                self.launches = 0
+
+            def execute(self, *, system_prompt, decision_prompt, context, png_images):
+                self.launches += 1
+                return _valid_bridge_result()
+
+        bridge = _StrictProductionSignatureBridge()
+        transport = self._transport(bridge)
+        raw = transport.execute(_fake_request("req-1"))
+
+        self.assertEqual(raw, _valid_mock_response())
+        self.assertEqual(bridge.launches, 1)
+        self.assertEqual(self.ledger.attempts()[0].attempt_state, RESULT_RECEIVED)
+
     def test_attempt_persistence_failure_prevents_child_launch(self) -> None:
         class _FailingLedger:
             def record_attempt_started(self, **kwargs):
