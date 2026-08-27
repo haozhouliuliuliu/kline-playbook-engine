@@ -54,10 +54,9 @@ class TqSdkPaperDriver(Protocol):
 class TqSdkPaperBrokerAdapter(BrokerAdapter):
     """Authority-gated adapter candidate for future TqSdk PAPER execution.
 
-    Connection and order submission are separately gated.  Cancel/replace are
-    also order actions and therefore require order-submit permission.  This
-    prevents a future model/runtime path from reaching an injected TqSdk driver
-    merely because credentials happen to exist on the workstation.
+    Connection, submission, cancellation and replacement are separately gated.
+    This prevents a future model/runtime path from reaching an injected TqSdk
+    driver merely because credentials happen to exist on the workstation.
     """
 
     def __init__(self, driver: TqSdkPaperDriver, authority: PaperExecutionAuthority) -> None:
@@ -99,7 +98,7 @@ class TqSdkPaperBrokerAdapter(BrokerAdapter):
     def cancel_order(self, order_id: str) -> None:
         if not isinstance(order_id, str) or not order_id.strip():
             raise ValueError("cancel_order requires order id")
-        self._authority.require_order_submit("")
+        self._authority.require_order_cancel()
         if self.connection_state is not BrokerConnectionState.CONNECTED:
             raise RuntimeError("PAPER_BROKER_NOT_CONNECTED")
         self._driver.cancel_order(order_id)
@@ -109,7 +108,7 @@ class TqSdkPaperBrokerAdapter(BrokerAdapter):
             raise ValueError("replace_order requires order id")
         if type(new_quantity) is not Decimal or not new_quantity.is_finite() or new_quantity <= 0:
             raise ValueError("replace quantity must be a positive finite Decimal")
-        self._authority.require_order_submit("")
+        self._authority.require_order_replace()
         if self.connection_state is not BrokerConnectionState.CONNECTED:
             raise RuntimeError("PAPER_BROKER_NOT_CONNECTED")
         self._driver.replace_order(order_id, new_quantity)

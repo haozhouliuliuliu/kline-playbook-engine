@@ -16,7 +16,7 @@ from hashlib import sha256
 import json
 
 
-PAPER_EXECUTION_AUTHORITY_SCHEMA_VERSION = "KPE_PAPER_EXECUTION_AUTHORITY_V0_1"
+PAPER_EXECUTION_AUTHORITY_SCHEMA_VERSION = "KPE_PAPER_EXECUTION_AUTHORITY_V0_2"
 
 
 class PaperAuthorityStatus(str, Enum):
@@ -29,9 +29,10 @@ class PaperAuthorityStatus(str, Enum):
 class PaperExecutionAuthority:
     """Exact machine gate for external PAPER actions.
 
-    ``allow_connect`` and ``allow_order_submit`` are deliberately separate.
-    An order-capable authority always implies connection permission.  The
-    authority is fail-closed unless it is ACTIVE.
+    Connection, submit, cancel and replace are deliberately separate.  An
+    action-capable authority always implies connection permission, but submit
+    permission cannot silently authorize a distinct broker-account mutation.
+    The authority is fail-closed unless it is ACTIVE.
     """
 
     authority_id: str
@@ -40,6 +41,8 @@ class PaperExecutionAuthority:
     status: PaperAuthorityStatus
     allow_connect: bool
     allow_order_submit: bool
+    allow_order_cancel: bool = False
+    allow_order_replace: bool = False
     credential_env_names: tuple[str, ...] = ()
     allowed_contracts: tuple[str, ...] = ()
 
@@ -48,10 +51,13 @@ class PaperExecutionAuthority:
             raise ValueError("paper authority requires non-empty identities")
         if not isinstance(self.status, PaperAuthorityStatus):
             raise ValueError("paper authority status must be explicit")
-        if type(self.allow_connect) is not bool or type(self.allow_order_submit) is not bool:
+        if any(type(value) is not bool for value in (
+            self.allow_connect, self.allow_order_submit, self.allow_order_cancel,
+            self.allow_order_replace,
+        )):
             raise ValueError("paper authority permissions must be booleans")
-        if self.allow_order_submit and not self.allow_connect:
-            raise ValueError("paper order permission requires connection permission")
+        if any((self.allow_order_submit, self.allow_order_cancel, self.allow_order_replace)) and not self.allow_connect:
+            raise ValueError("paper order action permission requires connection permission")
         for name in self.credential_env_names:
             if not isinstance(name, str) or not name.strip() or name != name.strip():
                 raise ValueError("credential environment names must be non-empty canonical strings")
@@ -75,6 +81,8 @@ class PaperExecutionAuthority:
             "status": self.status.value,
             "allow_connect": self.allow_connect,
             "allow_order_submit": self.allow_order_submit,
+            "allow_order_cancel": self.allow_order_cancel,
+            "allow_order_replace": self.allow_order_replace,
             "credential_env_names": sorted(self.credential_env_names),
             "allowed_contracts": sorted(self.allowed_contracts),
         }
@@ -95,6 +103,14 @@ class PaperExecutionAuthority:
         ):
             raise PermissionError("PAPER_CONTRACT_NOT_AUTHORIZED")
 
+    def require_order_cancel(self) -> None:
+        if self.status is not PaperAuthorityStatus.ACTIVE or not self.allow_order_cancel:
+            raise PermissionError("PAPER_ORDER_CANCEL_NOT_AUTHORIZED")
+
+    def require_order_replace(self) -> None:
+        if self.status is not PaperAuthorityStatus.ACTIVE or not self.allow_order_replace:
+            raise PermissionError("PAPER_ORDER_REPLACE_NOT_AUTHORIZED")
+
     def revoked(self) -> "PaperExecutionAuthority":
         return PaperExecutionAuthority(
             authority_id=self.authority_id,
@@ -103,6 +119,8 @@ class PaperExecutionAuthority:
             status=PaperAuthorityStatus.REVOKED,
             allow_connect=False,
             allow_order_submit=False,
+            allow_order_cancel=False,
+            allow_order_replace=False,
             credential_env_names=self.credential_env_names,
             allowed_contracts=self.allowed_contracts,
         )

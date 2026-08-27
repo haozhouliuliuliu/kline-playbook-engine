@@ -39,6 +39,7 @@ class PaperExecutionReadinessTests(unittest.TestCase):
         status: PaperAuthorityStatus,
         allow_connect: bool,
         allow_order_submit: bool,
+        allow_order_cancel: bool = False,
     ) -> PaperExecutionAuthority:
         return PaperExecutionAuthority(
             authority_id="test-paper-authority",
@@ -47,6 +48,7 @@ class PaperExecutionReadinessTests(unittest.TestCase):
             status=status,
             allow_connect=allow_connect,
             allow_order_submit=allow_order_submit,
+            allow_order_cancel=allow_order_cancel,
             credential_env_names=("TEST_ONLY_AUTH_USER_ENV", "TEST_ONLY_AUTH_PASSWORD_ENV"),
             allowed_contracts=("TEST.IF9999",),
         )
@@ -97,6 +99,8 @@ class PaperExecutionReadinessTests(unittest.TestCase):
         connect_only.connect()
         with self.assertRaisesRegex(PermissionError, "PAPER_ORDER_SUBMIT_NOT_AUTHORIZED"):
             connect_only.submit_order(self._instruction())
+        with self.assertRaisesRegex(PermissionError, "PAPER_ORDER_CANCEL_NOT_AUTHORIZED"):
+            connect_only.cancel_order("known-order")
 
         order_enabled = TqSdkPaperBrokerAdapter(
             self._driver(),
@@ -104,6 +108,7 @@ class PaperExecutionReadinessTests(unittest.TestCase):
                 status=PaperAuthorityStatus.ACTIVE,
                 allow_connect=True,
                 allow_order_submit=True,
+                allow_order_cancel=True,
             ),
         )
         order_enabled.connect()

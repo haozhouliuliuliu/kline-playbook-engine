@@ -244,12 +244,16 @@ class BrokerOrderSnapshot:
             raise ValueError("broker order snapshot requires complete identities")
         if not isinstance(self.direction, PositionDirection) or not isinstance(self.action, OrderAction):
             raise ValueError("broker order snapshot requires explicit direction and action")
+        if self.status not in {"LIVE", "PARTIALLY_FILLED", "FILLED", "CANCELLED", "REJECTED"}:
+            raise ValueError("broker order snapshot has an unknown lifecycle status")
         if self.snapshot_at.tzinfo is None:
             raise ValueError("broker order snapshot timestamp must be timezone-aware")
         if type(self.requested_quantity) is not Decimal or not self.requested_quantity.is_finite() or self.requested_quantity <= 0:
             raise ValueError("broker order requested quantity must be a positive finite Decimal")
         if type(self.filled_quantity) is not Decimal or not self.filled_quantity.is_finite() or self.filled_quantity < 0:
             raise ValueError("broker order filled quantity must be a non-negative finite Decimal")
+        if self.filled_quantity > self.requested_quantity:
+            raise ValueError("broker order filled quantity cannot exceed requested quantity")
 
     @property
     def identity_id(self) -> str:
