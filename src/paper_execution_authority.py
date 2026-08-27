@@ -85,10 +85,14 @@ class PaperExecutionAuthority:
         if self.status is not PaperAuthorityStatus.ACTIVE or not self.allow_connect:
             raise PermissionError("PAPER_CONNECT_NOT_AUTHORIZED")
 
-    def require_order_submit(self, concrete_contract_id: str) -> None:
+    def require_order_submit(self, concrete_contract_id: str | None = None) -> None:
         if self.status is not PaperAuthorityStatus.ACTIVE or not self.allow_order_submit:
             raise PermissionError("PAPER_ORDER_SUBMIT_NOT_AUTHORIZED")
-        if self.allowed_contracts and concrete_contract_id not in self.allowed_contracts:
+        if (
+            concrete_contract_id
+            and self.allowed_contracts
+            and concrete_contract_id not in self.allowed_contracts
+        ):
             raise PermissionError("PAPER_CONTRACT_NOT_AUTHORIZED")
 
     def revoked(self) -> "PaperExecutionAuthority":
