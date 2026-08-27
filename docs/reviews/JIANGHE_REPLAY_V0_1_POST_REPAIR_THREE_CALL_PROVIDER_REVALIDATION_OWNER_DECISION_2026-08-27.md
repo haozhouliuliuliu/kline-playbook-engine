@@ -1,6 +1,6 @@
 # JIANGHE REPLAY V0.1 — POST-REPAIR THREE-CALL PROVIDER REVALIDATION OWNER DECISION
 
-Status: `OWNER_REQUIRED_REVALIDATION__EXECUTION_NOT_YET_AUTHORIZED`
+Status: `OWNER_REVALIDATION_AND_MAX_SPEND_APPROVED__EXECUTION_LOCKED_PENDING_ASSURANCE_AND_MACHINE_AUTHORITY`
 
 Date: `2026-08-27`
 
@@ -10,13 +10,19 @@ The Owner explicitly requires a fresh three-call real-provider revalidation afte
 
 `POST_REPAIR_REAL_PROVIDER_REVALIDATION = REQUIRED`
 
-This resolves the prior question of whether real-provider revalidation is needed: **yes**.
+The Owner subsequently explicitly approved the exact paid envelope for this revalidation:
 
-This decision does not itself activate a provider slot because the project requires a separate exact numerical CNY spend ceiling plus a freshly resealed machine-readable authority immediately before paid execution.
+`MAX_PROVIDER_CALLS = 3`
 
-`OWNER_NUMERICAL_SPEND_CEILING = NOT_YET_BOUND`
+`MAX_RETRIES = 0`
 
-`PROVIDER_EXECUTION = LOCKED_PENDING_EXACT_SPEND_AND_MACHINE_AUTHORITY`
+`MAX_SPEND_CNY = 3.00`
+
+`OWNER_PAYMENT_CONFIRMATION = APPROVED_FOR_THIS_EXACT_THREE_CALL_REVALIDATION`
+
+This resolves both the prior question of whether revalidation is needed and the exact maximum CNY spend ceiling. The approval does **not** waive any pre-execution assurance requirement and does not by itself activate a provider slot.
+
+`PROVIDER_EXECUTION = LOCKED_PENDING_ACCEPTABLE_INDEPENDENT_REVIEW_AND_FRESH_MACHINE_AUTHORITY`
 
 ## 2. Scientific purpose
 
@@ -59,15 +65,22 @@ Before a new machine slot may become ACTIVE:
 
 1. refresh current `main`;
 2. independently review the offline repair and new two-identity provider-smoke path for material correctness;
-3. run deterministic preflight against the exact current execution commit;
-4. reseal a **new** V0_2 two-identity machine authority; never reuse or reactivate either historical terminal slot;
-5. bind the exact current prompt/schema/trader/runtime identities;
-6. bind exactly three logical + runtime wake pairs and their close times;
-7. bind exact request ceiling = 3, retries = 0, images per call = 4, restart after call 2;
-8. bind an explicit positive numerical `MAX_SPEND_CNY` approved by the Owner;
-9. only then set `owner_payment_confirmation=true` and slot status `ACTIVE`.
+3. resolve any material pre-execution finding from that review and obtain a fresh acceptable independent review of the repaired path;
+4. run deterministic preflight against the exact current execution commit;
+5. reseal a **new** V0_2 two-identity machine authority; never reuse or reactivate either historical terminal slot;
+6. bind the exact current prompt/schema/trader/runtime identities;
+7. bind exactly three logical + runtime wake pairs and their close times;
+8. bind exact request ceiling = 3, retries = 0, images per call = 4, restart after call 2;
+9. bind `MAX_SPEND_CNY = 3.00`;
+10. only then set `owner_payment_confirmation=true` and slot status `ACTIVE`.
 
 Any mismatch fails closed before provider credential use or network construction.
+
+The independent review recorded at:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_PROVIDER_REVALIDATION_INDEPENDENT_REVIEW_2026-08-27.md`
+
+returned `BLOCKED_BY_MATERIAL_PREEXECUTION_DEFECT` because the logical wake-selection identity was not propagated through preflight, runtime binding verification, and durable admitted-wake evidence. That finding must be repaired and independently re-reviewed before this paid approval may be exercised.
 
 ## 5. Revalidation acceptance scope
 
