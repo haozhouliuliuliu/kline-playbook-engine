@@ -1,6 +1,6 @@
 # JIANGHE REPLAY V0.1 — POST-REPAIR THREE-CALL PROVIDER REVALIDATION OWNER DECISION
 
-Status: `OWNER_REVALIDATION_APPROVED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_THIS_EXACT_SLOT__EXECUTION_LOCKED_PENDING_F03_CLOSURE_AND_FRESH_REVIEW`
+Status: `OWNER_REVALIDATION_APPROVED__CALL_BOUNDED__CNY_CEILING_WAIVED__F05_FRESH_REVIEW_WAIVED_FOR_THIS_EXACT_SLOT__PROCEED_TO_RESEAL_AND_EXECUTE`
 
 Date: `2026-08-27`
 
@@ -32,9 +32,30 @@ For this exact slot:
 - actual provider token/usage accounting must still be preserved after execution;
 - the hard mechanical controls remain the three-call ceiling, zero retries, no replacement wake and no call 4.
 
-This is a **scoped exception for this exact post-repair three-call revalidation only**. It does not amend the project's general cost direction for future paid work packages.
+This is a **scoped exception for this exact post-repair three-call revalidation only**. It does not amend the project's general cost direction for future paid packages.
 
 Under the authority precedence in `PROJECT_GOVERNANCE.md`, this exact Owner decision governs this slot even though `PROJECT_DIRECTION.md` retains the project's default cost doctrine.
+
+### Scoped F-05 independent-review waiver
+
+After F-05 was repaired offline with zero provider attempts, the Owner explicitly directed on `2026-08-27`:
+
+`F05_FRESH_INDEPENDENT_REVIEW = WAIVED_FOR_THIS_EXACT_THREE_CALL_REVALIDATION`
+
+The Owner accepts the residual risk of proceeding without another independent review of the narrow F-05 execution-critical delta. This waiver is deliberate and is limited to **this exact post-repair three-call revalidation**. It does not remove the project's general independent-review doctrine for future consequential-action boundaries, research semantics, fragile infrastructure, or later paid packages.
+
+This scoped Owner amendment supersedes the prior F-05-specific review hold for this slot. It does **not** waive any of the following mechanical gates:
+
+- fresh deterministic preflight against the exact execution commit;
+- fresh exact V0_3 machine-authority reseal against the executable commit;
+- exact active prompt/schema/model/Harness/data bindings;
+- `MAX_PROVIDER_CALLS = 3`;
+- `MAX_RETRIES = 0`;
+- no replacement wake;
+- no call 4;
+- durable attempt accounting;
+- fail-closed terminalization after any real-attempt failure or ambiguity;
+- full V0.1 remaining locked after this three-call slot.
 
 ## 2. Scientific purpose
 
@@ -82,22 +103,23 @@ The fresh independent review at:
 
 found material blocker `F-03`: a child bridge may have reached the provider-attempt boundary but the parent can time out or lose the result file, causing existing accounting to incorrectly report zero provider/network calls.
 
+F-03 and subsequent F-04 were repaired and independently accepted before the final preflight. F-05 was then found at the final pre-execution gate and repaired offline with zero provider attempts. The Owner now explicitly waives a **new F-05-only independent review** for this exact slot.
+
 Before a new machine slot may become ACTIVE:
 
-1. repair F-03 offline;
-2. durably record an attempt-started state before launching the real bridge child process, bound to the exact wake/request/authority;
-3. if timeout / missing result / invalid handoff occurs after attempt start, report an explicit `UNKNOWN_AFTER_ATTEMPT_START` or equivalent fail-closed state rather than zero calls;
-4. that unknown-attempt state must terminate/consume the slot: no retry, replacement wake, later call or automatic reseal-as-unattempted;
-5. add deterministic timeout / no-result regressions;
-6. obtain a fresh acceptable independent high-assurance review;
-7. run deterministic preflight against the exact execution commit;
-8. reseal a new forward two-identity machine authority; never reuse/reactivate either historical terminal slot;
-9. bind exact current prompt/schema/trader/runtime identities and exactly three logical+runtime wake pairs;
-10. bind call ceiling = 3, retries = 0, images = 4, restart after call 2;
-11. encode the Owner's scoped CNY-ceiling waiver explicitly rather than fabricating a numeric spend cap;
-12. only then activate the slot immediately before execution.
+1. retain the accepted F-01/F-02/F-03/F-04 closure evidence and accepted independent review;
+2. retain F-05 offline closure evidence showing zero provider attempts;
+3. run deterministic final preflight against the exact current execution commit and the verified original canonical dataset;
+4. reseal a new forward V0_3 two-identity machine authority against that exact current execution commit; never reuse/reactivate either historical terminal slot;
+5. bind exact current prompt/schema/trader/runtime identities and exactly three logical+runtime wake pairs;
+6. bind call ceiling = 3, retries = 0, images = 4, restart after call 2;
+7. encode the Owner's scoped CNY-ceiling waiver explicitly rather than fabricating a numeric spend cap;
+8. verify the exact current machine authority, dataset, provider/model, pinned Harness and credential-location seam immediately before activation;
+9. only then activate the slot immediately before execution.
 
 Any mismatch fails closed before provider execution.
+
+A new independent F-05 review is **not** a precondition for this exact slot by current Owner decision.
 
 ## 5. Revalidation acceptance scope
 
