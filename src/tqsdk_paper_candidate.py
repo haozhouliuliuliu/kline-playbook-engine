@@ -59,12 +59,11 @@ class TqSdkPaperBrokerAdapter(BrokerAdapter):
     This prevents a future model/runtime path from reaching an injected TqSdk
     driver merely because credentials happen to exist on the workstation.
 
-    The broker-neutral PaperRuntimeCoordinator requires a single durable order
-    journal shared by coordinator and broker driver. The adapter exposes that
-    exact project-owned journal and refuses drivers that do not bind one.
+    A pure adapter may be constructed around a non-journal test driver to verify
+    authority gating. Admission to ``PaperRuntimeCoordinator`` is stricter: only
+    a driver that exposes the exact project ``PaperOrderJournal`` reports
+    ``journal_managed_execution=True`` and can enter the runtime composition.
     """
-
-    journal_managed_execution = True
 
     def __init__(self, driver: TqSdkPaperDriver, authority: PaperExecutionAuthority) -> None:
         if not getattr(driver, "broker_id", ""):
@@ -73,14 +72,12 @@ class TqSdkPaperBrokerAdapter(BrokerAdapter):
             raise ValueError("TqSdk paper adapter requires PaperExecutionAuthority")
         journal = getattr(driver, "order_journal", None)
         if journal is None:
-            # Current project-owned driver predates the public property; its
-            # durable journal is still an explicit constructor dependency.
+            # Current project-owned driver stores the explicit constructor-bound
+            # journal privately; pure test doubles may intentionally have none.
             journal = getattr(driver, "_journal", None)
-        if not isinstance(journal, PaperOrderJournal):
-            raise ValueError("TqSdk paper driver requires project PaperOrderJournal")
         self._driver = driver
         self._authority = authority
-        self._order_journal = journal
+        self._order_journal = journal if isinstance(journal, PaperOrderJournal) else None
 
     @property
     def authority(self) -> PaperExecutionAuthority:
@@ -91,7 +88,11 @@ class TqSdkPaperBrokerAdapter(BrokerAdapter):
         return self._driver.broker_id
 
     @property
-    def order_journal(self) -> PaperOrderJournal:
+    def journal_managed_execution(self) -> bool:
+        return isinstance(self._order_journal, PaperOrderJournal)
+
+    @property
+    def order_journal(self) -> PaperOrderJournal | None:
         return self._order_journal
 
     @property
