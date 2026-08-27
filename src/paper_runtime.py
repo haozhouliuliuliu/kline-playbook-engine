@@ -1,19 +1,14 @@
 """Broker-neutral realtime PAPER runtime coordinator.
 
-This module composes the project-owned live causal context, durable wake/order
-journals, readiness supervisor, broker-truth mirror, trader callback and
-project-owned deterministic risk planner. It performs no provider, credential or
-network work by import or construction.
+The coordinator composes project-owned causal market context, durable wake/order
+journals, readiness gates, broker truth, trader cognition and deterministic risk.
+It performs no provider, credential or network work by import/construction.
 
-External effects occur only through an injected broker adapter when a caller
-explicitly invokes connect/submit/cancel and the existing PAPER authority,
-activation-profile and runtime gates permit the action.
-
-Strategy-result-dependent sizing, execution-price, close-offset, permanent risk
-and product policy are deliberately not defined here; callers must inject an
-explicit planner/policy under the applicable authority.
+External effects occur only through an injected broker when an explicit runtime
+method is called and the existing PAPER authority/profile gates allow it.
+Result-dependent sizing, price, close-offset, permanent risk and product policy
+are deliberately injected rather than defined here.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -34,8 +29,8 @@ PAPER_RUNTIME_COORDINATOR_VERSION = "KPE_PAPER_RUNTIME_COORDINATOR_V0_1"
 
 
 def _hash(payload: object) -> str:
-    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-    return sha256(encoded.encode("utf-8")).hexdigest()
+    return sha256(json.dumps(payload, ensure_ascii=False, separators=(",", ":"),
+                             sort_keys=True).encode("utf-8")).hexdigest()
 
 
 def _aware(value: datetime, name: str) -> datetime:
@@ -93,12 +88,7 @@ class PaperRiskPlanner(Protocol):
 
 
 class JournalManagedPaperBroker(Protocol):
-    """Minimal broker contract required by the project-owned coordinator.
-
-    Replacement is intentionally absent: the project coordinator owns safe
-    cancel -> broker-truth -> child-submit semantics and never delegates atomic
-    replacement to a third-party convenience API.
-    """
+    """Minimal broker surface. Atomic replacement is intentionally absent."""
 
     journal_managed_execution: bool
 
@@ -236,20 +226,26 @@ class PaperRuntimeCoordinator:
         if self.broker.connection_state is not BrokerConnectionState.CONNECTED:
             self.broker_mirror.set_connection_state(self.broker.connection_state)
             return ("BROKER_DISCONNECTED",)
-        self.broker_mirror.refresh(account=account, positions=positions, orders=orders, observed_at=at)
+        self.broker_mirror.refresh(account=account, positions=positions,
+                                   orders=orders, observed_at=at)
         return self.order_journal.reconcile_broker_orders(orders, observed_at=at)
 
     def process_closed_minutes(self, bars: Sequence[object], *, observed_at: datetime
                                ) -> tuple[PaperWakeResult, ...]:
-        """Drive closed 1m updates through wake -> trader -> governed execution."""
+        """Drive closed 1m updates through wake -> trader -> governed execution.
+
+        Order-recovery blockers do not stop market observation/cognition. They
+        remain durable and are enforced by ``require_order_ready`` immediately
+        before any new-risk submission. Broker/mirror/data failures still block
+        observation through the supervisor.
+        """
         _aware(observed_at, "paper live observation time")
         if not self.market_bootstrapped or not self.market_sequence_ok:
             raise RuntimeError("PAPER_MARKET_NOT_READY")
         if not self.trader_runtime_ready:
             raise RuntimeError("PAPER_TRADER_NOT_READY")
-        blockers = self.refresh_broker_truth(at=observed_at)
-        if blockers:
-            raise RuntimeError("PAPER_RECOVERY_BLOCKED:" + ";".join(blockers))
+        self.refresh_broker_truth(at=observed_at)
+        self.assess(at=observed_at).require_observation_ready()
         results: list[PaperWakeResult] = []
         for wake in self.context_builder.observe(bars, observed_at=observed_at):
             context = self.context_builder.context_for_wake(wake)
@@ -257,11 +253,14 @@ class PaperRuntimeCoordinator:
                 wake, journal=self.wake_journal, trader_identity=self.trader_identity,
                 concrete_contract_id=self.concrete_contract_id)
             self.assess(at=observed_at).require_observation_ready()
-            request_id = _hash({"schema_version": PAPER_RUNTIME_COORDINATOR_VERSION,
-                                "kind": "TRADER_DISPATCH",
-                                "trader_identity": self.trader_identity,
-                                "wake_identity": wake.wake_identity})
-            self.wake_journal.mark_dispatch_started(wake.wake_identity, request_id=request_id, at=observed_at)
+            request_id = _hash({
+                "schema_version": PAPER_RUNTIME_COORDINATOR_VERSION,
+                "kind": "TRADER_DISPATCH",
+                "trader_identity": self.trader_identity,
+                "wake_identity": wake.wake_identity,
+            })
+            self.wake_journal.mark_dispatch_started(
+                wake.wake_identity, request_id=request_id, at=observed_at)
             decision = self.trader.decide(wake=wake, context=context)
             if not isinstance(decision, PaperTraderDecision):
                 raise TypeError("paper trader returned invalid decision")
@@ -269,35 +268,43 @@ class PaperRuntimeCoordinator:
                 wake.wake_identity, decision_identity=decision.decision_identity, at=observed_at)
             plan = self.risk_planner.plan(wake=wake, context=context, decision=decision)
             if plan is None:
-                results.append(PaperWakeResult(wake.wake_identity, decision.decision_identity, None, None))
+                results.append(PaperWakeResult(
+                    wake.wake_identity, decision.decision_identity, None, None))
                 continue
             if not isinstance(plan, PaperOrderPlan):
                 raise TypeError("paper risk planner returned invalid order plan")
             instruction = plan.instruction
             if instruction.concrete_contract_id != self.concrete_contract_id:
                 raise ValueError("PAPER_ORDER_CONTRACT_MISMATCH")
-            self.assess(at=observed_at, concrete_contract_id=self.concrete_contract_id).require_order_ready()
+            self.assess(at=observed_at,
+                        concrete_contract_id=self.concrete_contract_id).require_order_ready()
             self.order_journal.prepare(
                 client_request_id=instruction.client_request_id,
-                trader_identity=self.trader_identity, wake_identity=wake.wake_identity,
-                decision_identity=decision.decision_identity, intent_identity=plan.intent_identity,
-                risk_identity=plan.risk_identity, concrete_contract_id=self.concrete_contract_id,
-                prepared_at=observed_at)
+                trader_identity=self.trader_identity,
+                wake_identity=wake.wake_identity,
+                decision_identity=decision.decision_identity,
+                intent_identity=plan.intent_identity,
+                risk_identity=plan.risk_identity,
+                concrete_contract_id=self.concrete_contract_id,
+                prepared_at=observed_at,
+            )
             self._before_external_action(observed_at)
-            broker_order_id = self.broker.submit_order(instruction)
-            if self.order_journal.get(instruction.client_request_id).status == PREPARED:
+            self.broker.submit_order(instruction)
+            attempt = self.order_journal.get(instruction.client_request_id)
+            if attempt.status == PREPARED:
                 raise RuntimeError("BROKER_FAILED_TO_JOURNAL_SUBMIT_ATTEMPT")
-            blockers = self.refresh_broker_truth(at=observed_at)
-            if blockers:
-                raise RuntimeError("PAPER_RECOVERY_BLOCKED:" + ";".join(blockers))
+            self.refresh_broker_truth(at=observed_at)
+            attempt = self.order_journal.get(instruction.client_request_id)
+            confirmed_id = attempt.broker_order_id if attempt.status == BROKER_ORDER_ID_KNOWN else None
             results.append(PaperWakeResult(
                 wake.wake_identity, decision.decision_identity,
-                instruction.client_request_id, broker_order_id))
+                instruction.client_request_id, confirmed_id))
         return tuple(results)
 
     def cancel_order(self, client_request_id: str, *, at: datetime) -> tuple[str, ...]:
         """Risk-reducing cancel through project-owned durable identity."""
-        attempt = self.order_journal.get(_text(client_request_id, "paper cancel client request id"))
+        attempt = self.order_journal.get(
+            _text(client_request_id, "paper cancel client request id"))
         if attempt.status != BROKER_ORDER_ID_KNOWN or not attempt.broker_order_id:
             raise RuntimeError("PAPER_CANCEL_REQUIRES_KNOWN_ORDER")
         self._before_external_action(at)
@@ -309,55 +316,88 @@ class PaperRuntimeCoordinator:
         wake_identity: str, decision_identity: str, replacement_generation: int,
         at: datetime,
     ) -> str:
-        """Safe replacement: durable child -> cancel -> exact truth -> one submit."""
-        original = self.order_journal.get(_text(original_client_request_id, "replace original request id"))
+        """Safe replacement: clean state -> cancel -> exact truth -> one child submit."""
+        original_client_request_id = _text(
+            original_client_request_id, "replace original request id")
         _text(wake_identity, "replace wake identity")
         _text(decision_identity, "replace decision identity")
         if not isinstance(child_plan, PaperOrderPlan):
             raise ValueError("replace requires PaperOrderPlan")
         if type(replacement_generation) is not int or replacement_generation <= 0:
             raise ValueError("replacement generation must be positive integer")
-        if original.status != BROKER_ORDER_ID_KNOWN or not original.broker_order_id:
-            raise RuntimeError("PAPER_REPLACE_REQUIRES_KNOWN_ORIGINAL")
         instruction = child_plan.instruction
         if instruction.concrete_contract_id != self.concrete_contract_id:
             raise ValueError("PAPER_REPLACE_CONTRACT_MISMATCH")
+
+        # A replacement may not begin while some older execution ambiguity is
+        # already unresolved. Refresh first, then re-read the original attempt.
+        pre_blockers = self.refresh_broker_truth(at=at)
+        if pre_blockers:
+            raise RuntimeError("PAPER_REPLACEMENT_RECOVERY_BLOCKED:" +
+                               ";".join(pre_blockers))
+        self.assess(at=at,
+                    concrete_contract_id=self.concrete_contract_id).require_order_ready()
+        original = self.order_journal.get(original_client_request_id)
+        if original.status != BROKER_ORDER_ID_KNOWN or not original.broker_order_id:
+            raise RuntimeError("PAPER_REPLACE_REQUIRES_KNOWN_ORIGINAL")
+
         self.order_journal.prepare(
-            client_request_id=instruction.client_request_id, trader_identity=self.trader_identity,
-            wake_identity=wake_identity, decision_identity=decision_identity,
-            intent_identity=child_plan.intent_identity, risk_identity=child_plan.risk_identity,
-            concrete_contract_id=self.concrete_contract_id, prepared_at=at)
-        cancel = self.order_journal.prepare_cancel_for_broker_order(original.broker_order_id, at=at)
-        replace_id = _hash({"schema_version": PAPER_RUNTIME_COORDINATOR_VERSION,
-                            "kind": "CANCEL_THEN_REPLACE",
-                            "original_client_request_id": original_client_request_id,
-                            "child_client_request_id": instruction.client_request_id,
-                            "replacement_generation": replacement_generation,
-                            "replacement_intent_identity": child_plan.intent_identity})
+            client_request_id=instruction.client_request_id,
+            trader_identity=self.trader_identity,
+            wake_identity=wake_identity,
+            decision_identity=decision_identity,
+            intent_identity=child_plan.intent_identity,
+            risk_identity=child_plan.risk_identity,
+            concrete_contract_id=self.concrete_contract_id,
+            prepared_at=at,
+        )
+        cancel = self.order_journal.prepare_cancel_for_broker_order(
+            original.broker_order_id, at=at)
+        replace_id = _hash({
+            "schema_version": PAPER_RUNTIME_COORDINATOR_VERSION,
+            "kind": "CANCEL_THEN_REPLACE",
+            "original_client_request_id": original_client_request_id,
+            "child_client_request_id": instruction.client_request_id,
+            "replacement_generation": replacement_generation,
+            "replacement_intent_identity": child_plan.intent_identity,
+        })
         self.order_journal.prepare_replace(
-            replace_operation_id=replace_id, original_client_request_id=original_client_request_id,
+            replace_operation_id=replace_id,
+            original_client_request_id=original_client_request_id,
             replacement_generation=replacement_generation,
             replacement_intent_identity=child_plan.intent_identity,
             cancel_operation_id=cancel.cancel_operation_id,
-            child_client_request_id=instruction.client_request_id, prepared_at=at)
+            child_client_request_id=instruction.client_request_id,
+            prepared_at=at,
+        )
         self._before_external_action(at)
         self.broker.cancel_order(original.broker_order_id)
-        blockers = self.refresh_broker_truth(at=at)
-        if blockers:
-            raise RuntimeError("PAPER_REPLACEMENT_RECOVERY_BLOCKED:" + ";".join(blockers))
+
+        # WAITING_FOR_CANCEL is intentionally a temporary recovery blocker. The
+        # exact cancel record, not the generic blocker list, decides whether the
+        # replacement child may proceed.
+        self.refresh_broker_truth(at=at)
         resolved_cancel = self.order_journal.get_cancel(cancel.cancel_operation_id)
-        if resolved_cancel.status != "CANCEL_RESOLVED" or resolved_cancel.final_order_status != "CANCELLED":
+        if (resolved_cancel.status != "CANCEL_RESOLVED" or
+                resolved_cancel.final_order_status != "CANCELLED"):
             raise RuntimeError("PAPER_REPLACE_CANCEL_UNRESOLVED")
+
         self.order_journal.authorize_replacement_child(replace_id, at=at)
-        self.assess(at=at, concrete_contract_id=self.concrete_contract_id).require_order_ready()
+        self.assess(at=at,
+                    concrete_contract_id=self.concrete_contract_id).require_order_ready()
         self._before_external_action(at)
-        broker_order_id = self.broker.submit_order(instruction)
-        if self.order_journal.get(instruction.client_request_id).status == PREPARED:
+        self.broker.submit_order(instruction)
+        child = self.order_journal.get(instruction.client_request_id)
+        if child.status == PREPARED:
             raise RuntimeError("BROKER_FAILED_TO_JOURNAL_REPLACEMENT_SUBMIT")
         blockers = self.refresh_broker_truth(at=at)
         if blockers:
-            raise RuntimeError("PAPER_REPLACEMENT_RECOVERY_BLOCKED:" + ";".join(blockers))
-        return broker_order_id
+            raise RuntimeError("PAPER_REPLACEMENT_RECOVERY_BLOCKED:" +
+                               ";".join(blockers))
+        child = self.order_journal.get(instruction.client_request_id)
+        if child.status != BROKER_ORDER_ID_KNOWN or not child.broker_order_id:
+            raise RuntimeError("PAPER_REPLACEMENT_CHILD_NOT_CONFIRMED")
+        return child.broker_order_id
 
 
 __all__ = [
