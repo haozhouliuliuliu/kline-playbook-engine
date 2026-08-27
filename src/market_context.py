@@ -1,13 +1,8 @@
-"""Deterministic MarketContext for the Shadow Runtime Foundation.
+"""Deterministic causal MarketContext for historical, shadow and live PAPER use.
 
-``MarketContext`` is the normalized causal view a strategy may consume when
-computing intent. It exposes one completed-bar evidence unit, its point-in-time
-availability, a deterministic staleness test, and the bound contract/session
-facts. It never claims exchange-resting intrabar chronology: evidence is only
-visible when a completed bar is available (same conservative observation model
-as ``src.stop_order_execution``).
-
-Ordinary engineering under Skeleton v1.0. No real broker, no candidate outcome.
+MarketContext consumes only completed evidence. Historical normalized bars and
+future broker-neutral live closed bars share this surface without pretending
+that live data is a historical artifact.
 """
 
 from __future__ import annotations
@@ -21,23 +16,20 @@ from typing import Any
 
 from src.contract_semantics import ContractSpecification
 from src.data_substrate import CompletedBar
-from src.historical_data import NormalizedHistoricalBar
 
-MARKET_CONTEXT_SCHEMA_VERSION = "shadow-runtime-market-context-v0.1"
-
+MARKET_CONTEXT_SCHEMA_VERSION = "shadow-runtime-market-context-v0.2"
 
 def _canonical_hash(value: Any) -> str:
     encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     return sha256(encoded.encode("utf-8")).hexdigest()
 
-
-def _completed_bar_of(value: NormalizedHistoricalBar | CompletedBar) -> CompletedBar:
-    if isinstance(value, NormalizedHistoricalBar):
-        return value.completed_bar
+def _completed_bar_of(value: Any) -> CompletedBar:
     if isinstance(value, CompletedBar):
         return value
-    raise ValueError("market context requires a NormalizedHistoricalBar or CompletedBar")
-
+    completed = getattr(value, "completed_bar", None)
+    if isinstance(completed, CompletedBar):
+        return completed
+    raise ValueError("market context requires a CompletedBar-backed evidence object")
 
 @dataclass(frozen=True)
 class MarketContext:
@@ -45,7 +37,7 @@ class MarketContext:
 
     instrument: str
     concrete_contract_id: str
-    last_completed_bar: NormalizedHistoricalBar | CompletedBar
+    last_completed_bar: Any
     observed_at: datetime
     staleness_threshold: timedelta | None
     contract_spec: ContractSpecification | None = None
@@ -55,6 +47,7 @@ class MarketContext:
     def __post_init__(self) -> None:
         if not self.instrument or not self.concrete_contract_id:
             raise ValueError("market context requires instrument and concrete contract identities")
+        _completed_bar_of(self.last_completed_bar)
         if self.observed_at.tzinfo is None:
             raise ValueError("market context observation timestamp must be timezone-aware")
         if self.staleness_threshold is not None and self.staleness_threshold < timedelta(0):
@@ -77,16 +70,12 @@ class MarketContext:
         return self.completed_bar.trading_day
 
     def latest_price(self) -> Decimal:
-        if isinstance(self.last_completed_bar, NormalizedHistoricalBar):
-            return self.last_completed_bar.close
-        raise ValueError("a bare CompletedBar has no price; supply a NormalizedHistoricalBar")
+        close = getattr(self.last_completed_bar, "close", None)
+        if type(close) is not Decimal or not close.is_finite() or close <= 0:
+            raise ValueError("market context price evidence requires a positive finite Decimal close")
+        return close
 
     def is_stale(self, now: datetime) -> bool:
-        """A context is stale when its evidence is older than the threshold.
-
-        ``now`` must be timezone-aware. A ``None`` threshold means the context
-        is never stale by age (the runtime may still flag it via Safety).
-        """
         if now.tzinfo is None:
             raise ValueError("staleness check requires a timezone-aware timestamp")
         if self.staleness_threshold is None:
@@ -99,26 +88,20 @@ class MarketContext:
 
     @property
     def identity_id(self) -> str:
-        return _canonical_hash(
-            {
-                "schema_version": MARKET_CONTEXT_SCHEMA_VERSION,
-                "instrument": self.instrument,
-                "concrete_contract_id": self.concrete_contract_id,
-                "bar_start": self.completed_bar.start.isoformat(),
-                "bar_end": self.completed_bar.end.isoformat(),
-                "bar_available_at": self.completed_bar.available_at.isoformat(),
-                "bar_quality_partial": self.completed_bar.quality.partial,
-                "bar_quality_reconnect_gap": self.completed_bar.quality.reconnect_gap,
-                "observed_at": self.observed_at.isoformat(),
-                "staleness_threshold": (
-                    None
-                    if self.staleness_threshold is None
-                    else int(self.staleness_threshold.total_seconds())
-                ),
-                "contract_spec_identity": (
-                    None if self.contract_spec is None else self.contract_spec.identity_id
-                ),
-                "session_metadata_version": self.session_metadata_version,
-                "feature_identities": self.feature_identities,
-            }
-        )
+        evidence_identity = getattr(self.last_completed_bar, "identity_id", None)
+        return _canonical_hash({
+            "schema_version": MARKET_CONTEXT_SCHEMA_VERSION,
+            "instrument": self.instrument,
+            "concrete_contract_id": self.concrete_contract_id,
+            "bar_start": self.completed_bar.start.isoformat(),
+            "bar_end": self.completed_bar.end.isoformat(),
+            "bar_available_at": self.completed_bar.available_at.isoformat(),
+            "bar_quality_partial": self.completed_bar.quality.partial,
+            "bar_quality_reconnect_gap": self.completed_bar.quality.reconnect_gap,
+            "observed_at": self.observed_at.isoformat(),
+            "staleness_threshold": None if self.staleness_threshold is None else int(self.staleness_threshold.total_seconds()),
+            "contract_spec_identity": None if self.contract_spec is None else self.contract_spec.identity_id,
+            "session_metadata_version": self.session_metadata_version,
+            "feature_identities": self.feature_identities,
+            "evidence_identity": evidence_identity,
+        })
