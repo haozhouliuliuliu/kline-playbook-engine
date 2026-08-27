@@ -68,6 +68,18 @@ jobs:
           tests.test_persistent_trader_portability_regression
           tests.test_persistent_deepseek_offline_probe
 
+      - name: PAPER offline readiness Windows regression tests
+        env:
+          DEEPSEEK_API_KEY: ''
+        run: >-
+          python -m unittest -v
+          tests.test_paper_execution_readiness
+          tests.test_paper_live_execution_foundation
+          tests.test_paper_supervisor_foundation
+          tests.test_paper_live_causal_context
+          tests.test_paper_order_recovery
+          tests.test_paper_offline_runtime_drill
+
       - name: Run native Windows offline acceptance probe
         env:
           DEEPSEEK_API_KEY: ''
