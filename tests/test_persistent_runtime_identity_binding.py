@@ -33,7 +33,7 @@ def identity(*, system_hash: str, decision_hash: str, tools: tuple[str, ...]) ->
         chart_renderer_identity="renderer-v1",
         observation_schema_version="JIANGHE_OBSERVATION_V0_1",
         wake_policy_version="wake-v1",
-        decision_schema_version="JIANGHE_RUNTIME_RESPONSE_V0_1",
+        decision_schema_version="JIANGHE_RUNTIME_RESPONSE_V0_2",
         runtime_normalizer_identity="normalizer-v1",
         hard_execution_envelope_identity="hard-envelope-v1",
         inference_configuration=(("max_retries", "0"),),

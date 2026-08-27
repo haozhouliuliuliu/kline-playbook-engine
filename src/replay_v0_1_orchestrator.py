@@ -26,6 +26,7 @@ from typing import Any, Callable, Iterable, Mapping, Protocol, Sequence
 from uuid import uuid4
 
 from src.fixed_5m_wake_ledger import (
+    WAKE_POLICY_IDENTITY,
     Fixed5MWakeLedger,
     GovernedWake,
     WakeLedgerArchive,
@@ -162,6 +163,7 @@ class ReplayStepBinding:
     session_identity: str
     close_time: datetime
     wake_identity: str
+    logical_wake_selection_identity: str
     observation_identity: str
     request_id: str
     decision_identity: str
@@ -199,7 +201,13 @@ class ReplayResult:
 
 
 def _project_to_jianghe_decision(normalized: NormalizedJiangheDecision) -> JiangheDecision:
-    """Mechanical projection; no research-semantic invention."""
+    """Mechanical projection; no research-semantic invention.
+
+    The structured current-state snapshot fields are carried exactly as the model
+    supplied them in the accepted strict response; nothing is parsed from
+    rationale.  ``watch_regions`` and ``next_review`` remain project-owned and are
+    intentionally not populated from the model.
+    """
     trade_intent = None
     if normalized.action is DecisionAction.ENTER:
         trade_intent = ConstrainedTradeIntent(
@@ -214,12 +222,17 @@ def _project_to_jianghe_decision(normalized: NormalizedJiangheDecision) -> Jiang
         action=normalized.action,
         uncertainty=normalized.decision_state,
         watch_regions=(),
-        invalidation=None,
+        invalidation=normalized.invalidation_hypothesis,
         next_review=None,
         referenced_jianghe_claims=tuple(normalized.principle_references),
         referenced_cases=(),
         rationale=normalized.rationale,
         trade_intent=trade_intent,
+        current_market_hypothesis=normalized.current_market_hypothesis,
+        timeframe_trend_view=normalized.timeframe_trend_view,
+        key_location_hypotheses=normalized.key_location_hypotheses,
+        expected_trigger=normalized.expected_trigger,
+        open_questions=normalized.open_questions,
     )
 
 
@@ -484,6 +497,8 @@ class ReplayV01Orchestrator:
             trader_identity=self._runtime.trader_identity.identity,
             session_identity=session_identity,
             schedule_5m_closes=schedule,
+            wake_policy_identity=WAKE_POLICY_IDENTITY,
+            slice_identity=self._slice.identity,
         )
         self._session_identity = session_identity
         self._session_phase = phase
@@ -571,6 +586,7 @@ class ReplayV01Orchestrator:
             session_identity=step.session_identity,
             close_time=wake.close_time,
             wake_identity=wake.wake_identity,
+            logical_wake_selection_identity=wake.logical_wake_selection_identity,
             observation_identity=observation.identity.identity,
             request_id=request.request_id,
             decision_identity=decision.identity,
@@ -644,6 +660,8 @@ class ReplayV01Orchestrator:
                 trader_identity=self._runtime.trader_identity.identity,
                 session_identity=self._session_identity or "",
                 schedule_5m_closes=self._ledger.schedule,
+                wake_policy_identity=WAKE_POLICY_IDENTITY,
+                slice_identity=self._slice.identity,
             )
         self._intent_lifecycle = IntentPositionLifecycle(self._runtime.store)
         ReplayStateSealer.assert_continuity(
@@ -751,6 +769,14 @@ class ReplayV01Orchestrator:
             ("transition_reason", jianghe_decision.rationale or jianghe_decision.uncertainty, "V0_1_GOVERNED_DECISION"),
             ("directional_bias", jianghe_decision.direction, "V0_1_GOVERNED_DECISION"),
             ("active_family_hypothesis", jianghe_decision.family, "V0_1_GOVERNED_DECISION"),
+            # Structured current-state snapshot fields are exactly model-supplied;
+            # they are persisted as-is and surfaced in the next DS_WORKING_MEMORY.
+            ("current_market_hypothesis", jianghe_decision.current_market_hypothesis, "V0_1_GOVERNED_STRUCTURED_MEMORY_SNAPSHOT"),
+            ("timeframe_trend_view", jianghe_decision.timeframe_trend_view, "V0_1_GOVERNED_STRUCTURED_MEMORY_SNAPSHOT"),
+            ("key_location_hypotheses", jianghe_decision.key_location_hypotheses, "V0_1_GOVERNED_STRUCTURED_MEMORY_SNAPSHOT"),
+            ("expected_trigger", jianghe_decision.expected_trigger, "V0_1_GOVERNED_STRUCTURED_MEMORY_SNAPSHOT"),
+            ("invalidation_hypothesis", jianghe_decision.invalidation, "V0_1_GOVERNED_STRUCTURED_MEMORY_SNAPSHOT"),
+            ("open_questions", jianghe_decision.open_questions, "V0_1_GOVERNED_STRUCTURED_MEMORY_SNAPSHOT"),
         )
         for field_name, new_value, reason in mutations:
             self._runtime.mutate_working_memory(

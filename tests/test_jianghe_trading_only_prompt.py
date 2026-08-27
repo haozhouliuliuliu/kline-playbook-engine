@@ -7,10 +7,13 @@ from src.jianghe_response_normalizer import RESPONSE_SCHEMA_VERSION
 from src.jianghe_trading_only_prompt import (
     DECISION_PROMPT,
     DECISION_PROMPT_V0_1,
+    DECISION_PROMPT_V0_2,
     MODEL_COGNITIVE_SCOPE,
     PROMPT_CONTRACT_VERSION,
     PROMPT_CONTRACT_VERSION_V0_1,
+    PROMPT_CONTRACT_VERSION_V0_2,
     SYSTEM_PROMPT,
+    SYSTEM_PROMPT_V0_3,
     TRADING_ONLY_PROMPT_CONTRACT,
     TradingOnlyPromptContract,
 )
@@ -79,17 +82,33 @@ class TradingOnlyPromptContractTests(unittest.TestCase):
         self.assertEqual(rebuilt.system_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.system_prompt_sha256)
         self.assertEqual(rebuilt.decision_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.decision_prompt_sha256)
 
-    def test_v0_2_contract_version_and_identity_are_distinct_from_v0_1(self) -> None:
-        self.assertEqual(PROMPT_CONTRACT_VERSION, "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2")
+    def test_v0_3_contract_version_and_identity_are_distinct_from_v0_1_v0_2(self) -> None:
+        self.assertEqual(PROMPT_CONTRACT_VERSION, "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_3")
         self.assertEqual(PROMPT_CONTRACT_VERSION_V0_1, "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1")
+        self.assertEqual(PROMPT_CONTRACT_VERSION_V0_2, "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2")
         self.assertEqual(TRADING_ONLY_PROMPT_CONTRACT.version, PROMPT_CONTRACT_VERSION)
         v1 = TradingOnlyPromptContract(
-            version=PROMPT_CONTRACT_VERSION_V0_1, decision_prompt=DECISION_PROMPT_V0_1
+            version=PROMPT_CONTRACT_VERSION_V0_1,
+            system_prompt=SYSTEM_PROMPT,
+            decision_prompt=DECISION_PROMPT_V0_1,
+        )
+        v2 = TradingOnlyPromptContract(
+            version=PROMPT_CONTRACT_VERSION_V0_2,
+            system_prompt=SYSTEM_PROMPT,
+            decision_prompt=DECISION_PROMPT_V0_2,
         )
         self.assertNotEqual(v1.identity, TRADING_ONLY_PROMPT_CONTRACT.identity)
+        self.assertNotEqual(v2.identity, TRADING_ONLY_PROMPT_CONTRACT.identity)
+        self.assertNotEqual(v1.identity, v2.identity)
         self.assertNotEqual(v1.decision_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.decision_prompt_sha256)
-        # The system prompt (trading scope) stays materially unchanged.
-        self.assertEqual(v1.system_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.system_prompt_sha256)
+        # The V0_3 system prompt adds the Jianghe source-claim scope rule.
+        self.assertNotEqual(v1.system_prompt_sha256, TRADING_ONLY_PROMPT_CONTRACT.system_prompt_sha256)
+        normalized_v3_system = " ".join(SYSTEM_PROMPT_V0_3.split())
+        self.assertIn("JIANGHE SOURCE CLAIM SCOPE", normalized_v3_system)
+        self.assertIn(
+            "Do not convert a management/exit observation into a pre-entry requirement",
+            normalized_v3_system,
+        )
 
     def test_decision_prompt_explicitly_requires_numeric_claims_array_form(self) -> None:
         for phrase in (

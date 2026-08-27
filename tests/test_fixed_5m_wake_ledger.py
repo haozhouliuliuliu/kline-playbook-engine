@@ -29,6 +29,7 @@ class Fixed5MWakeLedgerTests(unittest.TestCase):
             schedule_5m_closes=schedule if schedule is not None else _closes(
                 datetime(2026, 1, 5, 9, 0, tzinfo=TZ)
             ),
+            slice_identity="slice-1",
         )
 
     def test_each_closed_5m_bar_produces_exactly_one_wake(self) -> None:
@@ -125,7 +126,7 @@ class Fixed5MWakeLedgerTests(unittest.TestCase):
             path = Path(temp) / "wake_ledger.sqlite3"
             schedule = _closes(datetime(2026, 1, 5, 9, 0, tzinfo=TZ))
             ledger = Fixed5MWakeLedger(
-                path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=schedule
+                path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=schedule, slice_identity="slice-1"
             )
             wakes = []
             for index, close in enumerate(schedule):
@@ -134,7 +135,7 @@ class Fixed5MWakeLedgerTests(unittest.TestCase):
                 ledger.bind_request(wake.wake_identity, f"req-{index}")
             ledger.close_session()
             reopened = Fixed5MWakeLedger(
-                path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=schedule
+                path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=schedule, slice_identity="slice-1"
             )
             self.assertEqual(len(reopened.list_wakes()), 4)
             self.assertEqual(reopened.list_wakes()[0].request_id, "req-0")
@@ -143,7 +144,7 @@ class Fixed5MWakeLedgerTests(unittest.TestCase):
             drifted = schedule + (schedule[-1] + timedelta(minutes=5),)
             with self.assertRaises(ValueError):
                 Fixed5MWakeLedger(
-                    path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=drifted
+                    path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=drifted, slice_identity="slice-1"
                 )
 
     def test_reopen_rejects_different_trader_identity(self) -> None:
@@ -151,11 +152,11 @@ class Fixed5MWakeLedgerTests(unittest.TestCase):
             path = Path(temp) / "wake_ledger.sqlite3"
             schedule = _closes(datetime(2026, 1, 5, 9, 0, tzinfo=TZ))
             Fixed5MWakeLedger(
-                path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=schedule
+                path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=schedule, slice_identity="slice-1"
             )
             with self.assertRaises(ValueError):
                 Fixed5MWakeLedger(
-                    path, trader_identity="other-trader", session_identity="session-1", schedule_5m_closes=schedule
+                    path, trader_identity="other-trader", session_identity="session-1", schedule_5m_closes=schedule, slice_identity="slice-1"
                 )
 
     def test_archive_reconstructs_all_sessions(self) -> None:
@@ -163,7 +164,7 @@ class Fixed5MWakeLedgerTests(unittest.TestCase):
             path = Path(temp) / "wake_ledger.sqlite3"
             schedule = _closes(datetime(2026, 1, 5, 9, 0, tzinfo=TZ))
             first = Fixed5MWakeLedger(
-                path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=schedule
+                path, trader_identity="trader-1", session_identity="session-1", schedule_5m_closes=schedule, slice_identity="slice-1"
             )
             wakes = []
             for index, close in enumerate(schedule):

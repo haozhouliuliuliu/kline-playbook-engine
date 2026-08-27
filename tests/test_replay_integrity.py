@@ -305,7 +305,8 @@ class ReplayIntegrityAuditorTests(unittest.TestCase):
         )
         wakes = (
             GovernedWake(
-                sequence=0, wake_identity="wake-1", session_identity="s1",
+                sequence=0, wake_identity="wake-1", logical_wake_selection_identity="logical-1",
+                session_identity="s1",
                 close_time=schedule[0], scheduled_close_time=schedule[0],
                 trader_identity="trader-1", request_id="req-1", retry_count=0,
             ),
@@ -320,7 +321,8 @@ class ReplayIntegrityAuditorTests(unittest.TestCase):
         schedule = (datetime(2026, 1, 5, 9, 5, tzinfo=TZ),)
         wakes = (
             GovernedWake(
-                sequence=0, wake_identity="wake-1", session_identity="s1",
+                sequence=0, wake_identity="wake-1", logical_wake_selection_identity="logical-1",
+                session_identity="s1",
                 close_time=schedule[0], scheduled_close_time=schedule[0],
                 trader_identity="trader-1", request_id=None, retry_count=0,
             ),

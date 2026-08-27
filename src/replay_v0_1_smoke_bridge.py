@@ -38,7 +38,7 @@ SMOKE_BRIDGE_VERSION = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_BRIDGE_V0_1"
 def _valid_mock_response() -> str:
     return json.dumps(
         {
-            "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+            "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_2",
             "family": "NONE",
             "action": "WAIT",
             "direction": "NONE",
@@ -49,6 +49,12 @@ def _valid_mock_response() -> str:
             "principle_references": [],
             "source_references": [],
             "numeric_claims": [],
+            "current_market_hypothesis": None,
+            "timeframe_trend_view": [],
+            "key_location_hypotheses": [],
+            "expected_trigger": None,
+            "invalidation_hypothesis": None,
+            "open_questions": [],
         },
         ensure_ascii=False,
         sort_keys=True,

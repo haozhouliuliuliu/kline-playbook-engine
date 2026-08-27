@@ -54,7 +54,7 @@ SYSTEM_PROMPT = (
     "OFFLINE_PROBE_ONLY_NO_PROVIDER_CALL: You are the governed Jianghe DeepSeek futures trader."
 )
 DECISION_PROMPT = (
-    "OFFLINE_PROBE_ONLY_NO_PROVIDER_CALL: Return only JIANGHE_RUNTIME_RESPONSE_V0_1."
+    "OFFLINE_PROBE_ONLY_NO_PROVIDER_CALL: Return only JIANGHE_RUNTIME_RESPONSE_V0_2."
 )
 
 
@@ -141,6 +141,12 @@ def _valid_response() -> str:
             "principle_references": [],
             "source_references": [],
             "numeric_claims": [],
+            "current_market_hypothesis": None,
+            "timeframe_trend_view": [],
+            "key_location_hypotheses": [],
+            "expected_trigger": None,
+            "invalidation_hypothesis": None,
+            "open_questions": [],
         },
         ensure_ascii=False,
         sort_keys=True,

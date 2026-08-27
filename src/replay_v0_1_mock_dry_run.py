@@ -48,7 +48,7 @@ class DeterministicWaitTransport:
             raise TypeError("mock transport requires PreparedModelRequest")
         self.calls.append(request)
         return json.dumps({
-            "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+            "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_2",
             "family": "NONE",
             "action": "WAIT",
             "direction": "NONE",
@@ -59,6 +59,12 @@ class DeterministicWaitTransport:
             "principle_references": [],
             "source_references": [],
             "numeric_claims": [],
+            "current_market_hypothesis": None,
+            "timeframe_trend_view": [],
+            "key_location_hypotheses": [],
+            "expected_trigger": None,
+            "invalidation_hypothesis": None,
+            "open_questions": [],
         }, ensure_ascii=False, sort_keys=True)
 
 

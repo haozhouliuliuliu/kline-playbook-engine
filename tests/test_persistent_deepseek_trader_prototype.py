@@ -45,7 +45,7 @@ def _identity(tool_names: tuple[str, ...] = ("jianghe_kline_snapshot",)) -> Jian
         chart_renderer_identity="renderer-v1",
         observation_schema_version="JIANGHE_OBSERVATION_V0_1",
         wake_policy_version="wake-v1",
-        decision_schema_version="JIANGHE_RUNTIME_RESPONSE_V0_1",
+        decision_schema_version="JIANGHE_RUNTIME_RESPONSE_V0_2",
         runtime_normalizer_identity="normalizer-v1",
         hard_execution_envelope_identity="hard-envelope-v1",
         inference_configuration=(("max_retries", "0"),),
@@ -107,7 +107,7 @@ def _observation() -> JiangheObservation:
 def _valid_response() -> str:
     return json.dumps(
         {
-            "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+            "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_2",
             "family": "NONE",
             "action": "WAIT",
             "direction": "NONE",
@@ -118,6 +118,12 @@ def _valid_response() -> str:
             "principle_references": [],
             "source_references": [],
             "numeric_claims": [],
+            "current_market_hypothesis": None,
+            "timeframe_trend_view": [],
+            "key_location_hypotheses": [],
+            "expected_trigger": None,
+            "invalidation_hypothesis": None,
+            "open_questions": [],
         },
         ensure_ascii=False,
     )

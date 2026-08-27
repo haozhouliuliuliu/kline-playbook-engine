@@ -518,6 +518,14 @@ class PersistentDeepSeekTraderPrototype:
                 "direction": normalized.direction.value,
                 "attention_mode": normalized.attention_mode.value,
                 "source_references": list(normalized.source_references),
+                "structured_memory": {
+                    "current_market_hypothesis": normalized.current_market_hypothesis,
+                    "timeframe_trend_view": [list(item) for item in normalized.timeframe_trend_view],
+                    "key_location_hypotheses": list(normalized.key_location_hypotheses),
+                    "expected_trigger": normalized.expected_trigger,
+                    "invalidation_hypothesis": normalized.invalidation_hypothesis,
+                    "open_questions": list(normalized.open_questions),
+                },
                 "strict_output_enum_enforcement": True,
             },
         )

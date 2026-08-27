@@ -636,6 +636,14 @@ class JiangheDecision:
     referenced_cases: tuple[str, ...] = ()
     rationale: str | None = None
     trade_intent: ConstrainedTradeIntent | None = None
+    # Structured current-state snapshot carried from the accepted model response.
+    # These values are exactly model-supplied (never inferred from rationale) and
+    # persist into DS_WORKING_MEMORY for the next model-visible context.
+    current_market_hypothesis: str | None = None
+    timeframe_trend_view: tuple[tuple[str, str], ...] = ()
+    key_location_hypotheses: tuple[str, ...] = ()
+    expected_trigger: str | None = None
+    open_questions: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.uncertainty:

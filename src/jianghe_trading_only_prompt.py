@@ -12,11 +12,15 @@ from hashlib import sha256
 import json
 
 from src.jianghe_ai_trader import AttentionMode, DecisionAction, Direction, StrategyFamily
-from src.jianghe_response_normalizer import RESPONSE_SCHEMA_VERSION
+from src.jianghe_response_normalizer import (
+    RESPONSE_SCHEMA_VERSION,
+    RESPONSE_SCHEMA_VERSION_V0_1,
+)
 
 
 PROMPT_CONTRACT_VERSION_V0_1 = "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_1"
-PROMPT_CONTRACT_VERSION = "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2"
+PROMPT_CONTRACT_VERSION_V0_2 = "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_2"
+PROMPT_CONTRACT_VERSION = "KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_3"
 MODEL_COGNITIVE_SCOPE = "TRADING_ONLY"
 
 
@@ -96,7 +100,7 @@ DECISION_PROMPT_V0_1 = f"""
 Analyze only the supplied governed trading context and produce exactly one JSON
 object. No markdown, no prose before or after the JSON, no extra keys.
 
-Required schema_version: {RESPONSE_SCHEMA_VERSION}
+Required schema_version: {RESPONSE_SCHEMA_VERSION_V0_1}
 
 Required top-level keys exactly:
 - schema_version
@@ -134,14 +138,14 @@ Analyze only the supplied governed trading context and produce exactly one JSON
 object. No markdown, no code fence, no prose before or after the JSON, no extra keys,
 no trailing commentary.
 
-Required schema_version: {RESPONSE_SCHEMA_VERSION}
+Required schema_version: {RESPONSE_SCHEMA_VERSION_V0_1}
 
 EXACT TOP-LEVEL JSON SHAPES (strict serialization contract)
 
 The response MUST be exactly one JSON object with exactly the following
 top-level keys, each with exactly these JSON types:
 
-- schema_version: string, must equal "{RESPONSE_SCHEMA_VERSION}"
+- schema_version: string, must equal "{RESPONSE_SCHEMA_VERSION_V0_1}"
 - family: string, one of: {_enum_values(StrategyFamily)}
 - action: string, one of: {_enum_values(DecisionAction)}
 - direction: string, one of: {_enum_values(Direction)}
@@ -165,7 +169,7 @@ top-level keys, each with exactly these JSON types:
 Structural template (bracketed placeholders are serialization placeholders only;
 never invent market facts not present in the supplied context):
 {{
-  "schema_version": "{RESPONSE_SCHEMA_VERSION}",
+  "schema_version": "{RESPONSE_SCHEMA_VERSION_V0_1}",
   "family": "<FAMILY>",
   "action": "<ACTION>",
   "direction": "<DIRECTION>",
@@ -200,9 +204,123 @@ Rules:
 DECISION_PROMPT = DECISION_PROMPT_V0_2
 
 
+# V0_3 system prompt: preserves the historical V0_1/V0_2 body and adds the
+# explicit Jianghe source-claim scope rule required by the memory-fidelity repair.
+_SYSTEM_PROMPT_V0_3_SUFFIX = """
+
+JIANGHE SOURCE CLAIM SCOPE
+- JIANGHE_CANON entries are exact source-grounded facts. Never extend a Jianghe
+  claim beyond the meaning and category supplied in the canonical record.
+- A claim's canonical category (for example ENTRY/EXIT/MANAGEMENT/RISK) is part
+  of its meaning. Do not convert a management/exit observation into a pre-entry
+  requirement, and do not use an entry claim as an exit rule.
+- If you are unsure whether a claim supports a use, do not stretch it; declare
+  the uncertainty in declared_unknown instead.
+""".strip()
+
+SYSTEM_PROMPT_V0_3 = (SYSTEM_PROMPT + "\n" + _SYSTEM_PROMPT_V0_3_SUFFIX).strip()
+
+
+DECISION_PROMPT_V0_3 = f"""
+Analyze only the supplied governed trading context and produce exactly one JSON
+object. No markdown, no code fence, no prose before or after the JSON, no extra keys,
+no trailing commentary.
+
+Required schema_version: {RESPONSE_SCHEMA_VERSION}
+
+EXACT TOP-LEVEL JSON SHAPES (strict serialization contract)
+
+The response MUST be exactly one JSON object with exactly the following
+top-level keys, each with exactly these JSON types:
+
+- schema_version: string, must equal "{RESPONSE_SCHEMA_VERSION}"
+- family: string, one of: {_enum_values(StrategyFamily)}
+- action: string, one of: {_enum_values(DecisionAction)}
+- direction: string, one of: {_enum_values(Direction)}
+- attention_mode: string, one of: {_enum_values(AttentionMode)}
+- decision_state: non-empty string
+- rationale: non-empty string
+- declared_unknown: JSON array of strings
+- principle_references: JSON array of strings
+- source_references: JSON array of strings
+- numeric_claims: MUST be a JSON array. It MUST NOT be a JSON object/map, and
+  MUST NOT be a single value. When there are no numeric claims, use an empty
+  array: []. Every numeric_claims element MUST be exactly an object with exactly
+  these keys:
+  - claim: non-empty string
+  - value: finite decimal encoded as a JSON string (never a bare JSON number)
+  - unit: string or null
+  - source_reference: string or null
+  No additional keys are allowed inside any numeric_claims element, and no
+  additional top-level keys are allowed.
+- current_market_hypothesis: string or null
+- timeframe_trend_view: JSON array of exactly-2-element string pairs
+  ["<TIMEFRAME>", "<VIEW>"]; TIMEFRAME must be one of "4H", "1H", "15m", "5m";
+  each timeframe may appear at most once; use [] when you hold no timeframe view
+- key_location_hypotheses: JSON array of non-empty strings
+- expected_trigger: string or null
+- invalidation_hypothesis: string or null
+- open_questions: JSON array of non-empty strings
+
+STRUCTURED TRADING-MEMORY RULES (CURRENT STATE SNAPSHOT)
+- current_market_hypothesis, timeframe_trend_view, key_location_hypotheses,
+  expected_trigger, invalidation_hypothesis and open_questions are a CURRENT
+  STATE SNAPSHOT, not a patch/delta.
+- Read DS_WORKING_MEMORY in the supplied context. Carry forward each still-valid
+  prior item EXPLICITLY (restate it), revise it when the current causal evidence
+  changes it, and clear a field (null or empty array) only when you judge that
+  state no longer applies.
+- Never invent trading evidence not present in the supplied context.
+- The project owns wake scheduling, watch-region expiry and review timing; do not
+  return operational timestamps or scheduling fields.
+
+JIANGHE CLAIM SCOPE
+- Never extend a Jianghe claim beyond its supplied canonical meaning/category. In
+  particular, do not convert a management/exit claim into a pre-entry requirement
+  and do not use an entry claim as an exit rule.
+- If a claim's support is uncertain, state that uncertainty in declared_unknown.
+
+Rules:
+1. Base the decision only on the current causal trading context.
+2. Keep rationale concise and decision-relevant; do not narrate hidden reasoning.
+3. Put genuine missing/contradictory trading evidence in declared_unknown.
+4. Cite applicable Jianghe principles/source references when they support the call.
+5. Do not create outcome/PnL/self-evaluation fields.
+6. Do not discuss runtime engineering, scheduling, provider/API behavior, costs,
+   experiments, storage, retries, or unrelated topics.
+7. If evidence is insufficient, use a permitted conservative action rather than
+   fabricating missing facts.
+
+Structural template (bracketed placeholders are serialization placeholders only;
+never invent market facts not present in the supplied context):
+{{
+  "schema_version": "{RESPONSE_SCHEMA_VERSION}",
+  "family": "<FAMILY>",
+  "action": "<ACTION>",
+  "direction": "<DIRECTION>",
+  "attention_mode": "<ATTENTION_MODE>",
+  "decision_state": "<DECISION_STATE>",
+  "rationale": "<RATIONALE>",
+  "declared_unknown": ["<UNKNOWN_ITEM>"],
+  "principle_references": ["<PRINCIPLE_ID>"],
+  "source_references": ["<SOURCE_REF>"],
+  "numeric_claims": [],
+  "current_market_hypothesis": "<CURRENT_MARKET_HYPOTHESIS_OR_NULL>",
+  "timeframe_trend_view": [["5m", "<5M_VIEW_OR_OMIT>"]],
+  "key_location_hypotheses": ["<KEY_LOCATION>"],
+  "expected_trigger": "<EXPECTED_TRIGGER_OR_NULL>",
+  "invalidation_hypothesis": "<INVALIDATION_OR_NULL>",
+  "open_questions": ["<OPEN_QUESTION>"]
+}}
+""".strip()
+
+
+DECISION_PROMPT = DECISION_PROMPT_V0_3
+
+
 @dataclass(frozen=True)
 class TradingOnlyPromptContract:
-    system_prompt: str = SYSTEM_PROMPT
+    system_prompt: str = SYSTEM_PROMPT_V0_3
     decision_prompt: str = DECISION_PROMPT
     version: str = PROMPT_CONTRACT_VERSION
     model_cognitive_scope: str = MODEL_COGNITIVE_SCOPE
@@ -241,10 +359,13 @@ __all__ = [
     "DECISION_PROMPT",
     "DECISION_PROMPT_V0_1",
     "DECISION_PROMPT_V0_2",
+    "DECISION_PROMPT_V0_3",
     "MODEL_COGNITIVE_SCOPE",
     "PROMPT_CONTRACT_VERSION",
     "PROMPT_CONTRACT_VERSION_V0_1",
+    "PROMPT_CONTRACT_VERSION_V0_2",
     "SYSTEM_PROMPT",
+    "SYSTEM_PROMPT_V0_3",
     "TRADING_ONLY_PROMPT_CONTRACT",
     "TradingOnlyPromptContract",
 ]

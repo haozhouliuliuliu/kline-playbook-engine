@@ -24,6 +24,8 @@ from src.jianghe_visual_renderer import JiangheVisualRenderer, RENDERER_VERSION
 from src.replay_v0_1_orchestrator import PHASE_BURN_IN, ReplayV01Orchestrator
 from src.replay_v0_1_smoke_authority import (
     PROVIDER,
+    SMOKE_AUTHORITY_VERSION,
+    SMOKE_AUTHORITY_VERSION_V0_2,
     SMOKE_STATUS_ACTIVE,
     SMOKE_STATUS_PENDING,
     SMOKE_STATUS_REVOKED,
@@ -87,12 +89,29 @@ def _git_rev(repo_root: Path, rev: str) -> str:
     return completed.stdout.strip()
 
 
+def _three_wakes(*, logical: bool = True) -> tuple[tuple[str, SmokeWakeBinding], ...]:
+    """Three distinct smoke wakes; two-identity (logical) or historical runtime-only."""
+    wakes = []
+    for index, name in enumerate(("call_1", "call_2", "call_3")):
+        char = "abc"[index]
+        wakes.append((
+            name,
+            SmokeWakeBinding(
+                char * 64,
+                _day_start(date(2024, 1, 22), 9 + index),
+                logical_wake_selection_identity=("l" + char * 63) if logical else None,
+            ),
+        ))
+    return tuple(wakes)
+
+
 def _authority_payload(
     *,
     status: str,
     owner_payment_confirmation: bool,
     max_spend_cny: str,
     smoke_wakes: tuple[tuple[str, SmokeWakeBinding], ...],
+    authority_version: str = SMOKE_AUTHORITY_VERSION_V0_2,
     slice_identity: str = "slice-test",
     exact_slice_seal_identity: str = "seal-test",
     product: str = "cu",
@@ -102,7 +121,7 @@ def _authority_payload(
     context_policy_identity: str = "context-policy-test",
 ) -> dict:
     authority = ProviderSmokeAuthority(
-        authority_version="KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_1",
+        authority_version=authority_version,
         status=status,
         owner_payment_confirmation=owner_payment_confirmation,
         work_package="SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1",
@@ -156,11 +175,7 @@ class ProviderSmokeAuthorityTests(unittest.TestCase):
                 status=SMOKE_STATUS_PENDING,
                 owner_payment_confirmation=False,
                 max_spend_cny=SPEND_PENDING,
-                smoke_wakes=(
-                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
-                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
-                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
-                ),
+                smoke_wakes=_three_wakes(),
             )
             path = _write_authority(root, payload)
             authority = load_provider_smoke_authority(path)
@@ -171,11 +186,7 @@ class ProviderSmokeAuthorityTests(unittest.TestCase):
                 assert_smoke_authority_active(authority)
 
     def test_active_requires_payment_confirmation_and_concrete_spend(self) -> None:
-        wakes = (
-            ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
-            ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
-            ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
-        )
+        wakes = _three_wakes()
         with self.assertRaises(ValueError):
             ProviderSmokeAuthority(**{  # type: ignore[arg-type]
                 "authority_version": "KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_1",
@@ -212,16 +223,64 @@ class ProviderSmokeAuthorityTests(unittest.TestCase):
             payload = _authority_payload(
                 status=SMOKE_STATUS_PENDING, owner_payment_confirmation=False,
                 max_spend_cny=SPEND_PENDING,
-                smoke_wakes=(
-                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
-                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
-                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
-                ),
+                smoke_wakes=_three_wakes(),
             )
             payload["images_per_call"] = 5  # tamper
             path = _write_authority(root, payload)
             with self.assertRaises(ValueError):
                 load_provider_smoke_authority(path)
+
+    def test_v0_2_authority_requires_both_wake_identities(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # Start from a valid V0_2 two-identity payload, then drop the logical
+            # identities so the loader must reject the runtime-only V0_2 slot.
+            payload = _authority_payload(
+                authority_version=SMOKE_AUTHORITY_VERSION_V0_2,
+                status=SMOKE_STATUS_PENDING, owner_payment_confirmation=False,
+                max_spend_cny=SPEND_PENDING,
+                smoke_wakes=_three_wakes(),
+            )
+            for name in ("call_1", "call_2", "call_3"):
+                payload["smoke_wakes"][name].pop("logical_wake_selection_identity")
+            path = _write_authority(root, payload)
+            with self.assertRaises(ValueError):
+                load_provider_smoke_authority(path)
+
+    def test_runtime_only_authority_cannot_be_pending_or_active(self) -> None:
+        for status in (SMOKE_STATUS_PENDING, SMOKE_STATUS_ACTIVE):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                owner_confirmed = status == SMOKE_STATUS_ACTIVE
+                payload = _authority_payload(
+                    status=status,
+                    owner_payment_confirmation=owner_confirmed,
+                    max_spend_cny="1.00" if owner_confirmed else SPEND_PENDING,
+                    smoke_wakes=_three_wakes(),
+                )
+                for name in ("call_1", "call_2", "call_3"):
+                    payload["smoke_wakes"][name].pop("logical_wake_selection_identity")
+                path = _write_authority(root, payload)
+                with self.assertRaises(ValueError):
+                    load_provider_smoke_authority(path)
+
+    def test_historical_runtime_only_revoked_authority_remains_readable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            payload = _authority_payload(
+                authority_version=SMOKE_AUTHORITY_VERSION,
+                status=SMOKE_STATUS_REVOKED, owner_payment_confirmation=True,
+                max_spend_cny="1.00",
+                smoke_wakes=_three_wakes(logical=False),
+            )
+            path = _write_authority(root, payload)
+            authority = load_provider_smoke_authority(path)
+            self.assertEqual(authority.authority_version, SMOKE_AUTHORITY_VERSION)
+            self.assertEqual(authority.status, SMOKE_STATUS_REVOKED)
+            self.assertTrue(
+                all(binding.logical_wake_selection_identity is None for _, binding in authority.smoke_wakes)
+            )
+            self.assertEqual(authority.identity, payload["authority_identity"])
 
     def test_bridge_construction_requires_active_authority_before_any_env_or_tsx(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -229,11 +288,7 @@ class ProviderSmokeAuthorityTests(unittest.TestCase):
             payload = _authority_payload(
                 status=SMOKE_STATUS_PENDING, owner_payment_confirmation=False,
                 max_spend_cny=SPEND_PENDING,
-                smoke_wakes=(
-                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
-                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
-                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
-                ),
+                smoke_wakes=_three_wakes(),
             )
             authority = load_provider_smoke_authority(_write_authority(root, payload))
             # Missing harness root, missing tsx, unset env — none matter because the
@@ -323,11 +378,7 @@ class ProviderSmokeRunnerGateTests(unittest.TestCase):
             payload = _authority_payload(
                 status=SMOKE_STATUS_PENDING, owner_payment_confirmation=False,
                 max_spend_cny=SPEND_PENDING,
-                smoke_wakes=(
-                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
-                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
-                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
-                ),
+                smoke_wakes=_three_wakes(),
             )
             authority_path = _write_authority(root, payload)
             state_dir = root / "state"
@@ -393,7 +444,14 @@ class ProviderSmokeThreeCallMockChainTests(unittest.TestCase):
             self.assertEqual(len(pre_bindings), 3)
 
             wakes = tuple(
-                (name, SmokeWakeBinding(binding.wake_identity, binding.close_time))
+                (
+                    name,
+                    SmokeWakeBinding(
+                        binding.wake_identity,
+                        binding.close_time,
+                        logical_wake_selection_identity=binding.logical_wake_selection_identity,
+                    ),
+                )
                 for name, binding in zip(("call_1", "call_2", "call_3"), pre_bindings)
             )
             with tempfile.TemporaryDirectory() as tmp2:
@@ -459,7 +517,7 @@ class ProviderSmokeThreeCallMockChainTests(unittest.TestCase):
             renderer = JiangheVisualRenderer()
 
             bad_response = json.dumps({
-                "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+                "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_2",
                 "family": "NONE",
                 "action": "WAIT",
                 "direction": "NONE",
@@ -470,6 +528,12 @@ class ProviderSmokeThreeCallMockChainTests(unittest.TestCase):
                 "principle_references": [],
                 "source_references": [],
                 "numeric_claims": {"latest_5m_close": 76780},  # object shape -> rejected
+                "current_market_hypothesis": None,
+                "timeframe_trend_view": [],
+                "key_location_hypotheses": [],
+                "expected_trigger": None,
+                "invalidation_hypothesis": None,
+                "open_questions": [],
             })
 
             class BadBridge:
@@ -579,11 +643,7 @@ class ProviderSmokeGuardTests(unittest.TestCase):
                 status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
                 max_spend_cny="3.00",
                 context_policy_identity=context_policy,
-                smoke_wakes=(
-                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
-                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
-                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
-                ),
+                smoke_wakes=_three_wakes(),
             )
             authority = load_provider_smoke_authority(_write_authority(root, payload))
             renderer = JiangheVisualRenderer()
@@ -625,11 +685,7 @@ class ProviderSmokeGuardTests(unittest.TestCase):
                     payload = _authority_payload(
                         status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
                         max_spend_cny=bad,
-                        smoke_wakes=(
-                            ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
-                            ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
-                            ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
-                        ),
+                        smoke_wakes=_three_wakes(),
                     )
                     load_provider_smoke_authority(_write_authority(Path(tmp), payload))
 
@@ -698,11 +754,7 @@ class ProviderSmokeRunnerWakeBindingVerificationTests(unittest.TestCase):
             payload = _authority_payload(
                 status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
                 max_spend_cny="3.00",
-                smoke_wakes=(
-                    ("call_1", SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)))),
-                    ("call_2", SmokeWakeBinding("b" * 64, _day_start(date(2024, 1, 22), 10))),
-                    ("call_3", SmokeWakeBinding("c" * 64, _day_start(date(2024, 1, 22), 11))),
-                ),
+                smoke_wakes=_three_wakes(),
             )
             authority = load_provider_smoke_authority(_write_authority(root, payload))
 

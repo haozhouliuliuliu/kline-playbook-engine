@@ -20,7 +20,7 @@ from src.jianghe_response_normalizer import (
 
 def valid_payload() -> dict[str, object]:
     return {
-        "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_1",
+        "schema_version": "JIANGHE_RUNTIME_RESPONSE_V0_2",
         "family": "NONE",
         "action": "WAIT",
         "direction": "NONE",
@@ -33,6 +33,12 @@ def valid_payload() -> dict[str, object]:
         "numeric_claims": [
             {"claim": "观察价", "value": "100.5", "unit": "PRICE", "source_reference": None}
         ],
+        "current_market_hypothesis": "回踩支撑后延续多头",
+        "timeframe_trend_view": [["4H", "上行"], ["5m", "回踩中"]],
+        "key_location_hypotheses": ["76620", "76830"],
+        "expected_trigger": "5m 收于 76830 上方",
+        "invalidation_hypothesis": "5m 收于 76620 下方",
+        "open_questions": ["低周期主动性是否恢复"],
     }
 
 

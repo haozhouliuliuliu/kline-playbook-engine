@@ -15,10 +15,15 @@ from typing import Any, Mapping, Sequence
 from src.jianghe_ai_trader import AttentionMode, DecisionAction, Direction, StrategyFamily
 
 
-NORMALIZER_VERSION = "JIANGHE_RUNTIME_RESPONSE_NORMALIZER_V0_1"
-RESPONSE_SCHEMA_VERSION = "JIANGHE_RUNTIME_RESPONSE_V0_1"
+NORMALIZER_VERSION_V0_1 = "JIANGHE_RUNTIME_RESPONSE_NORMALIZER_V0_1"
+NORMALIZER_VERSION = "JIANGHE_RUNTIME_RESPONSE_NORMALIZER_V0_2"
+RESPONSE_SCHEMA_VERSION_V0_1 = "JIANGHE_RUNTIME_RESPONSE_V0_1"
+RESPONSE_SCHEMA_VERSION = "JIANGHE_RUNTIME_RESPONSE_V0_2"
 
-_TOP_LEVEL_FIELDS = frozenset({
+# Frozen historical V0.1 response contract.  The active schema (V0_2) adds the
+# model-visible structured trading-memory current-state snapshot fields below;
+# historical identities/evidence remain bound to V0_1.
+_TOP_LEVEL_FIELDS_V0_1 = frozenset({
     "schema_version",
     "family",
     "action",
@@ -31,6 +36,24 @@ _TOP_LEVEL_FIELDS = frozenset({
     "source_references",
     "numeric_claims",
 })
+
+# First-class trader-owned CURRENT STATE SNAPSHOT fields.  These are supplied
+# directly by the model in the strict response and are never parsed from
+# rationale by the deterministic project layer.  They map 1:1 to the persisted
+# DS_WORKING_MEMORY current-state fields.  Operational expiry/scheduling fields
+# (e.g. watch-region expiry, review_at) remain project-owned and are not exposed.
+_STRUCTURED_MEMORY_FIELDS = frozenset({
+    "current_market_hypothesis",
+    "timeframe_trend_view",
+    "key_location_hypotheses",
+    "expected_trigger",
+    "invalidation_hypothesis",
+    "open_questions",
+})
+_TOP_LEVEL_FIELDS = _TOP_LEVEL_FIELDS_V0_1 | _STRUCTURED_MEMORY_FIELDS
+
+# Deterministic active-stack order for the structured timeframe trend view.
+_ACTIVE_TIMEFRAME_ORDER = ("4H", "1H", "15m", "5m")
 _NUMERIC_CLAIM_FIELDS = frozenset({"claim", "value", "unit", "source_reference"})
 _FORBIDDEN_OUTCOME_FIELDS = frozenset({
     "outcome", "candidate_outcome", "pnl", "profit", "profits", "loss", "losses",
@@ -56,12 +79,25 @@ def _hash(value: object) -> str:
     return sha256(_canonical_json(value).encode("utf-8")).hexdigest()
 
 
+RESPONSE_SCHEMA_IDENTITY_V0_1 = _hash({
+    "schema_version": RESPONSE_SCHEMA_VERSION_V0_1,
+    "top_level_fields": sorted(_TOP_LEVEL_FIELDS_V0_1),
+    "numeric_claim_fields": sorted(_NUMERIC_CLAIM_FIELDS),
+    "unknown_fields": "REJECT",
+    "type_coercion": "FORBIDDEN",
+})
 RESPONSE_SCHEMA_IDENTITY = _hash({
     "schema_version": RESPONSE_SCHEMA_VERSION,
     "top_level_fields": sorted(_TOP_LEVEL_FIELDS),
     "numeric_claim_fields": sorted(_NUMERIC_CLAIM_FIELDS),
     "unknown_fields": "REJECT",
     "type_coercion": "FORBIDDEN",
+})
+NORMALIZER_IDENTITY_V0_1 = _hash({
+    "normalizer_version": NORMALIZER_VERSION_V0_1,
+    "response_schema_identity": RESPONSE_SCHEMA_IDENTITY_V0_1,
+    "self_evaluation_fields": "REJECT",
+    "outcome_fields": "REJECT_RECURSIVE",
 })
 NORMALIZER_IDENTITY = _hash({
     "normalizer_version": NORMALIZER_VERSION,
@@ -93,6 +129,38 @@ def _strict_string_list(value: object, field_name: str) -> tuple[str, ...]:
     if any(not isinstance(item, str) or not item.strip() for item in value):
         raise ValueError(f"{field_name} 只能包含非空字符串")
     return tuple(sorted(set(value)))
+
+
+def _timeframe_trend_view(value: object, field_name: str) -> tuple[tuple[str, str], ...]:
+    """Deterministic structured active-stack view: JSON array of [timeframe, view] pairs.
+
+    timeframe must be one of the active stack 4H/1H/15m/5m and may appear at most
+    once; pairs are ordered deterministically by the active stack.  This maps 1:1
+    to the persisted ``JiangheWorkingMemory.timeframe_trend_view``.
+    """
+    if not isinstance(value, list):
+        raise ValueError(f"{field_name} 必须是 JSON 数组")
+    seen: set[str] = set()
+    pairs: list[tuple[str, str]] = []
+    for item in value:
+        if (
+            not isinstance(item, list)
+            or len(item) != 2
+            or not isinstance(item[0], str)
+            or not item[0].strip()
+            or not isinstance(item[1], str)
+            or not item[1].strip()
+        ):
+            raise ValueError(f"{field_name} 只能包含 [timeframe, view] 非空字符串对")
+        timeframe, view = item[0], item[1]
+        if timeframe not in _ACTIVE_TIMEFRAME_ORDER:
+            raise ValueError(f"{field_name} 的 timeframe 必须是 4H/1H/15m/5m 之一")
+        if timeframe in seen:
+            raise ValueError(f"{field_name} 不得重复同一 timeframe")
+        seen.add(timeframe)
+        pairs.append((timeframe, view))
+    pairs.sort(key=lambda pair: _ACTIVE_TIMEFRAME_ORDER.index(pair[0]))
+    return tuple(pairs)
 
 
 def _scan_forbidden_fields(value: object, path: str = "response") -> None:
@@ -163,6 +231,14 @@ class NormalizedJiangheDecision:
     principle_references: tuple[str, ...]
     source_references: tuple[str, ...]
     numeric_claims: tuple[NumericClaim, ...]
+    # Model-visible structured CURRENT STATE SNAPSHOT (V0_2).  Values are exactly
+    # model-supplied; the deterministic layer never infers them from rationale.
+    current_market_hypothesis: str | None = None
+    timeframe_trend_view: tuple[tuple[str, str], ...] = ()
+    key_location_hypotheses: tuple[str, ...] = ()
+    expected_trigger: str | None = None
+    invalidation_hypothesis: str | None = None
+    open_questions: tuple[str, ...] = ()
     normalizer_identity: str = NORMALIZER_IDENTITY
     response_schema_identity: str = RESPONSE_SCHEMA_IDENTITY
     identity: str = field(init=False)
@@ -189,6 +265,12 @@ class NormalizedJiangheDecision:
             "principle_references": self.principle_references,
             "source_references": self.source_references,
             "numeric_claims": [claim.to_payload() for claim in self.numeric_claims],
+            "current_market_hypothesis": self.current_market_hypothesis,
+            "timeframe_trend_view": self.timeframe_trend_view,
+            "key_location_hypotheses": self.key_location_hypotheses,
+            "expected_trigger": self.expected_trigger,
+            "invalidation_hypothesis": self.invalidation_hypothesis,
+            "open_questions": self.open_questions,
         }
         object.__setattr__(self, "identity", _hash(payload))
 
@@ -244,6 +326,22 @@ class JiangheResponseNormalizer:
             ),
             source_references=_strict_string_list(payload["source_references"], "source_references"),
             numeric_claims=tuple(numeric_claims),
+            current_market_hypothesis=_require_text(
+                payload["current_market_hypothesis"], "current_market_hypothesis", nullable=True
+            ),
+            timeframe_trend_view=_timeframe_trend_view(
+                payload["timeframe_trend_view"], "timeframe_trend_view"
+            ),
+            key_location_hypotheses=_strict_string_list(
+                payload["key_location_hypotheses"], "key_location_hypotheses"
+            ),
+            expected_trigger=_require_text(
+                payload["expected_trigger"], "expected_trigger", nullable=True
+            ),
+            invalidation_hypothesis=_require_text(
+                payload["invalidation_hypothesis"], "invalidation_hypothesis", nullable=True
+            ),
+            open_questions=_strict_string_list(payload["open_questions"], "open_questions"),
         )
 
 
@@ -559,11 +657,15 @@ __all__ = [
     "EvaluatorSideJudgment",
     "JiangheResponseNormalizer",
     "NORMALIZER_IDENTITY",
+    "NORMALIZER_IDENTITY_V0_1",
     "NORMALIZER_VERSION",
+    "NORMALIZER_VERSION_V0_1",
     "NormalizedJiangheDecision",
     "NumericClaim",
     "RESPONSE_SCHEMA_IDENTITY",
+    "RESPONSE_SCHEMA_IDENTITY_V0_1",
     "RESPONSE_SCHEMA_VERSION",
+    "RESPONSE_SCHEMA_VERSION_V0_1",
     "RuntimeFidelityEvidence",
     "build_neutral_fidelity_adapter_payload",
     "build_fidelity_response_payload",

@@ -27,8 +27,47 @@ import sqlite3
 from typing import Any, Iterable, Sequence
 
 WAKE_LEDGER_VERSION = "KPE_FIXED_5M_WAKE_LEDGER_V0_1"
-WAKE_LEDGER_SCHEMA_VERSION = "KPE_FIXED_5M_WAKE_LEDGER_STORE_V0_1"
+WAKE_LEDGER_SCHEMA_VERSION_V0_1 = "KPE_FIXED_5M_WAKE_LEDGER_STORE_V0_1"
+WAKE_LEDGER_SCHEMA_VERSION = "KPE_FIXED_5M_WAKE_LEDGER_STORE_V0_2"
 FIVE_MINUTES = timedelta(minutes=5)
+
+# Frozen V0.1 fixed-5m wake-policy identity (selection-invariant).
+WAKE_POLICY_VERSION = "KPE_FIXED_5M_WAKE_POLICY_V0_1"
+
+# Stable logical wake-selection identity version (selection-invariant, excludes
+# trader/prompt/runtime identity).
+LOGICAL_WAKE_SELECTION_VERSION = "KPE_FIXED_5M_LOGICAL_WAKE_SELECTION_V0_1"
+
+
+def logical_wake_selection_identity(
+    *,
+    wake_policy_identity: str,
+    slice_identity: str,
+    session_identity: str,
+    sequence: int,
+    close_time: datetime,
+) -> str:
+    """Deterministic logical wake-selection identity.
+
+    Bound only to selection-invariant fields: logical identity/version, frozen
+    V0.1 wake-policy identity, sealed slice identity, governed session identity,
+    ordered sequence and exact closed-5m close time.  It intentionally excludes
+    trader/prompt/runtime identity, so a prompt/trader change preserves this
+    identity while the runtime ``wake_identity`` necessarily changes.
+    """
+    if not wake_policy_identity or not slice_identity or not session_identity:
+        raise ValueError("logical wake-selection identity fields must be non-empty")
+    if type(sequence) is not int or sequence < 0:
+        raise ValueError("logical wake sequence must be a non-negative integer")
+    _aware(close_time, "logical_wake_selection.close_time")
+    return _hash({
+        "logical_wake_selection_version": LOGICAL_WAKE_SELECTION_VERSION,
+        "wake_policy_identity": wake_policy_identity,
+        "slice_identity": slice_identity,
+        "session_identity": session_identity,
+        "sequence": sequence,
+        "close_time": _iso(close_time),
+    })
 
 
 def _canonical_json(value: object) -> str:
@@ -37,6 +76,14 @@ def _canonical_json(value: object) -> str:
 
 def _hash(value: object) -> str:
     return sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+
+
+WAKE_POLICY_IDENTITY = _hash({
+    "wake_policy_version": WAKE_POLICY_VERSION,
+    "policy": "EVERY_NEW_CLOSED_5M_BAR",
+    "max_retries": 0,
+    "one_admitted_request_per_wake": True,
+})
 
 
 def _aware(value: datetime, field_name: str) -> datetime:
@@ -66,6 +113,7 @@ def _assert_5m_grid(value: datetime, field_name: str) -> None:
 class GovernedWake:
     sequence: int
     wake_identity: str
+    logical_wake_selection_identity: str
     session_identity: str
     close_time: datetime
     scheduled_close_time: datetime
@@ -80,7 +128,9 @@ class GovernedWake:
         _aware(self.scheduled_close_time, "wake.scheduled_close_time")
         if self.close_time != self.scheduled_close_time:
             raise ValueError("wake close_time must equal its scheduled close time")
-        if not self.wake_identity or not self.session_identity or not self.trader_identity:
+        if not self.wake_identity or not self.logical_wake_selection_identity:
+            raise ValueError("wake identity fields must be non-empty")
+        if not self.session_identity or not self.trader_identity:
             raise ValueError("wake identity fields must be non-empty")
         if self.request_id is not None and not self.request_id:
             raise ValueError("wake request_id must be null or non-empty")
@@ -107,11 +157,17 @@ class Fixed5MWakeLedger:
         trader_identity: str,
         session_identity: str,
         schedule_5m_closes: Sequence[datetime],
+        wake_policy_identity: str = WAKE_POLICY_IDENTITY,
+        slice_identity: str = "",
     ) -> None:
         if not isinstance(trader_identity, str) or not trader_identity:
             raise ValueError("trader_identity must be non-empty")
         if not isinstance(session_identity, str) or not session_identity:
             raise ValueError("session_identity must be non-empty")
+        if not isinstance(wake_policy_identity, str) or not wake_policy_identity:
+            raise ValueError("wake_policy_identity must be non-empty")
+        if not isinstance(slice_identity, str) or not slice_identity:
+            raise ValueError("slice_identity must be non-empty")
         schedule = tuple(schedule_5m_closes)
         if not schedule:
             raise ValueError("governed session must have at least one scheduled 5m close")
@@ -125,6 +181,8 @@ class Fixed5MWakeLedger:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.trader_identity = trader_identity
         self.session_identity = session_identity
+        self.wake_policy_identity = wake_policy_identity
+        self.slice_identity = slice_identity
         self._schedule = schedule
         self._initialize()
 
@@ -156,6 +214,7 @@ class Fixed5MWakeLedger:
                     session_identity TEXT NOT NULL,
                     sequence INTEGER NOT NULL,
                     wake_identity TEXT NOT NULL UNIQUE,
+                    logical_wake_selection_identity TEXT NOT NULL,
                     close_time TEXT NOT NULL,
                     scheduled_close_time TEXT NOT NULL,
                     trader_identity TEXT NOT NULL,
@@ -272,17 +331,26 @@ class Fixed5MWakeLedger:
                     "trader_identity": self.trader_identity,
                 }
             )
+            logical_identity = logical_wake_selection_identity(
+                wake_policy_identity=self.wake_policy_identity,
+                slice_identity=self.slice_identity,
+                session_identity=self.session_identity,
+                sequence=sequence,
+                close_time=close_time,
+            )
             connection.execute(
                 """
                 INSERT INTO wake_records(
-                    session_identity, sequence, wake_identity, close_time,
+                    session_identity, sequence, wake_identity,
+                    logical_wake_selection_identity, close_time,
                     scheduled_close_time, trader_identity, request_id, retry_count
-                ) VALUES(?, ?, ?, ?, ?, ?, NULL, 0)
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, NULL, 0)
                 """,
                 (
                     self.session_identity,
                     sequence,
                     wake_identity,
+                    logical_identity,
                     _iso(close_time),
                     _iso(scheduled),
                     self.trader_identity,
@@ -291,6 +359,7 @@ class Fixed5MWakeLedger:
         return GovernedWake(
             sequence=sequence,
             wake_identity=wake_identity,
+            logical_wake_selection_identity=logical_identity,
             session_identity=self.session_identity,
             close_time=close_time,
             scheduled_close_time=scheduled,
@@ -419,11 +488,14 @@ class Fixed5MWakeLedger:
             "schema_version": WAKE_LEDGER_SCHEMA_VERSION,
             "trader_identity": self.trader_identity,
             "session_identity": self.session_identity,
+            "wake_policy_identity": self.wake_policy_identity,
+            "slice_identity": self.slice_identity,
             "schedule_5m_closes": [_iso(item) for item in self._schedule],
             "wakes": [
                 {
                     "sequence": wake.sequence,
                     "wake_identity": wake.wake_identity,
+                    "logical_wake_selection_identity": wake.logical_wake_selection_identity,
                     "close_time": _iso(wake.close_time),
                     "scheduled_close_time": _iso(wake.scheduled_close_time),
                     "request_id": wake.request_id,
@@ -439,6 +511,7 @@ class Fixed5MWakeLedger:
         return GovernedWake(
             sequence=int(row["sequence"]),
             wake_identity=row["wake_identity"],
+            logical_wake_selection_identity=row["logical_wake_selection_identity"],
             session_identity=row["session_identity"],
             close_time=_parse_dt(row["close_time"], "wake_records.close_time"),
             scheduled_close_time=_parse_dt(
@@ -542,6 +615,7 @@ class WakeLedgerArchive:
                         {
                             "sequence": wake.sequence,
                             "wake_identity": wake.wake_identity,
+                            "logical_wake_selection_identity": wake.logical_wake_selection_identity,
                             "close_time": _iso(wake.close_time),
                             "scheduled_close_time": _iso(wake.scheduled_close_time),
                             "request_id": wake.request_id,
@@ -576,10 +650,15 @@ __all__ = [
     "FIVE_MINUTES",
     "Fixed5MWakeLedger",
     "GovernedWake",
+    "LOGICAL_WAKE_SELECTION_VERSION",
     "WAKE_LEDGER_SCHEMA_VERSION",
+    "WAKE_LEDGER_SCHEMA_VERSION_V0_1",
     "WAKE_LEDGER_VERSION",
+    "WAKE_POLICY_IDENTITY",
+    "WAKE_POLICY_VERSION",
     "WakeBinding",
     "WakeLedgerArchive",
     "default_session_schedule_5m",
+    "logical_wake_selection_identity",
     "wake_ledger_path_for",
 ]

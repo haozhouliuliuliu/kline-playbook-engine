@@ -28,7 +28,17 @@ from src.persistent_deepseek_runtime import (
 
 SMOKE_AUTHORITY_VERSION = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_1"
 SMOKE_RETEST_AUTHORITY_VERSION = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_1"
-ALLOWED_AUTHORITY_VERSIONS = frozenset({SMOKE_AUTHORITY_VERSION, SMOKE_RETEST_AUTHORITY_VERSION})
+# Forward two-identity authority form: every smoke wake carries BOTH the stable
+# logical wake-selection identity and the runtime wake identity.  Historical
+# V0_1 terminal authorities remain readable with runtime-only wakes.
+SMOKE_AUTHORITY_VERSION_V0_2 = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_SLOT_V0_2"
+SMOKE_RETEST_AUTHORITY_VERSION_V0_2 = "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_2"
+ALLOWED_AUTHORITY_VERSIONS = frozenset({
+    SMOKE_AUTHORITY_VERSION,
+    SMOKE_RETEST_AUTHORITY_VERSION,
+    SMOKE_AUTHORITY_VERSION_V0_2,
+    SMOKE_RETEST_AUTHORITY_VERSION_V0_2,
+})
 SMOKE_STATUS_PENDING = "PENDING_OWNER_PAYMENT_CONFIRMATION"
 SMOKE_STATUS_ACTIVE = "ACTIVE"
 SMOKE_STATUS_REVOKED = "REVOKED"
@@ -87,20 +97,34 @@ def _parse_dt(value: object, field_name: str) -> datetime:
 
 @dataclass(frozen=True)
 class SmokeWakeBinding:
-    """One exact smoke wake: its deterministic wake identity and close time."""
+    """One exact smoke wake: deterministic runtime identity, logical selection
+    identity and close time.
+
+    Historical V0_1 terminal authorities are runtime-only (``logical_wake_selection_identity``
+    is ``None``).  Future ACTIVE/PENDING authorities must carry both identities.
+    """
 
     wake_identity: str
     close_time: datetime
+    logical_wake_selection_identity: str | None = None
 
     def __post_init__(self) -> None:
         _non_empty(self.wake_identity, "smoke_wake.wake_identity")
         _aware(self.close_time, "smoke_wake.close_time")
+        if self.logical_wake_selection_identity is not None:
+            _non_empty(
+                self.logical_wake_selection_identity,
+                "smoke_wake.logical_wake_selection_identity",
+            )
 
     def to_payload(self) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "wake_identity": self.wake_identity,
             "close_time": self.close_time.astimezone(timezone.utc).isoformat(timespec="microseconds"),
         }
+        if self.logical_wake_selection_identity is not None:
+            payload["logical_wake_selection_identity"] = self.logical_wake_selection_identity
+        return payload
 
 
 def _aware(value: datetime, field_name: str) -> None:
@@ -205,6 +229,22 @@ class ProviderSmokeAuthority:
             raise ValueError("smoke authority must bind exactly call_1/call_2/call_3 wakes")
         if len({binding.wake_identity for _, binding in self.smoke_wakes}) != 3:
             raise ValueError("smoke wake identities must be distinct")
+        two_identity_required = self.authority_version in (
+            SMOKE_AUTHORITY_VERSION_V0_2,
+            SMOKE_RETEST_AUTHORITY_VERSION_V0_2,
+        )
+        runtime_only = any(
+            binding.logical_wake_selection_identity is None for _, binding in self.smoke_wakes
+        )
+        if two_identity_required and runtime_only:
+            raise ValueError(
+                "V0_2 smoke authority requires both logical and runtime wake identities"
+            )
+        if runtime_only and self.status != SMOKE_STATUS_REVOKED:
+            raise ValueError(
+                "a runtime-only smoke authority is terminal only; "
+                "it may not be PENDING or ACTIVE"
+            )
         _non_empty(self.context_policy_identity, "context_policy_identity")
         _non_empty(self.renderer_identity, "renderer_identity")
         _non_empty(self.api_key_env, "api_key_env")
@@ -284,9 +324,13 @@ def _parse_smoke_wakes(raw: object) -> tuple[tuple[str, SmokeWakeBinding], ...]:
         entry = raw[name]
         if not isinstance(entry, Mapping):
             raise ValueError(f"smoke wake {name} must be an object")
+        logical = entry.get("logical_wake_selection_identity")
         result.append((name, SmokeWakeBinding(
             wake_identity=_non_empty(entry.get("wake_identity"), f"{name}.wake_identity"),
             close_time=_parse_dt(entry.get("close_time"), f"{name}.close_time"),
+            logical_wake_selection_identity=(
+                None if logical is None else _non_empty(logical, f"{name}.logical_wake_selection_identity")
+            ),
         )))
     return tuple(result)
 
@@ -374,11 +418,13 @@ __all__ = [
     "PROVIDER",
     "ProviderSmokeAuthority",
     "SMOKE_AUTHORITY_VERSION",
+    "SMOKE_AUTHORITY_VERSION_V0_2",
     "SMOKE_IMAGES_PER_CALL",
     "SMOKE_MAX_PROVIDER_CALLS",
     "SMOKE_MAX_RETRIES",
     "SMOKE_RESTART_AFTER_CALL",
     "SMOKE_RETEST_AUTHORITY_VERSION",
+    "SMOKE_RETEST_AUTHORITY_VERSION_V0_2",
     "SMOKE_STATUS_ACTIVE",
     "SMOKE_STATUS_PENDING",
     "SMOKE_STATUS_REVOKED",
