@@ -233,12 +233,43 @@ def _authority_mismatch(authority, seal) -> str | None:
     return None
 
 
+def _assert_wake_pair_matches(
+    name: str, actual_logical: str, actual_runtime: str, expected
+) -> None:
+    """Independent fail-closed checks of logical and runtime wake identities.
+
+    A correct runtime identity never masks a bad logical identity and vice
+    versa: both must exactly match their respective sealed authority values.
+    """
+    expected_logical = expected.logical_wake_selection_identity
+    if expected_logical is None:
+        raise ValueError(
+            f"authority {name} carries no logical_wake_selection_identity; "
+            "an ACTIVE two-identity authority is required"
+        )
+    if not actual_logical or not actual_runtime:
+        raise ValueError(
+            f"authority {name} actual binding is missing a wake identity"
+        )
+    if actual_logical != expected_logical:
+        raise ValueError(
+            f"authority {name} logical wake-selection identity mismatch: "
+            f"sealed={expected_logical} actual={actual_logical}"
+        )
+    if actual_runtime != expected.wake_identity:
+        raise ValueError(
+            f"authority {name} runtime wake identity mismatch: "
+            f"sealed={expected.wake_identity} actual={actual_runtime}"
+        )
+
+
 def _verify_smoke_wake_bindings(authority, bindings) -> None:
     """Fail closed unless the driven step bindings match the sealed wakes.
 
     ``authority.smoke_wakes`` is an ordered tuple of ``(name, SmokeWakeBinding)``
-    pairs; each driven ``ReplayStepBinding`` must match the sealed wake identity
-    in the same call order.
+    pairs; each driven ``ReplayStepBinding`` must match BOTH the sealed logical
+    wake-selection identity and the sealed runtime wake identity in the same
+    call order.  The two checks are independent.
     """
     if len(bindings) != 3:
         raise ValueError("provider smoke must produce exactly three governed step bindings")
@@ -249,11 +280,84 @@ def _verify_smoke_wake_bindings(authority, bindings) -> None:
             raise ValueError(
                 f"authority smoke wake order mismatch: expected {expected_name}, got {name}"
             )
-        if binding.wake_identity != expected.wake_identity:
+        _assert_wake_pair_matches(
+            name,
+            actual_logical=binding.logical_wake_selection_identity,
+            actual_runtime=binding.wake_identity,
+            expected=expected,
+        )
+
+
+def _build_wake_guard(authority):
+    """Return a pre-call guard that fails closed before each provider call.
+
+    The guard is invoked by the orchestrator immediately after a governed wake
+    is registered (before the model request is prepared and before the
+    transport/provider call), so a mismatch stops before network capability use
+    for that wake, as far as the existing architecture permits.
+    """
+    expected_by_sequence = {
+        sequence: binding
+        for sequence, (_name, binding) in enumerate(authority.smoke_wakes)
+    }
+
+    def _guard(wake, sequence: int) -> None:
+        expected = expected_by_sequence.get(sequence)
+        if expected is None:
             raise ValueError(
-                f"authority {name} wake identity mismatch: sealed={expected.wake_identity} "
-                f"actual={binding.wake_identity}"
+                f"authority has no sealed wake for driven sequence {sequence}"
             )
+        name = ("call_1", "call_2", "call_3")[sequence]
+        _assert_wake_pair_matches(
+            name,
+            actual_logical=wake.logical_wake_selection_identity,
+            actual_runtime=wake.wake_identity,
+            expected=expected,
+        )
+
+    return _guard
+
+
+def _build_call_evidence(name, binding, rendered, finish_reason, provider_request_id, token_usage) -> dict:
+    """Per-call PASS evidence retaining BOTH wake identities."""
+    return {
+        "call": name,
+        "wake_identity": binding.wake_identity,
+        "logical_wake_selection_identity": binding.logical_wake_selection_identity,
+        "close_time": binding.close_time.isoformat(),
+        "observation_identity": binding.observation_identity,
+        "request_id": binding.request_id,
+        "decision_identity": binding.decision_identity,
+        "png_sha256": list(rendered.png_sha256s),
+        "visual_artifact_identities": [
+            artifact.visual_artifact_identity
+            for artifact in rendered.artifacts
+        ],
+        "finish_reason": finish_reason,
+        "provider_request_id": provider_request_id,
+        "token_usage": token_usage,
+    }
+
+
+def _build_admitted_wake_evidence(bindings) -> list[dict]:
+    """Fail-closed admitted-wake evidence retaining BOTH identities.
+
+    Used when a failure occurs after one or more wakes were admitted so the
+    attempted provider opportunity remains reconstructable.  Never fabricates a
+    logical identity for wakes that were not actually admitted.
+    """
+    return [
+        {
+            "call": name,
+            "wake_identity": binding.wake_identity,
+            "logical_wake_selection_identity": binding.logical_wake_selection_identity,
+            "close_time": binding.close_time.isoformat(),
+            "observation_identity": binding.observation_identity,
+            "request_id": binding.request_id,
+            "decision_identity": binding.decision_identity,
+        }
+        for name, binding in zip(("call_1", "call_2", "call_3"), bindings)
+    ]
 
 
 def _write_evidence_file(output: Path, encoded: str) -> None:
@@ -399,6 +503,7 @@ def main() -> int:
         transport=transport,
         state_dir=state_dir,
         renderer=renderer,
+        wake_guard=_build_wake_guard(authority),
     )
 
     # --- 8..11. Drive call 1 -> call 2 -> forced restart -> call 3, then write
@@ -416,6 +521,9 @@ def main() -> int:
             )
             for call_index, step in enumerate(smoke_steps, start=1):
                 orchestrator.run_wake_step(step)
+                # Keep bindings incrementally updated so fail-closed evidence
+                # retains every admitted wake even if a later call fails.
+                bindings = orchestrator.list_step_bindings()
                 if call_index == 2:
                     restart_before_identity = orchestrator.restart()
             orchestrator.end_session()
@@ -475,22 +583,14 @@ def main() -> int:
             "canonical_fixed_5m_preflight_identity": preflight.identity,
             "constructed_bar_counts": context_index.bar_counts(),
             "smoke_wakes": [
-                {
-                    "call": name,
-                    "wake_identity": binding.wake_identity,
-                    "close_time": binding.close_time.isoformat(),
-                    "observation_identity": binding.observation_identity,
-                    "request_id": binding.request_id,
-                    "decision_identity": binding.decision_identity,
-                    "png_sha256": list(rendered_per_step[index].png_sha256s),
-                    "visual_artifact_identities": [
-                        artifact.visual_artifact_identity
-                        for artifact in rendered_per_step[index].artifacts
-                    ],
-                    "finish_reason": per_call_finish_reasons[index],
-                    "provider_request_id": per_call_provider_request_ids[index],
-                    "token_usage": per_call_usage[index],
-                }
+                _build_call_evidence(
+                    name,
+                    binding,
+                    rendered_per_step[index],
+                    per_call_finish_reasons[index],
+                    per_call_provider_request_ids[index],
+                    per_call_usage[index],
+                )
                 for index, (name, binding) in enumerate(
                     zip(("call_1", "call_2", "call_3"), bindings)
                 )
@@ -541,6 +641,7 @@ def main() -> int:
             "provider_call_count": len(getattr(transport, "calls", [])),
             "network_request_count": len(getattr(transport, "calls", [])),
             "admitted_wake_count": len(bindings),
+            "admitted_wakes": _build_admitted_wake_evidence(bindings),
             "request_count": len(bindings),
             "retry_count": 0,
             "hidden_second_requests": 0,

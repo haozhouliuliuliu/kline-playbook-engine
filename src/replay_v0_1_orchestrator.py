@@ -388,6 +388,7 @@ class ReplayV01Orchestrator:
         renderer: JiangheVisualRenderer | None = None,
         retrieval_query: str = "current causal market state and key locations",
         r2_active_restart_measurement_day: int = 4,
+        wake_guard: Callable[[GovernedWake, int], None] | None = None,
     ) -> None:
         provider_admitted = bool(getattr(transport, "provider_admitted", False))
         if not transport.mock and not provider_admitted:
@@ -404,11 +405,14 @@ class ReplayV01Orchestrator:
             raise TypeError("orchestrator renderer must be the accepted JiangheVisualRenderer")
         if not isinstance(r2_active_restart_measurement_day, int) or r2_active_restart_measurement_day < 1:
             raise ValueError("R2 active-state restart measurement day must be >= 1")
+        if wake_guard is not None and not callable(wake_guard):
+            raise TypeError("wake_guard must be callable or None")
         self._runtime_factory = runtime_factory
         self._clock = clock
         self._slice = slice_
         self._transport = transport
         self._renderer = renderer
+        self._wake_guard = wake_guard
         self._state_dir = Path(state_dir)
         self._state_dir.mkdir(parents=True, exist_ok=True)
         self._retrieval_query = _non_empty(retrieval_query, "retrieval_query")
@@ -527,6 +531,10 @@ class ReplayV01Orchestrator:
         # Single forward-only ReplayClock (reused; no second contradictory clock).
         self._clock.advance_to(decision_time)
         wake = self._ledger.register_closed_5m(step.wake_bar.close_time)
+        # Optional pre-call guard: fail closed on wake identity mismatch BEFORE
+        # the model request is prepared and BEFORE the transport/provider call.
+        if self._wake_guard is not None:
+            self._wake_guard(wake, wake.sequence)
         observation = self._build_observation(decision_time=decision_time, step=step)
         request = self._runtime.prepare_model_request(
             observation=observation, retrieval_query=self._retrieval_query

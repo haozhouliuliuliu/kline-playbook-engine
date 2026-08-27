@@ -735,8 +735,9 @@ class ProviderSmokeGuardTests(unittest.TestCase):
 
 
 class ProviderSmokeRunnerWakeBindingVerificationTests(unittest.TestCase):
-    """Regression: the runner's step-9 wake-binding check must unpack the
-    ``(name, SmokeWakeBinding)`` pairs of ``authority.smoke_wakes`` correctly."""
+    """F-01 regression: the runner must verify BOTH the stable logical
+    wake-selection identity and the runtime wake identity independently, and
+    PASS/fail evidence must retain both identities."""
 
     def _runner_module(self):
         path = REPO_ROOT / "tools" / "run_replay_v0_1_provider_smoke.py"
@@ -747,40 +748,226 @@ class ProviderSmokeRunnerWakeBindingVerificationTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
-    def test_wake_binding_verification_matches_authority(self) -> None:
-        module = self._runner_module()
+    def _preflight_module(self):
+        path = REPO_ROOT / "tools" / "preflight_replay_v0_1_provider_smoke.py"
+        spec = importlib.util.spec_from_file_location("kpe_preflight_mod", path)
+        self.assertIsNotNone(spec)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+        return module
+
+    def _load_authority(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
             payload = _authority_payload(
                 status=SMOKE_STATUS_ACTIVE, owner_payment_confirmation=True,
                 max_spend_cny="3.00",
                 smoke_wakes=_three_wakes(),
             )
-            authority = load_provider_smoke_authority(_write_authority(root, payload))
+            return load_provider_smoke_authority(_write_authority(Path(tmp), payload))
 
-            class _Binding:
-                def __init__(self, wake_identity):
-                    self.wake_identity = wake_identity
+    def _exact_bindings(self):
+        """Bindings matching ``_three_wakes()`` exactly (logical + runtime)."""
+        class _Binding:
+            def __init__(self, wake_identity, logical, sequence=0):
+                self.wake_identity = wake_identity
+                self.logical_wake_selection_identity = logical
+                self.close_time = datetime(2024, 1, 22, 9, 0, tzinfo=TZ)
+                self.sequence = sequence
+                self.observation_identity = f"obs-{sequence}"
+                self.request_id = f"req-{sequence}"
+                self.decision_identity = f"dec-{sequence}"
+        return [
+            _Binding("a" * 64, "l" + "a" * 63, 0),
+            _Binding("b" * 64, "l" + "b" * 63, 1),
+            _Binding("c" * 64, "l" + "c" * 63, 2),
+        ]
 
-            # Exact match passes (regression for the tuple-decomposition bug).
-            module._verify_smoke_wake_bindings(authority, [
-                _Binding("a" * 64), _Binding("b" * 64), _Binding("c" * 64),
-            ])
-            # Reordered wakes fail closed (order is sealed).
-            with self.assertRaises(ValueError):
-                module._verify_smoke_wake_bindings(authority, [
-                    _Binding("c" * 64), _Binding("b" * 64), _Binding("a" * 64),
-                ])
-            # Any identity mismatch fails closed.
-            with self.assertRaises(ValueError):
-                module._verify_smoke_wake_bindings(authority, [
-                    _Binding("a" * 64), _Binding("d" * 64), _Binding("c" * 64),
-                ])
-            # Wrong count fails closed.
-            with self.assertRaises(ValueError):
-                module._verify_smoke_wake_bindings(authority, [
-                    _Binding("a" * 64), _Binding("b" * 64),
-                ])
+    def test_verify_accepts_exact_logical_and_runtime_match(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        module._verify_smoke_wake_bindings(authority, self._exact_bindings())
+
+    def test_verify_rejects_reordered_wakes(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        with self.assertRaises(ValueError):
+            module._verify_smoke_wake_bindings(authority, list(reversed(self._exact_bindings())))
+
+    def test_verify_rejects_runtime_tamper_while_logical_correct(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        bindings = self._exact_bindings()
+        bindings[1].wake_identity = "d" * 64  # runtime tamper, logical stays correct
+        with self.assertRaisesRegex(ValueError, "runtime wake identity mismatch"):
+            module._verify_smoke_wake_bindings(authority, bindings)
+
+    def test_verify_rejects_logical_only_tamper_while_runtime_correct(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        bindings = self._exact_bindings()
+        bindings[1].logical_wake_selection_identity = "l" + "d" * 63  # logical tamper only
+        with self.assertRaisesRegex(ValueError, "logical wake-selection identity mismatch"):
+            module._verify_smoke_wake_bindings(authority, bindings)
+
+    def test_verify_rejects_swapped_logical_identities_between_slots(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        bindings = self._exact_bindings()
+        bindings[0].logical_wake_selection_identity, bindings[2].logical_wake_selection_identity = (
+            bindings[2].logical_wake_selection_identity,
+            bindings[0].logical_wake_selection_identity,
+        )
+        with self.assertRaisesRegex(ValueError, "logical wake-selection identity mismatch"):
+            module._verify_smoke_wake_bindings(authority, bindings)
+
+    def test_verify_rejects_wrong_logical_identity_with_same_close_time(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        bindings = self._exact_bindings()
+        # Preserve close_time (and runtime identity) but change the logical id.
+        bindings[2].logical_wake_selection_identity = "x" * 64
+        with self.assertRaisesRegex(ValueError, "logical wake-selection identity mismatch"):
+            module._verify_smoke_wake_bindings(authority, bindings)
+
+    def test_verify_rejects_wrong_binding_count(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        with self.assertRaises(ValueError):
+            module._verify_smoke_wake_bindings(authority, self._exact_bindings()[:2])
+
+    def test_assert_wake_pair_requires_two_identity_authority(self) -> None:
+        module = self._runner_module()
+        expected = SmokeWakeBinding("a" * 64, _day_start(date(2024, 1, 22)), logical_wake_selection_identity=None)
+        with self.assertRaisesRegex(ValueError, "no logical_wake_selection_identity"):
+            module._assert_wake_pair_matches("call_1", "l" + "a" * 63, "a" * 64, expected)
+
+    def test_pre_call_guard_passes_on_match(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        guard = module._build_wake_guard(authority)
+
+        class _Wake:
+            def __init__(self, seq, logical, runtime):
+                self.sequence = seq
+                self.logical_wake_selection_identity = logical
+                self.wake_identity = runtime
+        guard(_Wake(0, "l" + "a" * 63, "a" * 64), 0)
+        guard(_Wake(1, "l" + "b" * 63, "b" * 64), 1)
+        guard(_Wake(2, "l" + "c" * 63, "c" * 64), 2)
+
+    def test_pre_call_guard_rejects_logical_only_tamper_before_call(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        guard = module._build_wake_guard(authority)
+
+        class _Wake:
+            def __init__(self, seq, logical, runtime):
+                self.sequence = seq
+                self.logical_wake_selection_identity = logical
+                self.wake_identity = runtime
+        with self.assertRaisesRegex(ValueError, "logical wake-selection identity mismatch"):
+            guard(_Wake(0, "l" + "d" * 63, "a" * 64), 0)
+
+    def test_pre_call_guard_rejects_runtime_only_tamper_before_call(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        guard = module._build_wake_guard(authority)
+
+        class _Wake:
+            def __init__(self, seq, logical, runtime):
+                self.sequence = seq
+                self.logical_wake_selection_identity = logical
+                self.wake_identity = runtime
+        with self.assertRaisesRegex(ValueError, "runtime wake identity mismatch"):
+            guard(_Wake(1, "l" + "b" * 63, "d" * 64), 1)
+
+    def test_pre_call_guard_rejects_unknown_sequence(self) -> None:
+        module = self._runner_module()
+        authority = self._load_authority()
+        guard = module._build_wake_guard(authority)
+
+        class _Wake:
+            sequence = 3
+            logical_wake_selection_identity = "l" + "a" * 63
+            wake_identity = "a" * 64
+        with self.assertRaisesRegex(ValueError, "no sealed wake"):
+            guard(_Wake(), 3)
+
+    def test_preflight_blueprint_carries_both_identities_from_actual_bindings(self) -> None:
+        module = self._preflight_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture = ReplayV01RuntimeFixture(root)
+            slice_ = build_slice()
+            replay_days = slice_.burn_in_days + slice_.measurement_days
+            trading_day = replay_days[0]
+            steps = build_session_steps(
+                trading_day=trading_day, session_identity="sess-pre",
+                start=_day_start(trading_day), count=3,
+            )
+            renderer = JiangheVisualRenderer()
+            transport = SmokeDeterministicTransport(provider_admitted=True)
+            orchestrator = ReplayV01Orchestrator(
+                runtime_factory=fixture.make_runtime_factory(),
+                clock=ReplayClock(current_time=steps[0].wake_bar.open_time),
+                slice_=slice_, transport=transport, state_dir=root / "state", renderer=renderer,
+            )
+            try:
+                orchestrator.begin_session(
+                    phase=PHASE_BURN_IN, trading_day=trading_day, replay_day_index=0,
+                    session_identity="sess-pre", steps=steps,
+                )
+                rendered = []
+                for step in steps:
+                    rendered.append(render_wake_charts(
+                        bars=step.context_bars, product=slice_.product,
+                        concrete_contract=slice_.concrete_contract,
+                        as_of=step.wake_bar.available_at, renderer=renderer,
+                    ))
+                    orchestrator.run_wake_step(step)
+                orchestrator.end_session()
+                bindings = orchestrator.list_step_bindings()
+            finally:
+                orchestrator.runtime.close()
+            blueprint = module._build_smoke_wakes_blueprint(bindings, rendered)
+            for name, binding in zip(("call_1", "call_2", "call_3"), bindings):
+                item = blueprint[name]
+                self.assertEqual(item["wake_identity"], binding.wake_identity)
+                self.assertEqual(
+                    item["logical_wake_selection_identity"],
+                    binding.logical_wake_selection_identity,
+                )
+                self.assertIn("close_time", item)
+                self.assertTrue(item["logical_wake_selection_identity"])
+
+    def test_pass_call_evidence_retains_both_identities(self) -> None:
+        module = self._runner_module()
+        bindings = self._exact_bindings()
+        for index, (name, binding) in enumerate(zip(("call_1", "call_2", "call_3"), bindings)):
+            rendered = type("R", (), {"png_sha256s": ("s" + str(index),), "artifacts": ()})()
+            evidence = module._build_call_evidence(
+                name, binding, rendered, "stop", None, {}
+            )
+            self.assertEqual(evidence["wake_identity"], binding.wake_identity)
+            self.assertEqual(
+                evidence["logical_wake_selection_identity"],
+                binding.logical_wake_selection_identity,
+            )
+            self.assertEqual(evidence["call"], name)
+
+    def test_fail_closed_evidence_after_admitted_wake_retains_both_identities(self) -> None:
+        module = self._runner_module()
+        bindings = self._exact_bindings()[:2]  # two wakes admitted before failure
+        evidence = module._build_admitted_wake_evidence(bindings)
+        self.assertEqual(len(evidence), 2)
+        for name, binding, item in zip(("call_1", "call_2"), bindings, evidence):
+            self.assertEqual(item["call"], name)
+            self.assertEqual(item["wake_identity"], binding.wake_identity)
+            self.assertEqual(
+                item["logical_wake_selection_identity"],
+                binding.logical_wake_selection_identity,
+            )
 
 
 if __name__ == "__main__":
