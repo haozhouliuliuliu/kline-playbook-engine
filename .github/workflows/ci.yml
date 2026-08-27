@@ -81,6 +81,12 @@ jobs:
           tests.test_paper_order_recovery
           tests.test_paper_offline_runtime_drill
           tests.test_paper_runtime_coordinator
+          tests.test_paper_runtime_assembly
+          tests.test_paper_runtime_config
+          tests.test_paper_runtime_layout
+          tests.test_paper_preflight
+          tests.test_paper_runtime_controller
+          tests.test_paper_offline_activation_rehearsal
 
       - name: Run native Windows offline acceptance probe
         env:

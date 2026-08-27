@@ -235,6 +235,13 @@ class PaperWakeJournal:
         ).fetchone()
         return row is not None
 
+    def total_count(self) -> int:
+        """Read-only total durable wake count (restart preservation)."""
+        row = self._connection.execute(
+            "SELECT COUNT(*) AS count FROM paper_wakes"
+        ).fetchone()
+        return int(row["count"])
+
     def get(self, wake_identity: str) -> PaperWakeRecord:
         row = self._connection.execute(
             "SELECT * FROM paper_wakes WHERE wake_identity=?", (wake_identity,)
