@@ -10,34 +10,63 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_VERIFIED__F02_OFFLINE_REPAIR_VERIFIED__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
+`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_AND_F02_VERIFIED__F03_CHILD_BRIDGE_UNKNOWN_ATTEMPT_ACCOUNTING_REPAIR_REQUIRED`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__F01_AND_F02_VERIFIED_OFFLINE__FRESH_INDEPENDENT_REVIEW_PENDING`
+`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__BLOCKED_BY_F03_UNKNOWN_AFTER_ATTEMPT_START_ACCOUNTING_DEFECT`
 
-`NEXT_TASK = FRESH_INDEPENDENT_HIGH_ASSURANCE_REVIEW_OF_F02_CLOSURE__THEN_RESEAL_V02_TWO_IDENTITY_MACHINE_AUTHORITY__THEN_RUN_APPROVED_3CALL_SLOT`
+`NEXT_TASK = REPAIR_F03_DURABLE_PROVIDER_ATTEMPT_START_AND_UNKNOWN_ATTEMPT_TERMINALIZATION__OFFLINE_VERIFY__FRESH_INDEPENDENT_REVIEW__THEN_RESEAL_AND_RUN_APPROVED_3CALL_SLOT`
 
-The structured trading-memory and logical/runtime wake-identity offline repair remains offline-verified. Active model-visible contracts remain:
+Active model-visible contracts remain:
 
 - response schema: `JIANGHE_RUNTIME_RESPONSE_V0_2`;
 - trading-only prompt: `KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_3`.
 
-The Owner explicitly requires a fresh post-repair three-call real-provider revalidation and has approved the exact paid envelope:
+The Owner still requires one fresh three-call real-provider revalidation.
+
+Current exact hard execution envelope:
 
 - `MAX_PROVIDER_CALLS = 3`;
 - `MAX_RETRIES = 0`;
-- `MAX_SPEND_CNY = 3.00`.
+- no call 4;
+- no replacement wake;
+- no outcome-driven re-asking.
 
-That approval remains valid and unconsumed for this exact revalidation but does not bypass fail-closed pre-execution assurance.
+### Scoped cost decision for this exact slot
 
-F-01 (logical wake identity propagation through preflight / runtime binding / evidence) is independently verified on the normal path. F-02 (fail-closed evidence must prove every actually admitted/request-bound wake, including the wake whose provider response failed normalization after the transport was invoked) has now been repaired offline and deterministically verified with zero provider calls:
+The Owner explicitly superseded the earlier `MAX_SPEND_CNY = 3.00` requirement for this exact three-call revalidation.
 
-1. the runner's terminal FAIL evidence is based on actually request-bound wakes read from the existing durable `Fixed5MWakeLedger` (`bound_wakes()` read seam on the ledger and its read-only archive);
-2. every admitted/request-bound wake retains call/sequence, logical identity, runtime identity, close time, request_id and retry_count; decision_identity is included only when a normalized decision actually exists;
-3. real no-network failure-window regressions prove first-call and later-call malformed-response normalization failures produce exact admitted-wake counts with both identities and no fabricated decision identity, no retry, no replacement wake, no call 4.
+`POST_REPAIR_REVALIDATION_CNY_CEILING = OWNER_WAIVED_FOR_THIS_EXACT_SLOT`
 
-A paid-boundary sweep verified no directly coupled pre-execution defect (call ceiling, retry ceiling, spend ceiling, stop-before-next-request, 4 images, production endpoint, `DEEPSEEK_API_KEY` only, no hidden request, execution-commit binding, ACTIVE gate, terminal evidence). No provider call has been made under this post-repair revalidation authority yet and no machine slot has been created/resealed/activated.
+No fixed CNY ceiling and no per-request CNY budget guard are required for this slot. Actual provider token/usage accounting must still be retained. This is a scoped exception only; it does not modify the stable default cost doctrine for future paid packages in `PROJECT_DIRECTION.md`.
+
+## Current repair/review findings
+
+`F01_LOGICAL_RUNTIME_IDENTITY_PATH = INDEPENDENTLY_VERIFIED_CLOSED`
+
+`F02_REQUEST_BOUND_WAKE_FAILCLOSED_EVIDENCE = INDEPENDENTLY_VERIFIED_CLOSED`
+
+Fresh independent high-assurance review of the F-02 closure found material blocker `F-03`:
+
+- the parent runner durably binds wake + request before transport;
+- the real Harness bridge then launches a child process;
+- the child may reach/send the provider request but the parent can time out or fail before receiving/writing the result artifact;
+- current `transport.calls` accounting is appended only after the child returns a `SmokeBridgeResult`;
+- therefore timeout/no-result after child launch can be incorrectly reported as zero provider/network calls even though a paid attempt may have occurred.
+
+Required F-03 repair under existing authority:
+
+1. durably record an attempt-started state before launching the real bridge child process, bound to exact authority + wake identities + request_id + zero-retry policy;
+2. timeout / missing result / invalid result / parent-child handoff failure after attempt start must produce `UNKNOWN_AFTER_ATTEMPT_START` or equivalent fail-closed state;
+3. unknown attempt must never be represented as zero calls/zero network activity;
+4. unknown attempt is a terminal barrier for this slot: no retry, no replacement wake, no later call, no automatic reseal-as-unattempted;
+5. retain available non-secret diagnostics without treating missing output as proof of no request;
+6. add deterministic timeout and no-result-after-launch regressions;
+7. obtain a fresh independent high-assurance review after repair;
+8. only after acceptable review may a new forward two-identity machine authority be resealed and activated.
+
+No provider call has been made under this post-repair revalidation authority yet. No new machine slot has been created/resealed/activated.
 
 ## Current exact task authorities and evidence
 
@@ -91,7 +120,7 @@ Offline memory & wake-identity repair evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PRE_FULL_REPLAY_MEMORY_AND_WAKE_IDENTITY_REPAIR_2026-08-27.md`
 
-Current Owner-required revalidation + exact spend authority:
+Current Owner-required revalidation authority (including scoped CNY-ceiling waiver):
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION_OWNER_DECISION_2026-08-27.md`
 
@@ -103,13 +132,17 @@ F-01 offline closure evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_F01_CLOSURE_2026-08-27.md`
 
-Fresh F-01 closure independent review (F-02 finding):
+F-01 closure independent review (F-02 finding):
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_PROVIDER_REVALIDATION_F01_CLOSURE_INDEPENDENT_REVIEW_2026-08-27.md`
 
 F-02 offline closure evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_F02_CLOSURE_2026-08-27.md`
+
+F-02 closure independent review (F-03 finding):
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_PROVIDER_REVALIDATION_F02_CLOSURE_INDEPENDENT_REVIEW_2026-08-27.md`
 
 Approved post-V0.1 roadmap:
 
@@ -125,13 +158,11 @@ Approved post-V0.1 roadmap:
 
 `HISTORICAL_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__SPEND_APPROVED__F01_AND_F02_VERIFIED_OFFLINE__EXECUTION_LOCKED_AWAITING_FRESH_REVIEW`
+`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED_FOR_EXACT_SLOT__EXECUTION_BLOCKED_BY_F03`
 
-`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = F01_NORMAL_PATH_ACCEPTED__F02_CLOSED_OFFLINE__FRESH_REVIEW_PENDING`
+`POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = F01_AND_F02_ACCEPTED__F03_MATERIAL_DEFECT_OPEN`
 
 `POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = NOT_YET_RESEALED`
-
-`POST_REPAIR_REVALIDATION_MAX_SPEND_CNY = 3.00__OWNER_APPROVED`
 
 `POST_REPAIR_REVALIDATION_PROVIDER_CALLS = 0`
 
@@ -139,7 +170,7 @@ Approved post-V0.1 roadmap:
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
-`FUTURE_PROVIDER_SLOT_WAKE_IDENTITY_REPAIR = TWO_IDENTITY_NORMAL_PATH_VERIFIED__F02_FAILCLOSED_EVIDENCE_OFFLINE_VERIFIED`
+`FUTURE_PROVIDER_SLOT_WAKE_IDENTITY_REPAIR = TWO_IDENTITY_PATH_VERIFIED`
 
 `STRUCTURED_TRADING_MEMORY_FIDELITY_REPAIR = OFFLINE_VERIFIED`
 
@@ -150,9 +181,10 @@ Approved post-V0.1 roadmap:
 ## Current locks
 
 - original smoke and historical retest slots: `CONSUMED / CLOSED / NEVER REACTIVATE`;
-- post-repair three-call execution before a fresh acceptable independent review of F-02 closure: `LOCKED`;
-- post-repair three-call execution before a fresh exact V0_2 logical+runtime two-identity machine authority: `LOCKED`;
-- fourth call, retry, replacement wake or outcome-driven re-asking: `LOCKED`;
+- post-repair three-call execution before F-03 repair + fresh acceptable independent review: `LOCKED`;
+- post-repair three-call execution before a fresh exact forward two-identity machine authority: `LOCKED`;
+- retry, replacement wake, outcome-driven re-asking, call 4: `LOCKED`;
+- an `UNKNOWN_AFTER_ATTEMPT_START` state, once recorded during real execution, must terminate the slot and forbid automatic continuation/rerun;
 - full V0.1 1998-call replay: `LOCKED`;
 - post-V0.1 CU/RB provider replay: `LOCKED`;
 - historical execution/PnL semantics: `NOT_YET_APPROVED`;
@@ -163,4 +195,4 @@ Approved post-V0.1 roadmap:
 
 Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, and the exact task authorities/evidence above.
 
-The immediate next step is a fresh independent high-assurance review of the F-02 offline closure. That review is the gate before resealing the new exact V0_2 two-identity machine authority (using the already Owner-approved maximum spend of CNY 3.00) and performing the final immediate pre-execution refresh/verification before any credential/network capability is used. No provider call, slot activation, or reseal may occur before that review returns acceptable.
+The immediate next step is ordinary offline engineering closure of F-03 under existing authority. Provider calls must remain zero during the repair. After deterministic verification, obtain a fresh independent high-assurance review. Only if that review returns acceptable may the project reseal a new forward two-identity machine authority and execute the already Owner-approved exact three-call / zero-retry slot. This exact slot has no fixed CNY ceiling by current Owner decision. Full V0.1 remains locked.
