@@ -1714,6 +1714,25 @@ class ProviderAttemptEvidenceTests(unittest.TestCase):
             finally:
                 orchestrator.runtime.close()
 
+    def test_harness_attempt_identity_construction_is_timezone_aware(self) -> None:
+        """F-05 regression: the harness attempt-identity construction must build
+        cleanly (module imports ``timezone``) and emit exact timezone-aware
+        close times and both wake identities for all three calls."""
+        module = self._runner_module()
+        authority = self._load_authority()
+        identities = module._build_attempt_identities(authority)
+        self.assertEqual(len(identities), 3)
+        for index, (name, item) in enumerate(zip(("call_1", "call_2", "call_3"), identities)):
+            self.assertEqual(item["call"], name)
+            self.assertEqual(item["sequence"], index)
+            self.assertTrue(item["wake_identity"])
+            self.assertTrue(item["logical_wake_selection_identity"])
+            self.assertTrue(item["close_time"].endswith("+00:00"))
+        # Exact close times match the authority wake bindings (UTC, microseconds).
+        for index, (name, item) in enumerate(zip(("call_1", "call_2", "call_3"), identities)):
+            expected = authority.smoke_wakes[index][1].close_time.astimezone(timezone.utc)
+            self.assertEqual(item["close_time"], expected.isoformat(timespec="microseconds"))
+
 
 class CostWaiverAuthorityTests(unittest.TestCase):
     """Part B: forward V0_3 authority with explicit Owner CNY-ceiling waiver."""

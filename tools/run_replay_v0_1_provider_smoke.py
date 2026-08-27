@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from datetime import timezone
 from decimal import Decimal
 from hashlib import sha256
 import json
@@ -543,6 +544,25 @@ def _write_evidence_file(output: Path, encoded: str) -> None:
             partial.unlink()
 
 
+def _build_attempt_identities(authority) -> tuple[dict, ...]:
+    """Build the three durable provider-attempt identities for the harness path.
+
+    Extracted as a module-level helper so the harness attempt-identity
+    construction (including timezone-aware close-time formatting) is exercised
+    deterministically by unit tests without a real provider/bridge launch.
+    """
+    return tuple(
+        {
+            "sequence": sequence,
+            "call": name,
+            "logical_wake_selection_identity": binding.logical_wake_selection_identity,
+            "wake_identity": binding.wake_identity,
+            "close_time": binding.close_time.astimezone(timezone.utc).isoformat(timespec="microseconds"),
+        }
+        for sequence, (name, binding) in enumerate(authority.smoke_wakes)
+    )
+
+
 def main() -> int:
     args = _parser().parse_args()
     state_dir = args.state_dir.resolve()
@@ -665,16 +685,7 @@ def main() -> int:
             provider_attempt_ledger_path_for(state_dir),
             authority_identity=authority.identity,
         )
-        attempt_identities = tuple(
-            {
-                "sequence": sequence,
-                "call": name,
-                "logical_wake_selection_identity": binding.logical_wake_selection_identity,
-                "wake_identity": binding.wake_identity,
-                "close_time": binding.close_time.astimezone(timezone.utc).isoformat(timespec="microseconds"),
-            }
-            for sequence, (name, binding) in enumerate(authority.smoke_wakes)
-        )
+        attempt_identities = _build_attempt_identities(authority)
         transport = SmokeHarnessTransport(
             bridge=bridge,
             image_bundles=tuple(rendered.png_bytes for rendered in rendered_per_step),
