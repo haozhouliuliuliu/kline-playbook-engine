@@ -10,20 +10,20 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__F01_F02_F03_F04_VERIFIED__F05_REPAIRED_OFFLINE__OWNER_F05_FRESH_REVIEW_WAIVED_FOR_EXACT_SLOT__CANONICAL_DATASET_FOUND_AND_VERIFIED__FINAL_PREFLIGHT_PASS_ZERO_COST__V03_AUTHORITY_NONACTIVE__READY_FOR_RESEAL_ACTIVATE_RUN__NO_PROVIDER_ATTEMPT`
+`CURRENT_ACTIVITY = POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION__COMPLETED_3OF3_PASS__SLOT_CLOSED__V03_AUTHORITY_REVOKED_TERMINAL__PENDING_PROJECT_BRAIN_ADJUDICATION`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION_REQUIRED__F05_FRESH_REVIEW_WAIVED_BY_OWNER_FOR_EXACT_SLOT__READY_FOR_FINAL_RESEAL_ACTIVATION_AND_EXACTLY_ONCE_3CALL_EXECUTION`
+`WORK_PACKAGE_PHASE = POST_REPAIR_REAL_PROVIDER_REVALIDATION__COMPLETED_3OF3_PASS__SLOT_CLOSED__PENDING_PROJECT_BRAIN_ADJUDICATION_OF_REAL_3CALL_RESULT`
 
-`NEXT_TASK = RESEAL_V03_AGAINST_CURRENT_F05_EXECUTION_COMMIT__FINAL_CONSEQUENTIAL_CHECK__ACTIVATE__RUN_APPROVED_3CALL_SLOT_ONCE__TERMINALIZE_AND_ADJUDICATE`
+`NEXT_TASK = PROJECT_BRAIN_ADJUDICATION_OF_REAL_3CALL_REVALIDATION_RESULT`
 
 Active model-visible contracts remain:
 
 - response schema: `JIANGHE_RUNTIME_RESPONSE_V0_2`;
 - trading-only prompt: `KPE_JIANGHE_TRADING_ONLY_PROMPT_V0_3`.
 
-The Owner still requires one fresh three-call real-provider revalidation.
+The Owner-required fresh three-call real-provider revalidation has been executed and completed 3/3 PASS; the slot is closed and the result is pending project-brain adjudication.
 
 Current exact hard execution envelope:
 
@@ -181,9 +181,15 @@ Final zero-cost preflight PASS evidence (explicit dataset paths, deterministic b
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_FINAL_PREFLIGHT_BLUEPRINT_2026-08-27.json`
 
-Fresh forward V0_3 two-identity RETEST machine authority (non-ACTIVE and stale with respect to F-05 execution commit; must be freshly resealed before execution):
+Fresh forward V0_3 two-identity RETEST machine authority (now REVOKED / terminal after the 3-call slot):
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_SLOT_V0_3.json`
+
+Post-repair three-call revalidation execution evidence (3/3 PASS):
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_EXECUTION_2026-08-27.md`
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_RUN_2026-08-27.json`
 
 Approved post-V0.1 roadmap:
 
@@ -199,21 +205,27 @@ Approved post-V0.1 roadmap:
 
 `HISTORICAL_THREE_CALL_RETEST_MACHINE_AUTHORITY = REVOKED__TERMINAL`
 
-`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = OWNER_REQUIRED__CALL_BOUNDED__CNY_CEILING_WAIVED__F01_F02_F03_F04_VERIFIED__F05_REPAIRED_OFFLINE__F05_FRESH_REVIEW_WAIVED_BY_OWNER_FOR_EXACT_SLOT__DATASET_RESTORED_AND_VERIFIED__FINAL_PREFLIGHT_PASS_ZERO_COST__READY_FOR_FRESH_RESEAL_ACTIVATE_RUN__NO_PROVIDER_ATTEMPT`
+`POST_REPAIR_THREE_CALL_PROVIDER_REVALIDATION = COMPLETED_3OF3__SLOT_CLOSED__PENDING_PROJECT_BRAIN_ADJUDICATION`
 
 `POST_REPAIR_REVALIDATION_INDEPENDENT_REVIEW = ACCEPTABLE_FOR_FRESH_THREE_CALL_SLOT_PREPARATION__F01_F02_F03_F04_COVERED__F05_FRESH_REVIEW_OWNER_WAIVED_FOR_EXACT_SLOT`
 
-`POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = AUTHORED_NON_ACTIVE__STALE_EXECUTION_COMMIT__MUST_RESEAL_AGAINST_CURRENT_F05_EXECUTION_COMMIT_BEFORE_ACTIVATION`
+`POST_REPAIR_REVALIDATION_MACHINE_AUTHORITY = REVOKED__TERMINAL__NEVER_REUSE`
 
-`POST_REPAIR_REVALIDATION_PROVIDER_CALLS = 0`
+`POST_REPAIR_REVALIDATION_PROVIDER_CALLS = 3__ALL_RESULT_RECEIVED`
 
-`POST_REPAIR_REVALIDATION_PROVIDER_ATTEMPTS = 0`
+`POST_REPAIR_REVALIDATION_PROVIDER_ATTEMPTS = 3__0_UNKNOWN__0_UNRESOLVED`
 
 `POST_REPAIR_REVALIDATION_CNY_CEILING = OWNER_WAIVED_FOR_THIS_EXACT_SLOT`
 
+`POST_REPAIR_REVALIDATION_RETRIES = 0`
+
+`POST_REPAIR_REVALIDATION_HIDDEN_REQUESTS = 0`
+
+`POST_REPAIR_REVALIDATION_RESTART_CONTINUITY = VERIFIED`
+
 `CANONICAL_DATASET_LOCAL_AVAILABILITY = ORIGINAL_ACCEPTED_DATASET_FOUND_AND_VERIFIED`
 
-`REAL_DEEPSEEK_PROVIDER_CALLS = NO_CURRENT_ACTIVE_SLOT`
+`REAL_DEEPSEEK_PROVIDER_CALLS = POST_REPAIR_REVALIDATION_3_REAL_CALLS_CONSUMED__SLOT_CLOSED__NO_ACTIVE_SLOT`
 
 `FULL_V0_1_1998_CALL_REPLAY = LOCKED`
 
@@ -228,11 +240,11 @@ Approved post-V0.1 roadmap:
 ## Current locks
 
 - original smoke and historical retest slots: `CONSUMED / CLOSED / NEVER REACTIVATE`;
-- F-05-specific fresh independent review for this exact three-call slot: `OWNER_WAIVED`;
-- post-repair three-call execution before resealing/activating a fresh exact forward V0_3 two-identity machine authority against the current F-05 execution commit: `LOCKED`;
+- post-repair three-call revalidation slot (V0_3, identity `b4299115…`): `CONSUMED / CLOSED / REVOKED / NEVER REUSE`;
+- F-05-specific fresh independent review for this exact three-call slot: `OWNER_WAIVED` (slot already consumed);
 - retry, replacement wake, outcome-driven re-asking, call 4: `LOCKED`;
 - an `UNKNOWN_AFTER_ATTEMPT_START` state, once recorded during real execution, must terminate the slot and forbid automatic continuation/rerun;
-- full V0.1 1998-call replay: `LOCKED`;
+- full V0.1 1998-call replay: `LOCKED` (pending project-brain adjudication of the real three-call result);
 - post-V0.1 CU/RB provider replay: `LOCKED`;
 - historical execution/PnL semantics: `NOT_YET_APPROVED`;
 - learning/policy promotion: `LOCKED`;
@@ -240,6 +252,6 @@ Approved post-V0.1 roadmap:
 
 ## Continuity rule for the next integration lane
 
-Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, the exact Owner revalidation authority, the fresh machine authority, `TOOL_REGISTRY.md`, and the required evidence above.
+Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, this file, the exact Owner revalidation authority, the terminal machine authority, `TOOL_REGISTRY.md`, and the required evidence above.
 
-The accepted F-03/F-04 review remains valid for the previously reviewed execution path; the narrow F-05 timestamp defect was repaired offline at `c5338aa12c9e4ce6edc40be009f2e0d670d209b8` with zero provider attempts. The Owner has now explicitly waived another F-05-only independent review for this exact slot. The original accepted canonical dataset is found and mechanically verified, and final zero-cost preflight has already passed with exactly three governed wakes and four PNGs each. The existing non-ACTIVE V0_3 authority predates the F-05 execution commit and must therefore be freshly resealed against the current clean executable commit, followed by the immediate consequential-action check and activation. If those mechanical gates pass, execute the already-approved three-call slot exactly once: max 3 calls, 0 retries, no replacement wake, no call 4. Any real-attempt failure or `UNKNOWN_AFTER_ATTEMPT_START` terminalizes the slot with no rerun. After completion or failure, terminalize the machine authority and preserve evidence. Full V0.1 remains locked pending project-brain adjudication of the real three-call result.
+The post-repair three-call revalidation completed with **3/3 PASS** at execution commit `24f81e2f9498730e2ed65902cc086b9211b28eb2`: exactly three real provider requests, three accepted normalized decisions, zero retries, zero hidden requests, no call 4, exactly four causal PNGs per call, both logical and runtime wake identities matched the fresh V0_3 authority, restart continuity `VERIFIED`, call-2 saw accepted call-1 state, and call-3 after forced restart saw accepted call-2 state, with durable attempt accounting (`3` RESULT_RECEIVED, `0` unknown, `0` unresolved). The V0_3 RETEST authority is terminal (`REVOKED`) and never reused. Evidence is preserved in `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_EXECUTION_2026-08-27.md` and `docs/evidence/JIANGHE_REPLAY_V0_1_POST_REPAIR_REVALIDATION_RUN_2026-08-27.json`. Full V0.1 remains locked pending project-brain adjudication of the real three-call result; no further provider action is authorized under this slot.

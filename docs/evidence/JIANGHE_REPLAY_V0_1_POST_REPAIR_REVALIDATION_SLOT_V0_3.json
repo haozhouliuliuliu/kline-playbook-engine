@@ -1,6 +1,6 @@
 {
   "api_key_env": "DEEPSEEK_API_KEY",
-  "authority_identity": "67a3e9ec6238c8b9d7513780eb180b0e42d89ccc8cc8348b3002168432c52746",
+  "authority_identity": "a02e5895c759b724fb0715ed85c7cf66da35b0152f8902efcd0be3f518c57f3a",
   "authority_version": "KPE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_V0_3",
   "burn_in_days": [
     "2024-04-10",
@@ -95,7 +95,7 @@
       "wake_identity": "3f57e6107e6b80f2e0907b3d1db6e51b092a881aa93368d9006001183b1989ce"
     }
   },
-  "status": "PENDING_OWNER_PAYMENT_CONFIRMATION",
+  "status": "REVOKED",
   "wake_policy": "EVERY_NEW_CLOSED_5M_BAR",
   "work_package": "SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1"
 }
