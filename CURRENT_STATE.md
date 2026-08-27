@@ -10,19 +10,21 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = SMOKE_ADJUDICATION_ACCEPTED__LOCAL_DECISION_EVIDENCE_EXTRACTION`
+`CURRENT_ACTIVITY = THREE_CALL_DECISION_REVIEW_COMPLETED__MEMORY_FIDELITY_REPAIR_REQUIRED`
 
 `CURRENT_WORK_PACKAGE = SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1`
 
-`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_RETEST_ACCEPTED__DECISION_CONTENT_REVIEW_NEXT`
+`WORK_PACKAGE_PHASE = PROVIDER_SMOKE_ACCEPTED__PRE_FULL_V0_1_OFFLINE_REPAIR`
 
-`NEXT_TASK = EXTRACT_AND_REVIEW_THREE_CALL_NORMALIZED_DECISIONS__THEN_OWNER_DECIDE_FULL_V0_1`
+`NEXT_TASK = REPAIR_STRUCTURED_TRADING_MEMORY_AND_LOGICAL_RUNTIME_WAKE_IDENTITY__OFFLINE_VERIFY__THEN_OWNER_DECIDE_PROVIDER_REVALIDATION_AND_FULL_V0_1`
 
-The fresh independent three-call provider-smoke retest completed 3/3 PASS on 2026-08-27. An independent high-assurance review accepted the retest for its narrow provider-path/schema/restart/request-accounting claims and found no true wake-selection/protocol violation. The differing V0.1/V0.2 runtime wake hashes are an identity-layer wording defect caused by the approved prompt/trader-identity change, not a different logical wake selection. No paid rerun is required for that issue.
+The fresh independent three-call provider-smoke retest completed 3/3 PASS on 2026-08-27. Independent high-assurance review accepted the retest for its narrow provider-path/schema/restart/request-accounting claims and found no true wake-selection/protocol violation. The differing V0.1/V0.2 runtime wake hashes are an identity-layer wording defect caused by the approved prompt/trader-identity change, not a different logical wake selection. No paid rerun is required for that historical discrepancy.
 
-Before any new future provider slot is resealed, the project must prospectively distinguish stable logical wake-selection identity from runtime wake identity. Historical slots/evidence remain immutable.
+The three successful DeepSeek decisions were recovered from retained local state without any new provider call. Project-brain trading-quality review found the three-call behavior preliminarily coherent and appropriately cautious, with two bounded model-quality findings: one Jianghe claim was used outside its canonical management meaning, and call 2 imprecisely described the first night-session bar's open/high/close values.
 
-The immediate task is read-only/local evidence extraction and review of the three successful DeepSeek normalized trading judgments and resulting project-owned state transitions. This task must not make a provider request or use future/PnL outcome information.
+A material forward lifecycle gap was also found: important trader-owned state such as current market hypothesis, key locations/watch state, expected trigger and invalidation is stated in model rationale but is not preserved as first-class structured working memory by the current projection/persistence path. Because V0.1 is specifically a persistent-trader lifecycle experiment, this must be repaired and deterministically verified before the Owner is asked to authorize the full paid replay.
+
+Before any new future provider slot is resealed, the project must also prospectively distinguish stable logical wake-selection identity from runtime wake identity. Historical slots/evidence remain immutable.
 
 ## Current exact task authorities and evidence
 
@@ -58,9 +60,19 @@ Fresh retest execution evidence:
 
 `docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_2026-08-27.md`
 
+Recovered three-call normalized decision evidence:
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_DECISIONS_2026-08-27.md`
+
+`docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_DECISIONS_2026-08-27.json`
+
 Independent wake-identity / retest acceptability review:
 
 `docs/reviews/JIANGHE_REPLAY_V0_1_PROVIDER_SMOKE_RETEST_WAKE_IDENTITY_INDEPENDENT_REVIEW_2026-08-27.md`
+
+Three-call trading-quality / memory-fidelity review:
+
+`docs/reviews/JIANGHE_REPLAY_V0_1_THREE_CALL_TRADING_QUALITY_REVIEW_2026-08-27.md`
 
 Fail-closed real-provider evidence:
 
@@ -90,6 +102,8 @@ Approved post-V0.1 roadmap:
 
 `FUTURE_PROVIDER_SLOT_WAKE_IDENTITY_REPAIR = REQUIRED_BEFORE_ANY_NEW_SLOT_RESEAL`
 
+`STRUCTURED_TRADING_MEMORY_FIDELITY_REPAIR = REQUIRED_BEFORE_FULL_V0_1`
+
 Both the original slot and fresh retest slot are terminal/consumed. A further real provider attempt requires a new explicit Owner paid authority. The full V0.1 1998-call replay remains unauthorized and must not be started automatically.
 
 ## Current locks
@@ -99,6 +113,7 @@ Both the original slot and fresh retest slot are terminal/consumed. A further re
 - fresh three-call retest provider execution: `CONSUMED / CLOSED (3/3 PASS)`;
 - fourth call, automatic retry or replacement wake inside the retest: `LOCKED`;
 - any new provider slot reseal before logical/runtime wake-identity forward repair: `LOCKED`;
+- full V0.1 before structured trading-memory fidelity repair and offline verification: `LOCKED`;
 - full V0.1 1998-call provider replay: `LOCKED`;
 - post-V0.1 CU/RB provider replay: `LOCKED`;
 - historical execution/PnL semantics: `NOT_YET_APPROVED`;
@@ -114,4 +129,4 @@ Both the original slot and fresh retest slot are terminal/consumed. A further re
 
 Before substantive work or any provider action, refresh current `main`, read `PROJECT_BRAIN_RUNTIME_BRIEF.md`, then this file and the exact authorities/evidence above.
 
-For the immediate local decision-evidence extraction, do not call any provider and do not infer missing decision content from hashes. Inspect only retained local runner output / project-owned persistent state from the already completed successful retest, match it to the committed request/wake/decision identities, and persist a derived evidence artifact without secrets or future/PnL outcome data. If the retained local artifacts are unavailable, record that evidence gap and do not rerun the provider.
+The immediate work is offline engineering only: repair structured trading-memory fidelity and the prospective logical/runtime wake-identity separation, then run focused and broad deterministic verification. Do not call any provider during this repair. If a repair changes the model-visible response/prompt contract, any later real-provider revalidation requires a new exact Owner paid authority plus a newly resealed machine authority before network execution.
