@@ -21,6 +21,17 @@ class AuthorityConsistencyTests(unittest.TestCase):
         text = "before\n`CURRENT_WORK_PACKAGE = EXAMPLE`\nafter\n"
         self.assertEqual(_assignment_values(text, "CURRENT_WORK_PACKAGE"), ["EXAMPLE"])
 
+    def test_tool_status_isolated_to_tool_registry(self) -> None:
+        registry = (REPO_ROOT / "TOOL_REGISTRY.md").read_text(encoding="utf-8")
+        direction = (REPO_ROOT / "PROJECT_DIRECTION.md").read_text(encoding="utf-8")
+        state = (REPO_ROOT / "CURRENT_STATE.md").read_text(encoding="utf-8")
+
+        model_section = registry.split("Selected model line:", 1)[1]
+        selected_model = model_section.split("`", 2)[1]
+        self.assertNotIn(selected_model, direction)
+        self.assertNotIn("TQSDK_PAPER_ROLE =", state)
+        self.assertIn("status, pins and credential-location seams are owned only by `TOOL_REGISTRY.md`", state)
+
     def test_machine_authority_identity_is_self_consistent(self) -> None:
         path = REPO_ROOT / SMOKE_AUTHORITY_PATH
         payload = json.loads(path.read_text(encoding="utf-8"))

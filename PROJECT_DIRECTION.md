@@ -12,11 +12,7 @@ Build one persistent, auditable China-futures AI trader whose active model sourc
 
 `MODEL_SOURCE = DEEPSEEK_ONLY`
 
-Current selected model line:
-
-`deepseek-v4-flash-vision-exp`
-
-Changing the model/provider direction requires explicit Owner authority. Exact provider/runtime adoption and pins live in `TOOL_REGISTRY.md`.
+Changing the model/provider direction requires explicit Owner authority. Exact provider/model adoption, selected model line, runtime status and pins live only in `TOOL_REGISTRY.md`.
 
 ## 2. Cognitive and system boundary
 
