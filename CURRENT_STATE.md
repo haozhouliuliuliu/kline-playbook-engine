@@ -2,7 +2,7 @@
 
 `DYNAMIC_STATE_OWNER = CURRENT_STATE.md`
 
-As of: `2026-08-28`
+As of: `2026-08-29`
 
 This file is the single canonical owner for volatile project state: current activity, work package, phase, locks, execution hold state and next task.
 
@@ -17,6 +17,8 @@ Stable product direction, architecture, tooling and governance live in their own
 `WORK_PACKAGE_PHASE = FULL_V0_1_TECHNICALLY_READY__AWAITING_EXACT_OWNER_PAID_EXECUTION_AUTHORITY`
 
 `NEXT_TASK = OWNER_DECIDE_EXACT_FULL_V0_1_PAID_EXECUTION_AUTHORITY__IF_APPROVED_PROJECT_BRAIN_CREATE_AND_VALIDATE_FRESH_MACHINE_AUTHORITY_BOUND_TO_CURRENT_MAIN_AND_SEALED_1998_WAKE_SLICE__THEN_EXECUTE_ONCE`
+
+`HANDOFF_READINESS = READY__FRESH_CONVERSATION_MUST_START_AT_00_READ_FIRST__NO_SEPARATE_DYNAMIC_HANDOFF_SNAPSHOT_REQUIRED`
 
 Current V0.1 project-brain adjudication:
 
@@ -161,16 +163,14 @@ The completed PAPER prebuild only reduces later engineering lead time. It does n
 
 ## Continuity rule for the next conversation
 
-Before substantive project work:
+A fresh conversation must first read `00_READ_FIRST.md` from the then-current GitHub `main` and follow its fresh-conversation takeover order exactly.
 
-1. refresh current GitHub `main`;
-2. read `PROJECT_BRAIN_RUNTIME_BRIEF.md`;
-3. read `PROJECT_GOVERNANCE.md`;
-4. read `PROJECT_DIRECTION.md`;
-5. read this `CURRENT_STATE.md`;
-6. read `docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_THREE_CALL_PROJECT_BRAIN_ADJUDICATION_2026-08-27.md`;
-7. read `docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`;
-8. if the Owner authorizes full V0.1 spend, refresh the exact paid execution authority and fresh machine authority immediately before any provider call;
-9. read `TOOL_REGISTRY.md` whenever provider/model/Harness/TqSdk/credential/tool-role facts matter.
+After `CURRENT_STATE.md` is reached through that canonical sequence, the current V0.1 task-specific continuation requires reading:
+
+- `docs/reviews/JIANGHE_REPLAY_V0_1_POST_REPAIR_THREE_CALL_PROJECT_BRAIN_ADJUDICATION_2026-08-27.md`;
+- `docs/reviews/JIANGHE_SMALL_CHRONOLOGICAL_LIFECYCLE_REPLAY_V0_1_OWNER_DECISION.md`;
+- `docs/reviews/JIANGHE_POST_V0_1_HISTORICAL_PAPER_REAL_MONEY_ROADMAP_OWNER_DECISION_V0_1.md` when roadmap sequencing is material.
+
+If the Owner authorizes full V0.1 spend, immediately refresh current `main`, `CURRENT_STATE.md`, `TOOL_REGISTRY.md`, the new exact Owner execution authority and the fresh machine-readable authority before any provider call.
 
 Do not infer a paid execution permission from technical readiness, local credentials, prior smoke authority, PAPER prebuild acceptance, or chat history.

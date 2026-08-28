@@ -225,9 +225,9 @@ Any confirmed instance invalidates the run as lifecycle evidence:
 
 Bad trades, contradictory trading interpretation, missed trades, NO_TRADE frequency, loss and poor strategy quality are not replay-integrity failures. They are trading-quality/reasoning evidence.
 
-## 13. Current authorization boundary
+## 13. Authorization boundary
 
-This Owner decision authorizes:
+This Owner decision authorizes the V0.1 research semantics and the offline preparation needed to implement and verify them, including:
 
 - formal authority synchronization;
 - offline engineering;
@@ -239,7 +239,7 @@ This Owner decision authorizes:
 - mock/no-provider dry runs;
 - leakage/audit invariant checks.
 
-It does **not** yet authorize:
+This Owner decision does **not** itself authorize:
 
 - a real DeepSeek/provider replay call;
 - learning/policy promotion;
@@ -248,10 +248,14 @@ It does **not** yet authorize:
 - broker/account actions;
 - real money.
 
-Current paid-call state remains `PAUSED` with `NEXT_EXPLICIT_PAID_SLOT = NONE` until a later exact provider-execution authority is created after offline gates pass.
+Any real provider execution requires a separate exact Owner execution authority plus its machine-readable authority. Current execution/paid-slot state is owned solely by `CURRENT_STATE.md`; do not infer it from this dated protocol decision.
 
-## 14. Exact next work
+## 14. Dynamic-state ownership
 
-`NEXT_TASK = IMPLEMENT_V0_1_OFFLINE_REPLAY_PREEXECUTION_GATES`
+This file owns the frozen V0.1 research semantics and authorization boundary only. It does not own the current activity, phase, paid-slot state, locks or `NEXT_TASK`.
 
-Engineering should proceed autonomously under this approved design until the package reaches the exact first real-provider-call boundary.
+For those volatile facts, read only:
+
+`CURRENT_STATE.md`
+
+Git history preserves the original 2026-08-26 execution-state snapshot that was removed here during the 2026-08-29 authority-ownership cleanup; no V0.1 research semantic or execution permission was changed by that cleanup.
