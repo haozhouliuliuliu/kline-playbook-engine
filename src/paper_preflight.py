@@ -17,6 +17,7 @@ surface.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from hashlib import sha256
 import json
 
@@ -27,6 +28,7 @@ from src.paper_runtime_assembly import PaperRuntimeAssembly
 from src.paper_runtime_config import PaperRuntimeConfig
 from src.paper_runtime_layout import PaperRuntimeLayout
 from src.paper_wake_journal import PaperWakeJournal
+from src.paper_tool_role_authority import current_tqsdk_paper_role_authority
 
 PAPER_PREFLIGHT_SCHEMA_VERSION = "KPE_PAPER_PREFLIGHT_V0_1"
 
@@ -92,6 +94,23 @@ class PaperPreflightReport:
         return tuple(check for check in self.checks if check.status == BLOCK)
 
     @property
+    def recovery_connect_ready(self) -> bool:
+        """Whether only broker-reconcilable durable order state is blocking.
+
+        This never means trading-ready.  It permits one authority-gated broker
+        connection solely so project journals can reconcile against broker
+        truth, after which the complete preflight must be run again.
+        """
+        return (
+            self.mode == EXTERNAL
+            and bool(self.blocked_checks)
+            and all(
+                check.name == "NO_UNRESOLVED_ORDER_STATE"
+                for check in self.blocked_checks
+            )
+        )
+
+    @property
     def identity(self) -> str:
         return _hash(
             {
@@ -127,6 +146,7 @@ def run_paper_preflight(
     authority: PaperExecutionAuthority | None = None,
     assembly: PaperRuntimeAssembly | None = None,
     mode: str = EXTERNAL,
+    assessed_at: datetime | None = None,
 ) -> PaperPreflightReport:
     """Compute a machine-clear READY/BLOCKED fact set for PAPER startup.
 
@@ -150,6 +170,12 @@ def run_paper_preflight(
         raise TypeError("preflight authority must be PaperExecutionAuthority")
     if assembly is not None and not isinstance(assembly, PaperRuntimeAssembly):
         raise TypeError("preflight assembly must be PaperRuntimeAssembly")
+    if assessed_at is not None and (
+        not isinstance(assessed_at, datetime)
+        or assessed_at.tzinfo is None
+        or assessed_at.utcoffset() is None
+    ):
+        raise ValueError("preflight assessment time must be timezone-aware")
 
     checks: list[PaperPreflightCheck] = []
 
@@ -191,6 +217,28 @@ def run_paper_preflight(
         authority_blockers.append("PAPER_CONNECT_AUTHORITY_NOT_ACTIVE")
     elif not authority.allow_connect:
         authority_blockers.append("PAPER_CONNECT_AUTHORITY_DENIED")
+    elif mode == EXTERNAL:
+        if assessed_at is None:
+            authority_blockers.append("PAPER_AUTHORITY_ASSESSMENT_TIME_REQUIRED")
+        else:
+            try:
+                authority.require_connect(
+                    at=assessed_at,
+                    broker_identity=authority.broker_identity,
+                    account_identity=config.account_identity,
+                )
+            except (PermissionError, ValueError) as error:
+                authority_blockers.append(str(error))
+        if not authority.broker_identity or not authority.account_identity:
+            authority_blockers.append("PAPER_AUTHORITY_EXACT_IDENTITIES_REQUIRED")
+        if authority.broker_kind != config.broker_kind:
+            authority_blockers.append("PAPER_AUTHORITY_BROKER_KIND_MISMATCH")
+        if authority.account_kind != config.account_kind:
+            authority_blockers.append("PAPER_AUTHORITY_ACCOUNT_KIND_MISMATCH")
+        if authority.account_identity != config.account_identity:
+            authority_blockers.append("PAPER_AUTHORITY_ACCOUNT_IDENTITY_MISMATCH")
+        if authority.allowed_contracts != (config.concrete_contract_id,):
+            authority_blockers.append("PAPER_AUTHORITY_EXACT_CONTRACT_SCOPE_REQUIRED")
     checks.append(_check("AUTHORITY_STATE", authority_blockers,
                          "ACTIVE authority with explicit connect permission"))
 
@@ -305,10 +353,9 @@ def run_paper_preflight(
         if assembly.transport is None or assembly.supervisor is None:
             assembly_blockers.append("ASSEMBLY_INCOMPLETE")
     else:
-        # Pre-construction preflight legitimately has no assembly yet; this is
-        # informational, not a blocker. Real authority/profile checks still gate
-        # external activation.
-        assembly_blockers.append("NOT_EVALUATED_BEFORE_ASSEMBLY")
+        assembly_blockers.append(
+            "ASSEMBLY_REQUIRED" if mode == EXTERNAL else "NOT_EVALUATED_BEFORE_ASSEMBLY"
+        )
     checks.append(_check("ASSEMBLY_COMPATIBLE", assembly_blockers,
                          "assembled coordinator/transport/supervisor are identity-consistent"))
 
@@ -327,27 +374,74 @@ def run_paper_preflight(
                 component_blockers.append("REQUIRED_COMPONENT_MISSING:" + name)
         trader = getattr(assembly.coordinator, "trader", None)
         planner = getattr(assembly.coordinator, "risk_planner", None)
+        chain = getattr(assembly.coordinator, "execution_chain", None)
         if trader is None:
             component_blockers.append("REQUIRED_COMPONENT_MISSING:trader")
-        if planner is None:
+        if planner is None and chain is None:
             component_blockers.append("REQUIRED_COMPONENT_MISSING:risk_planner")
+        if mode == EXTERNAL and chain is None:
+            component_blockers.append("CANONICAL_EXECUTION_CHAIN_REQUIRED")
+        if assembly.activation_profile is not activation_profile:
+            component_blockers.append("ASSEMBLY_PROFILE_IDENTITY_MISMATCH")
+        if authority is not None and assembly.authority_source.current().identity_id != authority.identity_id:
+            component_blockers.append("ASSEMBLY_AUTHORITY_IDENTITY_MISMATCH")
+        if assembly.executable_bindings is None and mode == EXTERNAL:
+            component_blockers.append("EXECUTABLE_BINDINGS_REQUIRED")
+        elif assembly.executable_bindings is not None and activation_profile is not None:
+            try:
+                assembly.executable_bindings.require_matches(activation_profile)
+            except ValueError as error:
+                component_blockers.append(str(error))
     else:
-        component_blockers.append("NOT_EVALUATED_BEFORE_ASSEMBLY")
+        component_blockers.append(
+            "ASSEMBLY_REQUIRED" if mode == EXTERNAL else "NOT_EVALUATED_BEFORE_ASSEMBLY"
+        )
     checks.append(_check("REQUIRED_COMPONENTS_AVAILABLE", component_blockers,
                          "all injected runtime components are bound in the assembly"))
 
-    # 12. external PAPER role is not silently treated as adopted ------------------------
+    # 12. external PAPER role is mechanically anchored to TOOL_REGISTRY.md ---------------
     role_blockers: list[str] = []
     if mode == EXTERNAL:
-        # Code/credentials existing does NOT grant PAPER adoption. Only an explicit
-        # ACTIVE connect authority may do that. This mirrors AUTHORITY_STATE but is
-        # named separately so the guard is explicit.
-        if authority is None:
-            role_blockers.append("EXTERNAL_PAPER_ROLE_NOT_ADOPTED")
-        elif authority.status is not PaperAuthorityStatus.ACTIVE or not authority.allow_connect:
-            role_blockers.append("EXTERNAL_PAPER_ROLE_NOT_ADOPTED")
+        role = config.paper_tool_role
+        if assembly is not None and assembly.paper_tool_role is not role:
+            role_blockers.append("EXTERNAL_PAPER_ROLE_BINDING_MISMATCH")
+        try:
+            governed_role = current_tqsdk_paper_role_authority()
+            executable_version = config.tqsdk_runtime_version
+            if assembly is not None:
+                executable_version = getattr(assembly.broker, "runtime_version", None)
+            verification = governed_role.verify(
+                role,
+                executable_runtime_version=executable_version,
+            )
+            role_blockers.extend(verification.blockers)
+            if not verification.adopted:
+                role_blockers.append("EXTERNAL_PAPER_ROLE_NOT_ADOPTED")
+        except (OSError, RuntimeError, ValueError) as error:
+            role_blockers.append(type(error).__name__ + ":" + str(error))
     checks.append(_check("EXTERNAL_PAPER_ROLE_NOT_SILENTLY_ADOPTED", role_blockers,
-                         "PAPER connect role requires an explicit ACTIVE authority, never code/credential presence"))
+                         "PAPER role matches canonical TOOL_REGISTRY scope, evidence and executable runtime"))
+
+    live_blockers: list[str] = []
+    if mode == EXTERNAL:
+        if config.max_source_age_seconds is None:
+            live_blockers.append("LIVE_SOURCE_FRESHNESS_POLICY_UNBOUND")
+        if config.symbol != config.concrete_contract_id:
+            live_blockers.append("LIVE_SOURCE_FULL_CONTRACT_IDENTITY_UNBOUND")
+        if assembly is None:
+            live_blockers.append("LIVE_CALENDAR_NOT_EVALUATED")
+        elif assessed_at is None:
+            live_blockers.append("LIVE_CALENDAR_ASSESSMENT_TIME_REQUIRED")
+        else:
+            try:
+                assembly.transport.sessions.require_current_authority(assessed_at)
+            except (PermissionError, RuntimeError, ValueError) as error:
+                live_blockers.append(str(error))
+    checks.append(_check(
+        "LIVE_SOURCE_AND_CALENDAR_AUTHORITY",
+        live_blockers,
+        "live source freshness, exact contract and current calendar authority are verified",
+    ))
     # -----------------------------------------------------------------------------------
 
     overall = "READY" if all(check.status == PASS for check in checks) else "BLOCKED"

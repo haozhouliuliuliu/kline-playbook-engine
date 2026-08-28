@@ -24,7 +24,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
+import tempfile
+from typing import BinaryIO
 
 PAPER_RUNTIME_LAYOUT_SCHEMA_VERSION = "KPE_PAPER_RUNTIME_LAYOUT_V0_1"
 
@@ -55,6 +58,63 @@ class PaperRuntimeLayoutError(RuntimeError):
 
 class PaperRuntimeIdentityMismatch(PaperRuntimeLayoutError):
     """The state root is bound to a different runtime identity than requested."""
+
+
+class PaperRuntimeLease:
+    """One-process advisory lock for a local PAPER state root."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self._handle: BinaryIO | None = None
+
+    @property
+    def acquired(self) -> bool:
+        return self._handle is not None
+
+    def acquire(self) -> None:
+        if self._handle is not None:
+            return
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        handle = self.path.open("a+b")
+        try:
+            if self.path.stat().st_size == 0:
+                handle.write(b"0")
+                handle.flush()
+                os.fsync(handle.fileno())
+            handle.seek(0)
+            if os.name == "nt":
+                import msvcrt
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (OSError, IOError) as error:
+            handle.close()
+            raise PaperRuntimeLayoutError("PAPER_RUNTIME_STATE_ROOT_ALREADY_OWNED") from error
+        self._handle = handle
+
+    def release(self) -> None:
+        handle = self._handle
+        if handle is None:
+            return
+        try:
+            handle.seek(0)
+            if os.name == "nt":
+                import msvcrt
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        finally:
+            handle.close()
+            self._handle = None
+
+    def __enter__(self) -> "PaperRuntimeLease":
+        self.acquire()
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        self.release()
 
 
 @dataclass(frozen=True)
@@ -100,6 +160,10 @@ class PaperRuntimeLayout:
     def causal_checkpoint_path(self) -> Path:
         """Causal-context checkpoint for deterministic restart continuity."""
         return self.state_root / "runtime" / "causal_checkpoint.json"
+
+    @property
+    def lease_path(self) -> Path:
+        return self.state_root / "runtime" / "paper_runtime.lock"
 
     @property
     def directories(self) -> tuple[Path, ...]:
@@ -208,9 +272,9 @@ class PaperRuntimeLayout:
         # Only ever write a fresh marker; never overwrite an existing one.
         if self.runtime_metadata_path.exists():
             return
-        self.runtime_metadata_path.write_text(
+        _atomic_write_text(
+            self.runtime_metadata_path,
             _canonical_json(self._metadata_document()) + "\n",
-            encoding="utf-8",
         )
 
     def write_causal_checkpoint(self, payload: object) -> None:
@@ -220,9 +284,15 @@ class PaperRuntimeLayout:
         clean shutdown so a restart reopens the most recent durable context.
         """
         self.causal_checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
-        self.causal_checkpoint_path.write_text(
-            _canonical_json(payload) + "\n", encoding="utf-8"
+        _atomic_write_text(
+            self.causal_checkpoint_path,
+            _canonical_json(payload) + "\n",
         )
+
+    def acquire_lease(self) -> PaperRuntimeLease:
+        lease = PaperRuntimeLease(self.lease_path)
+        lease.acquire()
+        return lease
 
     def read_causal_checkpoint(self) -> dict[str, object]:
         """Load a persisted causal checkpoint, or fail closed when absent/invalid."""
@@ -240,6 +310,37 @@ class PaperRuntimeLayout:
 __all__ = [
     "PAPER_RUNTIME_LAYOUT_SCHEMA_VERSION",
     "PaperRuntimeIdentityMismatch",
+    "PaperRuntimeLease",
     "PaperRuntimeLayout",
     "PaperRuntimeLayoutError",
 ]
+
+
+def _atomic_write_text(path: Path, text: str) -> None:
+    """Crash-safe same-directory replace with data flushed before publication."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            newline="\n",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary_path = Path(handle.name)
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, path)
+        temporary_path = None
+    except OSError as error:
+        raise PaperRuntimeLayoutError(f"PAPER_RUNTIME_ATOMIC_WRITE_FAILED:{path.name}") from error
+    finally:
+        if temporary_path is not None:
+            try:
+                temporary_path.unlink(missing_ok=True)
+            except OSError:
+                pass

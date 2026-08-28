@@ -26,7 +26,9 @@ import json
 
 from src.paper_activation_profile import PaperActivationProfile
 from src.paper_broker_mirror import PaperBrokerTruthMirror
-from src.paper_execution_authority import PaperExecutionAuthority
+from src.paper_execution_authority import PaperAuthoritySource, PaperExecutionAuthority
+from src.paper_execution_chain import PaperDeterministicExecutionChain
+from src.paper_runtime_bindings import PaperExecutableBindings, PaperToolRoleBinding
 from src.paper_live_causal_context import LiveCausalContextBuilder, LiveSessionCalendar
 from src.paper_live_transport import (
     PAPER_LIVE_TRANSPORT_VERSION,
@@ -86,6 +88,11 @@ class PaperRuntimeAssemblyInputs:
     source: LiveOneMinuteSource
 
     supervisor: PaperRuntimeSupervisor | None = None
+    authority_source: PaperAuthoritySource | None = None
+    execution_chain: PaperDeterministicExecutionChain | None = None
+    executable_bindings: PaperExecutableBindings | None = None
+    paper_tool_role: PaperToolRoleBinding | None = None
+    require_external_readiness: bool = False
     timezone: str = "Asia/Shanghai"
     symbol: str | None = None
     source_poll_limit: int = 512
@@ -105,6 +112,11 @@ class PaperRuntimeAssembly:
     broker: JournalManagedPaperBroker
     trader_identity: str
     concrete_contract_id: str
+    activation_profile: PaperActivationProfile
+    authority_source: PaperAuthoritySource
+    executable_bindings: PaperExecutableBindings | None
+    paper_tool_role: PaperToolRoleBinding | None
+    require_external_readiness: bool
 
     def startup_steps(self) -> tuple[tuple[str, str], ...]:
         """Informational, non-executing ordered activation steps.
@@ -135,7 +147,19 @@ def assemble_paper_runtime(inputs: PaperRuntimeAssemblyInputs) -> PaperRuntimeAs
     concrete_contract_id = _text(inputs.concrete_contract_id, "paper assembly concrete contract")
     exchange = _text(inputs.exchange, "paper assembly exchange")
     product = _text(inputs.product, "paper assembly product")
-    runtime_version = _text(inputs.actual_tqsdk_runtime_version, "paper assembly runtime version")
+    declared_runtime_version = _text(
+        inputs.actual_tqsdk_runtime_version, "paper assembly runtime version"
+    )
+    broker_runtime_version = getattr(inputs.broker, "runtime_version", None)
+    runtime_version = (
+        _text(broker_runtime_version, "paper broker runtime version")
+        if inputs.require_external_readiness
+        else declared_runtime_version
+    )
+    if inputs.require_external_readiness and runtime_version == "UNVERIFIED":
+        raise ValueError("PAPER_EXTERNAL_RUNTIME_VERSION_UNPROVABLE")
+    if inputs.require_external_readiness and runtime_version != declared_runtime_version:
+        raise ValueError("PAPER_EXTERNAL_RUNTIME_VERSION_MISMATCH")
     if inputs.timezone != "Asia/Shanghai":
         raise ValueError("paper assembly timezone must be Asia/Shanghai")
     if type(inputs.source_poll_limit) is not int or inputs.source_poll_limit <= 0:
@@ -146,6 +170,8 @@ def assemble_paper_runtime(inputs: PaperRuntimeAssemblyInputs) -> PaperRuntimeAs
         raise ValueError("paper assembly max source age must be a positive integer")
     if type(inputs.max_broker_snapshot_age_seconds) is not int or inputs.max_broker_snapshot_age_seconds < 0:
         raise ValueError("paper assembly broker snapshot age must be a non-negative integer")
+    if type(inputs.require_external_readiness) is not bool:
+        raise ValueError("paper external readiness flag must be bool")
 
     # Identity consistency checks (fail closed; all offline).
     if not isinstance(inputs.authority, PaperExecutionAuthority):
@@ -168,6 +194,58 @@ def assemble_paper_runtime(inputs: PaperRuntimeAssemblyInputs) -> PaperRuntimeAs
         raise ValueError("paper assembly product disagrees with the context builder")
     if inputs.context_builder.exchange != exchange:
         raise ValueError("paper assembly exchange disagrees with the context builder")
+    authority_source = inputs.authority_source
+    if authority_source is None and inputs.supervisor is not None:
+        authority_source = inputs.supervisor.authority_source
+    if authority_source is None:
+        from src.paper_execution_authority import MutablePaperAuthoritySource
+        authority_source = MutablePaperAuthoritySource(
+            inputs.authority, source_identity="STATIC_LEGACY_AUTHORITY_SOURCE"
+        )
+    if authority_source.current().identity_id != inputs.authority.identity_id:
+        raise ValueError("PAPER_ASSEMBLY_AUTHORITY_SOURCE_MISMATCH")
+    if inputs.executable_bindings is not None:
+        inputs.executable_bindings.require_matches(inputs.activation_profile)
+    if inputs.require_external_readiness:
+        from src.tqsdk_live_source import TqSdkLiveOneMinuteSource
+        from src.tqsdk_paper_candidate import TqSdkPaperBrokerAdapter
+
+        if authority_source.source_identity == "STATIC_LEGACY_AUTHORITY_SOURCE":
+            raise ValueError("PAPER_EXTERNAL_CURRENT_AUTHORITY_SOURCE_REQUIRED")
+        if not isinstance(inputs.broker, TqSdkPaperBrokerAdapter):
+            raise ValueError("PAPER_EXTERNAL_TQSDK_CANDIDATE_BROKER_REQUIRED")
+        if not isinstance(inputs.source, TqSdkLiveOneMinuteSource):
+            raise ValueError("PAPER_EXTERNAL_TQSDK_LIVE_SOURCE_REQUIRED")
+        if inputs.source.session_owner is not inputs.broker.session_owner:
+            raise ValueError("PAPER_EXTERNAL_TQSDK_SESSION_OWNERSHIP_MISMATCH")
+        if inputs.execution_chain is None or inputs.risk_planner is not None:
+            raise ValueError("PAPER_EXTERNAL_REQUIRES_CANONICAL_EXECUTION_CHAIN")
+        if inputs.executable_bindings is None:
+            raise ValueError("PAPER_EXTERNAL_EXECUTABLE_BINDINGS_REQUIRED")
+        if inputs.paper_tool_role is None:
+            raise ValueError("PAPER_EXTERNAL_TOOL_ROLE_BINDING_REQUIRED")
+        if inputs.max_source_age_seconds is None:
+            raise ValueError("PAPER_EXTERNAL_SOURCE_FRESHNESS_POLICY_REQUIRED")
+        if inputs.symbol != concrete_contract_id:
+            raise ValueError("PAPER_EXTERNAL_FULL_CONTRACT_SYMBOL_REQUIRED")
+        if inputs.broker_mirror.expected_account_id != inputs.authority.account_identity:
+            raise ValueError("PAPER_EXTERNAL_ACCOUNT_MIRROR_BINDING_MISMATCH")
+        if getattr(inputs.broker, "account_identity", None) != inputs.authority.account_identity:
+            raise ValueError("PAPER_EXTERNAL_BROKER_ACCOUNT_BINDING_MISMATCH")
+        if not inputs.order_journal.require_full_envelope:
+            raise ValueError("PAPER_EXTERNAL_FULL_ORDER_ENVELOPE_REQUIRED")
+        if inputs.executable_bindings.live_data_policy is not inputs.source:
+            raise ValueError("PAPER_EXTERNAL_LIVE_POLICY_OBJECT_MISMATCH")
+        if inputs.executable_bindings.broker_adapter is not inputs.broker:
+            raise ValueError("PAPER_EXTERNAL_BROKER_OBJECT_MISMATCH")
+        if inputs.executable_bindings.risk_policy is not inputs.execution_chain.risk_gate:
+            raise ValueError("PAPER_EXTERNAL_RISK_OBJECT_MISMATCH")
+        if inputs.executable_bindings.sizing_policy is not inputs.execution_chain.bridge.policy:
+            raise ValueError("PAPER_EXTERNAL_SIZING_OBJECT_MISMATCH")
+        if getattr(inputs.broker, "execution_price_policy", None) is not inputs.executable_bindings.execution_price_policy:
+            raise ValueError("PAPER_EXTERNAL_PRICE_POLICY_OBJECT_MISMATCH")
+        if getattr(inputs.broker, "close_offset_policy", None) is not inputs.executable_bindings.close_offset_policy:
+            raise ValueError("PAPER_EXTERNAL_CLOSE_OFFSET_OBJECT_MISMATCH")
     # The live context layer keys on the bare instrument (e.g. ``cu2406``) while
     # the coordinator/order layer keys on the full concrete contract id (e.g.
     # ``SHFE.cu2406``). Both are preserved here; the transport reuses the context
@@ -186,7 +264,13 @@ def assemble_paper_runtime(inputs: PaperRuntimeAssemblyInputs) -> PaperRuntimeAs
             broker_mirror=inputs.broker_mirror,
             order_journal=inputs.order_journal,
             wake_journal=inputs.wake_journal,
+            authority_source=authority_source,
         )
+    else:
+        if supervisor.activation_profile is not inputs.activation_profile:
+            raise ValueError("PAPER_ASSEMBLY_SUPERVISOR_PROFILE_MISMATCH")
+        if supervisor.authority_source.current().identity_id != inputs.authority.identity_id:
+            raise ValueError("PAPER_ASSEMBLY_SUPERVISOR_AUTHORITY_MISMATCH")
 
     coordinator = PaperRuntimeCoordinator(
         trader_identity=trader_identity,
@@ -199,11 +283,14 @@ def assemble_paper_runtime(inputs: PaperRuntimeAssemblyInputs) -> PaperRuntimeAs
         broker=inputs.broker,
         trader=inputs.trader,
         risk_planner=inputs.risk_planner,
+        execution_chain=inputs.execution_chain,
+        authority_source=authority_source,
         max_broker_snapshot_age_seconds=inputs.max_broker_snapshot_age_seconds,
     )
 
     transport = PaperLiveOneMinuteTransport(
         exchange=exchange,
+        concrete_contract_id=concrete_contract_id,
         concrete_instrument=live_instrument,
         product=product,
         sessions=inputs.sessions,
@@ -214,6 +301,8 @@ def assemble_paper_runtime(inputs: PaperRuntimeAssemblyInputs) -> PaperRuntimeAs
         symbol=inputs.symbol,
         source_poll_limit=inputs.source_poll_limit,
         max_source_age_seconds=inputs.max_source_age_seconds,
+        require_source_freshness=inputs.require_external_readiness,
+        require_exact_source_identity=inputs.require_external_readiness,
     )
 
     assembly_identity = _hash({
@@ -222,12 +311,27 @@ def assemble_paper_runtime(inputs: PaperRuntimeAssemblyInputs) -> PaperRuntimeAs
         "concrete_contract_id": concrete_contract_id,
         "exchange": exchange,
         "product": product,
-        "authority_id": inputs.authority.authority_id,
-        "activation_profile_id": inputs.activation_profile.profile_id,
+        "authority_identity": inputs.authority.identity_id,
+        "authority_source_identity": authority_source.source_identity,
+        "activation_profile_identity": inputs.activation_profile.identity_id,
         "session_calendar_identity": inputs.sessions.identity,
         "context_policy_identity": inputs.context_builder.policy_identity,
         "broker_mirror_id": inputs.broker_mirror.broker_id,
         "broker_id": inputs.broker.broker_id,
+        "broker_implementation_identity": getattr(inputs.broker, "identity_id", None),
+        "trader_implementation_identity": getattr(inputs.trader, "identity_id", None),
+        "source_implementation_identity": getattr(inputs.source, "identity_id", None),
+        "execution_chain_identity": (
+            None if inputs.execution_chain is None else inputs.execution_chain.identity_id
+        ),
+        "executable_bindings_identity": (
+            None if inputs.executable_bindings is None else inputs.executable_bindings.identity_id
+        ),
+        "paper_tool_role_identity": (
+            None if inputs.paper_tool_role is None else inputs.paper_tool_role.identity_id
+        ),
+        "order_journal_path": str(inputs.order_journal.path.resolve()),
+        "wake_journal_path": str(inputs.wake_journal.path.resolve()),
         "coordinator_version": PAPER_RUNTIME_COORDINATOR_VERSION,
         "transport_version": PAPER_LIVE_TRANSPORT_VERSION,
     })
@@ -241,6 +345,11 @@ def assemble_paper_runtime(inputs: PaperRuntimeAssemblyInputs) -> PaperRuntimeAs
         broker=inputs.broker,
         trader_identity=trader_identity,
         concrete_contract_id=concrete_contract_id,
+        activation_profile=inputs.activation_profile,
+        authority_source=authority_source,
+        executable_bindings=inputs.executable_bindings,
+        paper_tool_role=inputs.paper_tool_role,
+        require_external_readiness=inputs.require_external_readiness,
     )
 
 

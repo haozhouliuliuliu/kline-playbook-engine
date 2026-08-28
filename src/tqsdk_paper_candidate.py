@@ -102,6 +102,30 @@ class TqSdkPaperBrokerAdapter(BrokerAdapter):
     def connection_state(self) -> BrokerConnectionState:
         return self._driver.connection_state
 
+    @property
+    def account_identity(self) -> str | None:
+        return getattr(self._driver, "account_identity", None)
+
+    @property
+    def session_owner(self) -> object:
+        return self._driver
+
+    @property
+    def runtime_version(self) -> str:
+        return getattr(self._driver, "runtime_version", "UNVERIFIED")
+
+    @property
+    def identity_id(self) -> str:
+        return getattr(self._driver, "identity_id", TQSDK_PAPER_CANDIDATE_VERSION)
+
+    @property
+    def execution_price_policy(self):
+        return getattr(self._driver, "execution_price_policy", None)
+
+    @property
+    def close_offset_policy(self):
+        return getattr(self._driver, "close_offset_policy", None)
+
     def connect(self) -> None:
         self._authority.require_connect()
         self._driver.connect()
@@ -143,6 +167,13 @@ class TqSdkPaperBrokerAdapter(BrokerAdapter):
         self._driver.replace_order(order_id, new_quantity)
 
     def drain_events(self) -> tuple[BrokerEvent, ...]:
+        return self._driver.drain_events()
+
+    def pump_events(self) -> tuple[BrokerEvent, ...]:
+        poll = getattr(self._driver, "poll", None)
+        if not callable(poll):
+            raise RuntimeError("TQSDK_DRIVER_EVENT_PUMP_MISSING")
+        poll()
         return self._driver.drain_events()
 
     def fetch_account_snapshot(self) -> BrokerAccountSnapshot:

@@ -46,6 +46,7 @@ class FakeJournaledPaperBroker:
         self.fail_after_submit = False
         self.fail_order_snapshot = False
         self.cancel_stuck = False
+        self.fill_during_cancel = Decimal("0")
 
     @property
     def broker_id(self):
@@ -101,7 +102,8 @@ class FakeJournaledPaperBroker:
             concrete_contract_id=current.concrete_contract_id,
             direction=current.direction, action=current.action, status="CANCELLED",
             requested_quantity=current.requested_quantity,
-            filled_quantity=current.filled_quantity, snapshot_at=self.at)
+            filled_quantity=current.filled_quantity + self.fill_during_cancel,
+            snapshot_at=self.at)
 
     def replace_order(self, order_id, new_quantity):
         raise AssertionError("project cancel-then-replace must be used")
@@ -147,25 +149,32 @@ class FixtureRiskPlanner:
         return _plan("request:" + wake.bar.end.strftime("%Y%m%dT%H%M"), wake.wake_identity, 0)
 
 
-def _plan(request_id: str, wake_identity: str, generation: int) -> OfflinePaperOrderPlan:
+def _plan(
+    request_id: str,
+    wake_identity: str,
+    generation: int,
+    quantity: Decimal = Decimal("1"),
+) -> OfflinePaperOrderPlan:
     return OfflinePaperOrderPlan(
         intent_identity="fixture-intent:" + request_id,
         risk_identity="fixture-risk:" + request_id,
         instruction=BrokerOrderInstruction(
             client_request_id=request_id, concrete_contract_id=CONTRACT,
             direction=PositionDirection.LONG, action=OrderAction.OPEN,
-            order_type=OrderType.LIMIT, quantity=Decimal("1"),
+            order_type=OrderType.LIMIT, quantity=quantity,
             limit_price=Decimal("70000"), strategy_identity_id="OFFLINE_FIXTURE_ONLY",
             replace_generation=generation, source_directive_identity=wake_identity))
 
 
-def _authority():
-    return PaperExecutionAuthority(
+def _authority(**changes):
+    values = dict(
         authority_id="OFFLINE_FIXTURE_AUTHORITY_NOT_PROJECT_AUTHORITY",
         broker_kind="OFFLINE_FAKE", account_kind="OFFLINE_FAKE",
         status=PaperAuthorityStatus.ACTIVE, allow_connect=True,
         allow_order_submit=True, allow_order_cancel=True, allow_order_replace=True,
         allowed_contracts=(CONTRACT,))
+    values.update(changes)
+    return PaperExecutionAuthority(**values)
 
 
 def _profile():
@@ -208,9 +217,9 @@ class PaperOfflineRuntimeDrillTests(unittest.TestCase):
             pass
         self.temp.cleanup()
 
-    def _runtime(self, builder, orders, wakes, broker, trader):
+    def _runtime(self, builder, orders, wakes, broker, trader, authority=None):
         supervisor = PaperRuntimeSupervisor(
-            actual_tqsdk_runtime_version="3.10.1", authority=_authority(),
+            actual_tqsdk_runtime_version="3.10.1", authority=authority or _authority(),
             activation_profile=_profile(), broker_mirror=self.mirror,
             order_journal=orders, wake_journal=wakes)
         return PaperOfflineRuntimeDrill(
@@ -324,6 +333,159 @@ class PaperOfflineRuntimeDrillTests(unittest.TestCase):
                 replacement_generation=1, at=AT_0920 + timedelta(seconds=1))
         self.assertEqual(1, self.broker.submit_calls)
         self.assertTrue(self.order_journal.recovery_blockers())
+
+    def test_partial_fill_caps_replacement_against_broker_remaining(self):
+        self._start()
+        result = self.runtime.process_closed_minutes(
+            self._slice(_morning_until(), AT_0920), observed_at=AT_0920)[0]
+        order_id = "broker:" + result.client_request_id
+        current = self.broker.orders[order_id]
+        self.broker.orders[order_id] = BrokerOrderSnapshot(
+            order_id=current.order_id,
+            client_request_id=current.client_request_id,
+            concrete_contract_id=current.concrete_contract_id,
+            direction=current.direction,
+            action=current.action,
+            status="PARTIALLY_FILLED",
+            requested_quantity=current.requested_quantity,
+            filled_quantity=Decimal("0.5"),
+            snapshot_at=AT_0920,
+        )
+        child = _plan(
+            "request:replacement:too-large",
+            result.wake_identity,
+            1,
+            Decimal("0.75"),
+        )
+        with self.assertRaisesRegex(
+            RuntimeError, "REPLACEMENT_QUANTITY_EXCEEDS_BROKER_REMAINING"
+        ):
+            self.runtime.cancel_then_replace(
+                original_client_request_id=result.client_request_id,
+                child_plan=child,
+                wake_identity=result.wake_identity,
+                decision_identity=result.decision_identity,
+                replacement_generation=1,
+                at=AT_0920 + timedelta(seconds=1),
+            )
+        self.assertEqual(0, self.broker.cancel_calls)
+        self.assertEqual(1, self.broker.submit_calls)
+
+    def test_fill_during_cancel_rechecks_replacement_remaining(self):
+        self._start()
+        result = self.runtime.process_closed_minutes(
+            self._slice(_morning_until(), AT_0920), observed_at=AT_0920)[0]
+        self.broker.fill_during_cancel = Decimal("0.5")
+        child = _plan(
+            "request:replacement:cancel-race",
+            result.wake_identity,
+            1,
+            Decimal("0.75"),
+        )
+        with self.assertRaisesRegex(
+            RuntimeError, "BROKER_REMAINING_AFTER_CANCEL"
+        ):
+            self.runtime.cancel_then_replace(
+                original_client_request_id=result.client_request_id,
+                child_plan=child,
+                wake_identity=result.wake_identity,
+                decision_identity=result.decision_identity,
+                replacement_generation=1,
+                at=AT_0920 + timedelta(seconds=1),
+            )
+        self.assertEqual(1, self.broker.cancel_calls)
+        self.assertEqual(1, self.broker.submit_calls)
+
+    def test_replace_permission_is_checked_before_cancel(self):
+        runtime = self._runtime(
+            self.builder,
+            self.order_journal,
+            self.wake_journal,
+            self.broker,
+            self.trader,
+            authority=_authority(allow_order_replace=False),
+        )
+        self.runtime = runtime
+        self._start()
+        result = self.runtime.process_closed_minutes(
+            self._slice(_morning_until(), AT_0920), observed_at=AT_0920)[0]
+        child = _plan("request:replacement:forbidden", result.wake_identity, 1)
+        with self.assertRaisesRegex(PermissionError, "REPLACE_NOT_AUTHORIZED"):
+            self.runtime.cancel_then_replace(
+                original_client_request_id=result.client_request_id,
+                child_plan=child,
+                wake_identity=result.wake_identity,
+                decision_identity=result.decision_identity,
+                replacement_generation=1,
+                at=AT_0920 + timedelta(seconds=1),
+            )
+        self.assertEqual(0, self.broker.cancel_calls)
+        self.assertEqual(1, self.broker.submit_calls)
+
+    def test_connect_truth_failure_disconnects_broker(self):
+        self.broker.fail_order_snapshot = True
+        with self.assertRaisesRegex(RuntimeError, "OFFLINE_FAULT_FETCH_ORDER_SNAPSHOT"):
+            self.runtime.connect(at=_morning_until())
+        self.assertIs(BrokerConnectionState.DISCONNECTED, self.broker.connection_state)
+        self.assertIs(BrokerConnectionState.DISCONNECTED, self.mirror.connection_state)
+
+    def test_restart_connect_resumes_only_authorized_unsent_replacement(self):
+        self._start()
+        result = self.runtime.process_closed_minutes(
+            self._slice(_morning_until(), AT_0920), observed_at=AT_0920)[0]
+        original = self.order_journal.get(result.client_request_id)
+        child = _plan("request:replacement:restart", result.wake_identity, 1)
+        instruction = child.instruction
+        recovery_at = AT_0920 + timedelta(seconds=1)
+        self.order_journal.prepare(
+            client_request_id=instruction.client_request_id,
+            trader_identity="OFFLINE_FIXTURE_TRADER",
+            wake_identity=result.wake_identity,
+            decision_identity=result.decision_identity,
+            intent_identity=child.intent_identity,
+            risk_identity=child.risk_identity,
+            concrete_contract_id=CONTRACT,
+            instruction=instruction,
+            prepared_at=recovery_at,
+        )
+        cancel = self.order_journal.prepare_cancel_for_broker_order(
+            original.broker_order_id, at=recovery_at
+        )
+        self.order_journal.mark_cancel_attempt_started(
+            cancel.cancel_operation_id, at=recovery_at
+        )
+        replace_id = "replace:restart"
+        self.order_journal.prepare_replace(
+            replace_operation_id=replace_id,
+            original_client_request_id=original.client_request_id,
+            replacement_generation=1,
+            replacement_intent_identity=child.intent_identity,
+            cancel_operation_id=cancel.cancel_operation_id,
+            child_client_request_id=instruction.client_request_id,
+            prepared_at=recovery_at,
+        )
+        current = self.broker.orders[original.broker_order_id]
+        self.broker.orders[original.broker_order_id] = BrokerOrderSnapshot(
+            order_id=current.order_id,
+            client_request_id=current.client_request_id,
+            concrete_contract_id=current.concrete_contract_id,
+            direction=current.direction,
+            action=current.action,
+            status="CANCELLED",
+            requested_quantity=current.requested_quantity,
+            filled_quantity=current.filled_quantity,
+            snapshot_at=recovery_at,
+        )
+        self.runtime.disconnect(at=recovery_at)
+
+        self.runtime.connect(at=recovery_at)
+
+        self.assertEqual(2, self.broker.submit_calls)
+        self.assertEqual(
+            BROKER_ORDER_ID_KNOWN,
+            self.order_journal.get(instruction.client_request_id).status,
+        )
+        self.assertEqual((), self.order_journal.unresolved_replace_operations())
 
     def test_market_bootstrap_requires_broker_truth_first(self):
         with self.assertRaisesRegex(RuntimeError, "BOOTSTRAP_REQUIRES_CONNECTED_BROKER"):

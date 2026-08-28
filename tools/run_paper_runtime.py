@@ -23,6 +23,7 @@ platform is involved.
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import sys
 from pathlib import Path
@@ -61,35 +62,57 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="run the deterministic fake offline activation rehearsal (fakes only)",
     )
+    mode.add_argument(
+        "--external-run",
+        action="store_true",
+        help="run an explicitly supplied external PAPER composition",
+    )
     parser.add_argument("--config-id", default="PAPER_RUNTIME_CLI_CONFIG")
     parser.add_argument("--trader-identity", default=TRADER_IDENTITY)
-    parser.add_argument("--concrete-contract", default=CONTRACT)
-    parser.add_argument("--product", default=PRODUCT)
-    parser.add_argument("--exchange", default=EXCHANGE)
+    parser.add_argument("--concrete-contract")
+    parser.add_argument("--product")
+    parser.add_argument("--exchange")
     parser.add_argument("--tqsdk-runtime-version", default=RUNTIME_VERSION)
     parser.add_argument("--broker-kind", default="TQSDK_CANDIDATE")
     parser.add_argument("--account-kind", default="TQSDK_PAPER")
-    parser.add_argument("--symbol", default=INSTRUMENT)
+    parser.add_argument("--symbol")
     parser.add_argument("--source-poll-limit", type=int, default=512)
     parser.add_argument("--max-source-age-seconds", type=int, default=None)
     parser.add_argument("--json", action="store_true", help="emit a JSON document")
+    parser.add_argument("--bindings-module", help="explicit local external composition module")
+    parser.add_argument("--max-polls", type=int, default=None)
     return parser
 
 
 def _config_from_args(args: argparse.Namespace) -> PaperRuntimeConfig:
     # EXTERNAL runs never bind an authority/profile implicitly; they remain
     # fail-closed until an explicit future activation binds them.
+    offline = bool(args.offline_rehearsal)
+    contract = args.concrete_contract or (CONTRACT if offline else None)
+    product = args.product or (PRODUCT if offline else None)
+    exchange = args.exchange or (EXCHANGE if offline else None)
+    symbol = args.symbol or (INSTRUMENT if offline else None)
+    missing = [
+        name for name, value in (
+            ("--concrete-contract", contract),
+            ("--product", product),
+            ("--exchange", exchange),
+            ("--symbol", symbol),
+        ) if value is None
+    ]
+    if missing:
+        raise ValueError("external PAPER configuration requires " + ", ".join(missing))
     return PaperRuntimeConfig(
         config_id=args.config_id,
         state_root=Path(args.state_root),
         trader_identity=args.trader_identity,
-        concrete_contract_id=args.concrete_contract,
-        product=args.product,
-        exchange=args.exchange,
+        concrete_contract_id=contract,
+        product=product,
+        exchange=exchange,
         tqsdk_runtime_version=args.tqsdk_runtime_version,
         broker_kind=args.broker_kind,
         account_kind=args.account_kind,
-        symbol=args.symbol,
+        symbol=symbol,
         source_poll_limit=args.source_poll_limit,
         max_source_age_seconds=args.max_source_age_seconds,
     )
@@ -148,11 +171,66 @@ def _run_offline_rehearsal(args: argparse.Namespace) -> int:
     return 0 if result.passed else 1
 
 
+def _run_external(args: argparse.Namespace) -> int:
+    if not args.bindings_module:
+        raise ValueError("--external-run requires --bindings-module")
+    requested_config = _config_from_args(args)
+    module = importlib.import_module(args.bindings_module)
+    build_setup = getattr(module, "build_paper_external_setup", None)
+    if not callable(build_setup):
+        raise ValueError("bindings module must expose build_paper_external_setup")
+    setup = build_setup(
+        state_root=Path(args.state_root),
+        arguments={key: value for key, value in vars(args).items() if key != "bindings_module"},
+    )
+    if not isinstance(setup, tuple) or len(setup) != 3:
+        raise TypeError("external setup must return (config, layout, factories)")
+    config, layout, factories = setup
+    if not isinstance(config, PaperRuntimeConfig):
+        raise TypeError("external setup config must be PaperRuntimeConfig")
+    requested_identity = (
+        requested_config.concrete_contract_id,
+        requested_config.product,
+        requested_config.exchange,
+        requested_config.symbol,
+    )
+    actual_identity = (
+        config.concrete_contract_id,
+        config.product,
+        config.exchange,
+        config.symbol,
+    )
+    if actual_identity != requested_identity:
+        raise ValueError("PAPER_EXTERNAL_SETUP_CONTRACT_IDENTITY_MISMATCH")
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from src.paper_external_composition import build_external_paper_controller
+
+    controller = build_external_paper_controller(
+        config=config, layout=layout, factories=factories
+    )
+    now = datetime.now(ZoneInfo("Asia/Shanghai"))
+    try:
+        controller.start(at=now)
+        controller.run_loop(
+            observed_at_provider=lambda: datetime.now(ZoneInfo("Asia/Shanghai")),
+            max_polls=args.max_polls,
+        )
+    finally:
+        controller.shutdown(
+            at=datetime.now(ZoneInfo("Asia/Shanghai")),
+            persist_checkpoint=controller.assembly.context_builder.bootstrap_done,
+        )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.offline_rehearsal:
         return _run_offline_rehearsal(args)
+    if args.external_run:
+        return _run_external(args)
     return _run_preflight(args)
 
 

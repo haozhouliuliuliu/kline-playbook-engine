@@ -10,11 +10,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+import json
 import sqlite3
 
-from src.broker_adapter import BrokerOrderInstruction
+from decimal import Decimal, InvalidOperation
 
-PAPER_ORDER_JOURNAL_SCHEMA_VERSION = "KPE_PAPER_ORDER_JOURNAL_V0_3"
+from src.broker_adapter import (
+    BrokerOrderInstruction,
+    OrderRole,
+    OrderType,
+    StopTriggerCondition,
+    canonical_decimal,
+)
+from src.contract_semantics import CloseOffset, OrderAction, PositionDirection
+
+PAPER_ORDER_JOURNAL_SCHEMA_VERSION = "KPE_PAPER_ORDER_JOURNAL_V0_5"
 PREPARED = "PREPARED"
 ATTEMPT_STARTED = "ATTEMPT_STARTED"
 BROKER_ORDER_ID_KNOWN = "BROKER_ORDER_ID_KNOWN"
@@ -46,6 +56,17 @@ _REPLACE_STATUSES = frozenset({
 
 _SAFE_TERMINAL_ORDER_STATUSES = frozenset({"CANCELLED", "FILLED", "REJECTED"})
 
+CONDITIONAL_ARMED = "CONDITIONAL_ARMED"
+CONDITIONAL_TRIGGERED = "CONDITIONAL_TRIGGERED"
+CONDITIONAL_RESOLVED = "CONDITIONAL_RESOLVED"
+_CONDITIONAL_STATUSES = frozenset({
+    CONDITIONAL_ARMED, CONDITIONAL_TRIGGERED, CONDITIONAL_RESOLVED,
+})
+
+BATCH_AUTHORIZED = "BATCH_AUTHORIZED"
+BATCH_RESOLVED = "BATCH_RESOLVED"
+_BATCH_STATUSES = frozenset({BATCH_AUTHORIZED, BATCH_RESOLVED})
+
 def _iso(value: datetime) -> str:
     if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
         raise ValueError("journal timestamp must be timezone-aware")
@@ -56,6 +77,83 @@ def _parse(value: str) -> datetime:
     if parsed.tzinfo is None:
         raise ValueError("journal persisted an invalid naive timestamp")
     return parsed
+
+
+def _optional_decimal(value: str | None) -> Decimal | None:
+    if value is None:
+        return None
+    try:
+        parsed = Decimal(value)
+    except (InvalidOperation, ValueError) as error:
+        raise ValueError("paper order journal persisted an invalid Decimal") from error
+    if not parsed.is_finite():
+        raise ValueError("paper order journal persisted a non-finite Decimal")
+    return parsed
+
+
+def _instruction_json(instruction: BrokerOrderInstruction) -> str:
+    if not isinstance(instruction, BrokerOrderInstruction):
+        raise ValueError("durable instruction must be BrokerOrderInstruction")
+    payload = {
+        "client_request_id": instruction.client_request_id,
+        "concrete_contract_id": instruction.concrete_contract_id,
+        "direction": instruction.direction.value,
+        "action": instruction.action.value,
+        "order_type": instruction.order_type.value,
+        "quantity": canonical_decimal(instruction.quantity),
+        "close_offset": None if instruction.close_offset is None else instruction.close_offset.value,
+        "limit_price": None if instruction.limit_price is None else canonical_decimal(instruction.limit_price),
+        "trigger_price": None if instruction.trigger_price is None else canonical_decimal(instruction.trigger_price),
+        "trigger_condition": None if instruction.trigger_condition is None else instruction.trigger_condition.value,
+        "triggered_order_type": None if instruction.triggered_order_type is None else instruction.triggered_order_type.value,
+        "triggered_limit_price": None if instruction.triggered_limit_price is None else canonical_decimal(instruction.triggered_limit_price),
+        "order_role": instruction.order_role.value,
+        "strategy_identity_id": instruction.strategy_identity_id,
+        "client_order_id": instruction.client_order_id,
+        "created_at": (
+            None if instruction.created_at is None else instruction.created_at.isoformat()
+        ),
+        "available_at": (
+            None if instruction.available_at is None else instruction.available_at.isoformat()
+        ),
+        "parent_order_id": instruction.parent_order_id,
+        "oco_group_id": instruction.oco_group_id,
+        "replace_generation": instruction.replace_generation,
+        "source_directive_identity": instruction.source_directive_identity,
+    }
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+
+
+def _instruction_from_json(value: str) -> BrokerOrderInstruction:
+    try:
+        payload = json.loads(value)
+    except (json.JSONDecodeError, TypeError) as error:
+        raise ValueError("paper order journal persisted invalid instruction JSON") from error
+    if not isinstance(payload, dict):
+        raise ValueError("paper order journal instruction must be an object")
+    return BrokerOrderInstruction(
+        client_request_id=payload["client_request_id"],
+        concrete_contract_id=payload["concrete_contract_id"],
+        direction=PositionDirection(payload["direction"]),
+        action=OrderAction(payload["action"]),
+        order_type=OrderType(payload["order_type"]),
+        quantity=Decimal(payload["quantity"]),
+        close_offset=(None if payload["close_offset"] is None else CloseOffset(payload["close_offset"])),
+        limit_price=(None if payload["limit_price"] is None else Decimal(payload["limit_price"])),
+        trigger_price=(None if payload["trigger_price"] is None else Decimal(payload["trigger_price"])),
+        trigger_condition=(None if payload["trigger_condition"] is None else StopTriggerCondition(payload["trigger_condition"])),
+        triggered_order_type=(None if payload["triggered_order_type"] is None else OrderType(payload["triggered_order_type"])),
+        triggered_limit_price=(None if payload["triggered_limit_price"] is None else Decimal(payload["triggered_limit_price"])),
+        order_role=OrderRole(payload["order_role"]),
+        strategy_identity_id=payload["strategy_identity_id"],
+        client_order_id=payload["client_order_id"],
+        created_at=(None if payload["created_at"] is None else _parse(payload["created_at"])),
+        available_at=(None if payload["available_at"] is None else _parse(payload["available_at"])),
+        parent_order_id=payload["parent_order_id"],
+        oco_group_id=payload["oco_group_id"],
+        replace_generation=payload["replace_generation"],
+        source_directive_identity=payload["source_directive_identity"],
+    )
 
 @dataclass(frozen=True)
 class PaperOrderAttempt:
@@ -69,12 +167,29 @@ class PaperOrderAttempt:
     expected_direction: str | None
     expected_action: str | None
     expected_quantity: str | None
+    expected_close_offset: str | None
+    expected_order_type: str | None
+    expected_limit_price: str | None
+    expected_trigger_price: str | None
+    expected_trigger_condition: str | None
+    expected_triggered_order_type: str | None
+    expected_triggered_limit_price: str | None
+    expected_order_role: str | None
+    expected_strategy_identity: str | None
+    expected_client_order_id: str | None
+    expected_parent_order_id: str | None
+    expected_oco_group_id: str | None
+    expected_replace_generation: int | None
+    expected_source_directive_identity: str | None
     execution_mode: str
     status: str
     broker_order_id: str | None
     prepared_at: datetime
     updated_at: datetime
     safe_reason: str | None
+    broker_terminal_status: str | None
+    broker_filled_quantity: str | None
+    broker_snapshot_at: datetime | None
 
 
 @dataclass(frozen=True)
@@ -102,13 +217,57 @@ class PaperReplaceOperation:
     updated_at: datetime
     safe_reason: str | None
 
+
+@dataclass(frozen=True)
+class PaperConditionalDirective:
+    directive_client_request_id: str
+    child_client_request_id: str
+    child_instruction: BrokerOrderInstruction
+    status: str
+    last_evaluated_bar_identity: str | None
+    last_evaluated_bar_end: datetime | None
+    triggered_at: datetime | None
+    prepared_at: datetime
+    updated_at: datetime
+
+
+@dataclass(frozen=True)
+class PaperExecutionBatchChild:
+    batch_identity: str
+    ordinal: int
+    intent_identity: str
+    risk_identity: str
+    instruction: BrokerOrderInstruction
+
+
+@dataclass(frozen=True)
+class PaperExecutionBatch:
+    batch_identity: str
+    trader_identity: str
+    wake_identity: str
+    decision_identity: str
+    logical_intent_identity: str
+    risk_identity: str
+    concrete_contract_id: str
+    logical_quantity: Decimal
+    status: str
+    children: tuple[PaperExecutionBatchChild, ...]
+    prepared_at: datetime
+    updated_at: datetime
+
 class PaperOrderJournal:
-    def __init__(self, path: str | Path) -> None:
+    def __init__(self, path: str | Path, *, require_full_envelope: bool = False) -> None:
+        if type(require_full_envelope) is not bool:
+            raise ValueError("paper order journal envelope requirement must be bool")
+        self.require_full_envelope = require_full_envelope
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._connection = sqlite3.connect(self.path)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
+        self._connection.execute("PRAGMA journal_mode = WAL")
+        self._connection.execute("PRAGMA synchronous = FULL")
+        self._connection.execute("PRAGMA busy_timeout = 5000")
         self._initialize()
 
     def _initialize(self) -> None:
@@ -127,12 +286,29 @@ class PaperOrderJournal:
                 expected_direction TEXT,
                 expected_action TEXT,
                 expected_quantity TEXT,
+                expected_close_offset TEXT,
+                expected_order_type TEXT,
+                expected_limit_price TEXT,
+                expected_trigger_price TEXT,
+                expected_trigger_condition TEXT,
+                expected_triggered_order_type TEXT,
+                expected_triggered_limit_price TEXT,
+                expected_order_role TEXT,
+                expected_strategy_identity TEXT,
+                expected_client_order_id TEXT,
+                expected_parent_order_id TEXT,
+                expected_oco_group_id TEXT,
+                expected_replace_generation INTEGER,
+                expected_source_directive_identity TEXT,
                 execution_mode TEXT NOT NULL,
                 status TEXT NOT NULL,
                 broker_order_id TEXT,
                 prepared_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
-                safe_reason TEXT
+                safe_reason TEXT,
+                broker_terminal_status TEXT,
+                broker_filled_quantity TEXT,
+                broker_snapshot_at TEXT
             );
             CREATE UNIQUE INDEX IF NOT EXISTS order_wake_intent_idx
                 ON order_attempts(wake_identity, intent_identity);
@@ -160,6 +336,40 @@ class PaperOrderJournal:
                 safe_reason TEXT,
                 UNIQUE(original_client_request_id, replacement_generation)
             );
+            CREATE TABLE IF NOT EXISTS conditional_directives (
+                directive_client_request_id TEXT PRIMARY KEY
+                    REFERENCES order_attempts(client_request_id),
+                child_client_request_id TEXT NOT NULL UNIQUE,
+                child_instruction_json TEXT NOT NULL,
+                status TEXT NOT NULL,
+                last_evaluated_bar_identity TEXT,
+                last_evaluated_bar_end TEXT,
+                triggered_at TEXT,
+                prepared_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS execution_batches (
+                batch_identity TEXT PRIMARY KEY,
+                trader_identity TEXT NOT NULL,
+                wake_identity TEXT NOT NULL,
+                decision_identity TEXT NOT NULL,
+                logical_intent_identity TEXT NOT NULL UNIQUE,
+                risk_identity TEXT NOT NULL,
+                concrete_contract_id TEXT NOT NULL,
+                logical_quantity TEXT NOT NULL,
+                status TEXT NOT NULL,
+                prepared_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS execution_batch_children (
+                batch_identity TEXT NOT NULL REFERENCES execution_batches(batch_identity),
+                ordinal INTEGER NOT NULL,
+                intent_identity TEXT NOT NULL UNIQUE,
+                risk_identity TEXT NOT NULL,
+                client_request_id TEXT NOT NULL UNIQUE,
+                instruction_json TEXT NOT NULL,
+                PRIMARY KEY(batch_identity, ordinal)
+            );
         """)
         # V0.1/V0.2 journals may exist from an interrupted offline drill.  Their
         # order envelopes are unknowable, so recovery will fail closed below.
@@ -170,6 +380,23 @@ class PaperOrderJournal:
             ("expected_direction", "TEXT"),
             ("expected_action", "TEXT"),
             ("expected_quantity", "TEXT"),
+            ("expected_close_offset", "TEXT"),
+            ("expected_order_type", "TEXT"),
+            ("expected_limit_price", "TEXT"),
+            ("expected_trigger_price", "TEXT"),
+            ("expected_trigger_condition", "TEXT"),
+            ("expected_triggered_order_type", "TEXT"),
+            ("expected_triggered_limit_price", "TEXT"),
+            ("expected_order_role", "TEXT"),
+            ("expected_strategy_identity", "TEXT"),
+            ("expected_client_order_id", "TEXT"),
+            ("expected_parent_order_id", "TEXT"),
+            ("expected_oco_group_id", "TEXT"),
+            ("expected_replace_generation", "INTEGER"),
+            ("expected_source_directive_identity", "TEXT"),
+            ("broker_terminal_status", "TEXT"),
+            ("broker_filled_quantity", "TEXT"),
+            ("broker_snapshot_at", "TEXT"),
         ):
             if column not in existing_columns:
                 self._connection.execute(
@@ -180,6 +407,8 @@ class PaperOrderJournal:
         ).fetchone()
         if existing is not None and existing[0] not in (
             "KPE_PAPER_ORDER_JOURNAL_V0_1", "KPE_PAPER_ORDER_JOURNAL_V0_2",
+            "KPE_PAPER_ORDER_JOURNAL_V0_3",
+            "KPE_PAPER_ORDER_JOURNAL_V0_4",
             PAPER_ORDER_JOURNAL_SCHEMA_VERSION,
         ):
             raise ValueError("unsupported paper order journal schema")
@@ -190,6 +419,7 @@ class PaperOrderJournal:
         self._connection.commit()
 
     def close(self) -> None:
+        self._connection.execute("PRAGMA wal_checkpoint(FULL)")
         self._connection.close()
     def __enter__(self) -> "PaperOrderJournal":
         return self
@@ -223,13 +453,78 @@ class PaperOrderJournal:
                     client_request_id, trader_identity, wake_identity,
                     decision_identity, intent_identity, risk_identity,
                     concrete_contract_id, expected_direction, expected_action,
-                    expected_quantity, execution_mode, status,
-                    broker_order_id, prepared_at, updated_at, safe_reason
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PAPER', ?, NULL, ?, ?, NULL)
-            """, (client_request_id, trader_identity, wake_identity, decision_identity,
-                    intent_identity, risk_identity, concrete_contract_id,
-                    instruction.direction.value, instruction.action.value,
-                    str(instruction.quantity), PREPARED, at, at))
+                    expected_quantity, expected_close_offset, expected_order_type,
+                    expected_limit_price, expected_trigger_price,
+                    expected_trigger_condition, expected_triggered_order_type,
+                    expected_triggered_limit_price, expected_order_role,
+                    expected_strategy_identity, expected_client_order_id,
+                    expected_parent_order_id, expected_oco_group_id,
+                    expected_replace_generation, expected_source_directive_identity,
+                    execution_mode, status, broker_order_id, prepared_at, updated_at,
+                    safe_reason, broker_terminal_status, broker_filled_quantity,
+                    broker_snapshot_at
+                ) VALUES(
+                    :client_request_id, :trader_identity, :wake_identity,
+                    :decision_identity, :intent_identity, :risk_identity,
+                    :concrete_contract_id, :expected_direction, :expected_action,
+                    :expected_quantity, :expected_close_offset, :expected_order_type,
+                    :expected_limit_price, :expected_trigger_price,
+                    :expected_trigger_condition, :expected_triggered_order_type,
+                    :expected_triggered_limit_price, :expected_order_role,
+                    :expected_strategy_identity, :expected_client_order_id,
+                    :expected_parent_order_id, :expected_oco_group_id,
+                    :expected_replace_generation, :expected_source_directive_identity,
+                    'PAPER', :status, NULL, :prepared_at, :updated_at,
+                    NULL, NULL, NULL, NULL
+                )
+            """, {
+                "client_request_id": client_request_id,
+                "trader_identity": trader_identity,
+                "wake_identity": wake_identity,
+                "decision_identity": decision_identity,
+                "intent_identity": intent_identity,
+                "risk_identity": risk_identity,
+                "concrete_contract_id": concrete_contract_id,
+                "expected_direction": instruction.direction.value,
+                "expected_action": instruction.action.value,
+                "expected_quantity": canonical_decimal(instruction.quantity),
+                "expected_close_offset": (
+                    None if instruction.close_offset is None else instruction.close_offset.value
+                ),
+                "expected_order_type": instruction.order_type.value,
+                "expected_limit_price": (
+                    None if instruction.limit_price is None
+                    else canonical_decimal(instruction.limit_price)
+                ),
+                "expected_trigger_price": (
+                    None if instruction.trigger_price is None
+                    else canonical_decimal(instruction.trigger_price)
+                ),
+                "expected_trigger_condition": (
+                    None if instruction.trigger_condition is None
+                    else instruction.trigger_condition.value
+                ),
+                "expected_triggered_order_type": (
+                    None if instruction.triggered_order_type is None
+                    else instruction.triggered_order_type.value
+                ),
+                "expected_triggered_limit_price": (
+                    None if instruction.triggered_limit_price is None
+                    else canonical_decimal(instruction.triggered_limit_price)
+                ),
+                "expected_order_role": instruction.order_role.value,
+                "expected_strategy_identity": instruction.strategy_identity_id,
+                "expected_client_order_id": (
+                    instruction.client_order_id or instruction.client_request_id
+                ),
+                "expected_parent_order_id": instruction.parent_order_id,
+                "expected_oco_group_id": instruction.oco_group_id,
+                "expected_replace_generation": instruction.replace_generation,
+                "expected_source_directive_identity": instruction.source_directive_identity,
+                "status": PREPARED,
+                "prepared_at": at,
+                "updated_at": at,
+            })
             self._connection.commit()
         except sqlite3.IntegrityError as error:
             raise ValueError("DUPLICATE_PAPER_ORDER_IDENTITY") from error
@@ -238,6 +533,275 @@ class PaperOrderJournal:
     def mark_attempt_started(self, client_request_id: str, *, at: datetime) -> PaperOrderAttempt:
         return self._transition(client_request_id, expected=(PREPARED,),
                                 new_status=ATTEMPT_STARTED, at=at)
+
+    def arm_conditional(
+        self,
+        *,
+        directive_client_request_id: str,
+        child_instruction: BrokerOrderInstruction,
+        at: datetime,
+    ) -> PaperConditionalDirective:
+        """Durably arm one project-triggered directive without broker mutation."""
+        directive = self.get(directive_client_request_id)
+        if directive.status != PREPARED or directive.expected_order_type != OrderType.STOP_MARKET.value:
+            raise RuntimeError("PAPER_CONDITIONAL_REQUIRES_PREPARED_STOP_DIRECTIVE")
+        if child_instruction.order_type is OrderType.STOP_MARKET:
+            raise ValueError("conditional child must already be broker-executable")
+        if (
+            child_instruction.concrete_contract_id != directive.concrete_contract_id
+            or child_instruction.action.value != directive.expected_action
+            or child_instruction.direction.value != directive.expected_direction
+            or canonical_decimal(child_instruction.quantity) != directive.expected_quantity
+            or (
+                None if child_instruction.close_offset is None else child_instruction.close_offset.value
+            ) != directive.expected_close_offset
+            or child_instruction.source_directive_identity != directive_client_request_id
+        ):
+            raise ValueError("PAPER_CONDITIONAL_CHILD_ENVELOPE_MISMATCH")
+        encoded = _instruction_json(child_instruction)
+        row = self._connection.execute(
+            "SELECT * FROM conditional_directives WHERE directive_client_request_id=?",
+            (directive_client_request_id,),
+        ).fetchone()
+        if row is not None:
+            record = self._conditional_from_row(row)
+            if _instruction_json(record.child_instruction) != encoded:
+                raise ValueError("PAPER_CONDITIONAL_IDENTITY_CONFLICT")
+            return record
+        timestamp = _iso(at)
+        try:
+            self._connection.execute("""
+                INSERT INTO conditional_directives(
+                    directive_client_request_id, child_client_request_id,
+                    child_instruction_json, status, last_evaluated_bar_identity,
+                    last_evaluated_bar_end, triggered_at, prepared_at, updated_at
+                ) VALUES(?, ?, ?, ?, NULL, NULL, NULL, ?, ?)
+            """, (
+                directive_client_request_id,
+                child_instruction.client_request_id,
+                encoded,
+                CONDITIONAL_ARMED,
+                timestamp,
+                timestamp,
+            ))
+            self._connection.commit()
+        except sqlite3.IntegrityError as error:
+            raise ValueError("DUPLICATE_PAPER_CONDITIONAL_IDENTITY") from error
+        return self.get_conditional(directive_client_request_id)
+
+    def get_conditional(self, directive_client_request_id: str) -> PaperConditionalDirective:
+        row = self._connection.execute(
+            "SELECT * FROM conditional_directives WHERE directive_client_request_id=?",
+            (directive_client_request_id,),
+        ).fetchone()
+        if row is None:
+            raise KeyError(directive_client_request_id)
+        return self._conditional_from_row(row)
+
+    def armed_conditionals(self) -> tuple[PaperConditionalDirective, ...]:
+        rows = self._connection.execute(
+            "SELECT * FROM conditional_directives WHERE status=? ORDER BY prepared_at, directive_client_request_id",
+            (CONDITIONAL_ARMED,),
+        ).fetchall()
+        return tuple(self._conditional_from_row(row) for row in rows)
+
+    def triggered_conditionals(self) -> tuple[PaperConditionalDirective, ...]:
+        rows = self._connection.execute(
+            "SELECT * FROM conditional_directives WHERE status=? ORDER BY prepared_at, directive_client_request_id",
+            (CONDITIONAL_TRIGGERED,),
+        ).fetchall()
+        return tuple(self._conditional_from_row(row) for row in rows)
+
+    def record_conditional_evaluation(
+        self,
+        directive_client_request_id: str,
+        *,
+        bar_identity: str,
+        bar_end: datetime,
+        at: datetime,
+    ) -> PaperConditionalDirective:
+        if not isinstance(bar_identity, str) or not bar_identity.strip():
+            raise ValueError("conditional evaluation requires bar identity")
+        current = self.get_conditional(directive_client_request_id)
+        if current.status != CONDITIONAL_ARMED:
+            return current
+        if current.last_evaluated_bar_end is not None:
+            if bar_end < current.last_evaluated_bar_end:
+                raise RuntimeError("PAPER_CONDITIONAL_MARKET_DATA_OUT_OF_ORDER")
+            if bar_end == current.last_evaluated_bar_end:
+                if bar_identity != current.last_evaluated_bar_identity:
+                    raise RuntimeError("PAPER_CONDITIONAL_BAR_IDENTITY_CONFLICT")
+                return current
+        self._connection.execute("""
+            UPDATE conditional_directives
+            SET last_evaluated_bar_identity=?, last_evaluated_bar_end=?, updated_at=?
+            WHERE directive_client_request_id=? AND status=?
+        """, (
+            bar_identity, _iso(bar_end), _iso(at), directive_client_request_id,
+            CONDITIONAL_ARMED,
+        ))
+        self._connection.commit()
+        return self.get_conditional(directive_client_request_id)
+
+    def mark_conditional_triggered(
+        self, directive_client_request_id: str, *, at: datetime
+    ) -> PaperConditionalDirective:
+        current = self.get_conditional(directive_client_request_id)
+        if current.status in {CONDITIONAL_TRIGGERED, CONDITIONAL_RESOLVED}:
+            return current
+        if current.status != CONDITIONAL_ARMED:
+            raise RuntimeError("PAPER_CONDITIONAL_ILLEGAL_TRIGGER_STATE")
+        self._connection.execute("""
+            UPDATE conditional_directives
+            SET status=?, triggered_at=?, updated_at=?
+            WHERE directive_client_request_id=? AND status=?
+        """, (
+            CONDITIONAL_TRIGGERED, _iso(at), _iso(at),
+            directive_client_request_id, CONDITIONAL_ARMED,
+        ))
+        self._connection.commit()
+        return self.get_conditional(directive_client_request_id)
+
+    def resolve_conditional(
+        self, directive_client_request_id: str, *, at: datetime
+    ) -> PaperConditionalDirective:
+        current = self.get_conditional(directive_client_request_id)
+        if current.status == CONDITIONAL_RESOLVED:
+            return current
+        if current.status != CONDITIONAL_TRIGGERED:
+            raise RuntimeError("PAPER_CONDITIONAL_NOT_TRIGGERED")
+        child = self.get(current.child_client_request_id)
+        if child.status not in {BROKER_ORDER_ID_KNOWN, TERMINAL}:
+            raise RuntimeError("PAPER_CONDITIONAL_CHILD_NOT_BROKER_RESOLVED")
+        self._connection.execute(
+            "UPDATE conditional_directives SET status=?, updated_at=? WHERE directive_client_request_id=?",
+            (CONDITIONAL_RESOLVED, _iso(at), directive_client_request_id),
+        )
+        self._connection.commit()
+        return self.get_conditional(directive_client_request_id)
+
+    def authorize_execution_batch(
+        self,
+        *,
+        batch_identity: str,
+        trader_identity: str,
+        wake_identity: str,
+        decision_identity: str,
+        logical_intent_identity: str,
+        risk_identity: str,
+        concrete_contract_id: str,
+        logical_quantity: Decimal,
+        children: tuple[tuple[str, str, BrokerOrderInstruction], ...],
+        at: datetime,
+    ) -> PaperExecutionBatch:
+        identities = (
+            batch_identity, trader_identity, wake_identity, decision_identity,
+            logical_intent_identity, risk_identity, concrete_contract_id,
+        )
+        if any(not isinstance(value, str) or not value.strip() for value in identities):
+            raise ValueError("execution batch requires complete identities")
+        if type(logical_quantity) is not Decimal or not logical_quantity.is_finite() or logical_quantity <= 0:
+            raise ValueError("execution batch logical quantity must be positive")
+        if not children:
+            raise ValueError("execution batch requires child instructions")
+        instructions = tuple(item[2] for item in children)
+        if any(
+            not isinstance(item, BrokerOrderInstruction)
+            or item.action is not OrderAction.CLOSE
+            or item.close_offset is None
+            or item.concrete_contract_id != concrete_contract_id
+            for item in instructions
+        ):
+            raise ValueError("execution batch requires explicit CLOSE children")
+        if len({item.client_request_id for item in instructions}) != len(instructions):
+            raise ValueError("execution batch child request identities must be unique")
+        if len({item.close_offset for item in instructions}) != len(instructions):
+            raise ValueError("execution batch close offsets must be unique")
+        total = sum((item.quantity for item in instructions), Decimal("0"))
+        if total != logical_quantity:
+            raise ValueError("execution batch child quantities must equal logical quantity")
+        existing = self._connection.execute(
+            "SELECT batch_identity FROM execution_batches WHERE batch_identity=?",
+            (batch_identity,),
+        ).fetchone()
+        if existing is not None:
+            batch = self.get_execution_batch(batch_identity)
+            expected = tuple(
+                (item[0], item[1], _instruction_json(item[2])) for item in children
+            )
+            actual = tuple(
+                (item.intent_identity, item.risk_identity, _instruction_json(item.instruction))
+                for item in batch.children
+            )
+            if expected != actual or batch.logical_quantity != logical_quantity:
+                raise ValueError("PAPER_EXECUTION_BATCH_IDENTITY_CONFLICT")
+            return batch
+        timestamp = _iso(at)
+        try:
+            with self._connection:
+                self._connection.execute("""
+                    INSERT INTO execution_batches(
+                        batch_identity, trader_identity, wake_identity,
+                        decision_identity, logical_intent_identity, risk_identity,
+                        concrete_contract_id, logical_quantity, status,
+                        prepared_at, updated_at
+                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    batch_identity, trader_identity, wake_identity, decision_identity,
+                    logical_intent_identity, risk_identity, concrete_contract_id,
+                    canonical_decimal(logical_quantity), BATCH_AUTHORIZED,
+                    timestamp, timestamp,
+                ))
+                for ordinal, (intent_id, child_risk_id, instruction) in enumerate(children):
+                    self._connection.execute("""
+                        INSERT INTO execution_batch_children(
+                            batch_identity, ordinal, intent_identity, risk_identity,
+                            client_request_id, instruction_json
+                        ) VALUES(?, ?, ?, ?, ?, ?)
+                    """, (
+                        batch_identity, ordinal, intent_id, child_risk_id,
+                        instruction.client_request_id, _instruction_json(instruction),
+                    ))
+        except sqlite3.IntegrityError as error:
+            raise ValueError("DUPLICATE_PAPER_EXECUTION_BATCH_IDENTITY") from error
+        return self.get_execution_batch(batch_identity)
+
+    def get_execution_batch(self, batch_identity: str) -> PaperExecutionBatch:
+        row = self._connection.execute(
+            "SELECT * FROM execution_batches WHERE batch_identity=?", (batch_identity,)
+        ).fetchone()
+        if row is None:
+            raise KeyError(batch_identity)
+        children = self._connection.execute(
+            "SELECT * FROM execution_batch_children WHERE batch_identity=? ORDER BY ordinal",
+            (batch_identity,),
+        ).fetchall()
+        return self._batch_from_rows(row, children)
+
+    def pending_execution_batches(self) -> tuple[PaperExecutionBatch, ...]:
+        rows = self._connection.execute(
+            "SELECT batch_identity FROM execution_batches WHERE status=? ORDER BY prepared_at, batch_identity",
+            (BATCH_AUTHORIZED,),
+        ).fetchall()
+        return tuple(self.get_execution_batch(row[0]) for row in rows)
+
+    def resolve_execution_batch(self, batch_identity: str, *, at: datetime) -> PaperExecutionBatch:
+        batch = self.get_execution_batch(batch_identity)
+        if batch.status == BATCH_RESOLVED:
+            return batch
+        for child in batch.children:
+            try:
+                attempt = self.get(child.instruction.client_request_id)
+            except KeyError as error:
+                raise RuntimeError("PAPER_EXECUTION_BATCH_CHILD_NOT_PREPARED") from error
+            if attempt.status not in {BROKER_ORDER_ID_KNOWN, TERMINAL}:
+                raise RuntimeError("PAPER_EXECUTION_BATCH_CHILD_NOT_BROKER_RESOLVED")
+        self._connection.execute(
+            "UPDATE execution_batches SET status=?, updated_at=? WHERE batch_identity=?",
+            (BATCH_RESOLVED, _iso(at), batch_identity),
+        )
+        self._connection.commit()
+        return self.get_execution_batch(batch_identity)
 
     def mark_broker_order_known(self, client_request_id: str, *, broker_order_id: str,
                                 at: datetime) -> PaperOrderAttempt:
@@ -256,14 +820,33 @@ class PaperOrderJournal:
                                 new_status=UNKNOWN_AFTER_SUBMIT, at=at,
                                 safe_reason=safe_reason)
 
-    def mark_terminal(self, client_request_id: str, *, safe_reason: str,
-                      at: datetime) -> PaperOrderAttempt:
+    def mark_terminal(
+        self,
+        client_request_id: str,
+        *,
+        terminal_status: str,
+        filled_quantity: Decimal,
+        broker_snapshot_at: datetime,
+        safe_reason: str,
+        at: datetime,
+    ) -> PaperOrderAttempt:
         if not isinstance(safe_reason, str) or not safe_reason.strip():
             raise ValueError("terminal order requires a safe reason")
-        return self._transition(client_request_id,
-                                expected=(BROKER_ORDER_ID_KNOWN, UNKNOWN_AFTER_SUBMIT,
-                                          UNKNOWN_BROKER_ORDER),
-                                new_status=TERMINAL, at=at, safe_reason=safe_reason)
+        if terminal_status not in _SAFE_TERMINAL_ORDER_STATUSES:
+            raise ValueError("terminal order status must be broker-confirmed")
+        if type(filled_quantity) is not Decimal or not filled_quantity.is_finite() or filled_quantity < 0:
+            raise ValueError("terminal filled quantity must be non-negative finite Decimal")
+        _iso(broker_snapshot_at)
+        return self._transition(
+            client_request_id,
+            expected=(BROKER_ORDER_ID_KNOWN, UNKNOWN_AFTER_SUBMIT, UNKNOWN_BROKER_ORDER),
+            new_status=TERMINAL,
+            at=at,
+            safe_reason=safe_reason,
+            broker_terminal_status=terminal_status,
+            broker_filled_quantity=canonical_decimal(filled_quantity),
+            broker_snapshot_at=broker_snapshot_at,
+        )
 
     def mark_unknown_broker_order(self, client_request_id: str, *, safe_reason: str,
                                   at: datetime) -> PaperOrderAttempt:
@@ -446,8 +1029,9 @@ class PaperOrderJournal:
 
     def unresolved_replace_operations(self) -> tuple[PaperReplaceOperation, ...]:
         rows = self._connection.execute(
-            "SELECT * FROM replace_operations WHERE status IN (?, ?, ?) ORDER BY prepared_at, replace_operation_id",
-            (REPLACE_WAITING_FOR_CANCEL, REPLACE_CHILD_SUBMIT_ATTEMPT_STARTED, UNKNOWN_REPLACE),
+            "SELECT * FROM replace_operations WHERE status IN (?, ?, ?, ?) ORDER BY prepared_at, replace_operation_id",
+            (REPLACE_WAITING_FOR_CANCEL, REPLACE_CHILD_SUBMIT_AUTHORIZED,
+             REPLACE_CHILD_SUBMIT_ATTEMPT_STARTED, UNKNOWN_REPLACE),
         ).fetchall()
         return tuple(self._replace_from_row(row) for row in rows)
 
@@ -473,6 +1057,24 @@ class PaperOrderJournal:
             reasons.append("UNKNOWN_CANCEL")
         if self.unresolved_replace_operations():
             reasons.append("UNKNOWN_REPLACE")
+        for conditional in self.triggered_conditionals():
+            try:
+                child = self.get(conditional.child_client_request_id)
+            except KeyError:
+                reasons.append("CONDITIONAL_TRIGGER_PENDING_SUBMIT")
+                continue
+            if child.status == PREPARED:
+                reasons.append("CONDITIONAL_TRIGGER_PENDING_SUBMIT")
+        for batch in self.pending_execution_batches():
+            for child in batch.children:
+                try:
+                    attempt = self.get(child.instruction.client_request_id)
+                except KeyError:
+                    reasons.append("EXECUTION_BATCH_PENDING_SUBMIT")
+                    break
+                if attempt.status == PREPARED:
+                    reasons.append("EXECUTION_BATCH_PENDING_SUBMIT")
+                    break
         return tuple(sorted(set(reasons)))
 
     def reconcile_broker_orders(self, orders: object, *, observed_at: datetime) -> tuple[str, ...]:
@@ -519,6 +1121,8 @@ class PaperOrderJournal:
                     blockers.append("ORDER_IDENTITY_MISMATCH")
                 continue
             if not matches:
+                if attempt.status == TERMINAL:
+                    continue
                 self._mark_unknown_if_needed(attempt, "BROKER_ORDER_ABSENT_AFTER_ATTEMPT", observed_at)
                 blockers.append("UNKNOWN_BROKER_ORDER")
                 continue
@@ -527,6 +1131,9 @@ class PaperOrderJournal:
                 attempt.expected_direction,
                 attempt.expected_action,
                 attempt.expected_quantity,
+                attempt.expected_order_type,
+                attempt.expected_order_role,
+                attempt.expected_replace_generation,
             )
             if any(value is None for value in envelope):
                 self._mark_unknown_if_needed(
@@ -534,11 +1141,39 @@ class PaperOrderJournal:
                 )
                 blockers.append("ORDER_ENVELOPE_MISSING")
                 continue
+            optional_envelope_mismatch = (
+                (snapshot.order_type is not None and snapshot.order_type.value != attempt.expected_order_type)
+                or (snapshot.close_offset is not None and snapshot.close_offset.value != attempt.expected_close_offset)
+                or (snapshot.limit_price is not None and snapshot.limit_price != _optional_decimal(attempt.expected_limit_price))
+                or (snapshot.trigger_price is not None and snapshot.trigger_price != _optional_decimal(attempt.expected_trigger_price))
+                or (snapshot.order_role is not None and snapshot.order_role.value != attempt.expected_order_role)
+                or (snapshot.strategy_identity_id is not None and snapshot.strategy_identity_id != attempt.expected_strategy_identity)
+                or ((snapshot.client_order_id is not None) and snapshot.client_order_id != attempt.expected_client_order_id)
+                or (snapshot.parent_order_id is not None and snapshot.parent_order_id != attempt.expected_parent_order_id)
+                or (snapshot.oco_group_id is not None and snapshot.oco_group_id != attempt.expected_oco_group_id)
+                or (snapshot.replace_generation is not None and snapshot.replace_generation != attempt.expected_replace_generation)
+                or (snapshot.source_directive_identity is not None and snapshot.source_directive_identity != attempt.expected_source_directive_identity)
+            )
+            full_envelope_missing = self.require_full_envelope and (
+                snapshot.order_type is None
+                or snapshot.order_role is None
+                or snapshot.client_order_id is None
+                or snapshot.replace_generation is None
+                or (attempt.expected_close_offset is not None and snapshot.close_offset is None)
+                or (attempt.expected_limit_price is not None and snapshot.limit_price is None)
+                or (attempt.expected_trigger_price is not None and snapshot.trigger_price is None)
+                or (attempt.expected_strategy_identity is not None and snapshot.strategy_identity_id is None)
+                or (attempt.expected_parent_order_id is not None and snapshot.parent_order_id is None)
+                or (attempt.expected_oco_group_id is not None and snapshot.oco_group_id is None)
+                or (attempt.expected_source_directive_identity is not None and snapshot.source_directive_identity is None)
+            )
             if (
                 snapshot.concrete_contract_id != attempt.concrete_contract_id
                 or snapshot.direction.value != attempt.expected_direction
                 or snapshot.action.value != attempt.expected_action
-                or str(snapshot.requested_quantity) != attempt.expected_quantity
+                or canonical_decimal(snapshot.requested_quantity) != attempt.expected_quantity
+                or optional_envelope_mismatch
+                or full_envelope_missing
             ):
                 self._mark_unknown_if_needed(
                     attempt, "BROKER_ORDER_ENVELOPE_MISMATCH", observed_at
@@ -552,6 +1187,16 @@ class PaperOrderJournal:
             if attempt.status in (ATTEMPT_STARTED, UNKNOWN_AFTER_SUBMIT, UNKNOWN_BROKER_ORDER):
                 self.mark_broker_order_known(
                     attempt.client_request_id, broker_order_id=snapshot.order_id, at=observed_at
+                )
+                attempt = self.get(attempt.client_request_id)
+            if snapshot.status in _SAFE_TERMINAL_ORDER_STATUSES and attempt.status != TERMINAL:
+                self.mark_terminal(
+                    attempt.client_request_id,
+                    terminal_status=snapshot.status,
+                    filled_quantity=snapshot.filled_quantity,
+                    broker_snapshot_at=snapshot.snapshot_at,
+                    safe_reason="BROKER_CONFIRMED_" + snapshot.status,
+                    at=observed_at,
                 )
         cancel_rows = self._connection.execute("SELECT * FROM cancel_attempts ORDER BY prepared_at, cancel_operation_id").fetchall()
         for row in cancel_rows:
@@ -569,6 +1214,26 @@ class PaperOrderJournal:
                 self.resolve_cancel(cancel.cancel_operation_id, final_order_status=status, at=observed_at)
             else:
                 blockers.append("UNKNOWN_CANCEL")
+        for conditional in self.triggered_conditionals():
+            try:
+                child = self.get(conditional.child_client_request_id)
+            except KeyError:
+                continue
+            if child.status in {BROKER_ORDER_ID_KNOWN, TERMINAL}:
+                self.resolve_conditional(
+                    conditional.directive_client_request_id, at=observed_at
+                )
+        for batch in self.pending_execution_batches():
+            attempts: list[PaperOrderAttempt] = []
+            try:
+                attempts = [
+                    self.get(child.instruction.client_request_id)
+                    for child in batch.children
+                ]
+            except KeyError:
+                continue
+            if all(item.status in {BROKER_ORDER_ID_KNOWN, TERMINAL} for item in attempts):
+                self.resolve_execution_batch(batch.batch_identity, at=observed_at)
         return tuple(sorted(set(blockers + list(self.recovery_blockers()))))
 
     def expected_client_request_ids(self) -> tuple[str, ...]:
@@ -587,7 +1252,10 @@ class PaperOrderJournal:
 
     def _transition(self, client_request_id: str, *, expected: tuple[str, ...],
                     new_status: str, at: datetime, broker_order_id: str | None = None,
-                    safe_reason: str | None = None) -> PaperOrderAttempt:
+                    safe_reason: str | None = None,
+                    broker_terminal_status: str | None = None,
+                    broker_filled_quantity: str | None = None,
+                    broker_snapshot_at: datetime | None = None) -> PaperOrderAttempt:
         if new_status not in _ORDER_STATUSES:
             raise ValueError("unknown paper order journal status")
         row = self.get(client_request_id)
@@ -597,9 +1265,17 @@ class PaperOrderJournal:
             self._connection.execute("""
                 UPDATE order_attempts
                 SET status=?, broker_order_id=COALESCE(?, broker_order_id),
-                    updated_at=?, safe_reason=COALESCE(?, safe_reason)
+                    updated_at=?, safe_reason=COALESCE(?, safe_reason),
+                    broker_terminal_status=COALESCE(?, broker_terminal_status),
+                    broker_filled_quantity=COALESCE(?, broker_filled_quantity),
+                    broker_snapshot_at=COALESCE(?, broker_snapshot_at)
                 WHERE client_request_id=?
-            """, (new_status, broker_order_id, _iso(at), safe_reason, client_request_id))
+            """, (
+                new_status, broker_order_id, _iso(at), safe_reason,
+                broker_terminal_status, broker_filled_quantity,
+                None if broker_snapshot_at is None else _iso(broker_snapshot_at),
+                client_request_id,
+            ))
             replacement = self._connection.execute(
                 "SELECT * FROM replace_operations WHERE child_client_request_id=?", (client_request_id,)
             ).fetchone()
@@ -613,6 +1289,12 @@ class PaperOrderJournal:
                         (REPLACE_CHILD_SUBMIT_ATTEMPT_STARTED, _iso(at), operation.replace_operation_id),
                     )
                 elif new_status == BROKER_ORDER_ID_KNOWN:
+                    if operation.status == REPLACE_CHILD_SUBMIT_ATTEMPT_STARTED:
+                        self._connection.execute(
+                            "UPDATE replace_operations SET status=?, updated_at=? WHERE replace_operation_id=?",
+                            (REPLACE_RESOLVED, _iso(at), operation.replace_operation_id),
+                        )
+                elif new_status == TERMINAL:
                     if operation.status == REPLACE_CHILD_SUBMIT_ATTEMPT_STARTED:
                         self._connection.execute(
                             "UPDATE replace_operations SET status=?, updated_at=? WHERE replace_operation_id=?",
@@ -673,9 +1355,84 @@ class PaperOrderJournal:
             concrete_contract_id=row["concrete_contract_id"], execution_mode=row["execution_mode"],
             expected_direction=row["expected_direction"], expected_action=row["expected_action"],
             expected_quantity=row["expected_quantity"],
+            expected_close_offset=row["expected_close_offset"],
+            expected_order_type=row["expected_order_type"],
+            expected_limit_price=row["expected_limit_price"],
+            expected_trigger_price=row["expected_trigger_price"],
+            expected_trigger_condition=row["expected_trigger_condition"],
+            expected_triggered_order_type=row["expected_triggered_order_type"],
+            expected_triggered_limit_price=row["expected_triggered_limit_price"],
+            expected_order_role=row["expected_order_role"],
+            expected_strategy_identity=row["expected_strategy_identity"],
+            expected_client_order_id=row["expected_client_order_id"],
+            expected_parent_order_id=row["expected_parent_order_id"],
+            expected_oco_group_id=row["expected_oco_group_id"],
+            expected_replace_generation=row["expected_replace_generation"],
+            expected_source_directive_identity=row["expected_source_directive_identity"],
             status=status, broker_order_id=row["broker_order_id"],
             prepared_at=_parse(row["prepared_at"]), updated_at=_parse(row["updated_at"]),
             safe_reason=row["safe_reason"],
+            broker_terminal_status=row["broker_terminal_status"],
+            broker_filled_quantity=row["broker_filled_quantity"],
+            broker_snapshot_at=(
+                None if row["broker_snapshot_at"] is None else _parse(row["broker_snapshot_at"])
+            ),
+        )
+
+    @staticmethod
+    def _conditional_from_row(row: sqlite3.Row) -> PaperConditionalDirective:
+        status = row["status"]
+        if status not in _CONDITIONAL_STATUSES:
+            raise ValueError("paper order journal contains unknown conditional status")
+        return PaperConditionalDirective(
+            directive_client_request_id=row["directive_client_request_id"],
+            child_client_request_id=row["child_client_request_id"],
+            child_instruction=_instruction_from_json(row["child_instruction_json"]),
+            status=status,
+            last_evaluated_bar_identity=row["last_evaluated_bar_identity"],
+            last_evaluated_bar_end=(
+                None if row["last_evaluated_bar_end"] is None
+                else _parse(row["last_evaluated_bar_end"])
+            ),
+            triggered_at=(
+                None if row["triggered_at"] is None else _parse(row["triggered_at"])
+            ),
+            prepared_at=_parse(row["prepared_at"]),
+            updated_at=_parse(row["updated_at"]),
+        )
+
+    @staticmethod
+    def _batch_from_rows(
+        row: sqlite3.Row, child_rows: list[sqlite3.Row]
+    ) -> PaperExecutionBatch:
+        status = row["status"]
+        if status not in _BATCH_STATUSES:
+            raise ValueError("paper order journal contains unknown execution batch status")
+        children = tuple(
+            PaperExecutionBatchChild(
+                batch_identity=child["batch_identity"],
+                ordinal=child["ordinal"],
+                intent_identity=child["intent_identity"],
+                risk_identity=child["risk_identity"],
+                instruction=_instruction_from_json(child["instruction_json"]),
+            )
+            for child in child_rows
+        )
+        if not children or tuple(item.ordinal for item in children) != tuple(range(len(children))):
+            raise ValueError("paper execution batch child ordinals are incomplete")
+        return PaperExecutionBatch(
+            batch_identity=row["batch_identity"],
+            trader_identity=row["trader_identity"],
+            wake_identity=row["wake_identity"],
+            decision_identity=row["decision_identity"],
+            logical_intent_identity=row["logical_intent_identity"],
+            risk_identity=row["risk_identity"],
+            concrete_contract_id=row["concrete_contract_id"],
+            logical_quantity=Decimal(row["logical_quantity"]),
+            status=status,
+            children=children,
+            prepared_at=_parse(row["prepared_at"]),
+            updated_at=_parse(row["updated_at"]),
         )
 
     @staticmethod

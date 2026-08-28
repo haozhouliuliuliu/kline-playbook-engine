@@ -390,6 +390,29 @@ class FailClosedTests(unittest.TestCase):
             self.builder.observe([bar], observed_at=end)
 
 
+class OneMinuteDeliveryTests(unittest.TestCase):
+    def test_only_newly_accepted_causal_minutes_are_exposed_once(self) -> None:
+        builder = _new_builder()
+        builder.bootstrap(
+            _minutes_for_days((TARGET_DAY,), until=_morning_until()),
+            observed_at=_morning_until(),
+        )
+        minute = _live_minute(_morning_until(), price="3489")
+        self.assertEqual((), builder.observe(
+            (minute,), observed_at=_morning_until() + _ONE_MINUTE
+        ))
+        delivered = builder.newly_admitted_one_minute_bars
+        self.assertEqual(1, len(delivered))
+        self.assertEqual("1m", delivered[0].timeframe)
+        self.assertEqual(minute.completed_bar.start, delivered[0].start)
+        self.assertEqual(minute.completed_bar.available_at, delivered[0].available_at)
+
+        self.assertEqual((), builder.observe(
+            (minute,), observed_at=_morning_until() + _ONE_MINUTE
+        ))
+        self.assertEqual((), builder.newly_admitted_one_minute_bars)
+
+
 class RestartReconnectTests(unittest.TestCase):
     def _build_history(self) -> tuple[LiveCausalContextBuilder, tuple[LiveCausalWake, ...]]:
         builder = _new_builder()

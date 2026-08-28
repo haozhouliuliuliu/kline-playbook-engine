@@ -48,7 +48,7 @@ from src.broker_adapter import (
     OrderRole,
     OrderType,
 )
-from src.contract_semantics import ContractSpecification, OrderAction, PositionDirection
+from src.contract_semantics import CloseOffset, ContractSpecification, OrderAction, PositionDirection
 from src.historical_data import NormalizedHistoricalBar
 from src.runtime_events import (
     BrokerConnectionState,
@@ -84,6 +84,7 @@ class PaperBrokerOrder:
     action: OrderAction
     order_type: OrderType
     quantity: Decimal
+    close_offset: CloseOffset | None
     limit_price: Decimal | None
     status: OrderStatus
     filled_quantity: Decimal
@@ -110,6 +111,8 @@ class PaperBrokerOrder:
             raise ValueError("paper broker order requires explicit order type and status")
         if not isinstance(self.order_role, OrderRole):
             raise ValueError("paper broker order requires explicit order role")
+        if self.close_offset is not None and not isinstance(self.close_offset, CloseOffset):
+            raise ValueError("paper broker order close offset must be explicit")
         if self.available_at is not None and (self.available_at.tzinfo is None or self.available_at < self.created_at):
             raise ValueError("paper broker order availability is invalid")
         if type(self.replace_generation) is not int or self.replace_generation < 0:
@@ -140,6 +143,7 @@ class PaperBrokerOrder:
                 "action": self.action.value,
                 "order_type": self.order_type.value,
                 "quantity": str(self.quantity),
+                "close_offset": None if self.close_offset is None else self.close_offset.value,
                 "limit_price": None if self.limit_price is None else str(self.limit_price),
                 "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
                 "order_role": self.order_role.value,
@@ -325,6 +329,7 @@ class PaperBrokerAdapter(BrokerAdapter):
             action=instruction.action,
             order_type=instruction.order_type,
             quantity=instruction.quantity,
+            close_offset=instruction.close_offset,
             limit_price=instruction.limit_price,
             trigger_price=instruction.trigger_price,
             order_role=instruction.order_role,
@@ -403,6 +408,7 @@ class PaperBrokerAdapter(BrokerAdapter):
             action=order.action,
             order_type=order.order_type,
             quantity=new_quantity,
+            close_offset=order.close_offset,
             limit_price=order.limit_price,
             trigger_price=order.trigger_price,
             order_role=order.order_role,
@@ -569,6 +575,17 @@ class PaperBrokerAdapter(BrokerAdapter):
                 requested_quantity=order.quantity,
                 filled_quantity=order.filled_quantity,
                 snapshot_at=now,
+                order_type=order.order_type,
+                limit_price=order.limit_price,
+                trigger_price=order.trigger_price,
+                close_offset=order.close_offset,
+                order_role=order.order_role,
+                strategy_identity_id=order.strategy_identity_id,
+                client_order_id=order.client_order_id,
+                parent_order_id=order.parent_order_id,
+                oco_group_id=order.oco_group_id,
+                replace_generation=order.replace_generation,
+                source_directive_identity=order.source_directive_identity,
             )
             for order in sorted(self._orders.values(), key=lambda item: item.order_id)
         )
@@ -673,6 +690,7 @@ class PaperBrokerAdapter(BrokerAdapter):
             action=order.action,
             order_type=order.order_type,
             quantity=order.quantity,
+            close_offset=order.close_offset,
             limit_price=order.limit_price,
             trigger_price=order.trigger_price,
             order_role=order.order_role,
@@ -711,6 +729,7 @@ class PaperBrokerAdapter(BrokerAdapter):
             action=order.action,
             order_type=order.order_type,
             quantity=order.quantity,
+            close_offset=order.close_offset,
             limit_price=order.limit_price,
             trigger_price=order.trigger_price,
             order_role=order.order_role,

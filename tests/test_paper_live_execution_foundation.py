@@ -8,7 +8,7 @@ import unittest
 from zoneinfo import ZoneInfo
 
 from src.broker_adapter import BrokerAccountSnapshot, BrokerOrderInstruction, BrokerOrderSnapshot, OrderType
-from src.contract_semantics import OrderAction, PositionDirection
+from src.contract_semantics import CloseOffset, OrderAction, PositionDirection
 from src.data_substrate import SessionMetadata, SessionWindow
 from src.live_market_data import TqSdkClosedBarTracker
 from src.market_context import MarketContext
@@ -162,6 +162,50 @@ class FakeSession:
     def close(self) -> None: pass
 
 class TqSdkDriverTests(unittest.TestCase):
+    def test_strict_poll_uses_authoritative_broker_update_time(self) -> None:
+        class AuthoritativeSession(FakeSession):
+            account_identity = "paper"
+
+            def authoritative_update_at(self):
+                return _dt(9, 15)
+
+        with TemporaryDirectory() as tmp:
+            journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            session = AuthoritativeSession()
+            driver = TqSdkPaperExecutionDriver(
+                broker_id="tq",
+                account_identity="paper",
+                session_factory=lambda: session,
+                order_journal=journal,
+                authority=_driver_authority(),
+                require_authoritative_facts=True,
+            )
+            driver.connect()
+            driver.poll()
+            self.assertEqual(_dt(9, 15), driver.fetch_account_snapshot().snapshot_at)
+            journal.close()
+
+    def test_strict_poll_rejects_unprovable_broker_update_time(self) -> None:
+        class AccountBoundSession(FakeSession):
+            account_identity = "paper"
+
+        with TemporaryDirectory() as tmp:
+            journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            driver = TqSdkPaperExecutionDriver(
+                broker_id="tq",
+                account_identity="paper",
+                session_factory=AccountBoundSession,
+                order_journal=journal,
+                authority=_driver_authority(),
+                require_authoritative_facts=True,
+            )
+            driver.connect()
+            with self.assertRaisesRegex(
+                RuntimeError, "BROKER_SNAPSHOT_FRESHNESS_UNPROVABLE"
+            ):
+                driver.poll()
+            journal.close()
+
     def test_pending_authority_prevents_session_factory_invocation(self) -> None:
         with TemporaryDirectory() as tmp:
             calls = {"count": 0}
@@ -200,8 +244,54 @@ class TqSdkDriverTests(unittest.TestCase):
             instruction = BrokerOrderInstruction(client_request_id="req-1", concrete_contract_id=SYMBOL,
                 direction=PositionDirection.LONG, action=OrderAction.CLOSE, order_type=OrderType.LIMIT,
                 quantity=Decimal("1"), limit_price=Decimal("3500"))
-            with self.assertRaisesRegex(RuntimeError, "SHFE_CLOSE_OFFSET_POLICY_REQUIRED"): driver.submit_order(instruction)
+            with self.assertRaisesRegex(RuntimeError, "EXPLICIT_CLOSE_OFFSET_REQUIRED"): driver.submit_order(instruction)
             self.assertEqual(journal.get("req-1").status, PREPARED); journal.close()
+
+    def test_shfe_explicit_close_children_map_to_exact_native_offsets(self) -> None:
+        with TemporaryDirectory() as tmp:
+            journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            session = FakeSession()
+            driver = TqSdkPaperExecutionDriver(
+                broker_id="tq",
+                account_identity="paper",
+                session_factory=lambda: session,
+                order_journal=journal,
+                authority=_driver_authority(),
+            )
+            driver.connect()
+            children = (
+                ("close-today", CloseOffset.CLOSE_TODAY),
+                ("close-previous", CloseOffset.CLOSE_PREVIOUS),
+            )
+            for request_id, close_offset in children:
+                instruction = BrokerOrderInstruction(
+                    client_request_id=request_id,
+                    concrete_contract_id=SYMBOL,
+                    direction=PositionDirection.LONG,
+                    action=OrderAction.CLOSE,
+                    order_type=OrderType.LIMIT,
+                    quantity=Decimal("1"),
+                    close_offset=close_offset,
+                    limit_price=Decimal("3500"),
+                )
+                journal.prepare(
+                    client_request_id=request_id,
+                    trader_identity="trader",
+                    wake_identity=f"wake-{request_id}",
+                    decision_identity=f"decision-{request_id}",
+                    intent_identity=f"intent-{request_id}",
+                    risk_identity=f"risk-{request_id}",
+                    concrete_contract_id=SYMBOL,
+                    instruction=instruction,
+                    prepared_at=_dt(9, 0),
+                )
+                self.assertEqual(request_id, driver.submit_order(instruction))
+
+            self.assertEqual(
+                ["CLOSETODAY", "CLOSE"],
+                [call["offset"] for call in session.insert_calls],
+            )
+            journal.close()
 
     def test_market_order_without_price_policy_fails_before_attempt(self) -> None:
         with TemporaryDirectory() as tmp:

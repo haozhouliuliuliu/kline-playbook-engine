@@ -174,7 +174,7 @@ class TransportBootstrapTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "PAPER_TRANSPORT_BOOTSTRAP_NO_CLOSED_MINUTES"):
             transport.bootstrap(observed_at=_AT_0915)
 
-    def test_rebootstrap_does_not_reseed_consumer(self) -> None:
+    def test_rebootstrap_catches_up_without_reseeding_consumer(self) -> None:
         source = FakeLiveOneMinuteSource(_history_rows(until=_AT_0915))
         consumer = FakeTransportConsumer()
         transport = _transport(source, consumer)
@@ -183,7 +183,8 @@ class TransportBootstrapTests(unittest.TestCase):
         transport.bootstrap(observed_at=_AT_0920)
         # still exactly one bootstrap delivery (no duplicate historical seeding)
         self.assertEqual(len(consumer.bootstrap_calls), 1)
-        self.assertEqual(consumer.process_calls, [])
+        self.assertEqual(len(consumer.process_calls), 1)
+        self.assertEqual(len(consumer.process_calls[0][0]), 5)
 
 
 class TransportPollTests(unittest.TestCase):

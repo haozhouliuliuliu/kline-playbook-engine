@@ -210,6 +210,8 @@ class LiveSessionCalendar:
         trading_calendar: Iterable[date],
         night_closed_days: Iterable[date],
         session_schedule: Mapping[str, object],
+        calendar_authority_identity: str | None = None,
+        calendar_verified_at: datetime | None = None,
         timezone: str = "Asia/Shanghai",
     ) -> None:
         if timezone != "Asia/Shanghai":
@@ -222,6 +224,8 @@ class LiveSessionCalendar:
         if len(self._calendar_index) != len(self._calendar):
             raise ValueError("live session trading calendar must be unique")
         self._night_closed = frozenset(night_closed_days)
+        if not self._night_closed.issubset(set(self._calendar)):
+            raise ValueError("night-closed days must belong to the governed trading calendar")
         if not isinstance(session_schedule, Mapping):
             raise ValueError("live session schedule must be a mapping")
         record = session_schedule.get(product)
@@ -233,15 +237,31 @@ class LiveSessionCalendar:
         self._session_authority_identity = _require_text(
             record.get("identity"), "live session authority identity"
         )
+        if calendar_authority_identity is not None:
+            self._calendar_authority_identity = _require_text(
+                calendar_authority_identity, "live calendar authority identity"
+            )
+        else:
+            self._calendar_authority_identity = None
+        if calendar_verified_at is not None:
+            self._calendar_verified_at = _aware(
+                calendar_verified_at, "live calendar verification time"
+            )
+        else:
+            self._calendar_verified_at = None
         self._tz = ZoneInfo(timezone)
         self._cache: dict[date, tuple[LiveSessionWindow, ...]] = {}
         self._identity = _hash({
             "schema_version": PAPER_LIVE_CAUSAL_CONTEXT_VERSION,
             "product": self._product,
             "session_authority_identity": self._session_authority_identity,
-            "calendar_first_day": self._calendar[0].isoformat(),
-            "calendar_last_day": self._calendar[-1].isoformat(),
-            "calendar_day_count": len(self._calendar),
+            "calendar_authority_identity": self._calendar_authority_identity,
+            "calendar_verified_at": (
+                None if self._calendar_verified_at is None else self._calendar_verified_at.isoformat()
+            ),
+            "trading_calendar": [day.isoformat() for day in self._calendar],
+            "night_closed_days": [day.isoformat() for day in sorted(self._night_closed)],
+            "session_schedule": self._schedule,
         })
 
     @property
@@ -257,8 +277,34 @@ class LiveSessionCalendar:
         return self._session_authority_identity
 
     @property
+    def calendar_authority_identity(self) -> str | None:
+        return self._calendar_authority_identity
+
+    @property
+    def calendar_verified_at(self) -> datetime | None:
+        return self._calendar_verified_at
+
+    @property
+    def coverage_start(self) -> date:
+        return self._calendar[0]
+
+    @property
+    def coverage_end(self) -> date:
+        return self._calendar[-1]
+
+    @property
     def identity(self) -> str:
         return self._identity
+
+    def require_current_authority(self, at: datetime) -> None:
+        """Fail closed unless an explicit verified calendar covers ``at``."""
+        local_day = _aware(at, "live calendar assessment time").astimezone(self._tz).date()
+        if self._calendar_authority_identity is None or self._calendar_verified_at is None:
+            raise PermissionError("LIVE_CALENDAR_AUTHORITY_UNVERIFIED")
+        if self._calendar_verified_at > at:
+            raise PermissionError("LIVE_CALENDAR_AUTHORITY_VERIFICATION_IN_FUTURE")
+        if not (self.coverage_start <= local_day <= self.coverage_end):
+            raise PermissionError("LIVE_CALENDAR_AUTHORITY_OUT_OF_COVERAGE")
 
     @property
     def timezone(self) -> ZoneInfo:
@@ -457,7 +503,9 @@ class LiveCausalBar:
 
     def __post_init__(self) -> None:
         _require_text(self.concrete_instrument, "live bar concrete instrument")
-        if self.timeframe not in ACTIVE_TIMEFRAMES:
+        # ``1m`` is a governed realtime substrate fact, not a cognition-context
+        # timeframe.  The four frozen cognition timeframes remain unchanged.
+        if self.timeframe not in (*ACTIVE_TIMEFRAMES, "1m"):
             raise ValueError(f"unknown live causal timeframe {self.timeframe!r}")
         _aware(self.start, "live bar start")
         _aware(self.end, "live bar end")
@@ -610,6 +658,7 @@ class LiveCausalContextBuilder:
         self._emitted_5m_ends: set[datetime] = set()
         self._last_emitted_wake_bar_end: datetime | None = None
         self._last_emitted_wake_observed_at: datetime | None = None
+        self._newly_admitted_one_minute_bars: tuple[LiveCausalBar, ...] = ()
         self._bootstrap_done = False
 
     # ------------------------------------------------------------------ public
@@ -650,12 +699,24 @@ class LiveCausalContextBuilder:
     def emitted_wake_count(self) -> int:
         return len(self._emitted_5m_ends)
 
+    @property
+    def newly_admitted_one_minute_bars(self) -> tuple[LiveCausalBar, ...]:
+        """Exact 1m bars accepted by the most recent live ``observe`` call.
+
+        This is deliberately a transient delivery surface: durable causal
+        progress remains in the checkpoint and conditional evaluation cursors
+        remain in the order journal.  It never includes bootstrap history or a
+        repeated minute delivery.
+        """
+        return self._newly_admitted_one_minute_bars
+
     def bootstrap(self, bars: Sequence[object], *, observed_at: datetime) -> None:
         """Absorb a historical closed-bar serial; never emits historical wakes."""
         _aware(observed_at, "bootstrap observed_at")
         if self._admitted:
             raise RuntimeError("LIVE_CAUSAL_ALREADY_BOOTSTRAPPED")
         self._admit_batch(bars, observed_at)
+        self._newly_admitted_one_minute_bars = ()
         for bar in self._complete_bars():
             if bar.timeframe == "5m":
                 self._processed_5m_ends.add(bar.end)
@@ -668,7 +729,10 @@ class LiveCausalContextBuilder:
         nothing on an unexplained governed-minute gap (fail closed).
         """
         _aware(observed_at, "observe observed_at")
-        self._admit_batch(bars, observed_at)
+        newly_admitted = self._admit_batch(bars, observed_at)
+        self._newly_admitted_one_minute_bars = tuple(
+            self._one_minute_bar(minute) for minute in newly_admitted
+        )
         wakes: list[LiveCausalWake] = []
         for bar in self._complete_bars():
             if bar.timeframe != "5m":
@@ -819,7 +883,9 @@ class LiveCausalContextBuilder:
 
     # ------------------------------------------------------------- internal
 
-    def _admit_batch(self, bars: Sequence[object], observed_at: datetime) -> None:
+    def _admit_batch(
+        self, bars: Sequence[object], observed_at: datetime
+    ) -> tuple[_AdmittedMinute, ...]:
         prepared: list[_AdmittedMinute] = []
         last = self._last_accepted_start
         prior: datetime | None = None
@@ -854,6 +920,35 @@ class LiveCausalContextBuilder:
         for minute in prepared:
             self._admitted[minute.start] = minute
             self._last_accepted_start = minute.start
+        return tuple(prepared)
+
+    def _one_minute_bar(self, minute: _AdmittedMinute) -> LiveCausalBar:
+        session = next(
+            (
+                item
+                for item in self._calendar.session_windows_for(minute.trading_day)
+                if item.start <= minute.start < item.end
+            ),
+            None,
+        )
+        if session is None:
+            raise RuntimeError("LIVE_CAUSAL_MINUTE_SESSION_AUTHORITY_MISSING")
+        return LiveCausalBar(
+            concrete_instrument=self.concrete_instrument,
+            timeframe="1m",
+            trading_day=minute.trading_day,
+            start=minute.start,
+            end=minute.end,
+            available_at=minute.available_at,
+            open=minute.open,
+            high=minute.high,
+            low=minute.low,
+            close=minute.close,
+            volume=minute.volume,
+            policy_identity=self._policy_identity,
+            session_authority_identity=session.session_authority_identity,
+            source_minute_starts=(minute.start,),
+        )
 
     def _minute_of(self, bar: object, observed_at: datetime) -> _AdmittedMinute:
         completed = getattr(bar, "completed_bar", None)

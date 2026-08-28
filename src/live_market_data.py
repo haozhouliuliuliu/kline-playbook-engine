@@ -132,7 +132,8 @@ def normalize_tqsdk_live_kline_row(
     if trading_day is None:
         raise ValueError("live bar falls outside governed session metadata")
     row_symbol = row.get("symbol")
-    if row_symbol is not None and row_symbol != concrete_instrument:
+    expected_symbol = f"{exchange}.{concrete_instrument}"
+    if row_symbol is not None and row_symbol not in (concrete_instrument, expected_symbol):
         raise ValueError("live TqSdk row contract identity mismatch")
     open_price = _decimal(row.get("open"), "open")
     high_price = _decimal(row.get("high"), "high")
@@ -170,6 +171,14 @@ class TqSdkClosedBarTracker:
     @property
     def watermark_start(self) -> datetime | None:
         return self._watermark_start
+
+    def restore_watermark(self, watermark_start: datetime | None) -> None:
+        """Restore the in-memory transport cursor from governed causal state."""
+        if watermark_start is not None:
+            if not isinstance(watermark_start, datetime) or watermark_start.tzinfo is None:
+                raise ValueError("live tracker watermark must be timezone-aware")
+            watermark_start = watermark_start.astimezone(ZoneInfo(self.timezone))
+        self._watermark_start = watermark_start
 
     def _closed_rows(self, rows: list[Mapping[str, Any]] | tuple[Mapping[str, Any], ...],
                      observed_at: datetime) -> tuple[LiveClosedBar, ...]:
