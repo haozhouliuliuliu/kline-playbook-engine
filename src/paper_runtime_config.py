@@ -31,6 +31,7 @@ from src.paper_execution_authority import (
     PaperExecutionAuthority,
     PaperAuthorityStatus,
 )
+from src.paper_runtime_bindings import PaperToolRoleBinding
 
 PAPER_RUNTIME_CONFIG_SCHEMA_VERSION = "KPE_PAPER_RUNTIME_CONFIG_V0_1"
 
@@ -92,9 +93,11 @@ class PaperRuntimeConfig:
     tqsdk_runtime_version: str
     broker_kind: str
     account_kind: str
+    account_identity: str | None = None
 
     activation_profile: PaperActivationProfile | None = None
     authority: PaperExecutionAuthority | None = None
+    paper_tool_role: PaperToolRoleBinding | None = None
 
     timezone: str = "Asia/Shanghai"
     symbol: str | None = None
@@ -125,12 +128,20 @@ class PaperRuntimeConfig:
             raise ValueError("paper runtime config max source age must be a positive integer")
         if self.symbol is not None and (not isinstance(self.symbol, str) or not self.symbol.strip()):
             raise ValueError("paper runtime config symbol must be non-empty when supplied")
+        if self.account_identity is not None and (
+            not isinstance(self.account_identity, str) or not self.account_identity.strip()
+        ):
+            raise ValueError("paper runtime account identity must be non-empty when supplied")
         if self.activation_profile is not None and not isinstance(
             self.activation_profile, PaperActivationProfile
         ):
             raise ValueError("paper runtime config activation profile must be PaperActivationProfile")
         if self.authority is not None and not isinstance(self.authority, PaperExecutionAuthority):
             raise ValueError("paper runtime config authority must be PaperExecutionAuthority")
+        if self.paper_tool_role is not None and not isinstance(
+            self.paper_tool_role, PaperToolRoleBinding
+        ):
+            raise ValueError("paper runtime tool role must be PaperToolRoleBinding")
         # The concrete contract must agree with the declared exchange/product
         # identity (fail closed on an inconsistent contract binding).
         if "." not in self.concrete_contract_id:
@@ -167,8 +178,10 @@ class PaperRuntimeConfig:
             tqsdk_runtime_version=self.tqsdk_runtime_version,
             broker_kind=self.broker_kind,
             account_kind=self.account_kind,
+            account_identity=self.account_identity,
             activation_profile=profile,
             authority=self.authority,
+            paper_tool_role=self.paper_tool_role,
             timezone=self.timezone,
             symbol=self.symbol,
             source_poll_limit=self.source_poll_limit,
@@ -189,8 +202,10 @@ class PaperRuntimeConfig:
             tqsdk_runtime_version=self.tqsdk_runtime_version,
             broker_kind=self.broker_kind,
             account_kind=self.account_kind,
+            account_identity=self.account_identity,
             activation_profile=self.activation_profile,
             authority=authority,
+            paper_tool_role=self.paper_tool_role,
             timezone=self.timezone,
             symbol=self.symbol,
             source_poll_limit=self.source_poll_limit,
@@ -254,6 +269,7 @@ class PaperRuntimeConfig:
                 "tqsdk_runtime_version": self.tqsdk_runtime_version,
                 "broker_kind": self.broker_kind,
                 "account_kind": self.account_kind,
+                "account_identity": self.account_identity,
                 "timezone": self.timezone,
                 "symbol": self.symbol,
                 "source_poll_limit": self.source_poll_limit,
@@ -277,6 +293,9 @@ class PaperRuntimeConfig:
                         "status": self.authority.status.value,
                         "identity": self.authority.identity_id,
                     }
+                ),
+                "paper_tool_role": (
+                    None if self.paper_tool_role is None else self.paper_tool_role.identity_id
                 ),
             }
         )
@@ -304,10 +323,14 @@ class PaperRuntimeConfig:
                 "tqsdk_runtime_version": self.tqsdk_runtime_version,
                 "broker_kind": self.broker_kind,
                 "account_kind": self.account_kind,
+                "account_identity": self.account_identity,
                 "timezone": self.timezone,
                 "symbol": self.symbol,
                 "source_poll_limit": self.source_poll_limit,
                 "max_source_age_seconds": self.max_source_age_seconds,
+                "paper_tool_role": (
+                    None if self.paper_tool_role is None else self.paper_tool_role.identity_id
+                ),
             }
         )
 
@@ -327,6 +350,7 @@ class PaperRuntimeConfig:
             "tqsdk_runtime_version": self.tqsdk_runtime_version,
             "broker_kind": self.broker_kind,
             "account_kind": self.account_kind,
+            "account_identity": self.account_identity,
             "timezone": self.timezone,
             "symbol": self.symbol,
             "source_poll_limit": self.source_poll_limit,
@@ -339,6 +363,9 @@ class PaperRuntimeConfig:
             ),
             "authority_bound": self.authority is not None,
             "authority_status": None if self.authority is None else self.authority.status.value,
+            "paper_tool_role_status": (
+                None if self.paper_tool_role is None else self.paper_tool_role.status.value
+            ),
             "unbound_result_dependent_bindings": sorted(self.unbound_result_dependent_bindings()),
             "external_activation_blockers": list(self.external_activation_blockers()),
             "config_identity": self.identity,

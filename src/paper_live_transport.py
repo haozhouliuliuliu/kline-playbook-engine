@@ -58,6 +58,12 @@ class LiveOneMinuteSource(Protocol):
     @property
     def connected(self) -> bool: ...
 
+    @property
+    def contract_identity(self) -> str: ...
+
+    @property
+    def identity_id(self) -> str: ...
+
     def last_activity_at(self) -> datetime | None:
         """Most recent source activity time, or None if the source cannot report it."""
         ...
@@ -151,12 +157,21 @@ class PaperLiveOneMinuteTransport:
         symbol: str | None = None,
         source_poll_limit: int = 512,
         max_source_age_seconds: int | None = None,
+        require_source_freshness: bool = False,
         tracker: TqSdkClosedBarTracker | None = None,
+        concrete_contract_id: str | None = None,
+        require_exact_source_identity: bool = False,
     ) -> None:
         if not isinstance(exchange, str) or not exchange.strip():
             raise ValueError("live transport exchange must be non-empty")
         if not isinstance(concrete_instrument, str) or not concrete_instrument.strip():
             raise ValueError("live transport concrete instrument must be non-empty")
+        if concrete_contract_id is None:
+            concrete_contract_id = f"{exchange}.{concrete_instrument}"
+        if not isinstance(concrete_contract_id, str) or not concrete_contract_id.strip():
+            raise ValueError("live transport concrete contract must be non-empty")
+        if concrete_contract_id != f"{exchange}.{concrete_instrument}":
+            raise ValueError("live transport full contract disagrees with exchange/instrument")
         if not isinstance(product, str) or not product.strip():
             raise ValueError("live transport product must be non-empty")
         if timezone != "Asia/Shanghai":
@@ -171,6 +186,10 @@ class PaperLiveOneMinuteTransport:
             type(max_source_age_seconds) is not int or max_source_age_seconds <= 0
         ):
             raise ValueError("live transport max source age must be a positive integer")
+        if type(require_source_freshness) is not bool:
+            raise ValueError("live transport freshness requirement must be bool")
+        if type(require_exact_source_identity) is not bool:
+            raise ValueError("live transport source identity requirement must be bool")
         if not isinstance(sessions, LiveSessionCalendar):
             raise ValueError("live transport requires LiveSessionCalendar")
         if sessions.product != product:
@@ -181,17 +200,27 @@ class PaperLiveOneMinuteTransport:
             raise ValueError("live transport requires a runtime consumer")
 
         self.exchange = exchange
+        self.concrete_contract_id = concrete_contract_id
         self.concrete_instrument = concrete_instrument
         self.product = product
+        self.sessions = sessions
         self.timezone = timezone
         self.duration_seconds = duration_seconds
-        self._symbol = symbol if symbol is not None else concrete_instrument
+        self._symbol = symbol if symbol is not None else concrete_contract_id
         if not isinstance(self._symbol, str) or not self._symbol.strip():
             raise ValueError("live transport kline symbol must be non-empty")
+        if require_exact_source_identity and self._symbol != concrete_contract_id:
+            raise ValueError("live transport source symbol must equal the full concrete contract id")
         self._source_poll_limit = source_poll_limit
         self._max_source_age_seconds = max_source_age_seconds
+        self._require_source_freshness = require_source_freshness
         self._source = source
         self._consumer = consumer
+        source_contract = getattr(source, "contract_identity", None)
+        if require_exact_source_identity and source_contract != concrete_contract_id:
+            raise ValueError("LIVE_TRANSPORT_SOURCE_CONTRACT_IDENTITY_MISMATCH")
+        if source_contract is not None and source_contract != concrete_contract_id:
+            raise ValueError("LIVE_TRANSPORT_SOURCE_CONTRACT_IDENTITY_MISMATCH")
         resolver = LiveSessionCalendarResolver(sessions)
         self._tracker = tracker if tracker is not None else TqSdkClosedBarTracker(
             exchange=exchange,
@@ -200,6 +229,12 @@ class PaperLiveOneMinuteTransport:
             timezone=timezone,
             sessions=resolver,
         )
+        consumer_watermark = getattr(consumer, "context_builder", None)
+        consumer_watermark = getattr(consumer_watermark, "last_accepted_minute_start", None)
+        if consumer_watermark is not None:
+            if self._tracker.watermark_start not in (None, consumer_watermark):
+                raise ValueError("LIVE_TRANSPORT_TRACKER_CONTEXT_WATERMARK_MISMATCH")
+            self._tracker.restore_watermark(consumer_watermark)
         # The consumer is intentionally not touched here.
 
     # ------------------------------------------------------------------ public
@@ -229,6 +264,24 @@ class PaperLiveOneMinuteTransport:
     def source(self) -> LiveOneMinuteSource:
         return self._source
 
+    @property
+    def identity_id(self) -> str:
+        from hashlib import sha256
+        import json
+        payload = {
+            "version": PAPER_LIVE_TRANSPORT_VERSION,
+            "exchange": self.exchange,
+            "concrete_contract_id": self.concrete_contract_id,
+            "concrete_instrument": self.concrete_instrument,
+            "product": self.product,
+            "symbol": self._symbol,
+            "source_identity": getattr(self._source, "identity_id", None),
+            "source_poll_limit": self._source_poll_limit,
+            "max_source_age_seconds": self._max_source_age_seconds,
+            "require_source_freshness": self._require_source_freshness,
+        }
+        return sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+
     def bootstrap(self, *, observed_at: datetime) -> tuple[LiveClosedBar, ...]:
         """Normalize a current/recent serial, set the watermark and seed context.
 
@@ -243,12 +296,22 @@ class PaperLiveOneMinuteTransport:
         bars = self._tracker.normalize_closed(rows, observed_at=observed_at)
         if not bars:
             raise RuntimeError("PAPER_TRANSPORT_BOOTSTRAP_NO_CLOSED_MINUTES")
-        # Establish the tracker watermark without emitting historical wakes, then
-        # seed the consumer's causal context exactly once.
-        self._tracker.bootstrap(rows, observed_at=observed_at)
+        previous_watermark = self._tracker.watermark_start
         if not self._consumer.market_bootstrapped:
-            self._consumer.bootstrap_market(bars, observed_at=observed_at)
-        return bars
+            try:
+                self._consumer.bootstrap_market(bars, observed_at=observed_at)
+                self._tracker.bootstrap(rows, observed_at=observed_at)
+            except Exception:
+                self._tracker.restore_watermark(previous_watermark)
+                raise
+            return bars
+
+        # Restart/reconnect: resume strictly from the restored causal cursor.
+        # Never move the watermark to the latest serial row before the missing
+        # governed minutes have been accepted downstream.
+        if self._tracker.watermark_start is None:
+            raise RuntimeError("PAPER_TRANSPORT_RESTART_WATERMARK_MISSING")
+        return self.poll(observed_at=observed_at).bars
 
     def poll(self, *, observed_at: datetime) -> TransportPollResult:
         """Drive newly closed 1m bars from the injected source into the consumer.
@@ -262,10 +325,15 @@ class PaperLiveOneMinuteTransport:
         _aware(observed_at, "live transport poll time")
         self._require_source_ready(observed_at)
         rows = self._read_rows()
+        previous_watermark = self._tracker.watermark_start
         bars = self._tracker.poll(rows, observed_at=observed_at)
         if not bars:
             return TransportPollResult(bars=(), consumer_result=None)
-        result = self._consumer.process_closed_minutes(bars, observed_at=observed_at)
+        try:
+            result = self._consumer.process_closed_minutes(bars, observed_at=observed_at)
+        except Exception:
+            self._tracker.restore_watermark(previous_watermark)
+            raise
         return TransportPollResult(bars=bars, consumer_result=result)
 
     # ------------------------------------------------------------- internal
@@ -284,15 +352,21 @@ class PaperLiveOneMinuteTransport:
         if connected is not True:
             raise RuntimeError("PAPER_TRANSPORT_SOURCE_DISCONNECTED")
         if self._max_source_age_seconds is None:
+            if self._require_source_freshness:
+                raise RuntimeError("PAPER_TRANSPORT_SOURCE_FRESHNESS_POLICY_UNBOUND")
             return
         last_activity = getattr(self._source, "last_activity_at", None)
         last: datetime | None = None
         if callable(last_activity):
             last = last_activity()
-        if last is not None:
-            _aware(last, "live transport source activity time")
-            if observed_at - last > timedelta(seconds=self._max_source_age_seconds):
-                raise RuntimeError("PAPER_TRANSPORT_SOURCE_STALE")
+        if last is None:
+            raise RuntimeError("PAPER_TRANSPORT_SOURCE_FRESHNESS_UNPROVABLE")
+        _aware(last, "live transport source activity time")
+        age = observed_at - last
+        if age.total_seconds() < 0:
+            raise RuntimeError("PAPER_TRANSPORT_SOURCE_ACTIVITY_IN_FUTURE")
+        if age > timedelta(seconds=self._max_source_age_seconds):
+            raise RuntimeError("PAPER_TRANSPORT_SOURCE_STALE")
 
 
 def _aware(value: datetime, name: str) -> datetime:

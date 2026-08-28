@@ -49,10 +49,15 @@ class BrokerMirrorAssessment:
 class PaperBrokerTruthMirror:
     """Latest broker-truth snapshots; no local fill/account inference."""
 
-    def __init__(self, *, broker_id: str) -> None:
+    def __init__(self, *, broker_id: str, expected_account_id: str | None = None) -> None:
         if not isinstance(broker_id, str) or not broker_id.strip():
             raise ValueError("broker mirror requires broker_id")
         self.broker_id = broker_id
+        if expected_account_id is not None and (
+            not isinstance(expected_account_id, str) or not expected_account_id.strip()
+        ):
+            raise ValueError("broker mirror expected account id must be non-empty")
+        self.expected_account_id = expected_account_id
         self._connection_state = BrokerConnectionState.DISCONNECTED
         self._account: BrokerAccountSnapshot | None = None
         self._positions: tuple[BrokerPositionSnapshot, ...] = ()
@@ -97,6 +102,9 @@ class PaperBrokerTruthMirror:
                 orders: Iterable[BrokerOrderSnapshot], observed_at: datetime) -> None:
         if not isinstance(account, BrokerAccountSnapshot):
             raise ValueError("mirror refresh requires BrokerAccountSnapshot")
+        if self.expected_account_id is not None and account.account_id != self.expected_account_id:
+            self.invalidate_truth()
+            raise RuntimeError("PAPER_BROKER_ACCOUNT_IDENTITY_MISMATCH")
         if observed_at.tzinfo is None:
             raise ValueError("mirror refresh time must be timezone-aware")
         pos = tuple(positions)

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
 
-PAPER_WAKE_JOURNAL_SCHEMA_VERSION = "KPE_PAPER_WAKE_JOURNAL_V0_1"
+PAPER_WAKE_JOURNAL_SCHEMA_VERSION = "KPE_PAPER_WAKE_JOURNAL_V0_2"
 OBSERVED = "OBSERVED"
 DISPATCH_STARTED = "DISPATCH_STARTED"
 DECISION_COMMITTED = "DECISION_COMMITTED"
@@ -51,6 +51,7 @@ class PaperWakeRecord:
     request_id: str | None
     decision_identity: str | None
     safe_reason: str | None
+    adjudication_evidence_identity: str | None
     updated_at: datetime
 
 
@@ -62,6 +63,9 @@ class PaperWakeJournal:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._connection = sqlite3.connect(self.path)
         self._connection.row_factory = sqlite3.Row
+        self._connection.execute("PRAGMA journal_mode = WAL")
+        self._connection.execute("PRAGMA synchronous = FULL")
+        self._connection.execute("PRAGMA busy_timeout = 5000")
         self._initialize()
 
     def _initialize(self) -> None:
@@ -83,6 +87,7 @@ class PaperWakeJournal:
                 request_id TEXT,
                 decision_identity TEXT,
                 safe_reason TEXT,
+                adjudication_evidence_identity TEXT,
                 updated_at TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS paper_wake_status_idx
@@ -92,7 +97,16 @@ class PaperWakeJournal:
         existing = self._connection.execute(
             "SELECT value FROM metadata WHERE key='schema_version'"
         ).fetchone()
-        if existing is not None and existing[0] != PAPER_WAKE_JOURNAL_SCHEMA_VERSION:
+        columns = {
+            row[1] for row in self._connection.execute("PRAGMA table_info(paper_wakes)")
+        }
+        if "adjudication_evidence_identity" not in columns:
+            self._connection.execute(
+                "ALTER TABLE paper_wakes ADD COLUMN adjudication_evidence_identity TEXT"
+            )
+        if existing is not None and existing[0] not in (
+            "KPE_PAPER_WAKE_JOURNAL_V0_1", PAPER_WAKE_JOURNAL_SCHEMA_VERSION
+        ):
             raise ValueError("unsupported paper wake journal schema")
         self._connection.execute(
             "INSERT OR REPLACE INTO metadata(key, value) VALUES('schema_version', ?)",
@@ -101,6 +115,7 @@ class PaperWakeJournal:
         self._connection.commit()
 
     def close(self) -> None:
+        self._connection.execute("PRAGMA wal_checkpoint(FULL)")
         self._connection.close()
 
     def __enter__(self) -> "PaperWakeJournal":
@@ -215,6 +230,54 @@ class PaperWakeJournal:
             safe_reason=safe_reason,
         )
 
+    def adjudicate_unresolved_dispatch(
+        self,
+        wake_identity: str,
+        *,
+        outcome: str,
+        evidence_identity: str,
+        at: datetime,
+        recovered_decision_identity: str | None = None,
+    ) -> PaperWakeRecord:
+        """Resolve one ambiguous dispatch only from explicit external evidence.
+
+        This method never guesses whether a provider request occurred and never
+        re-dispatches the wake.  ``CONFIRMED_NOT_SENT`` and
+        ``REQUEST_OCCURRED_RESULT_UNRECOVERABLE`` both terminalize as SKIPPED;
+        ``DECISION_RECOVERED`` commits the exact recovered decision identity.
+        """
+        allowed = {
+            "CONFIRMED_NOT_SENT",
+            "REQUEST_OCCURRED_RESULT_UNRECOVERABLE",
+            "DECISION_RECOVERED",
+        }
+        if outcome not in allowed:
+            raise ValueError("paper wake adjudication outcome must be explicit")
+        if not isinstance(evidence_identity, str) or not evidence_identity.strip():
+            raise ValueError("paper wake adjudication requires evidence identity")
+        if outcome == "DECISION_RECOVERED":
+            if not isinstance(recovered_decision_identity, str) or not recovered_decision_identity.strip():
+                raise ValueError("recovered wake decision requires decision identity")
+            return self._transition(
+                wake_identity,
+                expected=(DISPATCH_STARTED,),
+                new_status=DECISION_COMMITTED,
+                at=at,
+                decision_identity=recovered_decision_identity,
+                safe_reason=outcome,
+                adjudication_evidence_identity=evidence_identity,
+            )
+        if recovered_decision_identity is not None:
+            raise ValueError("non-recovered wake adjudication cannot carry a decision")
+        return self._transition(
+            wake_identity,
+            expected=(DISPATCH_STARTED,),
+            new_status=SKIPPED,
+            at=at,
+            safe_reason=outcome,
+            adjudication_evidence_identity=evidence_identity,
+        )
+
     def unresolved_dispatches(self) -> tuple[PaperWakeRecord, ...]:
         rows = self._connection.execute(
             "SELECT * FROM paper_wakes WHERE status=? ORDER BY bar_end, wake_identity",
@@ -260,6 +323,7 @@ class PaperWakeJournal:
         request_id: str | None = None,
         decision_identity: str | None = None,
         safe_reason: str | None = None,
+        adjudication_evidence_identity: str | None = None,
     ) -> PaperWakeRecord:
         if new_status not in _ALLOWED:
             raise ValueError("unknown paper wake journal status")
@@ -275,6 +339,7 @@ class PaperWakeJournal:
                 request_id=COALESCE(?, request_id),
                 decision_identity=COALESCE(?, decision_identity),
                 safe_reason=COALESCE(?, safe_reason),
+                adjudication_evidence_identity=COALESCE(?, adjudication_evidence_identity),
                 updated_at=?
             WHERE wake_identity=?
             """,
@@ -283,6 +348,7 @@ class PaperWakeJournal:
                 request_id,
                 decision_identity,
                 safe_reason,
+                adjudication_evidence_identity,
                 _iso(at),
                 wake_identity,
             ),
@@ -307,5 +373,6 @@ class PaperWakeJournal:
             request_id=row["request_id"],
             decision_identity=row["decision_identity"],
             safe_reason=row["safe_reason"],
+            adjudication_evidence_identity=row["adjudication_evidence_identity"],
             updated_at=_parse(row["updated_at"]),
         )

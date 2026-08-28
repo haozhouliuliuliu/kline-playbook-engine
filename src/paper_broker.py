@@ -569,6 +569,16 @@ class PaperBrokerAdapter(BrokerAdapter):
                 requested_quantity=order.quantity,
                 filled_quantity=order.filled_quantity,
                 snapshot_at=now,
+                order_type=order.order_type,
+                limit_price=order.limit_price,
+                trigger_price=order.trigger_price,
+                order_role=order.order_role,
+                strategy_identity_id=order.strategy_identity_id,
+                client_order_id=order.client_order_id,
+                parent_order_id=order.parent_order_id,
+                oco_group_id=order.oco_group_id,
+                replace_generation=order.replace_generation,
+                source_directive_identity=order.source_directive_identity,
             )
             for order in sorted(self._orders.values(), key=lambda item: item.order_id)
         )

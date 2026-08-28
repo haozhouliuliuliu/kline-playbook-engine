@@ -162,6 +162,50 @@ class FakeSession:
     def close(self) -> None: pass
 
 class TqSdkDriverTests(unittest.TestCase):
+    def test_strict_poll_uses_authoritative_broker_update_time(self) -> None:
+        class AuthoritativeSession(FakeSession):
+            account_identity = "paper"
+
+            def authoritative_update_at(self):
+                return _dt(9, 15)
+
+        with TemporaryDirectory() as tmp:
+            journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            session = AuthoritativeSession()
+            driver = TqSdkPaperExecutionDriver(
+                broker_id="tq",
+                account_identity="paper",
+                session_factory=lambda: session,
+                order_journal=journal,
+                authority=_driver_authority(),
+                require_authoritative_facts=True,
+            )
+            driver.connect()
+            driver.poll()
+            self.assertEqual(_dt(9, 15), driver.fetch_account_snapshot().snapshot_at)
+            journal.close()
+
+    def test_strict_poll_rejects_unprovable_broker_update_time(self) -> None:
+        class AccountBoundSession(FakeSession):
+            account_identity = "paper"
+
+        with TemporaryDirectory() as tmp:
+            journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            driver = TqSdkPaperExecutionDriver(
+                broker_id="tq",
+                account_identity="paper",
+                session_factory=AccountBoundSession,
+                order_journal=journal,
+                authority=_driver_authority(),
+                require_authoritative_facts=True,
+            )
+            driver.connect()
+            with self.assertRaisesRegex(
+                RuntimeError, "BROKER_SNAPSHOT_FRESHNESS_UNPROVABLE"
+            ):
+                driver.poll()
+            journal.close()
+
     def test_pending_authority_prevents_session_factory_invocation(self) -> None:
         with TemporaryDirectory() as tmp:
             calls = {"count": 0}

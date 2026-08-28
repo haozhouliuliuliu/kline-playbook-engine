@@ -109,10 +109,14 @@ class PaperOfflineRuntimeDrill(PaperRuntimeCoordinator):
             kwargs["broker"] = _LegacyOfflineBrokerProxy(broker, order_journal)
         super().__init__(**kwargs)
 
-    def _before_external_action(self, at: datetime) -> None:
-        super()._before_external_action(at)
+    def _before_external_action(self, at: datetime, *, action: str) -> None:
+        super()._before_external_action(at, action=action)
         # Test-only deterministic clock injection. Real broker adapters do not
         # implement or need this method.
+        self.broker.set_observed_at(at)
+
+    def _before_broker_read(self, at: datetime) -> None:
+        super()._before_broker_read(at)
         self.broker.set_observed_at(at)
 
 

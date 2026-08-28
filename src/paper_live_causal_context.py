@@ -210,6 +210,8 @@ class LiveSessionCalendar:
         trading_calendar: Iterable[date],
         night_closed_days: Iterable[date],
         session_schedule: Mapping[str, object],
+        calendar_authority_identity: str | None = None,
+        calendar_verified_at: datetime | None = None,
         timezone: str = "Asia/Shanghai",
     ) -> None:
         if timezone != "Asia/Shanghai":
@@ -222,6 +224,8 @@ class LiveSessionCalendar:
         if len(self._calendar_index) != len(self._calendar):
             raise ValueError("live session trading calendar must be unique")
         self._night_closed = frozenset(night_closed_days)
+        if not self._night_closed.issubset(set(self._calendar)):
+            raise ValueError("night-closed days must belong to the governed trading calendar")
         if not isinstance(session_schedule, Mapping):
             raise ValueError("live session schedule must be a mapping")
         record = session_schedule.get(product)
@@ -233,15 +237,31 @@ class LiveSessionCalendar:
         self._session_authority_identity = _require_text(
             record.get("identity"), "live session authority identity"
         )
+        if calendar_authority_identity is not None:
+            self._calendar_authority_identity = _require_text(
+                calendar_authority_identity, "live calendar authority identity"
+            )
+        else:
+            self._calendar_authority_identity = None
+        if calendar_verified_at is not None:
+            self._calendar_verified_at = _aware(
+                calendar_verified_at, "live calendar verification time"
+            )
+        else:
+            self._calendar_verified_at = None
         self._tz = ZoneInfo(timezone)
         self._cache: dict[date, tuple[LiveSessionWindow, ...]] = {}
         self._identity = _hash({
             "schema_version": PAPER_LIVE_CAUSAL_CONTEXT_VERSION,
             "product": self._product,
             "session_authority_identity": self._session_authority_identity,
-            "calendar_first_day": self._calendar[0].isoformat(),
-            "calendar_last_day": self._calendar[-1].isoformat(),
-            "calendar_day_count": len(self._calendar),
+            "calendar_authority_identity": self._calendar_authority_identity,
+            "calendar_verified_at": (
+                None if self._calendar_verified_at is None else self._calendar_verified_at.isoformat()
+            ),
+            "trading_calendar": [day.isoformat() for day in self._calendar],
+            "night_closed_days": [day.isoformat() for day in sorted(self._night_closed)],
+            "session_schedule": self._schedule,
         })
 
     @property
@@ -257,8 +277,34 @@ class LiveSessionCalendar:
         return self._session_authority_identity
 
     @property
+    def calendar_authority_identity(self) -> str | None:
+        return self._calendar_authority_identity
+
+    @property
+    def calendar_verified_at(self) -> datetime | None:
+        return self._calendar_verified_at
+
+    @property
+    def coverage_start(self) -> date:
+        return self._calendar[0]
+
+    @property
+    def coverage_end(self) -> date:
+        return self._calendar[-1]
+
+    @property
     def identity(self) -> str:
         return self._identity
+
+    def require_current_authority(self, at: datetime) -> None:
+        """Fail closed unless an explicit verified calendar covers ``at``."""
+        local_day = _aware(at, "live calendar assessment time").astimezone(self._tz).date()
+        if self._calendar_authority_identity is None or self._calendar_verified_at is None:
+            raise PermissionError("LIVE_CALENDAR_AUTHORITY_UNVERIFIED")
+        if self._calendar_verified_at > at:
+            raise PermissionError("LIVE_CALENDAR_AUTHORITY_VERIFICATION_IN_FUTURE")
+        if not (self.coverage_start <= local_day <= self.coverage_end):
+            raise PermissionError("LIVE_CALENDAR_AUTHORITY_OUT_OF_COVERAGE")
 
     @property
     def timezone(self) -> ZoneInfo:

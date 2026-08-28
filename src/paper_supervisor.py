@@ -23,7 +23,11 @@ import json
 
 from src.paper_activation_profile import PaperActivationProfile
 from src.paper_broker_mirror import PaperBrokerTruthMirror
-from src.paper_execution_authority import PaperExecutionAuthority
+from src.paper_execution_authority import (
+    MutablePaperAuthoritySource,
+    PaperAuthoritySource,
+    PaperExecutionAuthority,
+)
 from src.paper_order_journal import PaperOrderJournal
 from src.paper_wake_journal import PaperWakeJournal
 
@@ -105,6 +109,7 @@ class PaperRuntimeSupervisor:
         broker_mirror: PaperBrokerTruthMirror,
         order_journal: PaperOrderJournal,
         wake_journal: PaperWakeJournal,
+        authority_source: PaperAuthoritySource | None = None,
     ) -> None:
         if not isinstance(actual_tqsdk_runtime_version, str) or not actual_tqsdk_runtime_version.strip():
             raise ValueError("paper supervisor requires actual TqSdk runtime version")
@@ -119,7 +124,14 @@ class PaperRuntimeSupervisor:
         if not isinstance(wake_journal, PaperWakeJournal):
             raise ValueError("paper supervisor requires PaperWakeJournal")
         self._actual_tqsdk_runtime_version = actual_tqsdk_runtime_version.strip()
-        self._authority = authority
+        self._authority_source = authority_source or MutablePaperAuthoritySource(
+            authority, source_identity="STATIC_LEGACY_AUTHORITY_SOURCE"
+        )
+        self._strict_authority_source = (
+            self._authority_source.source_identity != "STATIC_LEGACY_AUTHORITY_SOURCE"
+        )
+        if self._authority_source.current().identity_id != authority.identity_id:
+            raise ValueError("PAPER_SUPERVISOR_AUTHORITY_SOURCE_MISMATCH")
         self._activation_profile = activation_profile
         self._broker_mirror = broker_mirror
         self._order_journal = order_journal
@@ -139,6 +151,14 @@ class PaperRuntimeSupervisor:
     def wake_journal(self) -> PaperWakeJournal:
         """Return the exact durable wake journal used by the observation gate."""
         return self._wake_journal
+
+    @property
+    def authority_source(self) -> PaperAuthoritySource:
+        return self._authority_source
+
+    @property
+    def activation_profile(self) -> PaperActivationProfile:
+        return self._activation_profile
 
     def assess(
         self,
@@ -169,8 +189,14 @@ class PaperRuntimeSupervisor:
         connect: list[str] = []
         if self._actual_tqsdk_runtime_version != self._activation_profile.tqsdk_runtime_version:
             connect.append("TQSDK_RUNTIME_VERSION_MISMATCH")
+        authority = self._authority_source.current()
         try:
-            self._authority.require_connect()
+            authority.require_connect(
+                at=assessed_at if self._strict_authority_source else None,
+                broker_identity=self._broker_mirror.broker_id
+                if authority.broker_identity is not None else None,
+                account_identity=authority.account_identity,
+            )
         except PermissionError:
             connect.append("PAPER_CONNECT_AUTHORITY_INACTIVE")
 
@@ -199,7 +225,18 @@ class PaperRuntimeSupervisor:
             except PermissionError as error:
                 order.append(str(error))
             try:
-                self._authority.require_order_submit(concrete_contract_id)
+                authority.require_order_submit(
+                    concrete_contract_id,
+                    at=assessed_at if self._strict_authority_source else None,
+                    broker_identity=self._broker_mirror.broker_id
+                    if authority.broker_identity is not None else None,
+                    account_identity=(
+                        self._broker_mirror.account.account_id
+                        if self._broker_mirror.account is not None
+                        and authority.account_identity is not None
+                        else authority.account_identity
+                    ),
+                )
             except PermissionError as error:
                 order.append(str(error))
         if self._order_journal.unresolved_attempts():

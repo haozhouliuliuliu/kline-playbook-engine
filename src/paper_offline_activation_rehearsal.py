@@ -204,6 +204,16 @@ class RehearsalFakeBroker:
             requested_quantity=instruction.quantity,
             filled_quantity=Decimal("0"),
             snapshot_at=self.at,
+            order_type=instruction.order_type,
+            limit_price=instruction.limit_price,
+            trigger_price=instruction.trigger_price,
+            order_role=instruction.order_role,
+            strategy_identity_id=instruction.strategy_identity_id,
+            client_order_id=instruction.client_order_id or instruction.client_request_id,
+            parent_order_id=instruction.parent_order_id,
+            oco_group_id=instruction.oco_group_id,
+            replace_generation=instruction.replace_generation,
+            source_directive_identity=instruction.source_directive_identity,
         )
         return order_id
 
@@ -223,6 +233,16 @@ class RehearsalFakeBroker:
             requested_quantity=current.requested_quantity,
             filled_quantity=current.filled_quantity,
             snapshot_at=self.at,
+            order_type=current.order_type,
+            limit_price=current.limit_price,
+            trigger_price=current.trigger_price,
+            order_role=current.order_role,
+            strategy_identity_id=current.strategy_identity_id,
+            client_order_id=current.client_order_id,
+            parent_order_id=current.parent_order_id,
+            oco_group_id=current.oco_group_id,
+            replace_generation=current.replace_generation,
+            source_directive_identity=current.source_directive_identity,
         )
 
     def fetch_account_snapshot(self) -> BrokerAccountSnapshot:
@@ -244,52 +264,18 @@ class RehearsalFakeBroker:
 
     def fetch_order_snapshot(self) -> tuple[BrokerOrderSnapshot, ...]:
         self._connected()
-        # A real broker reports current order truth at the current observation
-        # time; re-stamp restored order book state so a restart reconciliation
-        # sees fresh broker truth instead of a stale pre-restart timestamp.
-        return tuple(
-            BrokerOrderSnapshot(
-                order_id=item.order_id,
-                client_request_id=item.client_request_id,
-                concrete_contract_id=item.concrete_contract_id,
-                direction=item.direction,
-                action=item.action,
-                status=item.status,
-                requested_quantity=item.requested_quantity,
-                filled_quantity=item.filled_quantity,
-                snapshot_at=self.at,
-            )
-            for item in sorted(self.orders.values(), key=lambda item: item.order_id)
-        )
+        return tuple(sorted(self.orders.values(), key=lambda item: item.order_id))
 
-    def restore_broker_truth_from_journal(self) -> None:
-        """Reconstruct broker-side order truth from the durable journal.
+    def capture_broker_truth(self) -> tuple[BrokerOrderSnapshot, ...]:
+        """Independent fake-broker persistence; never derives from project state."""
+        return tuple(sorted(self.orders.values(), key=lambda item: item.order_id))
 
-        A real broker/paper account's order book persists across a process
-        restart. This fake broker mirrors that by rebuilding its ``orders`` map
-        from the durable journal's BROKER_ORDER_ID_KNOWN attempts so the
-        restart reconciliation sees consistent broker truth instead of treating
-        the prior known order as an unknown broker-side order.
-        """
-        for client_request_id in self.journal.expected_client_request_ids():
-            attempt = self.journal.get(client_request_id)
-            if attempt.status != BROKER_ORDER_ID_KNOWN or not attempt.broker_order_id:
-                continue
-            if attempt.expected_direction is None or attempt.expected_action is None:
-                continue
-            if attempt.expected_quantity is None:
-                continue
-            self.orders[attempt.broker_order_id] = BrokerOrderSnapshot(
-                order_id=attempt.broker_order_id,
-                client_request_id=attempt.client_request_id,
-                concrete_contract_id=attempt.concrete_contract_id,
-                direction=PositionDirection(attempt.expected_direction),
-                action=OrderAction(attempt.expected_action),
-                status="LIVE",
-                requested_quantity=Decimal(attempt.expected_quantity),
-                filled_quantity=Decimal("0"),
-                snapshot_at=self.at,
-            )
+    def restore_broker_truth(self, orders: tuple[BrokerOrderSnapshot, ...]) -> None:
+        if any(not isinstance(item, BrokerOrderSnapshot) for item in orders):
+            raise ValueError("fake broker truth requires broker snapshots")
+        if len({item.order_id for item in orders}) != len(orders):
+            raise ValueError("fake broker truth contains duplicate order ids")
+        self.orders = {item.order_id: item for item in orders}
 
 
 class RehearsalFakeTrader(PaperTrader):
@@ -597,6 +583,10 @@ def run_offline_activation_rehearsal(
         steps.append(_step("NEW_LIVE_1M_WAKE", False))
         checks.append("WAKE_DRIVE_ERROR=" + type(error).__name__)
 
+    # Preserve independently authoritative fake-broker truth before process
+    # restart.  The project journal is deliberately not consulted.
+    broker_truth_at_restart = broker.capture_broker_truth()
+
     # 9. clean shutdown
     try:
         controller.shutdown(at=AT_0920, persist_checkpoint=True)
@@ -670,9 +660,9 @@ def run_offline_activation_rehearsal(
         _close_safe(order_journal2, wake_journal2, order_journal, wake_journal)
         return _finish(steps, checks)
 
-    broker2.set_observed_at(MORNING_UNTIL)
-    broker2.restore_broker_truth_from_journal()
-    controller2.connect(at=MORNING_UNTIL)
+    broker2.set_observed_at(AT_0920)
+    broker2.restore_broker_truth(broker_truth_at_restart)
+    controller2.connect(at=AT_0920)
     controller2.bootstrap(observed_at=MORNING_UNTIL)
     controller2.mark_trader_ready(True)
 

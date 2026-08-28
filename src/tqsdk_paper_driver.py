@@ -13,20 +13,36 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 import json
+from importlib.metadata import PackageNotFoundError, version as package_version
 from typing import Any, Callable, Mapping, Protocol
 from zoneinfo import ZoneInfo
 
 from src.broker_adapter import (
     BrokerAccountSnapshot, BrokerOrderInstruction, BrokerOrderSnapshot,
-    BrokerPositionSnapshot, OrderType,
+    BrokerPositionSnapshot, OrderRole, OrderType,
 )
 from src.contract_semantics import OrderAction, PositionDirection
 from src.paper_order_journal import PREPARED, PaperOrderJournal
-from src.paper_execution_authority import PaperExecutionAuthority
+from src.paper_execution_authority import (
+    MutablePaperAuthoritySource,
+    PaperAuthoritySource,
+    PaperExecutionAuthority,
+)
 from src.runtime_events import BrokerConnectionState, BrokerEvent, BrokerEventType, event_pairs
 
 TQSDK_PAPER_DRIVER_VERSION = "KPE_TQSDK_PAPER_DRIVER_V0_1"
 _SHFE_STYLE = frozenset({"SHFE", "INE"})
+
+
+def installed_tqsdk_runtime_version() -> str:
+    """Read installed package metadata without constructing a TqSdk client."""
+    try:
+        value = package_version("tqsdk")
+    except PackageNotFoundError as error:
+        raise RuntimeError("TQSDK_RUNTIME_NOT_INSTALLED") from error
+    if not value.strip():
+        raise RuntimeError("TQSDK_RUNTIME_VERSION_UNPROVABLE")
+    return value.strip()
 
 class TqSdkSession(Protocol):
     def insert_order(self, **kwargs: Any) -> Any: ...
@@ -175,8 +191,10 @@ def _project_order_status(raw: Any) -> str:
         return "REJECTED"
     return "CANCELLED"
 
-def map_tqsdk_orders(raw_orders: Mapping[str, Any], *,
-                      snapshot_at: datetime) -> tuple[BrokerOrderSnapshot, ...]:
+def map_tqsdk_orders(
+    raw_orders: Mapping[str, Any], *, snapshot_at: datetime,
+    expected_envelopes: Mapping[str, Any] | None = None,
+) -> tuple[BrokerOrderSnapshot, ...]:
     if snapshot_at.tzinfo is None:
         raise ValueError("order snapshot time must be timezone-aware")
     result: list[BrokerOrderSnapshot] = []
@@ -194,12 +212,37 @@ def map_tqsdk_orders(raw_orders: Mapping[str, Any], *,
         client_request_id = native_client_request_id if isinstance(native_client_request_id, str) else ""
         if not order_id.strip() or not client_request_id.strip() or not symbol or "." not in symbol:
             raise ValueError("TqSdk order is missing stable identity")
+        expected = None if expected_envelopes is None else expected_envelopes.get(client_request_id)
         result.append(BrokerOrderSnapshot(
             order_id=order_id,
             client_request_id=client_request_id,
             concrete_contract_id=symbol, direction=project_direction, action=action,
             status=_project_order_status(raw), requested_quantity=original,
             filled_quantity=original-left, snapshot_at=snapshot_at,
+            order_type=(
+                None if expected is None or expected.expected_order_type is None
+                else OrderType(expected.expected_order_type)
+            ),
+            limit_price=(
+                None if expected is None or expected.expected_limit_price is None
+                else Decimal(expected.expected_limit_price)
+            ),
+            trigger_price=(
+                None if expected is None or expected.expected_trigger_price is None
+                else Decimal(expected.expected_trigger_price)
+            ),
+            order_role=(
+                None if expected is None or expected.expected_order_role is None
+                else OrderRole(expected.expected_order_role)
+            ),
+            strategy_identity_id=(None if expected is None else expected.expected_strategy_identity),
+            client_order_id=(client_request_id if expected is None else expected.expected_client_order_id),
+            parent_order_id=(None if expected is None else expected.expected_parent_order_id),
+            oco_group_id=(None if expected is None else expected.expected_oco_group_id),
+            replace_generation=(None if expected is None else expected.expected_replace_generation),
+            source_directive_identity=(
+                None if expected is None else expected.expected_source_directive_identity
+            ),
         ))
     if len({item.order_id for item in result}) != len(result):
         raise ValueError("TqSdk snapshot contains duplicate broker order id")
@@ -212,7 +255,10 @@ class TqSdkPaperExecutionDriver:
                  session_factory: Callable[[], TqSdkSession], order_journal: PaperOrderJournal,
                  authority: PaperExecutionAuthority,
                  close_offset_policy: TqSdkCloseOffsetPolicy | None = None,
-                 execution_price_policy: TqSdkExecutionPricePolicy | None = None) -> None:
+                 execution_price_policy: TqSdkExecutionPricePolicy | None = None,
+                 authority_source: PaperAuthoritySource | None = None,
+                 runtime_version_provider: Callable[[], str] | None = None,
+                 require_authoritative_facts: bool = False) -> None:
         if not broker_id or not account_identity:
             raise ValueError("TqSdk driver requires broker and account identities")
         if not isinstance(order_journal, PaperOrderJournal):
@@ -223,7 +269,14 @@ class TqSdkPaperExecutionDriver:
         self._account_identity = account_identity
         self._factory = session_factory
         self._journal = order_journal
+        self._authority_source = authority_source or MutablePaperAuthoritySource(
+            authority, source_identity="STATIC_LEGACY_AUTHORITY_SOURCE"
+        )
+        if self._authority_source.current().identity_id != authority.identity_id:
+            raise ValueError("TQSDK_DRIVER_AUTHORITY_SOURCE_MISMATCH")
         self._authority = authority
+        self._runtime_version_provider = runtime_version_provider
+        self._require_authoritative_facts = require_authoritative_facts
         self._close_offset_policy = close_offset_policy
         self._execution_price_policy = execution_price_policy
         self._session: TqSdkSession | None = None
@@ -243,7 +296,57 @@ class TqSdkPaperExecutionDriver:
         return self._connection_state
     @property
     def authority(self) -> PaperExecutionAuthority:
-        return self._authority
+        return self._authority_source.current()
+    @property
+    def account_identity(self) -> str:
+        return self._account_identity
+    @property
+    def runtime_version(self) -> str:
+        if self._runtime_version_provider is None:
+            return "UNVERIFIED"
+        value = self._runtime_version_provider()
+        if not isinstance(value, str) or not value.strip():
+            raise RuntimeError("TQSDK_RUNTIME_VERSION_UNPROVABLE")
+        return value.strip()
+    @property
+    def identity_id(self) -> str:
+        return sha256(json.dumps({
+            "version": TQSDK_PAPER_DRIVER_VERSION,
+            "broker_id": self._broker_id,
+            "account_identity": self._account_identity,
+            "runtime_version": self.runtime_version,
+            "close_offset_policy": getattr(self._close_offset_policy, "identity_id", None),
+            "execution_price_policy": getattr(self._execution_price_policy, "identity_id", None),
+        }, sort_keys=True).encode("utf-8")).hexdigest()
+    @property
+    def execution_price_policy(self) -> TqSdkExecutionPricePolicy | None:
+        return self._execution_price_policy
+    @property
+    def close_offset_policy(self) -> TqSdkCloseOffsetPolicy | None:
+        return self._close_offset_policy
+
+    def _current_authority(self) -> PaperExecutionAuthority:
+        return self._authority_source.current()
+
+    def _authority_arguments(self) -> dict[str, object]:
+        if self._authority_source.source_identity == "STATIC_LEGACY_AUTHORITY_SOURCE":
+            return {"at": None, "broker_identity": None, "account_identity": None}
+        return {
+            "at": datetime.now(ZoneInfo("Asia/Shanghai")),
+            "broker_identity": self._broker_id,
+            "account_identity": self._account_identity,
+        }
+
+    def _snapshot_at(self, session: TqSdkSession) -> datetime:
+        provider = getattr(session, "authoritative_update_at", None)
+        value = provider() if callable(provider) else None
+        if value is None:
+            if self._require_authoritative_facts:
+                raise RuntimeError("TQSDK_BROKER_SNAPSHOT_FRESHNESS_UNPROVABLE")
+            return datetime.now(ZoneInfo("Asia/Shanghai"))
+        if not isinstance(value, datetime) or value.tzinfo is None:
+            raise RuntimeError("TQSDK_BROKER_SNAPSHOT_TIME_INVALID")
+        return value
 
     def _emit(self, event_type: BrokerEventType, *, occurred_at: datetime,
               order_id: str | None = None, client_request_id: str | None = None,
@@ -260,13 +363,20 @@ class TqSdkPaperExecutionDriver:
         self._sequence += 1
 
     def connect(self) -> None:
-        self._authority.require_connect()
+        self._current_authority().require_connect(**self._authority_arguments())
         if self._session is not None:
             return
         session = self._factory()
         if session is None:
             raise RuntimeError("TQSDK_SESSION_FACTORY_RETURNED_NONE")
         self._session = session
+        actual_account = getattr(session, "account_identity", None)
+        if self._require_authoritative_facts and actual_account != self._account_identity:
+            try:
+                session.close()
+            finally:
+                self._session = None
+            raise RuntimeError("TQSDK_PAPER_ACCOUNT_IDENTITY_MISMATCH")
         self._connection_state = BrokerConnectionState.CONNECTED
         self._emit(BrokerEventType.CONNECTION_STATE,
                    occurred_at=datetime.now(ZoneInfo("Asia/Shanghai")),
@@ -285,6 +395,10 @@ class TqSdkPaperExecutionDriver:
         if self._session is None or self._connection_state is not BrokerConnectionState.CONNECTED:
             raise RuntimeError("TQSDK_PAPER_NOT_CONNECTED")
         return self._session
+
+    def market_data_session(self) -> TqSdkSession:
+        """Share the exact connected account session with the live-data adapter."""
+        return self._require_session()
 
     def _resolve_offset(self, instruction: BrokerOrderInstruction) -> str:
         if instruction.action is OrderAction.OPEN:
@@ -319,7 +433,9 @@ class TqSdkPaperExecutionDriver:
     def submit_order(self, instruction: BrokerOrderInstruction) -> str:
         if not isinstance(instruction, BrokerOrderInstruction):
             raise ValueError("TqSdk driver requires BrokerOrderInstruction")
-        self._authority.require_order_submit(instruction.concrete_contract_id)
+        self._current_authority().require_order_submit(
+            instruction.concrete_contract_id, **self._authority_arguments()
+        )
         session = self._require_session()
         entry = self._journal.get(instruction.client_request_id)
         if entry.status != PREPARED:
@@ -355,9 +471,9 @@ class TqSdkPaperExecutionDriver:
     def cancel_order(self, order_id: str) -> None:
         if not isinstance(order_id, str) or not order_id.strip():
             raise ValueError("cancel requires order id")
-        self._authority.require_order_cancel()
+        self._current_authority().require_order_cancel(**self._authority_arguments())
         session = self._require_session()
-        now = datetime.now(ZoneInfo("Asia/Shanghai"))
+        now = self._snapshot_at(session)
         operation = self._journal.prepare_cancel_for_broker_order(order_id, at=now)
         self._journal.mark_cancel_attempt_started(operation.cancel_operation_id, at=now)
         try:
@@ -376,11 +492,17 @@ class TqSdkPaperExecutionDriver:
     def poll(self) -> bool:
         session = self._require_session()
         updated = bool(session.wait_update())
-        now = datetime.now(ZoneInfo("Asia/Shanghai"))
+        now = self._snapshot_at(session)
         self._last_snapshot_at = now
         raw_orders = session.get_orders()
         raw_trades = session.get_trades()
-        snapshots = map_tqsdk_orders(raw_orders, snapshot_at=now)
+        expected = {
+            request_id: self._journal.get(request_id)
+            for request_id in self._journal.expected_client_request_ids()
+        }
+        snapshots = map_tqsdk_orders(
+            raw_orders, snapshot_at=now, expected_envelopes=expected
+        )
         recovery_blockers = self._journal.reconcile_broker_orders(snapshots, observed_at=now)
         if recovery_blockers:
             raise RuntimeError("PAPER_ORDER_RECOVERY_BLOCKED:" + ";".join(recovery_blockers))
@@ -439,17 +561,23 @@ class TqSdkPaperExecutionDriver:
 
     def fetch_account_snapshot(self) -> BrokerAccountSnapshot:
         session = self._require_session()
-        now = self._last_snapshot_at or datetime.now(ZoneInfo("Asia/Shanghai"))
+        now = self._last_snapshot_at or self._snapshot_at(session)
         return map_tqsdk_account(session.get_account(), account_id=self._account_identity,
                                  snapshot_at=now)
     def fetch_position_snapshot(self) -> tuple[BrokerPositionSnapshot, ...]:
         session = self._require_session()
-        now = self._last_snapshot_at or datetime.now(ZoneInfo("Asia/Shanghai"))
+        now = self._last_snapshot_at or self._snapshot_at(session)
         return map_tqsdk_positions(session.get_positions(), snapshot_at=now)
     def fetch_order_snapshot(self) -> tuple[BrokerOrderSnapshot, ...]:
         session = self._require_session()
-        now = self._last_snapshot_at or datetime.now(ZoneInfo("Asia/Shanghai"))
-        return map_tqsdk_orders(session.get_orders(), snapshot_at=now)
+        now = self._last_snapshot_at or self._snapshot_at(session)
+        expected = {
+            request_id: self._journal.get(request_id)
+            for request_id in self._journal.expected_client_request_ids()
+        }
+        return map_tqsdk_orders(
+            session.get_orders(), snapshot_at=now, expected_envelopes=expected
+        )
     def capture_snapshot(self) -> Any:
         return {"schema_version": TQSDK_PAPER_DRIVER_VERSION,
                 "account": self.fetch_account_snapshot(),
@@ -465,11 +593,33 @@ class TqSdkApiSession:
     Creating TqApi/account (including authentication) is deliberately outside
     this class and belongs to the later account-login boundary.
     """
-    def __init__(self, api: Any, account: Any) -> None:
+    def __init__(
+        self,
+        api: Any,
+        account: Any,
+        *,
+        authoritative_update_at_provider: Callable[[], datetime | None] | None = None,
+    ) -> None:
         if api is None or account is None:
             raise ValueError("native TqSdk session requires api and account objects")
         self._api = api
         self._account = account
+        self._authoritative_update_at_provider = authoritative_update_at_provider
+        identity = None
+        for name in ("account_id", "user_id", "broker_account_id"):
+            candidate = getattr(account, name, None)
+            if isinstance(candidate, str) and candidate.strip():
+                identity = candidate.strip()
+                break
+        self.account_identity = identity
+
+    def authoritative_update_at(self) -> datetime | None:
+        if self._authoritative_update_at_provider is None:
+            return None
+        value = self._authoritative_update_at_provider()
+        if value is not None and (not isinstance(value, datetime) or value.tzinfo is None):
+            raise RuntimeError("TQSDK_AUTHORITATIVE_UPDATE_TIME_INVALID")
+        return value
     def insert_order(self, **kwargs: Any) -> Any:
         return self._api.insert_order(account=self._account, **kwargs)
     def cancel_order(self, order_or_id: Any) -> None:
@@ -493,5 +643,16 @@ class TqSdkApiSession:
         if not isinstance(value, Mapping):
             raise RuntimeError("TQSDK_GET_TRADE_ALL_DID_NOT_RETURN_MAPPING")
         return value
+    def read_recent_1m_rows(
+        self, *, symbol: str, limit: int
+    ) -> tuple[Mapping[str, object], ...]:
+        serial = self._api.get_kline_serial(symbol, 60, data_length=limit)
+        to_dict = getattr(serial, "to_dict", None)
+        if not callable(to_dict):
+            raise RuntimeError("TQSDK_KLINE_SERIAL_NOT_TABULAR")
+        rows = to_dict("records")
+        if not isinstance(rows, list):
+            raise RuntimeError("TQSDK_KLINE_ROWS_NOT_LIST")
+        return tuple(rows)
     def close(self) -> None:
         self._api.close()

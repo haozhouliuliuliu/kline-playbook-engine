@@ -33,6 +33,17 @@ def _canonical_hash(value: Any) -> str:
     return sha256(encoded.encode("utf-8")).hexdigest()
 
 
+def canonical_decimal(value: Decimal) -> str:
+    """Canonical finite Decimal text used in durable execution identities."""
+    if type(value) is not Decimal or not value.is_finite():
+        raise ValueError("canonical decimal requires a finite Decimal")
+    normalized = value.normalize()
+    text = format(normalized, "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return "0" if text in {"-0", ""} else text
+
+
 class OrderType(str, Enum):
     """Deterministic generic order type vocabulary (broker-agnostic)."""
 
@@ -125,9 +136,9 @@ class BrokerOrderInstruction:
                 "direction": self.direction.value,
                 "action": self.action.value,
                 "order_type": self.order_type.value,
-                "quantity": str(self.quantity),
-                "limit_price": None if self.limit_price is None else str(self.limit_price),
-                "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "quantity": canonical_decimal(self.quantity),
+                "limit_price": None if self.limit_price is None else canonical_decimal(self.limit_price),
+                "trigger_price": None if self.trigger_price is None else canonical_decimal(self.trigger_price),
                 "order_role": self.order_role.value,
                 "strategy_identity_id": self.strategy_identity_id,
                 "client_order_id": self.client_order_id or self.client_request_id,
@@ -237,6 +248,16 @@ class BrokerOrderSnapshot:
     requested_quantity: Decimal
     filled_quantity: Decimal
     snapshot_at: datetime
+    order_type: OrderType | None = None
+    limit_price: Decimal | None = None
+    trigger_price: Decimal | None = None
+    order_role: OrderRole | None = None
+    strategy_identity_id: str | None = None
+    client_order_id: str | None = None
+    parent_order_id: str | None = None
+    oco_group_id: str | None = None
+    replace_generation: int | None = None
+    source_directive_identity: str | None = None
 
     def __post_init__(self) -> None:
         required = (self.order_id, self.client_request_id, self.concrete_contract_id, self.status)
@@ -254,6 +275,28 @@ class BrokerOrderSnapshot:
             raise ValueError("broker order filled quantity must be a non-negative finite Decimal")
         if self.filled_quantity > self.requested_quantity:
             raise ValueError("broker order filled quantity cannot exceed requested quantity")
+        if self.order_type is not None and not isinstance(self.order_type, OrderType):
+            raise ValueError("broker order snapshot order type must be explicit when supplied")
+        for value, name in ((self.limit_price, "limit price"), (self.trigger_price, "trigger price")):
+            if value is not None and (
+                type(value) is not Decimal or not value.is_finite() or value <= 0
+            ):
+                raise ValueError(f"broker order snapshot {name} must be positive finite Decimal")
+        if self.order_role is not None and not isinstance(self.order_role, OrderRole):
+            raise ValueError("broker order snapshot role must be explicit when supplied")
+        if self.replace_generation is not None and (
+            type(self.replace_generation) is not int or self.replace_generation < 0
+        ):
+            raise ValueError("broker order snapshot replace generation must be non-negative")
+        for value, name in (
+            (self.strategy_identity_id, "strategy identity"),
+            (self.client_order_id, "client order identity"),
+            (self.parent_order_id, "parent order identity"),
+            (self.oco_group_id, "OCO identity"),
+            (self.source_directive_identity, "source directive identity"),
+        ):
+            if value is not None and (not isinstance(value, str) or not value.strip()):
+                raise ValueError(f"broker order snapshot {name} must be non-empty when supplied")
 
     @property
     def identity_id(self) -> str:
@@ -265,9 +308,19 @@ class BrokerOrderSnapshot:
                 "direction": self.direction.value,
                 "action": self.action.value,
                 "status": self.status,
-                "requested_quantity": str(self.requested_quantity),
-                "filled_quantity": str(self.filled_quantity),
+                "requested_quantity": canonical_decimal(self.requested_quantity),
+                "filled_quantity": canonical_decimal(self.filled_quantity),
                 "snapshot_at": self.snapshot_at.isoformat(),
+                "order_type": None if self.order_type is None else self.order_type.value,
+                "limit_price": None if self.limit_price is None else canonical_decimal(self.limit_price),
+                "trigger_price": None if self.trigger_price is None else canonical_decimal(self.trigger_price),
+                "order_role": None if self.order_role is None else self.order_role.value,
+                "strategy_identity_id": self.strategy_identity_id,
+                "client_order_id": self.client_order_id,
+                "parent_order_id": self.parent_order_id,
+                "oco_group_id": self.oco_group_id,
+                "replace_generation": self.replace_generation,
+                "source_directive_identity": self.source_directive_identity,
             }
         )
 

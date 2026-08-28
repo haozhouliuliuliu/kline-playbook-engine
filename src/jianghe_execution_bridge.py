@@ -12,6 +12,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
+from hashlib import sha256
+import json
 
 from src.intent import IntentAction, StrategyIntent
 from src.jianghe_ai_trader import DecisionAction
@@ -32,6 +34,8 @@ class JiangheExecutionPolicy(Protocol):
     permanent policy is a trading/risk semantics decision and therefore remains
     an Owner gate.
     """
+
+    identity_id: str
 
     def translate(
         self,
@@ -69,7 +73,25 @@ class JiangheExecutionBridge:
     })
 
     def __init__(self, policy: JiangheExecutionPolicy | None = None) -> None:
+        if policy is not None:
+            identity = getattr(policy, "identity_id", None)
+            if not isinstance(identity, str) or not identity.strip():
+                raise ValueError("Jianghe execution policy must expose identity_id")
         self._policy = policy
+
+    @property
+    def policy(self) -> JiangheExecutionPolicy | None:
+        return self._policy
+
+    @property
+    def identity_id(self) -> str:
+        payload = {
+            "version": JIANGHE_EXECUTION_BRIDGE_VERSION,
+            "policy_identity": None if self._policy is None else self._policy.identity_id,
+        }
+        return sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
 
     def resolve(
         self,
