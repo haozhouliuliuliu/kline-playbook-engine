@@ -3,8 +3,9 @@
 
 This checker does not decide research/trading semantics. It protects the repository
 memory topology: one concern has one canonical owner, volatile current state stays
-in CURRENT_STATE.md, takeover owners exist, and the current provider-smoke machine
-authority cannot contradict an Owner hold.
+in CURRENT_STATE.md, tool/provider status stays in TOOL_REGISTRY.md, takeover owners
+exist, and historical provider-smoke machine authorities cannot contradict Owner
+holds.
 """
 from __future__ import annotations
 
@@ -76,6 +77,14 @@ SMOKE_RETEST_AUTHORITY_PATH = Path("docs/evidence/JIANGHE_REPLAY_V0_1_PROVIDER_S
 
 _BACKTICK_PATH = re.compile(
     r"`((?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.(?:md|json|py|yml|yaml))`"
+)
+_TOOL_STATUS_ASSIGNMENT = re.compile(
+    r"^`?([A-Z0-9_]*(?:TOOL|PROVIDER|MODEL|HARNESS|TQSDK)[A-Z0-9_]*)\s*=\s*"
+    r"((?:CANDIDATE|VERIFIED|ADOPTED)[A-Z0-9_]*)`?$"
+)
+_SELECTED_MODEL_LINE = re.compile(
+    r"Selected model line:\s*\n\s*`([^`\n]+)`",
+    re.MULTILINE,
 )
 
 
@@ -169,6 +178,34 @@ def _check_tool_registry(root: Path) -> Iterable[str]:
     for token in forbidden_dynamic_tokens:
         if token in registry:
             yield f"TOOL_REGISTRY.md improperly owns volatile paid state: {token}"
+
+
+def _check_tool_status_ownership(root: Path) -> Iterable[str]:
+    """Exact tool/model status belongs to TOOL_REGISTRY, not direction/state."""
+    registry = _read(root, "TOOL_REGISTRY.md")
+    direction = _read(root, "PROJECT_DIRECTION.md")
+    state = _read(root, "CURRENT_STATE.md")
+
+    model_match = _SELECTED_MODEL_LINE.search(registry)
+    if not model_match:
+        yield "TOOL_REGISTRY.md is missing a parseable DeepSeek selected model line"
+    else:
+        selected_model = model_match.group(1).strip()
+        if selected_model and selected_model in direction:
+            yield (
+                "PROJECT_DIRECTION.md duplicates the exact selected model line owned by "
+                f"TOOL_REGISTRY.md: {selected_model}"
+            )
+
+    for raw_line in state.splitlines():
+        line = raw_line.strip()
+        match = _TOOL_STATUS_ASSIGNMENT.match(line)
+        if match:
+            key, value = match.groups()
+            yield (
+                "CURRENT_STATE.md improperly assigns tool/provider adoption status: "
+                f"{key}={value}; status belongs to TOOL_REGISTRY.md"
+            )
 
 
 def _check_governance_identity(root: Path) -> Iterable[str]:
@@ -319,6 +356,7 @@ def check_repository(root: Path = REPO_ROOT) -> list[str]:
         _check_volatile_ownership,
         _check_current_state_references,
         _check_tool_registry,
+        _check_tool_status_ownership,
         _check_governance_identity,
         _check_smoke_machine_authority,
         _check_retest_machine_authority,
