@@ -129,13 +129,13 @@ The accepted outcome-independent infrastructure intentionally does not freeze or
 
 These remain later evidence/Owner-decision bindings and must fail closed until separately approved.
 
-## TqSdk PAPER role boundary
+## External PAPER tool/runtime boundary
 
-Tool/provider/runtime status is owned only by `TOOL_REGISTRY.md`.
+Tool/provider/runtime `CANDIDATE / VERIFIED / ADOPTED` status, pins and credential-location seams are owned only by `TOOL_REGISTRY.md`; this dynamic-state file does not assign them.
 
-`TQSDK_PAPER_ROLE = CANDIDATE_ENGINEERING_ONLY__NOT_YET_VERIFIED_OR_ADOPTED_FOR_EXTERNAL_PAPER`
+The current external PAPER boundary is purely operational: external connect/login and order/account mutation remain locked above. Offline candidate implementation and passing fake/offline tests do not grant permission to connect, login or order.
 
-Offline candidate implementation and passing fake/offline tests do not grant permission to connect, login or order. Before the first actual PAPER connection, the TqSdk PAPER runtime/API/credential seam must be separately verified and, if accepted, adopted through the canonical tooling process.
+Before the first actual PAPER connection, the applicable PAPER runtime/API/credential seam must be verified and, if selected, adopted through `TOOL_REGISTRY.md`; the separate exact PAPER execution authority must also be active at execution time.
 
 ## Full frozen V0.1 execution gate
 
