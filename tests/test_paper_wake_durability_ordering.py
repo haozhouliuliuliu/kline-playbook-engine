@@ -35,9 +35,9 @@ from tests.test_paper_offline_runtime_drill import FakeJournaledPaperBroker, _au
 class WakeDurabilityOrderingRegressionTests(unittest.TestCase):
     def test_stop_submit_unknown_cannot_eat_same_boundary_cognition_wake(self) -> None:
         bootstrap_at = datetime(
-            TARGET_DAY.year, TARGET_DAY.month, TARGET_DAY.day, 9, 15, tzinfo=TZ
+            TARGET_DAY.year, TARGET_DAY.month, TARGET_DAY.day, 9, 19, tzinfo=TZ
         )
-        wake_at = bootstrap_at + timedelta(minutes=5)
+        wake_at = bootstrap_at + timedelta(minutes=1)
 
         class Broker(FakeJournaledPaperBroker):
             @property
@@ -142,13 +142,7 @@ class WakeDurabilityOrderingRegressionTests(unittest.TestCase):
                     at=bootstrap_at,
                 )
 
-                bars = tuple(
-                    _live_minute(
-                        bootstrap_at + timedelta(minutes=index),
-                        price="3489" if index == 4 else "3500",
-                    )
-                    for index in range(5)
-                )
+                bars = (_live_minute(bootstrap_at, price="3489"),)
                 broker.set_observed_at(wake_at)
                 broker.fail_after_submit = True
                 with self.assertRaisesRegex(
