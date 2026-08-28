@@ -1,0 +1,257 @@
+name: Apply bounded PAPER wake durability repair
+
+on:
+  push:
+    branches:
+      - codex/paper-total-audit-repair-v01-20260828
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Apply exact bounded repair and regression
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/paper_runtime.py')
+          text = path.read_text(encoding='utf-8')
+
+          marker = '''    def process_conditional_orders(\n'''
+          if marker not in text:
+              raise SystemExit('process_conditional_orders marker missing')
+          helper = '''    def _recover_pending_observed_wakes(\n        self, *, at: datetime\n    ) -> tuple[LiveCausalWake, ...]:\n        \"\"\"Recover safely-not-dispatched durable cognition wakes before newer market work.\"\"\"\n        at = _aware(at, \"pending paper wake recovery time\")\n        pending = self.wake_journal.pending_observations()\n        if not pending:\n            return ()\n        complete_five = tuple(\n            bar for bar in self.context_builder.complete_bars() if bar.timeframe == \"5m\"\n        )\n        recovered: list[LiveCausalWake] = []\n        for record in pending:\n            if record.trader_identity != self.trader_identity:\n                raise RuntimeError(\"PAPER_PENDING_WAKE_TRADER_IDENTITY_MISMATCH\")\n            if record.concrete_contract_id != self.concrete_contract_id:\n                raise RuntimeError(\"PAPER_PENDING_WAKE_CONTRACT_IDENTITY_MISMATCH\")\n            if at < record.observed_at:\n                raise RuntimeError(\"PAPER_PENDING_WAKE_CLOCK_REGRESSION\")\n            matches: list[LiveCausalWake] = []\n            for bar in complete_five:\n                if bar.end != record.bar_end:\n                    continue\n                candidate = LiveCausalWake(\n                    bar=bar,\n                    observed_at=record.observed_at,\n                    policy_identity=self.context_builder.policy_identity,\n                )\n                if candidate.bar_identity == record.bar_identity:\n                    matches.append(candidate)\n            if len(matches) != 1:\n                raise RuntimeError(\"PAPER_PENDING_WAKE_CAUSAL_STATE_MISMATCH\")\n            wake = matches[0]\n            if wake.wake_identity != record.wake_identity:\n                raise RuntimeError(\"PAPER_PENDING_WAKE_IDENTITY_MISMATCH\")\n            recovered.append(wake)\n        return tuple(sorted(recovered, key=lambda item: (item.bar.end, item.wake_identity)))\n\n    def _execute_triggered_conditionals(self, *, at: datetime) -> None:\n        \"\"\"Run already-durable triggered STOP children after wake durability is secured.\"\"\"\n        blockers = self._resume_triggered_conditionals(at=at)\n        if blockers:\n            raise RuntimeError(\n                \"PAPER_CONDITIONAL_RECOVERY_BLOCKED:\" + \";\".join(blockers)\n            )\n        blockers = self.refresh_broker_truth(at=at)\n        if blockers:\n            raise RuntimeError(\n                \"PAPER_CONDITIONAL_RECONCILIATION_BLOCKED:\" + \";\".join(blockers)\n            )\n\n'''
+          text = text.replace(marker, helper + marker, 1)
+
+          old_signature = '''    def process_conditional_orders(\n        self, bar: LiveCausalBar, *, observed_at: datetime\n    ) -> tuple[str, ...]:\n        \"\"\"Evaluate armed STOP directives from one governed current closed bar.\"\"\"\n        observed_at = _aware(observed_at, \"conditional observation time\")\n'''
+          new_signature = '''    def process_conditional_orders(\n        self, bar: LiveCausalBar, *, observed_at: datetime,\n        execute_triggered: bool = True,\n    ) -> tuple[str, ...]:\n        \"\"\"Evaluate armed STOP directives from one governed current closed bar.\"\"\"\n        observed_at = _aware(observed_at, \"conditional observation time\")\n        if type(execute_triggered) is not bool:\n            raise ValueError(\"conditional execution flag must be bool\")\n'''
+          if old_signature not in text:
+              raise SystemExit('conditional signature block missing')
+          text = text.replace(old_signature, new_signature, 1)
+
+          old_trigger = '''        if triggered:\n            blockers = self._resume_triggered_conditionals(at=observed_at)\n            if blockers:\n                raise RuntimeError(\"PAPER_CONDITIONAL_RECOVERY_BLOCKED:\" + \";\".join(blockers))\n            blockers = self.refresh_broker_truth(at=observed_at)\n            if blockers:\n                raise RuntimeError(\"PAPER_CONDITIONAL_RECONCILIATION_BLOCKED:\" + \";\".join(blockers))\n        return tuple(triggered)\n'''
+          new_trigger = '''        if triggered and execute_triggered:\n            self._execute_triggered_conditionals(at=observed_at)\n        return tuple(triggered)\n'''
+          if old_trigger not in text:
+              raise SystemExit('conditional execution block missing')
+          text = text.replace(old_trigger, new_trigger, 1)
+
+          old_entry = '''        results: list[PaperWakeResult] = []\n        wakes = self.context_builder.observe(bars, observed_at=observed_at)\n        for minute in self.context_builder.newly_admitted_one_minute_bars:\n            self.process_conditional_orders(minute, observed_at=observed_at)\n        for wake in wakes:\n'''
+          new_entry = '''        results: list[PaperWakeResult] = []\n        pending_wakes = self._recover_pending_observed_wakes(at=observed_at)\n        pending_recovery = bool(pending_wakes)\n        if pending_recovery:\n            wakes = pending_wakes\n        else:\n            wakes = self.context_builder.observe(bars, observed_at=observed_at)\n            triggered: list[str] = []\n            for minute in self.context_builder.newly_admitted_one_minute_bars:\n                triggered.extend(self.process_conditional_orders(\n                    minute, observed_at=observed_at, execute_triggered=False\n                ))\n            # The cognition wake is made durable after all local 1m STOP\n            # validations/evaluations, but before any triggered external submit\n            # can abort this processing cycle.  A submission exception therefore\n            # leaves an OBSERVED wake that is provably safe to dispatch once.\n            for wake in wakes:\n                self.context_builder.admit_wake_to_journal(\n                    wake, journal=self.wake_journal,\n                    trader_identity=self.trader_identity,\n                    concrete_contract_id=self.concrete_contract_id,\n                )\n            if triggered:\n                self._execute_triggered_conditionals(at=observed_at)\n        for wake in wakes:\n'''
+          if old_entry not in text:
+              raise SystemExit('process_closed_minutes entry block missing')
+          text = text.replace(old_entry, new_entry, 1)
+
+          old_tail = '''            results.append(PaperWakeResult(\n                wake.wake_identity, decision.decision_identity,\n                instruction.client_request_id, confirmed_id))\n        return tuple(results)\n\n    def cancel_order'''
+          new_tail = '''            results.append(PaperWakeResult(\n                wake.wake_identity, decision.decision_identity,\n                instruction.client_request_id, confirmed_id))\n        if pending_recovery:\n            return tuple(results) + self.process_closed_minutes(\n                bars, observed_at=observed_at\n            )\n        return tuple(results)\n\n    def cancel_order'''
+          if old_tail not in text:
+              raise SystemExit('process_closed_minutes tail block missing')
+          text = text.replace(old_tail, new_tail, 1)
+          path.write_text(text, encoding='utf-8')
+
+          test = r'''from __future__ import annotations
+
+from dataclasses import replace
+from datetime import timedelta
+from decimal import Decimal
+from pathlib import Path
+from tempfile import TemporaryDirectory
+import unittest
+
+from src.jianghe_ai_trader import AttentionMode, DecisionAction, Direction, StrategyFamily
+from src.jianghe_execution_bridge import JiangheExecutionBridge
+from src.jianghe_response_normalizer import NormalizedJiangheDecision
+from src.paper_broker_mirror import PaperBrokerTruthMirror
+from src.paper_execution_chain import PaperDeterministicExecutionChain
+from src.paper_order_journal import CONDITIONAL_TRIGGERED, UNKNOWN_AFTER_SUBMIT, PaperOrderJournal
+from src.paper_runtime import PaperRuntimeCoordinator, PaperTraderDecision
+from src.paper_supervisor import PaperRuntimeSupervisor
+from src.paper_wake_journal import DECISION_COMMITTED, OBSERVED, PaperWakeJournal
+from src.risk_gate import RiskGate, RiskRuleSet
+from tests.test_paper_final_closure import _protective_stop_instruction, _triggered_child_instruction
+from tests.test_paper_live_causal_context import CONTRACT, INSTRUMENT, TARGET_DAY, TZ, _CALENDAR, _live_minute, _minutes_for_days, _new_builder, _prior_days
+from tests.test_paper_offline_runtime_drill import FakeJournaledPaperBroker, _authority, _profile
+
+
+class WakeDurabilityOrderingRegressionTests(unittest.TestCase):
+    def test_stop_submit_unknown_cannot_eat_same_boundary_cognition_wake(self) -> None:
+        bootstrap_at = __import__('datetime').datetime(
+            TARGET_DAY.year, TARGET_DAY.month, TARGET_DAY.day, 9, 15, tzinfo=TZ
+        )
+        wake_at = bootstrap_at + timedelta(minutes=5)
+
+        class Broker(FakeJournaledPaperBroker):
+            @property
+            def order_journal(self):
+                return self.journal
+
+        class WaitingTrader:
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def decide(self, *, wake, context, positions, account):
+                self.calls += 1
+                normalized = NormalizedJiangheDecision(
+                    family=StrategyFamily.NONE,
+                    action=DecisionAction.WAIT,
+                    direction=Direction.NONE,
+                    attention_mode=AttentionMode.WATCH,
+                    decision_state='TEST_ONLY_WAIT',
+                    rationale='TEST_ONLY',
+                    raw_text='{}',
+                    declared_unknown=(),
+                    principle_references=(),
+                    source_references=(),
+                    numeric_claims=(),
+                )
+                return PaperTraderDecision(
+                    decision_identity=normalized.identity,
+                    normalized_decision=normalized,
+                )
+
+        with TemporaryDirectory() as tmp:
+            order_journal = PaperOrderJournal(Path(tmp) / 'orders.sqlite3')
+            wake_journal = PaperWakeJournal(Path(tmp) / 'wakes.sqlite3')
+            try:
+                builder = _new_builder()
+                mirror = PaperBrokerTruthMirror(broker_id='OFFLINE_FAKE_BROKER')
+                broker = Broker(order_journal)
+                broker.set_observed_at(bootstrap_at)
+                trader = WaitingTrader()
+                supervisor = PaperRuntimeSupervisor(
+                    actual_tqsdk_runtime_version='3.10.1',
+                    authority=_authority(),
+                    activation_profile=_profile(),
+                    broker_mirror=mirror,
+                    order_journal=order_journal,
+                    wake_journal=wake_journal,
+                )
+                chain = PaperDeterministicExecutionChain(
+                    strategy_identity='strategy',
+                    instrument=INSTRUMENT,
+                    concrete_contract_id=CONTRACT,
+                    bridge=JiangheExecutionBridge(),
+                    risk_gate=RiskGate(RiskRuleSet(
+                        ruleset_id='risk', version='test-only',
+                        max_order_quantity=Decimal('1'),
+                    )),
+                    max_market_age_seconds=60,
+                )
+                runtime = PaperRuntimeCoordinator(
+                    trader_identity='trader',
+                    concrete_contract_id=CONTRACT,
+                    context_builder=builder,
+                    wake_journal=wake_journal,
+                    order_journal=order_journal,
+                    broker_mirror=mirror,
+                    supervisor=supervisor,
+                    broker=broker,
+                    trader=trader,
+                    execution_chain=chain,
+                )
+                runtime.connect(at=bootstrap_at)
+                runtime.bootstrap_market(
+                    _minutes_for_days(
+                        _prior_days(_CALENDAR.trading_days, 3) + (TARGET_DAY,),
+                        until=bootstrap_at,
+                    ),
+                    observed_at=bootstrap_at,
+                )
+                runtime.mark_trader_runtime_ready()
+
+                directive = replace(
+                    _protective_stop_instruction(), concrete_contract_id=CONTRACT
+                )
+                child = _triggered_child_instruction(directive)
+                order_journal.prepare(
+                    client_request_id=directive.client_request_id,
+                    trader_identity='trader',
+                    wake_identity='prior-wake',
+                    decision_identity='prior-decision',
+                    intent_identity='prior-intent',
+                    risk_identity='prior-risk',
+                    concrete_contract_id=CONTRACT,
+                    instruction=directive,
+                    prepared_at=bootstrap_at,
+                )
+                order_journal.arm_conditional(
+                    directive_client_request_id=directive.client_request_id,
+                    child_instruction=child,
+                    at=bootstrap_at,
+                )
+
+                bars = tuple(
+                    _live_minute(
+                        bootstrap_at + timedelta(minutes=index),
+                        price='3489' if index == 4 else '3500',
+                    )
+                    for index in range(5)
+                )
+                broker.set_observed_at(wake_at)
+                broker.fail_after_submit = True
+                with self.assertRaisesRegex(
+                    TimeoutError, 'OFFLINE_FAULT_AFTER_SUBMIT_BOUNDARY'
+                ):
+                    runtime.process_closed_minutes(bars, observed_at=wake_at)
+
+                self.assertEqual(1, broker.submit_calls)
+                self.assertEqual(0, trader.calls)
+                pending = wake_journal.pending_observations()
+                self.assertEqual(1, len(pending))
+                self.assertEqual(OBSERVED, pending[0].status)
+                self.assertEqual((), wake_journal.unresolved_dispatches())
+                self.assertEqual(
+                    UNKNOWN_AFTER_SUBMIT,
+                    order_journal.get(child.client_request_id).status,
+                )
+                self.assertEqual(
+                    CONDITIONAL_TRIGGERED,
+                    order_journal.get_conditional(directive.client_request_id).status,
+                )
+
+                broker.fail_after_submit = False
+                recovered = runtime.process_closed_minutes(bars, observed_at=wake_at)
+                self.assertEqual(1, len(recovered))
+                self.assertEqual(1, trader.calls)
+                self.assertEqual(1, broker.submit_calls)
+                self.assertEqual((), wake_journal.pending_observations())
+                self.assertEqual(
+                    DECISION_COMMITTED,
+                    wake_journal.get(recovered[0].wake_identity).status,
+                )
+
+                self.assertEqual((), runtime.process_closed_minutes(bars, observed_at=wake_at))
+                self.assertEqual(1, trader.calls)
+                self.assertEqual(1, broker.submit_calls)
+            finally:
+                order_journal.close()
+                wake_journal.close()
+
+
+if __name__ == '__main__':
+    unittest.main()
+'''
+          Path('tests/test_paper_wake_durability_ordering.py').write_text(test, encoding='utf-8')
+          PY
+
+          python -m compileall -q src tools tests
+          python -m unittest tests.test_paper_wake_durability_ordering -v
+          python -m unittest tests.test_paper_final_closure -v
+          python tools/check_authority_consistency.py
+          git diff --check
+          rm .github/workflows/apply-paper-wake-durability-fix.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/paper_runtime.py tests/test_paper_wake_durability_ordering.py .github/workflows/apply-paper-wake-durability-fix.yml
+          git commit -m 'paper: close wake durability ordering gap'
+          git push origin HEAD:codex/paper-total-audit-repair-v01-20260828
