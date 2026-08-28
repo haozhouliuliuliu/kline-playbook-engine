@@ -21,8 +21,8 @@ from hashlib import sha256
 import json
 from typing import Any, Iterable
 
-from src.broker_adapter import OrderRole, OrderType
-from src.contract_semantics import OrderAction, PositionDirection
+from src.broker_adapter import OrderRole, OrderType, StopTriggerCondition
+from src.contract_semantics import CloseOffset, OrderAction, PositionDirection
 from src.runtime_events import BrokerEvent, BrokerEventType
 from src.trading_state import OrderStatus
 
@@ -49,9 +49,13 @@ class OrderRequest:
     action: OrderAction
     order_type: OrderType
     quantity: Decimal
+    close_offset: CloseOffset | None = None
     strategy_identity_id: str | None = None
     limit_price: Decimal | None = None
     trigger_price: Decimal | None = None
+    trigger_condition: StopTriggerCondition | None = None
+    triggered_order_type: OrderType | None = None
+    triggered_limit_price: Decimal | None = None
     order_role: OrderRole = OrderRole.GENERIC
     client_order_id: str | None = None
     available_at: datetime | None = None
@@ -69,6 +73,10 @@ class OrderRequest:
             raise ValueError("order request requires an explicit order type")
         if type(self.quantity) is not Decimal or not self.quantity.is_finite() or self.quantity <= 0:
             raise ValueError("order request quantity must be a positive finite Decimal")
+        if self.close_offset is not None and not isinstance(self.close_offset, CloseOffset):
+            raise ValueError("order request close offset must be explicit")
+        if self.action is OrderAction.OPEN and self.close_offset is not None:
+            raise ValueError("OPEN order request cannot carry close offset")
         if self.limit_price is not None:
             if type(self.limit_price) is not Decimal or not self.limit_price.is_finite() or self.limit_price <= 0:
                 raise ValueError("order request limit price must be a positive finite Decimal")
@@ -83,6 +91,29 @@ class OrderRequest:
                 raise ValueError("trigger price is only valid for STOP_MARKET")
         elif self.order_type is OrderType.STOP_MARKET:
             raise ValueError("STOP_MARKET requires trigger price")
+        if self.order_type is OrderType.STOP_MARKET:
+            if not isinstance(self.trigger_condition, StopTriggerCondition):
+                raise ValueError("STOP_MARKET requires explicit trigger condition")
+            if self.triggered_order_type not in {OrderType.MARKET, OrderType.LIMIT}:
+                raise ValueError("STOP_MARKET requires executable triggered order type")
+            if self.triggered_order_type is OrderType.LIMIT:
+                if (
+                    type(self.triggered_limit_price) is not Decimal
+                    or not self.triggered_limit_price.is_finite()
+                    or self.triggered_limit_price <= 0
+                ):
+                    raise ValueError("triggered LIMIT requires positive finite price")
+            elif self.triggered_limit_price is not None:
+                raise ValueError("triggered limit price is only valid for LIMIT")
+        elif any(
+            value is not None
+            for value in (
+                self.trigger_condition,
+                self.triggered_order_type,
+                self.triggered_limit_price,
+            )
+        ):
+            raise ValueError("trigger execution facts require STOP_MARKET")
         if not isinstance(self.order_role, OrderRole):
             raise ValueError("order request requires an order role")
         if type(self.replace_generation) is not int or self.replace_generation < 0:
@@ -101,8 +132,12 @@ class OrderRequest:
                 "action": self.action.value,
                 "order_type": self.order_type.value,
                 "quantity": str(self.quantity),
+                "close_offset": None if self.close_offset is None else self.close_offset.value,
                 "limit_price": None if self.limit_price is None else str(self.limit_price),
                 "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "trigger_condition": None if self.trigger_condition is None else self.trigger_condition.value,
+                "triggered_order_type": None if self.triggered_order_type is None else self.triggered_order_type.value,
+                "triggered_limit_price": None if self.triggered_limit_price is None else str(self.triggered_limit_price),
                 "order_role": self.order_role.value,
                 "client_order_id": self.client_order_id or self.client_request_id,
                 "available_at": None if self.available_at is None else self.available_at.isoformat(),
@@ -126,9 +161,13 @@ class Order:
     order_type: OrderType
     quantity: Decimal
     status: OrderStatus
+    close_offset: CloseOffset | None = None
     strategy_identity_id: str | None = None
     limit_price: Decimal | None = None
     trigger_price: Decimal | None = None
+    trigger_condition: StopTriggerCondition | None = None
+    triggered_order_type: OrderType | None = None
+    triggered_limit_price: Decimal | None = None
     order_role: OrderRole = OrderRole.GENERIC
     client_order_id: str | None = None
     available_at: datetime | None = None
@@ -180,8 +219,12 @@ class Order:
                 "action": self.action.value,
                 "order_type": self.order_type.value,
                 "quantity": str(self.quantity),
+                "close_offset": None if self.close_offset is None else self.close_offset.value,
                 "limit_price": None if self.limit_price is None else str(self.limit_price),
                 "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "trigger_condition": None if self.trigger_condition is None else self.trigger_condition.value,
+                "triggered_order_type": None if self.triggered_order_type is None else self.triggered_order_type.value,
+                "triggered_limit_price": None if self.triggered_limit_price is None else str(self.triggered_limit_price),
                 "order_role": self.order_role.value,
                 "client_order_id": self.client_order_id or self.client_request_id,
                 "available_at": None if self.available_at is None else self.available_at.isoformat(),
@@ -263,9 +306,13 @@ class OrderManagementSystem:
             order_type=request.order_type,
             quantity=request.quantity,
             status=OrderStatus.PENDING_SUBMIT,
+            close_offset=request.close_offset,
             strategy_identity_id=request.strategy_identity_id,
             limit_price=request.limit_price,
             trigger_price=request.trigger_price,
+            trigger_condition=request.trigger_condition,
+            triggered_order_type=request.triggered_order_type,
+            triggered_limit_price=request.triggered_limit_price,
             order_role=request.order_role,
             client_order_id=request.client_order_id or request.client_request_id,
             available_at=request.available_at or at,
@@ -393,9 +440,13 @@ class OrderManagementSystem:
             order_type=changes.get("order_type", order.order_type),
             quantity=changes.get("quantity", order.quantity),
             status=changes.get("status", order.status),
+            close_offset=changes.get("close_offset", order.close_offset),
             strategy_identity_id=changes.get("strategy_identity_id", order.strategy_identity_id),
             limit_price=changes.get("limit_price", order.limit_price),
             trigger_price=changes.get("trigger_price", order.trigger_price),
+            trigger_condition=changes.get("trigger_condition", order.trigger_condition),
+            triggered_order_type=changes.get("triggered_order_type", order.triggered_order_type),
+            triggered_limit_price=changes.get("triggered_limit_price", order.triggered_limit_price),
             order_role=changes.get("order_role", order.order_role),
             client_order_id=changes.get("client_order_id", order.client_order_id),
             available_at=changes.get("available_at", order.available_at),

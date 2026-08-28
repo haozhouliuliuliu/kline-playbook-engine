@@ -23,7 +23,12 @@ import json
 from typing import Any, Protocol
 from zoneinfo import ZoneInfo
 
-from src.broker_adapter import BrokerOrderInstruction, OrderRole, OrderType
+from src.broker_adapter import (
+    BrokerOrderInstruction,
+    OrderRole,
+    OrderType,
+    StopTriggerCondition,
+)
 from src.contract_semantics import ContractSpecification, OrderAction
 from src.historical_data import NormalizedHistoricalBar
 from src.intent import (
@@ -490,12 +495,22 @@ class ShadowRuntime:
     def _submit_execution_order(self, *, directive: Any, action: OrderAction, role: OrderRole, trigger_price: Decimal | None, parent_order_id: str | None, replace_generation: int, orders_created: list[Order]) -> Order:
         if trigger_price is None:
             raise ValueError("machine stop directive requires a trigger price")
+        buy_stop = (
+            (action is OrderAction.OPEN and directive.direction.value == "LONG")
+            or (action is OrderAction.CLOSE and directive.direction.value == "SHORT")
+        )
+        trigger_condition = (
+            StopTriggerCondition.AT_OR_ABOVE
+            if buy_stop
+            else StopTriggerCondition.AT_OR_BELOW
+        )
         request_id = _canonical_hash({"runtime": self._config.runtime_id, "directive": directive.machine_event_identity, "role": role.value, "replace_generation": replace_generation})
         request = OrderRequest(
             client_request_id=request_id, client_order_id=request_id,
             concrete_contract_id=directive.concrete_contract_id, direction=directive.direction,
             action=action, order_type=OrderType.STOP_MARKET, quantity=directive.quantity,
             strategy_identity_id=directive.strategy_identity_id, trigger_price=trigger_price,
+            trigger_condition=trigger_condition, triggered_order_type=OrderType.MARKET,
             order_role=role, available_at=directive.available_at, parent_order_id=parent_order_id,
             oco_group_id=directive.oco_group_id, replace_generation=replace_generation,
             source_directive_identity=directive.machine_event_identity,
@@ -505,7 +520,9 @@ class ShadowRuntime:
             client_request_id=request.client_request_id, client_order_id=request.client_order_id,
             concrete_contract_id=request.concrete_contract_id, direction=request.direction,
             action=request.action, order_type=request.order_type, quantity=request.quantity,
-            trigger_price=request.trigger_price, order_role=request.order_role,
+            trigger_price=request.trigger_price, trigger_condition=request.trigger_condition,
+            triggered_order_type=request.triggered_order_type,
+            triggered_limit_price=request.triggered_limit_price, order_role=request.order_role,
             strategy_identity_id=request.strategy_identity_id, available_at=request.available_at,
             parent_order_id=request.parent_order_id, oco_group_id=request.oco_group_id,
             replace_generation=request.replace_generation, source_directive_identity=request.source_directive_identity,

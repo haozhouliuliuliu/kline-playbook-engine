@@ -18,14 +18,24 @@ from hashlib import sha256
 import json
 from typing import Protocol, Sequence
 
-from src.broker_adapter import BrokerOrderInstruction, OrderRole, OrderType
-from src.contract_semantics import OrderAction, PositionDirection
+from src.broker_adapter import (
+    BrokerOrderInstruction,
+    OrderRole,
+    OrderType,
+    StopTriggerCondition,
+)
+from src.contract_semantics import CloseOffset, OrderAction, PositionDirection
 from src.paper_broker_mirror import PaperBrokerTruthMirror
 from src.paper_execution_authority import PaperAuthoritySource
 from src.paper_execution_chain import PaperDeterministicExecutionChain
 from src.jianghe_response_normalizer import NormalizedJiangheDecision
 from src.paper_live_causal_context import LiveCausalBar, LiveCausalContextBuilder, LiveCausalWake
-from src.paper_order_journal import BROKER_ORDER_ID_KNOWN, PREPARED, PaperOrderJournal
+from src.paper_order_journal import (
+    BROKER_ORDER_ID_KNOWN,
+    PREPARED,
+    TERMINAL,
+    PaperOrderJournal,
+)
 from src.paper_supervisor import PaperRuntimeSupervisor, PaperSupervisorAssessment
 from src.paper_wake_journal import PaperWakeJournal
 from src.runtime_events import BrokerConnectionState
@@ -208,6 +218,22 @@ class PaperRuntimeCoordinator:
     def _before_broker_read(self, at: datetime) -> None:
         _aware(at, "paper broker read time")
 
+    def _require_recovery_submission_ready(
+        self, *, at: datetime, allowed_recovery_blocker: str
+    ) -> None:
+        assessment = self.assess(
+            at=at, concrete_contract_id=self.concrete_contract_id
+        )
+        allowed = {
+            "PAPER_ORDER_RECOVERY:" + allowed_recovery_blocker,
+            "LIVE_MARKET_NOT_BOOTSTRAPPED",
+            "LIVE_MARKET_SEQUENCE_NOT_CLEAN",
+            "TRADER_RUNTIME_NOT_READY",
+        }
+        blockers = tuple(item for item in assessment.order_blockers if item not in allowed)
+        if blockers:
+            raise PermissionError("PAPER_ORDER_NOT_READY:" + ";".join(blockers))
+
     def assess(self, *, at: datetime,
                concrete_contract_id: str | None = None) -> PaperSupervisorAssessment:
         return self.supervisor.assess(
@@ -229,8 +255,12 @@ class PaperRuntimeCoordinator:
         try:
             self.broker_mirror.set_connection_state(self.broker.connection_state)
             blockers = self.refresh_broker_truth(at=at)
-            if self.order_journal.unresolved_replace_operations():
-                blockers = self.resume_replacement_recovery(at=at)
+            if (
+                self.order_journal.unresolved_replace_operations()
+                or self.order_journal.triggered_conditionals()
+                or self.order_journal.pending_execution_batches()
+            ):
+                blockers = self.resume_order_recovery(at=at)
             if blockers:
                 raise RuntimeError("PAPER_CONNECT_RECONCILIATION_BLOCKED:" + ";".join(blockers))
         except Exception:
@@ -300,6 +330,200 @@ class PaperRuntimeCoordinator:
         self.refresh_broker_truth(at=at)
         return events
 
+    def _prepare_if_missing(
+        self,
+        *,
+        instruction: BrokerOrderInstruction,
+        trader_identity: str,
+        wake_identity: str,
+        decision_identity: str,
+        intent_identity: str,
+        risk_identity: str,
+        at: datetime,
+    ) -> None:
+        try:
+            existing = self.order_journal.get(instruction.client_request_id)
+        except KeyError:
+            self.order_journal.prepare(
+                client_request_id=instruction.client_request_id,
+                trader_identity=trader_identity,
+                wake_identity=wake_identity,
+                decision_identity=decision_identity,
+                intent_identity=intent_identity,
+                risk_identity=risk_identity,
+                concrete_contract_id=instruction.concrete_contract_id,
+                instruction=instruction,
+                prepared_at=at,
+            )
+            return
+        if (
+            existing.status != PREPARED
+            and existing.status not in {BROKER_ORDER_ID_KNOWN, TERMINAL}
+        ):
+            raise RuntimeError("PAPER_ORDER_ATTEMPT_NOT_SAFE_TO_RESUME")
+        if existing.expected_source_directive_identity != instruction.source_directive_identity:
+            raise RuntimeError("PAPER_ORDER_RESUME_ENVELOPE_MISMATCH")
+
+    @staticmethod
+    def _triggered_child_instruction(
+        instruction: BrokerOrderInstruction,
+    ) -> BrokerOrderInstruction:
+        if instruction.order_type is not OrderType.STOP_MARKET:
+            raise ValueError("triggered child requires STOP_MARKET directive")
+        child_request_id = _hash({
+            "schema_version": PAPER_RUNTIME_COORDINATOR_VERSION,
+            "kind": "PROJECT_TRIGGERED_STOP_CHILD",
+            "directive_client_request_id": instruction.client_request_id,
+            "directive_identity": instruction.identity_id,
+        })
+        return BrokerOrderInstruction(
+            client_request_id=child_request_id,
+            client_order_id=child_request_id,
+            concrete_contract_id=instruction.concrete_contract_id,
+            direction=instruction.direction,
+            action=instruction.action,
+            order_type=instruction.triggered_order_type,
+            quantity=instruction.quantity,
+            close_offset=instruction.close_offset,
+            limit_price=instruction.triggered_limit_price,
+            order_role=instruction.order_role,
+            strategy_identity_id=instruction.strategy_identity_id,
+            available_at=instruction.available_at,
+            parent_order_id=instruction.parent_order_id,
+            oco_group_id=instruction.oco_group_id,
+            replace_generation=instruction.replace_generation,
+            source_directive_identity=instruction.client_request_id,
+        )
+
+    def _resume_triggered_conditionals(self, *, at: datetime) -> list[str]:
+        blockers: list[str] = []
+        for conditional in self.order_journal.triggered_conditionals():
+            directive = self.order_journal.get(conditional.directive_client_request_id)
+            self._prepare_if_missing(
+                instruction=conditional.child_instruction,
+                trader_identity=directive.trader_identity,
+                wake_identity=directive.wake_identity,
+                decision_identity=directive.decision_identity,
+                intent_identity=_hash({
+                    "directive_intent_identity": directive.intent_identity,
+                    "conditional_child": conditional.child_client_request_id,
+                }),
+                risk_identity=directive.risk_identity,
+                at=at,
+            )
+            child = self.order_journal.get(conditional.child_client_request_id)
+            if child.status == PREPARED:
+                self._require_recovery_submission_ready(
+                    at=at,
+                    allowed_recovery_blocker="CONDITIONAL_TRIGGER_PENDING_SUBMIT",
+                )
+                self._before_external_action(at, action="SUBMIT")
+                self.broker.submit_order(conditional.child_instruction)
+                child = self.order_journal.get(conditional.child_client_request_id)
+            if child.status not in {BROKER_ORDER_ID_KNOWN, TERMINAL}:
+                blockers.append("CONDITIONAL_CHILD_SUBMISSION_UNRESOLVED")
+                continue
+            self.order_journal.resolve_conditional(
+                conditional.directive_client_request_id, at=at
+            )
+        return blockers
+
+    def process_conditional_orders(
+        self, bar: LiveCausalBar, *, observed_at: datetime
+    ) -> tuple[str, ...]:
+        """Evaluate armed STOP directives from one governed current closed bar."""
+        observed_at = _aware(observed_at, "conditional observation time")
+        armed = self.order_journal.armed_conditionals()
+        if not armed:
+            return ()
+        if not isinstance(bar, LiveCausalBar) or bar.timeframe != "5m":
+            raise ValueError("conditional evaluation requires governed closed 5m bar")
+        if bar.concrete_instrument != self.concrete_contract_id.split(".", 1)[-1]:
+            raise ValueError("PAPER_CONDITIONAL_CONTRACT_MISMATCH")
+        if bar.available_at > observed_at:
+            raise RuntimeError("PAPER_CONDITIONAL_FUTURE_MARKET_DATA")
+        max_age = (
+            self.execution_chain.max_market_age_seconds
+            if self.execution_chain is not None
+            else 0
+        )
+        age = (observed_at - bar.available_at).total_seconds()
+        if age < 0 or max_age <= 0 or age > max_age:
+            raise RuntimeError("PAPER_CONDITIONAL_STALE_MARKET_DATA")
+        triggered: list[str] = []
+        for conditional in armed:
+            directive = self.order_journal.get(conditional.directive_client_request_id)
+            condition = StopTriggerCondition(directive.expected_trigger_condition)
+            trigger_price = Decimal(directive.expected_trigger_price or "0")
+            self.order_journal.record_conditional_evaluation(
+                conditional.directive_client_request_id,
+                bar_identity=bar.identity,
+                bar_end=bar.end,
+                at=observed_at,
+            )
+            crossed = (
+                bar.high >= trigger_price
+                if condition is StopTriggerCondition.AT_OR_ABOVE
+                else bar.low <= trigger_price
+            )
+            if crossed:
+                self.order_journal.mark_conditional_triggered(
+                    conditional.directive_client_request_id, at=observed_at
+                )
+                triggered.append(conditional.directive_client_request_id)
+        if triggered:
+            blockers = self._resume_triggered_conditionals(at=observed_at)
+            if blockers:
+                raise RuntimeError("PAPER_CONDITIONAL_RECOVERY_BLOCKED:" + ";".join(blockers))
+            blockers = self.refresh_broker_truth(at=observed_at)
+            if blockers:
+                raise RuntimeError("PAPER_CONDITIONAL_RECONCILIATION_BLOCKED:" + ";".join(blockers))
+        return tuple(triggered)
+
+    def _resume_execution_batches(self, *, at: datetime) -> list[str]:
+        blockers: list[str] = []
+        for batch in self.order_journal.pending_execution_batches():
+            for child in batch.children:
+                self._prepare_if_missing(
+                    instruction=child.instruction,
+                    trader_identity=batch.trader_identity,
+                    wake_identity=batch.wake_identity,
+                    decision_identity=batch.decision_identity,
+                    intent_identity=child.intent_identity,
+                    risk_identity=child.risk_identity,
+                    at=at,
+                )
+                attempt = self.order_journal.get(child.instruction.client_request_id)
+                if attempt.status == PREPARED:
+                    self._require_recovery_submission_ready(
+                        at=at,
+                        allowed_recovery_blocker="EXECUTION_BATCH_PENDING_SUBMIT",
+                    )
+                    self._before_external_action(at, action="SUBMIT")
+                    self.broker.submit_order(child.instruction)
+                    attempt = self.order_journal.get(child.instruction.client_request_id)
+                if attempt.status not in {BROKER_ORDER_ID_KNOWN, TERMINAL}:
+                    blockers.append("EXECUTION_BATCH_CHILD_SUBMISSION_UNRESOLVED")
+                    break
+            if blockers:
+                break
+            refreshed = self.refresh_broker_truth(at=at)
+            if refreshed:
+                blockers.extend(refreshed)
+                break
+            self.order_journal.resolve_execution_batch(batch.batch_identity, at=at)
+        return blockers
+
+    def resume_order_recovery(self, *, at: datetime) -> tuple[str, ...]:
+        blockers = list(self.resume_replacement_recovery(at=at))
+        if blockers:
+            return tuple(sorted(set(blockers)))
+        blockers.extend(self._resume_triggered_conditionals(at=at))
+        if blockers:
+            return tuple(sorted(set(blockers)))
+        blockers.extend(self._resume_execution_batches(at=at))
+        return tuple(sorted(set(blockers)))
+
     def process_closed_minutes(self, bars: Sequence[object], *, observed_at: datetime
                                ) -> tuple[PaperWakeResult, ...]:
         """Drive closed 1m updates through wake -> trader -> governed execution.
@@ -323,6 +547,7 @@ class PaperRuntimeCoordinator:
                 wake, journal=self.wake_journal, trader_identity=self.trader_identity,
                 concrete_contract_id=self.concrete_contract_id)
             self.assess(at=observed_at).require_observation_ready()
+            self.process_conditional_orders(wake.bar, observed_at=observed_at)
             request_id = _hash({
                 "schema_version": PAPER_RUNTIME_COORDINATOR_VERSION,
                 "kind": "TRADER_DISPATCH",
@@ -361,14 +586,91 @@ class PaperRuntimeCoordinator:
                 results.append(PaperWakeResult(
                     wake.wake_identity, decision.decision_identity, None, None))
                 continue
-            if len(plans) != 1:
-                raise RuntimeError("PAPER_MULTI_ORDER_WAKE_NOT_SUPPORTED")
-            plan = plans[0]
-            instruction = plan.instruction
-            if instruction.concrete_contract_id != self.concrete_contract_id:
+            if any(
+                plan.instruction.concrete_contract_id != self.concrete_contract_id
+                for plan in plans
+            ):
                 raise ValueError("PAPER_ORDER_CONTRACT_MISMATCH")
             self.assess(at=observed_at,
                         concrete_contract_id=self.concrete_contract_id).require_order_ready()
+
+            if all(plan.instruction.order_type is OrderType.STOP_MARKET for plan in plans):
+                for plan in plans:
+                    instruction = plan.instruction
+                    self.order_journal.prepare(
+                        client_request_id=instruction.client_request_id,
+                        trader_identity=self.trader_identity,
+                        wake_identity=wake.wake_identity,
+                        decision_identity=decision.decision_identity,
+                        intent_identity=plan.intent_identity,
+                        risk_identity=plan.risk_identity,
+                        concrete_contract_id=self.concrete_contract_id,
+                        instruction=instruction,
+                        prepared_at=observed_at,
+                    )
+                    self.order_journal.arm_conditional(
+                        directive_client_request_id=instruction.client_request_id,
+                        child_instruction=self._triggered_child_instruction(instruction),
+                        at=observed_at,
+                    )
+                    results.append(PaperWakeResult(
+                        wake.wake_identity,
+                        decision.decision_identity,
+                        instruction.client_request_id,
+                        None,
+                    ))
+                continue
+            if any(plan.instruction.order_type is OrderType.STOP_MARKET for plan in plans):
+                raise RuntimeError("PAPER_MIXED_CONDITIONAL_AND_IMMEDIATE_BATCH_FORBIDDEN")
+
+            if len(plans) > 1 or plans[0].instruction.close_offset is not None:
+                batch_ids = {getattr(plan, "logical_execution_identity", None) for plan in plans}
+                logical_quantities = {getattr(plan, "logical_quantity", None) for plan in plans}
+                logical_intents = {getattr(plan, "logical_intent_identity", None) for plan in plans}
+                if (
+                    None in batch_ids
+                    or None in logical_quantities
+                    or None in logical_intents
+                    or len(batch_ids) != 1
+                    or len(logical_quantities) != 1
+                    or len(logical_intents) != 1
+                ):
+                    raise RuntimeError("PAPER_EXECUTION_BATCH_IDENTITY_INCOMPLETE")
+                batch_identity = next(iter(batch_ids))
+                logical_quantity = next(iter(logical_quantities))
+                logical_intent_identity = next(iter(logical_intents))
+                self.order_journal.authorize_execution_batch(
+                    batch_identity=batch_identity,
+                    trader_identity=self.trader_identity,
+                    wake_identity=wake.wake_identity,
+                    decision_identity=decision.decision_identity,
+                    logical_intent_identity=logical_intent_identity,
+                    risk_identity=plans[0].risk_identity,
+                    concrete_contract_id=self.concrete_contract_id,
+                    logical_quantity=logical_quantity,
+                    children=tuple(
+                        (plan.intent_identity, plan.risk_identity, plan.instruction)
+                        for plan in plans
+                    ),
+                    at=observed_at,
+                )
+                blockers = self._resume_execution_batches(at=observed_at)
+                if blockers:
+                    raise RuntimeError(
+                        "PAPER_EXECUTION_BATCH_RECOVERY_BLOCKED:" + ";".join(blockers)
+                    )
+                for plan in plans:
+                    attempt = self.order_journal.get(plan.instruction.client_request_id)
+                    results.append(PaperWakeResult(
+                        wake.wake_identity,
+                        decision.decision_identity,
+                        plan.instruction.client_request_id,
+                        attempt.broker_order_id,
+                    ))
+                continue
+
+            plan = plans[0]
+            instruction = plan.instruction
             self.order_journal.prepare(
                 client_request_id=instruction.client_request_id,
                 trader_identity=self.trader_identity,
@@ -541,7 +843,11 @@ class PaperRuntimeCoordinator:
         blockers = [
             blocker
             for blocker in self.refresh_broker_truth(at=at)
-            if blocker != "UNKNOWN_REPLACE"
+            if blocker not in {
+                "UNKNOWN_REPLACE",
+                "CONDITIONAL_TRIGGER_PENDING_SUBMIT",
+                "EXECUTION_BATCH_PENDING_SUBMIT",
+            }
         ]
         for operation in self.order_journal.unresolved_replace_operations():
             cancel = self.order_journal.get_cancel(operation.cancel_operation_id)
@@ -582,6 +888,10 @@ class PaperRuntimeCoordinator:
                 action=OrderAction(child.expected_action),
                 order_type=OrderType(child.expected_order_type),
                 quantity=quantity,
+                close_offset=(
+                    None if child.expected_close_offset is None
+                    else CloseOffset(child.expected_close_offset)
+                ),
                 limit_price=(
                     None if child.expected_limit_price is None
                     else Decimal(child.expected_limit_price)
@@ -589,6 +899,18 @@ class PaperRuntimeCoordinator:
                 trigger_price=(
                     None if child.expected_trigger_price is None
                     else Decimal(child.expected_trigger_price)
+                ),
+                trigger_condition=(
+                    None if child.expected_trigger_condition is None
+                    else StopTriggerCondition(child.expected_trigger_condition)
+                ),
+                triggered_order_type=(
+                    None if child.expected_triggered_order_type is None
+                    else OrderType(child.expected_triggered_order_type)
+                ),
+                triggered_limit_price=(
+                    None if child.expected_triggered_limit_price is None
+                    else Decimal(child.expected_triggered_limit_price)
                 ),
                 order_role=OrderRole(child.expected_order_role),
                 strategy_identity_id=child.expected_strategy_identity,

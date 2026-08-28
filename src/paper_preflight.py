@@ -28,7 +28,7 @@ from src.paper_runtime_assembly import PaperRuntimeAssembly
 from src.paper_runtime_config import PaperRuntimeConfig
 from src.paper_runtime_layout import PaperRuntimeLayout
 from src.paper_wake_journal import PaperWakeJournal
-from src.paper_runtime_bindings import PaperToolRoleStatus
+from src.paper_tool_role_authority import current_tqsdk_paper_role_authority
 
 PAPER_PREFLIGHT_SCHEMA_VERSION = "KPE_PAPER_PREFLIGHT_V0_1"
 
@@ -399,16 +399,28 @@ def run_paper_preflight(
     checks.append(_check("REQUIRED_COMPONENTS_AVAILABLE", component_blockers,
                          "all injected runtime components are bound in the assembly"))
 
-    # 12. external PAPER role is not silently treated as adopted ------------------------
+    # 12. external PAPER role is mechanically anchored to TOOL_REGISTRY.md ---------------
     role_blockers: list[str] = []
     if mode == EXTERNAL:
         role = config.paper_tool_role
         if assembly is not None and assembly.paper_tool_role is not role:
             role_blockers.append("EXTERNAL_PAPER_ROLE_BINDING_MISMATCH")
-        if role is None or role.status is not PaperToolRoleStatus.ADOPTED:
-            role_blockers.append("EXTERNAL_PAPER_ROLE_NOT_ADOPTED")
+        try:
+            governed_role = current_tqsdk_paper_role_authority()
+            executable_version = config.tqsdk_runtime_version
+            if assembly is not None:
+                executable_version = getattr(assembly.broker, "runtime_version", None)
+            verification = governed_role.verify(
+                role,
+                executable_runtime_version=executable_version,
+            )
+            role_blockers.extend(verification.blockers)
+            if not verification.adopted:
+                role_blockers.append("EXTERNAL_PAPER_ROLE_NOT_ADOPTED")
+        except (OSError, RuntimeError, ValueError) as error:
+            role_blockers.append(type(error).__name__ + ":" + str(error))
     checks.append(_check("EXTERNAL_PAPER_ROLE_NOT_SILENTLY_ADOPTED", role_blockers,
-                         "PAPER connect role requires an explicit ACTIVE authority, never code/credential presence"))
+                         "PAPER role matches canonical TOOL_REGISTRY scope, evidence and executable runtime"))
 
     live_blockers: list[str] = []
     if mode == EXTERNAL:

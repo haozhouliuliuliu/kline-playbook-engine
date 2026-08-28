@@ -21,7 +21,7 @@ from src.broker_adapter import (
     BrokerAccountSnapshot, BrokerOrderInstruction, BrokerOrderSnapshot,
     BrokerPositionSnapshot, OrderRole, OrderType,
 )
-from src.contract_semantics import OrderAction, PositionDirection
+from src.contract_semantics import CloseOffset, OrderAction, PositionDirection
 from src.paper_order_journal import PREPARED, PaperOrderJournal
 from src.paper_execution_authority import (
     MutablePaperAuthoritySource,
@@ -204,8 +204,9 @@ def map_tqsdk_orders(
         exchange_id = str(_field(raw, "exchange_id", ""))
         instrument_id = str(_field(raw, "instrument_id", ""))
         symbol = f"{exchange_id}.{instrument_id}" if exchange_id and instrument_id else str(_field(raw, "symbol", ""))
+        raw_offset = str(_field(raw, "offset", ""))
         project_direction, action = _project_side_from_tq(
-            str(_field(raw, "direction", "")), str(_field(raw, "offset", "")))
+            str(_field(raw, "direction", "")), raw_offset)
         original = _decimal(_field(raw, "volume_orign"), "order.volume_orign")
         left = _decimal(_field(raw, "volume_left"), "order.volume_left")
         native_client_request_id = _field(raw, "client_request_id", order_id)
@@ -230,6 +231,19 @@ def map_tqsdk_orders(
             trigger_price=(
                 None if expected is None or expected.expected_trigger_price is None
                 else Decimal(expected.expected_trigger_price)
+            ),
+            close_offset=(
+                None
+                if action is OrderAction.OPEN
+                else (
+                    CloseOffset.CLOSE_TODAY
+                    if raw_offset == "CLOSETODAY"
+                    else (
+                        CloseOffset.CLOSE_PREVIOUS
+                        if exchange_id in _SHFE_STYLE
+                        else CloseOffset.CLOSE
+                    )
+                )
             ),
             order_role=(
                 None if expected is None or expected.expected_order_role is None
@@ -404,16 +418,17 @@ class TqSdkPaperExecutionDriver:
         if instruction.action is OrderAction.OPEN:
             return "OPEN"
         exchange = _exchange(instruction.concrete_contract_id)
+        if instruction.close_offset is None:
+            raise RuntimeError("EXPLICIT_CLOSE_OFFSET_REQUIRED")
         if exchange not in _SHFE_STYLE:
+            if instruction.close_offset is not CloseOffset.CLOSE:
+                raise RuntimeError("NON_SHFE_CLOSE_OFFSET_MUST_BE_GENERIC_CLOSE")
             return "CLOSE"
-        if self._close_offset_policy is None:
-            raise RuntimeError("SHFE_CLOSE_OFFSET_POLICY_REQUIRED")
-        position = self._require_session().get_positions().get(instruction.concrete_contract_id)
-        children = self._close_offset_policy.resolve(instruction, position)
-        quantity = _positive_int_quantity(instruction.quantity)
-        if len(children) != 1 or children[0].volume != quantity:
-            raise RuntimeError("COMPOUND_SHFE_CLOSE_REQUIRES_EXPLICIT_CHILD_ORDER_ENVELOPES")
-        return children[0].offset
+        if instruction.close_offset is CloseOffset.CLOSE_TODAY:
+            return "CLOSETODAY"
+        if instruction.close_offset is CloseOffset.CLOSE_PREVIOUS:
+            return "CLOSE"
+        raise RuntimeError("SHFE_INE_GENERIC_CLOSE_OFFSET_FORBIDDEN")
 
     def _resolve_limit_price(self, instruction: BrokerOrderInstruction,
                              session: TqSdkSession) -> Decimal:

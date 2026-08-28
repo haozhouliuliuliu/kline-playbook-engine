@@ -21,10 +21,10 @@ from src.broker_adapter import (
     OrderRole,
     OrderType,
 )
-from src.contract_semantics import OrderAction
+from src.contract_semantics import CloseOffset, OrderAction
 from src.intent import ConflictResolver, IntentAction
 from src.jianghe_ai_trader import Direction, PositionFact
-from src.jianghe_execution_bridge import JiangheExecutionBridge
+from src.jianghe_execution_bridge import ExecutionSemanticsRequired, JiangheExecutionBridge
 from src.jianghe_response_normalizer import NormalizedJiangheDecision
 from src.order_management import OrderManagementSystem, OrderRequest
 from src.paper_broker_mirror import PaperBrokerTruthMirror
@@ -146,6 +146,9 @@ class PaperExecutionPlan:
     intent_identity: str
     risk_identity: str
     instruction: BrokerOrderInstruction
+    logical_execution_identity: str | None = None
+    logical_quantity: Decimal | None = None
+    logical_intent_identity: str | None = None
 
 
 class PaperDeterministicExecutionChain:
@@ -296,55 +299,113 @@ class PaperDeterministicExecutionChain:
             )
             if not risk.approved or risk.quantity_for_order is None:
                 continue
-            order_type = OrderType.LIMIT if intent.limit_price is not None else OrderType.MARKET
-            request_id = _hash({
+            order_type = intent.order_type or (
+                OrderType.LIMIT if intent.limit_price is not None else OrderType.MARKET
+            )
+            logical_identity = _hash({
                 "version": PAPER_EXECUTION_CHAIN_VERSION,
                 "wake_identity": wake.wake_identity,
                 "decision_identity": decision.identity,
                 "intent_identity": intent.identity_id,
                 "risk_identity": risk.identity_id,
             })
-            request = OrderRequest(
-                client_request_id=request_id,
-                client_order_id=request_id,
-                concrete_contract_id=intent.concrete_contract_id,
-                direction=intent.direction,
-                action=(
-                    OrderAction.OPEN
-                    if intent.action is IntentAction.OPEN
-                    else OrderAction.CLOSE
-                ),
-                order_type=order_type,
-                quantity=risk.quantity_for_order,
-                limit_price=intent.limit_price,
-                strategy_identity_id=intent.strategy_identity_id,
-                available_at=wake.observed_at,
+            action = (
+                OrderAction.OPEN if intent.action is IntentAction.OPEN else OrderAction.CLOSE
             )
-            order = self.oms.create_order(request, wake.observed_at)
-            instruction = BrokerOrderInstruction(
-                client_request_id=request.client_request_id,
-                client_order_id=request.client_order_id,
-                concrete_contract_id=request.concrete_contract_id,
-                direction=request.direction,
-                action=request.action,
-                order_type=request.order_type,
-                quantity=request.quantity,
-                limit_price=request.limit_price,
-                order_role=request.order_role,
-                strategy_identity_id=request.strategy_identity_id,
-                available_at=request.available_at,
-            )
-            self.ledger.append(
-                RuntimeLedgerRecordKind.ORDER,
-                order.identity_id,
-                ledger_pairs(
+            if action is OrderAction.CLOSE:
+                if intent.close_children:
+                    if risk.quantity_for_order != intent.quantity:
+                        raise ExecutionSemanticsRequired(
+                            "EXPLICIT_CLOSE_CHILDREN_DISAGREE_WITH_RISK_QUANTITY"
+                        )
+                    children = tuple(
+                        (item.offset, item.quantity) for item in intent.close_children
+                    )
+                elif self.concrete_contract_id.split(".", 1)[0] in {"SHFE", "INE"}:
+                    raise ExecutionSemanticsRequired(
+                        "SHFE_INE_CLOSE_OFFSET_POLICY_RESULT_REQUIRED"
+                    )
+                else:
+                    children = ((CloseOffset.CLOSE, risk.quantity_for_order),)
+            else:
+                children = ((None, risk.quantity_for_order),)
+            for ordinal, (close_offset, child_quantity) in enumerate(children):
+                request_id = _hash({
+                    "logical_execution_identity": logical_identity,
+                    "child_ordinal": ordinal,
+                    "close_offset": None if close_offset is None else close_offset.value,
+                    "quantity": str(child_quantity),
+                })
+                child_intent_identity = _hash({
+                    "logical_intent_identity": intent.identity_id,
+                    "client_request_id": request_id,
+                })
+                request = OrderRequest(
                     client_request_id=request_id,
-                    intent_identity=intent.identity_id,
-                    risk_identity=risk.identity_id,
-                ),
-                wake.observed_at,
-            )
-            plans.append(PaperExecutionPlan(intent.identity_id, risk.identity_id, instruction))
+                    client_order_id=request_id,
+                    concrete_contract_id=intent.concrete_contract_id,
+                    direction=intent.direction,
+                    action=action,
+                    order_type=order_type,
+                    quantity=child_quantity,
+                    close_offset=close_offset,
+                    limit_price=intent.limit_price,
+                    trigger_price=intent.trigger_price,
+                    trigger_condition=intent.trigger_condition,
+                    triggered_order_type=intent.triggered_order_type,
+                    triggered_limit_price=intent.triggered_limit_price,
+                    order_role=intent.order_role,
+                    strategy_identity_id=intent.strategy_identity_id,
+                    available_at=wake.observed_at,
+                    parent_order_id=intent.parent_order_id,
+                    oco_group_id=intent.oco_group_id,
+                    replace_generation=intent.replace_generation,
+                    source_directive_identity=(
+                        intent.source_directive_identity or intent.identity_id
+                    ),
+                )
+                order = self.oms.create_order(request, wake.observed_at)
+                instruction = BrokerOrderInstruction(
+                    client_request_id=request.client_request_id,
+                    client_order_id=request.client_order_id,
+                    concrete_contract_id=request.concrete_contract_id,
+                    direction=request.direction,
+                    action=request.action,
+                    order_type=request.order_type,
+                    quantity=request.quantity,
+                    close_offset=request.close_offset,
+                    limit_price=request.limit_price,
+                    trigger_price=request.trigger_price,
+                    trigger_condition=request.trigger_condition,
+                    triggered_order_type=request.triggered_order_type,
+                    triggered_limit_price=request.triggered_limit_price,
+                    order_role=request.order_role,
+                    strategy_identity_id=request.strategy_identity_id,
+                    available_at=request.available_at,
+                    parent_order_id=request.parent_order_id,
+                    oco_group_id=request.oco_group_id,
+                    replace_generation=request.replace_generation,
+                    source_directive_identity=request.source_directive_identity,
+                )
+                self.ledger.append(
+                    RuntimeLedgerRecordKind.ORDER,
+                    order.identity_id,
+                    ledger_pairs(
+                        client_request_id=request_id,
+                        intent_identity=intent.identity_id,
+                        risk_identity=risk.identity_id,
+                        logical_execution_identity=logical_identity,
+                    ),
+                    wake.observed_at,
+                )
+                plans.append(PaperExecutionPlan(
+                    child_intent_identity,
+                    risk.identity_id,
+                    instruction,
+                    logical_execution_identity=logical_identity,
+                    logical_quantity=risk.quantity_for_order,
+                    logical_intent_identity=intent.identity_id,
+                ))
         return tuple(plans)
 
 
