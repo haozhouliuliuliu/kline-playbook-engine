@@ -22,7 +22,7 @@ from hashlib import sha256
 import json
 from typing import Any, Iterable
 
-from src.contract_semantics import OrderAction, PositionDirection
+from src.contract_semantics import CloseOffset, OrderAction, PositionDirection
 from src.runtime_events import BrokerConnectionState, BrokerEvent
 
 BROKER_ADAPTER_SCHEMA_VERSION = "shadow-runtime-broker-adapter-v0.1"
@@ -33,12 +33,30 @@ def _canonical_hash(value: Any) -> str:
     return sha256(encoded.encode("utf-8")).hexdigest()
 
 
+def canonical_decimal(value: Decimal) -> str:
+    """Canonical finite Decimal text used in durable execution identities."""
+    if type(value) is not Decimal or not value.is_finite():
+        raise ValueError("canonical decimal requires a finite Decimal")
+    normalized = value.normalize()
+    text = format(normalized, "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return "0" if text in {"-0", ""} else text
+
+
 class OrderType(str, Enum):
     """Deterministic generic order type vocabulary (broker-agnostic)."""
 
     MARKET = "MARKET"
     LIMIT = "LIMIT"
     STOP_MARKET = "STOP_MARKET"
+
+
+class StopTriggerCondition(str, Enum):
+    """Explicit governed comparison for a project-triggered order."""
+
+    AT_OR_ABOVE = "AT_OR_ABOVE"
+    AT_OR_BELOW = "AT_OR_BELOW"
 
 
 class OrderRole(str, Enum):
@@ -60,8 +78,12 @@ class BrokerOrderInstruction:
     action: OrderAction
     order_type: OrderType
     quantity: Decimal
+    close_offset: CloseOffset | None = None
     limit_price: Decimal | None = None
     trigger_price: Decimal | None = None
+    trigger_condition: StopTriggerCondition | None = None
+    triggered_order_type: OrderType | None = None
+    triggered_limit_price: Decimal | None = None
     order_role: OrderRole = OrderRole.GENERIC
     strategy_identity_id: str | None = None
     client_order_id: str | None = None
@@ -81,6 +103,10 @@ class BrokerOrderInstruction:
             raise ValueError("order instruction requires an explicit order type")
         if type(self.quantity) is not Decimal or not self.quantity.is_finite() or self.quantity <= 0:
             raise ValueError("order instruction quantity must be a positive finite Decimal")
+        if self.close_offset is not None and not isinstance(self.close_offset, CloseOffset):
+            raise ValueError("order instruction close offset must be explicit")
+        if self.action is OrderAction.OPEN and self.close_offset is not None:
+            raise ValueError("OPEN order cannot carry a close offset")
         if self.limit_price is not None:
             if type(self.limit_price) is not Decimal or not self.limit_price.is_finite() or self.limit_price <= 0:
                 raise ValueError("order instruction limit price must be a positive finite Decimal")
@@ -95,10 +121,37 @@ class BrokerOrderInstruction:
                 raise ValueError("trigger price is only valid for a STOP_MARKET order")
         elif self.order_type is OrderType.STOP_MARKET:
             raise ValueError("a STOP_MARKET order requires a trigger price")
+        if self.order_type is OrderType.STOP_MARKET:
+            if not isinstance(self.trigger_condition, StopTriggerCondition):
+                raise ValueError("a STOP_MARKET order requires an explicit trigger condition")
+            if self.triggered_order_type not in {OrderType.MARKET, OrderType.LIMIT}:
+                raise ValueError("a STOP_MARKET order requires an executable triggered order type")
+            if self.triggered_order_type is OrderType.LIMIT:
+                if (
+                    type(self.triggered_limit_price) is not Decimal
+                    or not self.triggered_limit_price.is_finite()
+                    or self.triggered_limit_price <= 0
+                ):
+                    raise ValueError("a triggered LIMIT order requires a positive finite price")
+            elif self.triggered_limit_price is not None:
+                raise ValueError("triggered limit price is only valid for triggered LIMIT")
+        elif any(
+            value is not None
+            for value in (
+                self.trigger_condition,
+                self.triggered_order_type,
+                self.triggered_limit_price,
+            )
+        ):
+            raise ValueError("trigger execution facts are only valid for STOP_MARKET")
         if not isinstance(self.order_role, OrderRole):
             raise ValueError("order instruction requires an explicit order role")
-        if self.order_role is not OrderRole.GENERIC and self.order_type is not OrderType.STOP_MARKET:
-            raise ValueError("stop order roles require STOP_MARKET execution type")
+        if (
+            self.order_role is not OrderRole.GENERIC
+            and self.order_type is not OrderType.STOP_MARKET
+            and self.source_directive_identity is None
+        ):
+            raise ValueError("triggered stop children require source directive identity")
         if type(self.replace_generation) is not int or self.replace_generation < 0:
             raise ValueError("replace generation must be a non-negative integer")
         for name, value in (
@@ -125,9 +178,13 @@ class BrokerOrderInstruction:
                 "direction": self.direction.value,
                 "action": self.action.value,
                 "order_type": self.order_type.value,
-                "quantity": str(self.quantity),
-                "limit_price": None if self.limit_price is None else str(self.limit_price),
-                "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "quantity": canonical_decimal(self.quantity),
+                "close_offset": None if self.close_offset is None else self.close_offset.value,
+                "limit_price": None if self.limit_price is None else canonical_decimal(self.limit_price),
+                "trigger_price": None if self.trigger_price is None else canonical_decimal(self.trigger_price),
+                "trigger_condition": None if self.trigger_condition is None else self.trigger_condition.value,
+                "triggered_order_type": None if self.triggered_order_type is None else self.triggered_order_type.value,
+                "triggered_limit_price": None if self.triggered_limit_price is None else canonical_decimal(self.triggered_limit_price),
                 "order_role": self.order_role.value,
                 "strategy_identity_id": self.strategy_identity_id,
                 "client_order_id": self.client_order_id or self.client_request_id,
@@ -237,6 +294,17 @@ class BrokerOrderSnapshot:
     requested_quantity: Decimal
     filled_quantity: Decimal
     snapshot_at: datetime
+    order_type: OrderType | None = None
+    limit_price: Decimal | None = None
+    trigger_price: Decimal | None = None
+    close_offset: CloseOffset | None = None
+    order_role: OrderRole | None = None
+    strategy_identity_id: str | None = None
+    client_order_id: str | None = None
+    parent_order_id: str | None = None
+    oco_group_id: str | None = None
+    replace_generation: int | None = None
+    source_directive_identity: str | None = None
 
     def __post_init__(self) -> None:
         required = (self.order_id, self.client_request_id, self.concrete_contract_id, self.status)
@@ -244,12 +312,40 @@ class BrokerOrderSnapshot:
             raise ValueError("broker order snapshot requires complete identities")
         if not isinstance(self.direction, PositionDirection) or not isinstance(self.action, OrderAction):
             raise ValueError("broker order snapshot requires explicit direction and action")
+        if self.status not in {"LIVE", "PARTIALLY_FILLED", "FILLED", "CANCELLED", "REJECTED"}:
+            raise ValueError("broker order snapshot has an unknown lifecycle status")
         if self.snapshot_at.tzinfo is None:
             raise ValueError("broker order snapshot timestamp must be timezone-aware")
         if type(self.requested_quantity) is not Decimal or not self.requested_quantity.is_finite() or self.requested_quantity <= 0:
             raise ValueError("broker order requested quantity must be a positive finite Decimal")
         if type(self.filled_quantity) is not Decimal or not self.filled_quantity.is_finite() or self.filled_quantity < 0:
             raise ValueError("broker order filled quantity must be a non-negative finite Decimal")
+        if self.filled_quantity > self.requested_quantity:
+            raise ValueError("broker order filled quantity cannot exceed requested quantity")
+        if self.order_type is not None and not isinstance(self.order_type, OrderType):
+            raise ValueError("broker order snapshot order type must be explicit when supplied")
+        if self.close_offset is not None and not isinstance(self.close_offset, CloseOffset):
+            raise ValueError("broker order snapshot close offset must be explicit when supplied")
+        for value, name in ((self.limit_price, "limit price"), (self.trigger_price, "trigger price")):
+            if value is not None and (
+                type(value) is not Decimal or not value.is_finite() or value <= 0
+            ):
+                raise ValueError(f"broker order snapshot {name} must be positive finite Decimal")
+        if self.order_role is not None and not isinstance(self.order_role, OrderRole):
+            raise ValueError("broker order snapshot role must be explicit when supplied")
+        if self.replace_generation is not None and (
+            type(self.replace_generation) is not int or self.replace_generation < 0
+        ):
+            raise ValueError("broker order snapshot replace generation must be non-negative")
+        for value, name in (
+            (self.strategy_identity_id, "strategy identity"),
+            (self.client_order_id, "client order identity"),
+            (self.parent_order_id, "parent order identity"),
+            (self.oco_group_id, "OCO identity"),
+            (self.source_directive_identity, "source directive identity"),
+        ):
+            if value is not None and (not isinstance(value, str) or not value.strip()):
+                raise ValueError(f"broker order snapshot {name} must be non-empty when supplied")
 
     @property
     def identity_id(self) -> str:
@@ -261,9 +357,20 @@ class BrokerOrderSnapshot:
                 "direction": self.direction.value,
                 "action": self.action.value,
                 "status": self.status,
-                "requested_quantity": str(self.requested_quantity),
-                "filled_quantity": str(self.filled_quantity),
+                "requested_quantity": canonical_decimal(self.requested_quantity),
+                "filled_quantity": canonical_decimal(self.filled_quantity),
                 "snapshot_at": self.snapshot_at.isoformat(),
+                "order_type": None if self.order_type is None else self.order_type.value,
+                "limit_price": None if self.limit_price is None else canonical_decimal(self.limit_price),
+                "trigger_price": None if self.trigger_price is None else canonical_decimal(self.trigger_price),
+                "close_offset": None if self.close_offset is None else self.close_offset.value,
+                "order_role": None if self.order_role is None else self.order_role.value,
+                "strategy_identity_id": self.strategy_identity_id,
+                "client_order_id": self.client_order_id,
+                "parent_order_id": self.parent_order_id,
+                "oco_group_id": self.oco_group_id,
+                "replace_generation": self.replace_generation,
+                "source_directive_identity": self.source_directive_identity,
             }
         )
 

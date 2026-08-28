@@ -21,7 +21,8 @@ from hashlib import sha256
 import json
 from typing import Any, Iterable
 
-from src.contract_semantics import PositionDirection
+from src.broker_adapter import OrderRole, OrderType, StopTriggerCondition
+from src.contract_semantics import CloseOffset, PositionDirection
 
 INTENT_SCHEMA_VERSION = "shadow-runtime-intent-v0.1"
 
@@ -46,6 +47,28 @@ class IntentDecision(str, Enum):
 
 
 @dataclass(frozen=True)
+class CloseExecutionChild:
+    """One explicit later-policy result for a logical close."""
+
+    offset: CloseOffset
+    quantity: Decimal
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.offset, CloseOffset):
+            raise ValueError("close child requires explicit offset")
+        if (
+            type(self.quantity) is not Decimal
+            or not self.quantity.is_finite()
+            or self.quantity <= 0
+        ):
+            raise ValueError("close child quantity must be positive finite Decimal")
+
+    @property
+    def identity_id(self) -> str:
+        return _canonical_hash({"offset": self.offset.value, "quantity": str(self.quantity)})
+
+
+@dataclass(frozen=True)
 class StrategyIntent:
     """One deterministic strategy intent computed from a MarketContext."""
 
@@ -59,6 +82,17 @@ class StrategyIntent:
     direction: PositionDirection | None = None
     quantity: Decimal | None = None
     limit_price: Decimal | None = None
+    order_type: OrderType | None = None
+    trigger_price: Decimal | None = None
+    trigger_condition: StopTriggerCondition | None = None
+    triggered_order_type: OrderType | None = None
+    triggered_limit_price: Decimal | None = None
+    order_role: OrderRole = OrderRole.GENERIC
+    parent_order_id: str | None = None
+    oco_group_id: str | None = None
+    replace_generation: int = 0
+    source_directive_identity: str | None = None
+    close_children: tuple[CloseExecutionChild, ...] = ()
     reason: str | None = None
 
     def __post_init__(self) -> None:
@@ -80,6 +114,49 @@ class StrategyIntent:
         if self.limit_price is not None:
             if type(self.limit_price) is not Decimal or not self.limit_price.is_finite() or self.limit_price <= 0:
                 raise ValueError("intent limit price must be a positive finite Decimal")
+        if self.order_type is not None and not isinstance(self.order_type, OrderType):
+            raise ValueError("intent order type must be explicit when supplied")
+        if not isinstance(self.order_role, OrderRole):
+            raise ValueError("intent order role must be explicit")
+        if type(self.replace_generation) is not int or self.replace_generation < 0:
+            raise ValueError("intent replace generation must be non-negative")
+        for value, name in (
+            (self.parent_order_id, "parent order"),
+            (self.oco_group_id, "OCO group"),
+            (self.source_directive_identity, "source directive"),
+        ):
+            if value is not None and (not isinstance(value, str) or not value.strip()):
+                raise ValueError(f"intent {name} identity must be non-empty")
+        if self.order_type is OrderType.STOP_MARKET:
+            if (
+                type(self.trigger_price) is not Decimal
+                or not self.trigger_price.is_finite()
+                or self.trigger_price <= 0
+            ):
+                raise ValueError("STOP_MARKET intent requires a positive trigger price")
+            if not isinstance(self.trigger_condition, StopTriggerCondition):
+                raise ValueError("STOP_MARKET intent requires an explicit trigger condition")
+            if self.triggered_order_type not in {OrderType.MARKET, OrderType.LIMIT}:
+                raise ValueError("STOP_MARKET intent requires a triggered executable order type")
+            if self.triggered_order_type is OrderType.LIMIT:
+                if (
+                    type(self.triggered_limit_price) is not Decimal
+                    or not self.triggered_limit_price.is_finite()
+                    or self.triggered_limit_price <= 0
+                ):
+                    raise ValueError("triggered LIMIT intent requires a positive price")
+            elif self.triggered_limit_price is not None:
+                raise ValueError("triggered limit price is only valid for triggered LIMIT")
+        elif any(
+            value is not None
+            for value in (
+                self.trigger_price,
+                self.trigger_condition,
+                self.triggered_order_type,
+                self.triggered_limit_price,
+            )
+        ):
+            raise ValueError("trigger facts are only valid for STOP_MARKET intent")
         if self.action is IntentAction.OPEN:
             if self.direction is None or self.quantity is None:
                 raise ValueError("an OPEN intent requires direction and quantity")
@@ -89,8 +166,24 @@ class StrategyIntent:
             if self.direction is None:
                 raise ValueError("a CLOSE intent requires a direction")
         elif self.action is IntentAction.HOLD:
-            if self.direction is not None or self.quantity is not None or self.limit_price is not None:
+            if (
+                self.direction is not None
+                or self.quantity is not None
+                or self.limit_price is not None
+                or self.order_type is not None
+                or self.order_role is not OrderRole.GENERIC
+            ):
                 raise ValueError("a HOLD intent cannot carry order facts")
+        if self.close_children:
+            if self.action is not IntentAction.CLOSE or self.quantity is None:
+                raise ValueError("explicit close children require a quantified CLOSE intent")
+            if any(not isinstance(item, CloseExecutionChild) for item in self.close_children):
+                raise ValueError("close children must be CloseExecutionChild values")
+            offsets = tuple(item.offset for item in self.close_children)
+            if len(offsets) != len(set(offsets)):
+                raise ValueError("duplicate close child offsets are forbidden")
+            if sum((item.quantity for item in self.close_children), Decimal("0")) != self.quantity:
+                raise ValueError("close child quantities must equal logical close quantity")
 
     @property
     def identity_id(self) -> str:
@@ -107,6 +200,17 @@ class StrategyIntent:
                 "direction": None if self.direction is None else self.direction.value,
                 "quantity": None if self.quantity is None else str(self.quantity),
                 "limit_price": None if self.limit_price is None else str(self.limit_price),
+                "order_type": None if self.order_type is None else self.order_type.value,
+                "trigger_price": None if self.trigger_price is None else str(self.trigger_price),
+                "trigger_condition": None if self.trigger_condition is None else self.trigger_condition.value,
+                "triggered_order_type": None if self.triggered_order_type is None else self.triggered_order_type.value,
+                "triggered_limit_price": None if self.triggered_limit_price is None else str(self.triggered_limit_price),
+                "order_role": self.order_role.value,
+                "parent_order_id": self.parent_order_id,
+                "oco_group_id": self.oco_group_id,
+                "replace_generation": self.replace_generation,
+                "source_directive_identity": self.source_directive_identity,
+                "close_children": [item.identity_id for item in self.close_children],
                 "reason": self.reason,
             }
         )

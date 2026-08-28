@@ -17,7 +17,7 @@ from datetime import datetime
 from decimal import Decimal
 from hashlib import sha256
 import json
-from typing import Any
+from typing import Any, Protocol
 
 from src.contract_semantics import PositionDirection
 from src.intent import IntentAction, StrategyIntent
@@ -134,6 +134,10 @@ class RiskGate:
     def ruleset(self) -> RiskRuleSet:
         return self._ruleset
 
+    @property
+    def identity_id(self) -> str:
+        return self._ruleset.identity_id
+
     def evaluate(
         self,
         intent: StrategyIntent,
@@ -145,10 +149,10 @@ class RiskGate:
     ) -> RiskDecision:
         if not isinstance(intent, StrategyIntent):
             raise ValueError("RiskGate requires a StrategyIntent")
-        if not isinstance(state, TradingState):
-            raise ValueError("RiskGate requires a TradingState")
-        if not isinstance(context, MarketContext):
-            raise ValueError("RiskGate requires a MarketContext")
+        if not hasattr(state, "position_for") or not hasattr(state, "positions"):
+            raise ValueError("RiskGate requires project position state")
+        if not callable(getattr(context, "is_stale", None)):
+            raise ValueError("RiskGate requires a market freshness context")
         if intent.action is IntentAction.HOLD:
             return RiskDecision(
                 approved=False,
