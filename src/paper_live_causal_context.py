@@ -503,7 +503,9 @@ class LiveCausalBar:
 
     def __post_init__(self) -> None:
         _require_text(self.concrete_instrument, "live bar concrete instrument")
-        if self.timeframe not in ACTIVE_TIMEFRAMES:
+        # ``1m`` is a governed realtime substrate fact, not a cognition-context
+        # timeframe.  The four frozen cognition timeframes remain unchanged.
+        if self.timeframe not in (*ACTIVE_TIMEFRAMES, "1m"):
             raise ValueError(f"unknown live causal timeframe {self.timeframe!r}")
         _aware(self.start, "live bar start")
         _aware(self.end, "live bar end")
@@ -656,6 +658,7 @@ class LiveCausalContextBuilder:
         self._emitted_5m_ends: set[datetime] = set()
         self._last_emitted_wake_bar_end: datetime | None = None
         self._last_emitted_wake_observed_at: datetime | None = None
+        self._newly_admitted_one_minute_bars: tuple[LiveCausalBar, ...] = ()
         self._bootstrap_done = False
 
     # ------------------------------------------------------------------ public
@@ -696,12 +699,24 @@ class LiveCausalContextBuilder:
     def emitted_wake_count(self) -> int:
         return len(self._emitted_5m_ends)
 
+    @property
+    def newly_admitted_one_minute_bars(self) -> tuple[LiveCausalBar, ...]:
+        """Exact 1m bars accepted by the most recent live ``observe`` call.
+
+        This is deliberately a transient delivery surface: durable causal
+        progress remains in the checkpoint and conditional evaluation cursors
+        remain in the order journal.  It never includes bootstrap history or a
+        repeated minute delivery.
+        """
+        return self._newly_admitted_one_minute_bars
+
     def bootstrap(self, bars: Sequence[object], *, observed_at: datetime) -> None:
         """Absorb a historical closed-bar serial; never emits historical wakes."""
         _aware(observed_at, "bootstrap observed_at")
         if self._admitted:
             raise RuntimeError("LIVE_CAUSAL_ALREADY_BOOTSTRAPPED")
         self._admit_batch(bars, observed_at)
+        self._newly_admitted_one_minute_bars = ()
         for bar in self._complete_bars():
             if bar.timeframe == "5m":
                 self._processed_5m_ends.add(bar.end)
@@ -714,7 +729,10 @@ class LiveCausalContextBuilder:
         nothing on an unexplained governed-minute gap (fail closed).
         """
         _aware(observed_at, "observe observed_at")
-        self._admit_batch(bars, observed_at)
+        newly_admitted = self._admit_batch(bars, observed_at)
+        self._newly_admitted_one_minute_bars = tuple(
+            self._one_minute_bar(minute) for minute in newly_admitted
+        )
         wakes: list[LiveCausalWake] = []
         for bar in self._complete_bars():
             if bar.timeframe != "5m":
@@ -865,7 +883,9 @@ class LiveCausalContextBuilder:
 
     # ------------------------------------------------------------- internal
 
-    def _admit_batch(self, bars: Sequence[object], observed_at: datetime) -> None:
+    def _admit_batch(
+        self, bars: Sequence[object], observed_at: datetime
+    ) -> tuple[_AdmittedMinute, ...]:
         prepared: list[_AdmittedMinute] = []
         last = self._last_accepted_start
         prior: datetime | None = None
@@ -900,6 +920,35 @@ class LiveCausalContextBuilder:
         for minute in prepared:
             self._admitted[minute.start] = minute
             self._last_accepted_start = minute.start
+        return tuple(prepared)
+
+    def _one_minute_bar(self, minute: _AdmittedMinute) -> LiveCausalBar:
+        session = next(
+            (
+                item
+                for item in self._calendar.session_windows_for(minute.trading_day)
+                if item.start <= minute.start < item.end
+            ),
+            None,
+        )
+        if session is None:
+            raise RuntimeError("LIVE_CAUSAL_MINUTE_SESSION_AUTHORITY_MISSING")
+        return LiveCausalBar(
+            concrete_instrument=self.concrete_instrument,
+            timeframe="1m",
+            trading_day=minute.trading_day,
+            start=minute.start,
+            end=minute.end,
+            available_at=minute.available_at,
+            open=minute.open,
+            high=minute.high,
+            low=minute.low,
+            close=minute.close,
+            volume=minute.volume,
+            policy_identity=self._policy_identity,
+            session_authority_identity=session.session_authority_identity,
+            source_minute_starts=(minute.start,),
+        )
 
     def _minute_of(self, bar: object, observed_at: datetime) -> _AdmittedMinute:
         completed = getattr(bar, "completed_bar", None)

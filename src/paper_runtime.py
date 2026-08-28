@@ -436,8 +436,8 @@ class PaperRuntimeCoordinator:
         armed = self.order_journal.armed_conditionals()
         if not armed:
             return ()
-        if not isinstance(bar, LiveCausalBar) or bar.timeframe != "5m":
-            raise ValueError("conditional evaluation requires governed closed 5m bar")
+        if not isinstance(bar, LiveCausalBar) or bar.timeframe != "1m":
+            raise ValueError("conditional evaluation requires governed closed 1m bar")
         if bar.concrete_instrument != self.concrete_contract_id.split(".", 1)[-1]:
             raise ValueError("PAPER_CONDITIONAL_CONTRACT_MISMATCH")
         if bar.available_at > observed_at:
@@ -541,13 +541,15 @@ class PaperRuntimeCoordinator:
         self.refresh_broker_truth(at=observed_at)
         self.assess(at=observed_at).require_observation_ready()
         results: list[PaperWakeResult] = []
-        for wake in self.context_builder.observe(bars, observed_at=observed_at):
+        wakes = self.context_builder.observe(bars, observed_at=observed_at)
+        for minute in self.context_builder.newly_admitted_one_minute_bars:
+            self.process_conditional_orders(minute, observed_at=observed_at)
+        for wake in wakes:
             context = self.context_builder.context_for_wake(wake)
             self.context_builder.admit_wake_to_journal(
                 wake, journal=self.wake_journal, trader_identity=self.trader_identity,
                 concrete_contract_id=self.concrete_contract_id)
             self.assess(at=observed_at).require_observation_ready()
-            self.process_conditional_orders(wake.bar, observed_at=observed_at)
             request_id = _hash({
                 "schema_version": PAPER_RUNTIME_COORDINATOR_VERSION,
                 "kind": "TRADER_DISPATCH",

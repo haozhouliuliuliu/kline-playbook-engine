@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -23,10 +24,15 @@ from src.jianghe_execution_bridge import JiangheExecutionBridge
 from src.jianghe_response_normalizer import NormalizedJiangheDecision
 from src.paper_broker_mirror import PaperBrokerTruthMirror
 from src.paper_execution_chain import PaperDeterministicExecutionChain
-from src.paper_live_causal_context import LiveCausalBar, LiveCausalWake
+from src.paper_live_causal_context import (
+    LiveCausalBar,
+    LiveCausalContextBuilder,
+    LiveCausalWake,
+)
 from src.paper_order_journal import (
     BATCH_AUTHORIZED,
     CONDITIONAL_ARMED,
+    CONDITIONAL_RESOLVED,
     CONDITIONAL_TRIGGERED,
     PaperOrderJournal,
 )
@@ -44,7 +50,15 @@ from src.paper_supervisor import PaperRuntimeSupervisor
 from src.paper_wake_journal import PaperWakeJournal
 from src.risk_gate import RiskGate, RiskRuleSet
 from src.runtime_events import BrokerConnectionState
-from tests.test_paper_live_causal_context import _new_builder
+from tests.test_paper_live_causal_context import (
+    TARGET_DAY,
+    TZ,
+    _CALENDAR,
+    _live_minute,
+    _minutes_for_days,
+    _new_builder,
+    _prior_days,
+)
 from tests.test_paper_offline_runtime_drill import (
     FakeJournaledPaperBroker,
     _authority as offline_authority,
@@ -91,13 +105,13 @@ def _triggered_child_instruction(
     )
 
 
-def _five_minute_bar(
+def _one_minute_bar(
     *, instrument: str, end: datetime, low: Decimal
 ) -> LiveCausalBar:
-    start = end - timedelta(minutes=5)
+    start = end - timedelta(minutes=1)
     return LiveCausalBar(
         concrete_instrument=instrument,
-        timeframe="5m",
+        timeframe="1m",
         trading_day=end.date(),
         start=start,
         end=end,
@@ -109,7 +123,7 @@ def _five_minute_bar(
         volume=Decimal("10"),
         policy_identity="policy",
         session_authority_identity="calendar",
-        source_minute_starts=tuple(start + timedelta(minutes=value) for value in range(5)),
+        source_minute_starts=(start,),
     )
 
 
@@ -380,7 +394,7 @@ class ProtectiveDirectiveTests(unittest.TestCase):
                     child_instruction=child,
                     at=at,
                 )
-                safe_bar = _five_minute_bar(
+                safe_bar = _one_minute_bar(
                     instrument="cu2406", end=at, low=Decimal("3500")
                 )
                 with self.assertRaisesRegex(
@@ -396,7 +410,7 @@ class ProtectiveDirectiveTests(unittest.TestCase):
                 self.assertEqual(0, broker.submit_calls)
 
                 crossed_at = at + timedelta(minutes=5)
-                crossed_bar = _five_minute_bar(
+                crossed_bar = _one_minute_bar(
                     instrument="cu2406", end=crossed_at, low=Decimal("3480")
                 )
                 broker.set_observed_at(crossed_at)
@@ -413,6 +427,190 @@ class ProtectiveDirectiveTests(unittest.TestCase):
             finally:
                 order_journal.close()
                 wake_journal.close()
+
+    def test_newly_accepted_one_minute_cross_triggers_without_five_minute_cognition(self) -> None:
+        bootstrap_at = datetime(
+            TARGET_DAY.year, TARGET_DAY.month, TARGET_DAY.day, 9, 15, tzinfo=TZ
+        )
+        safe_observed_at = bootstrap_at + timedelta(minutes=1)
+        crossing_observed_at = safe_observed_at + timedelta(minutes=1)
+        contract = "SHFE.cu2406"
+        directive = BrokerOrderInstruction(
+            client_request_id="one-minute-protective-directive",
+            concrete_contract_id=contract,
+            direction=PositionDirection.LONG,
+            action=OrderAction.CLOSE,
+            order_type=OrderType.STOP_MARKET,
+            quantity=Decimal("1"),
+            close_offset=CloseOffset.CLOSE_TODAY,
+            trigger_price=Decimal("3490"),
+            trigger_condition=StopTriggerCondition.AT_OR_BELOW,
+            triggered_order_type=OrderType.MARKET,
+            order_role=OrderRole.PROTECTIVE_STOP,
+            strategy_identity_id="strategy",
+            source_directive_identity="jianghe-directive",
+        )
+        child = _triggered_child_instruction(directive)
+
+        class Broker(FakeJournaledPaperBroker):
+            @property
+            def order_journal(self):
+                return self.journal
+
+        class Trader:
+            def decide(self, **kwargs):
+                raise AssertionError("one-minute protective evaluation must not invoke trader")
+
+        with TemporaryDirectory() as tmp:
+            order_journal = PaperOrderJournal(Path(tmp) / "orders.sqlite3")
+            wake_journal = PaperWakeJournal(Path(tmp) / "wakes.sqlite3")
+            try:
+                mirror = PaperBrokerTruthMirror(broker_id="OFFLINE_FAKE_BROKER")
+                broker = Broker(order_journal)
+                broker.set_observed_at(bootstrap_at)
+                supervisor = PaperRuntimeSupervisor(
+                    actual_tqsdk_runtime_version="3.10.1",
+                    authority=offline_authority(),
+                    activation_profile=offline_profile(),
+                    broker_mirror=mirror,
+                    order_journal=order_journal,
+                    wake_journal=wake_journal,
+                )
+                chain = PaperDeterministicExecutionChain(
+                    strategy_identity="strategy",
+                    instrument="cu2406",
+                    concrete_contract_id=contract,
+                    bridge=JiangheExecutionBridge(),
+                    risk_gate=RiskGate(RiskRuleSet(
+                        ruleset_id="risk", version="test-only",
+                        max_order_quantity=Decimal("1"),
+                    )),
+                    max_market_age_seconds=60,
+                )
+                runtime = PaperRuntimeCoordinator(
+                    trader_identity="trader",
+                    concrete_contract_id=contract,
+                    context_builder=_new_builder(),
+                    wake_journal=wake_journal,
+                    order_journal=order_journal,
+                    broker_mirror=mirror,
+                    supervisor=supervisor,
+                    broker=broker,
+                    trader=Trader(),
+                    execution_chain=chain,
+                )
+                runtime.connect(at=bootstrap_at)
+                runtime.bootstrap_market(
+                    _minutes_for_days(
+                        _prior_days(_CALENDAR.trading_days, 3) + (TARGET_DAY,),
+                        until=bootstrap_at,
+                    ),
+                    observed_at=bootstrap_at,
+                )
+                runtime.mark_trader_runtime_ready()
+                order_journal.prepare(
+                    client_request_id=directive.client_request_id,
+                    trader_identity="trader",
+                    wake_identity="wake",
+                    decision_identity="decision",
+                    intent_identity="intent",
+                    risk_identity="risk",
+                    concrete_contract_id=contract,
+                    instruction=directive,
+                    prepared_at=bootstrap_at,
+                )
+                order_journal.arm_conditional(
+                    directive_client_request_id=directive.client_request_id,
+                    child_instruction=child,
+                    at=bootstrap_at,
+                )
+
+                safe_minute = _live_minute(bootstrap_at, price="3500")
+                broker.set_observed_at(safe_observed_at)
+                self.assertEqual((), runtime.process_closed_minutes(
+                    (safe_minute,), observed_at=safe_observed_at
+                ))
+                self.assertEqual(0, broker.submit_calls)
+
+                crossing_minute = _live_minute(safe_observed_at, price="3489")
+                broker.set_observed_at(crossing_observed_at)
+                self.assertEqual((), runtime.process_closed_minutes(
+                    (crossing_minute,), observed_at=crossing_observed_at
+                ))
+                self.assertEqual(1, broker.submit_calls)
+                conditional = order_journal.get_conditional(directive.client_request_id)
+                self.assertIsNotNone(conditional.triggered_at)
+                self.assertEqual(CONDITIONAL_RESOLVED, conditional.status)
+                self.assertEqual((), runtime.process_closed_minutes(
+                    (crossing_minute,), observed_at=crossing_observed_at
+                ))
+                self.assertEqual(1, broker.submit_calls)
+            finally:
+                order_journal.close()
+                wake_journal.close()
+
+    def test_restart_before_one_minute_trigger_preserves_armed_cursor(self) -> None:
+        bootstrap_at = datetime(
+            TARGET_DAY.year, TARGET_DAY.month, TARGET_DAY.day, 9, 15, tzinfo=TZ
+        )
+        observed_at = bootstrap_at + timedelta(minutes=1)
+        directive = replace(
+            _protective_stop_instruction(), concrete_contract_id="SHFE.cu2406"
+        )
+        child = _triggered_child_instruction(directive)
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "orders.sqlite3"
+            journal = PaperOrderJournal(path, require_full_envelope=True)
+            builder = _new_builder()
+            builder.bootstrap(
+                _minutes_for_days(
+                    _prior_days(_CALENDAR.trading_days, 3) + (TARGET_DAY,),
+                    until=bootstrap_at,
+                ),
+                observed_at=bootstrap_at,
+            )
+            builder.observe((_live_minute(bootstrap_at, price="3500"),), observed_at=observed_at)
+            causal_minute = builder.newly_admitted_one_minute_bars[0]
+            journal.prepare(
+                client_request_id=directive.client_request_id,
+                trader_identity="trader",
+                wake_identity="wake",
+                decision_identity="decision",
+                intent_identity="intent",
+                risk_identity="risk",
+                concrete_contract_id=directive.concrete_contract_id,
+                instruction=directive,
+                prepared_at=bootstrap_at,
+            )
+            journal.arm_conditional(
+                directive_client_request_id=directive.client_request_id,
+                child_instruction=child,
+                at=bootstrap_at,
+            )
+            journal.record_conditional_evaluation(
+                directive.client_request_id,
+                bar_identity=causal_minute.identity,
+                bar_end=causal_minute.end,
+                at=observed_at,
+            )
+            checkpoint = builder.snapshot()
+            journal.close()
+
+            restored_builder = LiveCausalContextBuilder.from_checkpoint(
+                checkpoint, calendar=_CALENDAR
+            )
+            restored_journal = PaperOrderJournal(path, require_full_envelope=True)
+            try:
+                restored = restored_journal.get_conditional(directive.client_request_id)
+                self.assertEqual(CONDITIONAL_ARMED, restored.status)
+                self.assertEqual(causal_minute.identity, restored.last_evaluated_bar_identity)
+                self.assertEqual(causal_minute.end, restored.last_evaluated_bar_end)
+                self.assertEqual((), restored_builder.observe(
+                    (_live_minute(bootstrap_at, price="3500"),), observed_at=observed_at
+                ))
+                self.assertEqual((), restored_builder.newly_admitted_one_minute_bars)
+            finally:
+                restored_journal.close()
 
     def test_restart_resumes_durable_trigger_without_duplicate_submission(self) -> None:
         at = datetime(2024, 4, 10, 9, 20, tzinfo=ZoneInfo("Asia/Shanghai"))
