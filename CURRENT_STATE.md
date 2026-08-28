@@ -10,13 +10,13 @@ Stable product direction, architecture, tooling and governance live in their own
 
 ## Current activity
 
-`CURRENT_ACTIVITY = OFFLINE_PAPER_PREBUILD__FEATURE_FROZEN__PROJECT_BRAIN_INDEPENDENT_TOTAL_AUDIT_PENDING__NO_EXTERNAL_PAPER_ACTION`
+`CURRENT_ACTIVITY = OFFLINE_PAPER_PREBUILD__CODEX_REPAIR_PR66_RECEIVED__PROJECT_BRAIN_CLOSURE_REVALIDATION__FINAL_CLOSURE_REPAIR_REQUIRED__NO_EXTERNAL_PAPER_ACTION`
 
 `CURRENT_WORK_PACKAGE = PAPER_PREBUILD_OFFLINE_ENGINEERING_V0_1`
 
-`WORK_PACKAGE_PHASE = FEATURE_FROZEN__INDEPENDENT_FINDINGS_ONLY_AUDIT_PENDING`
+`WORK_PACKAGE_PHASE = POST_AUDIT_CODEX_REPAIR__PROJECT_BRAIN_REVALIDATION__FINAL_CLOSURE_REPAIR_REQUIRED`
 
-`NEXT_TASK = PROJECT_BRAIN_RUN_ONE_INDEPENDENT_CONSOLIDATED_PAPER_READINESS_AUDIT__REPORT_FINDINGS_ONLY__NO_REPAIR_DURING_AUDIT_PASS`
+`NEXT_TASK = CODEX_CLOSE_REMAINING_PROJECT_BRAIN_CLOSURE_GAPS_ON_PR66__THEN_PROJECT_BRAIN_REVALIDATE_AND_ACCEPT_OR_BLOCK`
 
 Current feature-freeze / audit Owner decision:
 
@@ -30,7 +30,7 @@ Exact feature-freeze evidence:
 
 `docs/evidence/JIANGHE_PAPER_PREBUILD_FEATURE_FREEZE_2026-08-28.md`
 
-## PAPER feature-freeze state
+## PAPER feature-freeze / audit / repair state
 
 `PAPER_PREBUILD_MODE = OFFLINE_ONLY`
 
@@ -44,19 +44,29 @@ Exact feature-freeze evidence:
 
 `PAPER_LAST_FEATURE_PR = 64__MERGED`
 
-`PAPER_FEATURE_SCOPE = FROZEN__NO_NEW_ORDINARY_FEATURE_WORK_UNLESS_AUDIT_FINDING_OR_EXPLICIT_OWNER_REOPEN`
+`PAPER_FEATURE_SCOPE = FROZEN__POST_FREEZE_CHANGES_ONLY_FOR_AUDIT_FINDINGS_OR_EXPLICIT_OWNER_REOPEN`
 
-`PAPER_TOTAL_AUDIT_STATUS = NOT_YET_STARTED`
+`PAPER_TOTAL_AUDIT_STATUS = COMPLETE__PROJECT_BRAIN_INDEPENDENT_FINDINGS_ONLY_AUDIT_PERFORMED`
 
 `PAPER_TOTAL_AUDIT_REVIEWER = PROJECT_BRAIN`
 
-`PAPER_TOTAL_AUDIT_OUTPUT_MODE = FINDINGS_ONLY__NO_REPAIR_OR_REPAIR_MECHANICS_BY_DEFAULT`
+`PAPER_TOTAL_AUDIT_OUTPUT_MODE = FINDINGS_ONLY__NO_STANDALONE_ACTIVE_TREE_TOMBSTONE_REQUIRED_BY_OWNER`
 
-`CODEX_REPAIR_STATUS = WAITING_FOR_PROJECT_BRAIN_FINDINGS`
+`CODEX_REPAIR_PR = 66`
 
-The exact frozen integration head passed authority consistency, compile, the Linux full unit-test job, Windows prototype/PAPER regression and the native Windows offline acceptance probe. The feature freeze is a code-scope checkpoint, not final acceptance and not proof that the implementation is defect-free.
+`CODEX_REPAIR_BRANCH = codex/paper-total-audit-repair-v01-20260828`
 
-The next audit must inspect this exact frozen implementation as one system. During the audit pass the project brain reports substantiated findings only. Repair guidance is omitted unless a correct repair depends on project/Owner context that a repair worker could not reliably infer from repository authority. Codex may receive a later bounded repair package after findings exist.
+`CODEX_REPAIR_HEAD = 19b6017655e8a6d842c37c3c4aeba263c94fcffe`
+
+`CODEX_REPAIR_HEAD_CI = PASS__REPOSITORY_CI_RUN_187__LINUX_AND_WINDOWS`
+
+`CODEX_REPAIR_STATUS = SUBMITTED__BROAD_REPAIRS_VERIFIED__PROJECT_BRAIN_FINAL_CLOSURE_GAPS_REMAIN`
+
+`PROJECT_BRAIN_CLOSURE_STATUS = BLOCKED_PENDING_FINAL_BOUNDED_REPAIR`
+
+`PAPER_FINAL_ACCEPTANCE = NOT_YET_ACCEPTED`
+
+The project brain completed the Owner-required independent consolidated findings-only audit against the exact frozen implementation, then independently inspected Codex repair PR #66 rather than trusting its completion report. PR #66 starts from the exact frozen head and its current repair head passed Repository CI on Linux and Windows. Broad repair coverage is materially improved, but project-brain closure revalidation found remaining bounded gaps that must be closed before final acceptance. Per Owner direction, no permanent standalone findings tombstone is required in the active tree; the current fact is simply that final acceptance has not yet been granted.
 
 ## External PAPER / consequential-action locks
 
@@ -72,7 +82,7 @@ The next audit must inspect this exact frozen implementation as one system. Duri
 
 `REAL_MONEY = NOT_AUTHORIZED`
 
-Feature freeze and the forthcoming audit do not authorize external connectivity or account/order mutation. No PAPER credential needs to be read for the current task.
+Audit/repair/revalidation do not authorize external connectivity or account/order mutation. No PAPER credential needs to be read for the current task.
 
 Current locks remain:
 
@@ -89,7 +99,7 @@ Current locks remain:
 
 ## Result-dependent activation boundary
 
-The frozen outcome-independent infrastructure intentionally does not freeze or invent:
+The outcome-independent infrastructure intentionally does not freeze or invent:
 
 - sizing / lot policy;
 - execution-price policy;
@@ -137,7 +147,7 @@ Formal sequence remains:
 
 `FULL FROZEN V0.1 CLOSURE -> CU chronological historical replay -> RB chronological historical replay -> focused CU/RB comparison -> conditional RB supplementation -> REAL-TIME PAPER`
 
-The feature-frozen prebuild accelerates infrastructure only and does not skip that route.
+The PAPER prebuild accelerates infrastructure only and does not skip that route.
 
 ## Continuity rule for the next conversation
 
@@ -150,7 +160,8 @@ Before substantive project work:
 5. read this `CURRENT_STATE.md`;
 6. read `docs/reviews/JIANGHE_PAPER_FEATURE_FREEZE_AND_INDEPENDENT_AUDIT_OWNER_DECISION_2026-08-28.md`;
 7. read `docs/evidence/JIANGHE_PAPER_PREBUILD_FEATURE_FREEZE_2026-08-28.md`;
-8. inspect PR #56 / `integration/paper-readiness-v01-20260827` and verify the frozen head before beginning the audit;
-9. read `TOOL_REGISTRY.md` when TqSdk/provider/credential/tool role matters.
+8. inspect repair PR #66 and its actual current head/diff/CI;
+9. after repair closure, inspect integration PR #56 and run project-brain final acceptance before any merge-to-main decision;
+10. read `TOOL_REGISTRY.md` when TqSdk/provider/credential/tool role matters.
 
-Do not infer implementation acceptance from prior worker reports. Do not add feature work before the independent audit. Do not begin any external PAPER/provider/broker action without a later exact Owner authority.
+Do not infer repair acceptance from a worker report or green CI alone. Do not begin any external PAPER/provider/broker action without a later exact Owner authority.
