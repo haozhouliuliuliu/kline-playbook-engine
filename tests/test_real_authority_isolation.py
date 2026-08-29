@@ -21,6 +21,11 @@ REAL_MODULES = (
     "src/real_activation_profile.py",
     "src/real_runtime_config.py",
     "src/real_preflight.py",
+    "src/real_runtime_controller.py",
+    "src/real_supervisor.py",
+    "src/real_offline_activation_rehearsal.py",
+    "src/realtime_provider_control.py",
+    "src/realtime_provider_attempt_ledger.py",
 )
 
 # Permanent numeric risk-rule identifiers that must never be silently embedded
