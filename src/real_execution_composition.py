@@ -13,7 +13,7 @@ from __future__ import annotations
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from enum import Enum
 from hashlib import sha256
 import json
@@ -54,7 +54,10 @@ from src.runtime_events import (
 from src.trading_state import EventApplicationResult, OrderStatus, TradingState
 
 
-REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_1"
+REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_2"
+LEGACY_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_1"
+REAL_EXECUTION_LINEAGE_SCHEMA_VERSION = "KPE_REAL_EXECUTION_LINEAGE_V0_1"
+REAL_POSITION_BASELINE_SCHEMA_VERSION = "KPE_REAL_POSITION_BASELINE_V0_1"
 
 
 class RealOrderLifecycle(str, Enum):
@@ -195,6 +198,7 @@ class RealExecutionComposition:
         self._reconciliation_proof: CurrentReconciliationProof | None = None
         self._readiness_state = "CURRENT_RECONCILIATION_REQUIRED"
         self._composition_instance_id = self._initialize()
+        self._position_baseline = self._ensure_position_baseline()
         self._repair_or_block_legacy_fill_aggregates()
         existing_sequences = tuple(
             event.sequence
@@ -253,10 +257,42 @@ class RealExecutionComposition:
                     latched_at TEXT NOT NULL,
                     resolved_at TEXT
                 );
+                CREATE TABLE IF NOT EXISTS real_position_baseline(
+                    baseline_key TEXT PRIMARY KEY CHECK(baseline_key='journal_start'),
+                    schema_version TEXT NOT NULL,
+                    expected_trading_day TEXT NOT NULL,
+                    session_identity TEXT NOT NULL,
+                    positions_json TEXT NOT NULL,
+                    baseline_identity TEXT NOT NULL
+                );
                 """
             )
+            schema_row = connection.execute(
+                "SELECT value FROM real_execution_meta WHERE key='schema_version'"
+            ).fetchone()
+            order_count = connection.execute(
+                "SELECT COUNT(*) FROM real_execution_orders"
+            ).fetchone()[0]
+            fact_count = connection.execute(
+                "SELECT COUNT(*) FROM real_execution_facts"
+            ).fetchone()[0]
+            baseline_initialization_allowed = False
+            if schema_row is None:
+                connection.execute(
+                    "INSERT INTO real_execution_meta(key,value) VALUES('schema_version',?)",
+                    (REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,),
+                )
+                baseline_initialization_allowed = True
+            elif schema_row[0] == LEGACY_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION:
+                if order_count == 0 and fact_count == 0:
+                    connection.execute(
+                        "UPDATE real_execution_meta SET value=? WHERE key='schema_version'",
+                        (REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,),
+                    )
+                    baseline_initialization_allowed = True
+            elif schema_row[0] != REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION:
+                raise ValueError("REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:schema_version")
             expected_meta = {
-                "schema_version": REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
                 "expected_trading_day": self.expected_trading_day,
                 "session_identity": self.session_identity,
                 "broker_adapter_identity": self.adapter.broker_id,
@@ -270,6 +306,29 @@ class RealExecutionComposition:
                 connection.execute(
                     "INSERT OR IGNORE INTO real_execution_meta(key,value) VALUES(?,?)",
                     (key, value),
+                )
+            baseline_row = connection.execute(
+                "SELECT baseline_key FROM real_position_baseline WHERE baseline_key='journal_start'"
+            ).fetchone()
+            if baseline_row is None and baseline_initialization_allowed:
+                positions = self._baseline_position_document(self.trading_state.positions)
+                connection.execute(
+                    """INSERT INTO real_position_baseline(
+                           baseline_key,schema_version,expected_trading_day,
+                           session_identity,positions_json,baseline_identity
+                       ) VALUES('journal_start',?,?,?,?,?)""",
+                    (
+                        REAL_POSITION_BASELINE_SCHEMA_VERSION,
+                        self.expected_trading_day,
+                        self.session_identity,
+                        json.dumps(
+                            positions,
+                            ensure_ascii=False,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ),
+                        self._position_baseline_identity(positions),
+                    ),
                 )
             generation_row = connection.execute(
                 "SELECT value FROM real_execution_meta WHERE key='construction_generation'"
@@ -297,6 +356,109 @@ class RealExecutionComposition:
             "broker_adapter_identity": self.adapter.broker_id,
             "construction_generation": generation,
         })
+
+    def _ensure_position_baseline(
+        self,
+    ) -> dict[tuple[str, PositionDirection], tuple[Decimal, Decimal]] | None:
+        with closing(self._connect()) as connection, connection:
+            row = connection.execute(
+                "SELECT * FROM real_position_baseline WHERE baseline_key='journal_start'"
+            ).fetchone()
+            schema_row = connection.execute(
+                "SELECT value FROM real_execution_meta WHERE key='schema_version'"
+            ).fetchone()
+
+        if row is None:
+            self._latch_position_baseline_failure(
+                "POSITION_BASELINE_MISSING",
+                "nonempty REAL journal has no explicit position baseline",
+            )
+            return None
+        try:
+            positions = json.loads(row["positions_json"])
+            projection = self._position_projection_from_document(positions)
+            identity = self._position_baseline_identity(positions)
+            valid = (
+                schema_row is not None
+                and schema_row[0] == REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION
+                and row["schema_version"] == REAL_POSITION_BASELINE_SCHEMA_VERSION
+                and row["expected_trading_day"] == self.expected_trading_day
+                and row["session_identity"] == self.session_identity
+                and row["baseline_identity"] == identity
+            )
+        except (json.JSONDecodeError, TypeError, ValueError, KeyError, InvalidOperation):
+            valid = False
+            projection = None
+        if not valid:
+            self._latch_position_baseline_failure(
+                "POSITION_BASELINE_INVALID",
+                "position baseline content, identity, or journal scope is invalid",
+            )
+            return None
+        return projection
+
+    @staticmethod
+    def _baseline_position_document(positions) -> list[dict[str, str]]:
+        return [
+            {
+                "average_open_price": canonical_decimal(position.average_open_price),
+                "concrete_contract_id": position.concrete_contract_id,
+                "direction": position.direction.value,
+                "quantity": canonical_decimal(position.quantity),
+            }
+            for position in sorted(
+                positions,
+                key=lambda item: (item.concrete_contract_id, item.direction.value),
+            )
+        ]
+
+    def _position_baseline_identity(self, positions: object) -> str:
+        return _fingerprint({
+            "schema_version": REAL_POSITION_BASELINE_SCHEMA_VERSION,
+            "expected_trading_day": self.expected_trading_day,
+            "session_identity": self.session_identity,
+            "positions": positions,
+        })
+
+    @staticmethod
+    def _position_projection_from_document(
+        positions: object,
+    ) -> dict[tuple[str, PositionDirection], tuple[Decimal, Decimal]]:
+        if not isinstance(positions, list):
+            raise ValueError("position baseline must be a list")
+        projection: dict[tuple[str, PositionDirection], tuple[Decimal, Decimal]] = {}
+        expected_keys = {
+            "average_open_price",
+            "concrete_contract_id",
+            "direction",
+            "quantity",
+        }
+        for raw in positions:
+            if not isinstance(raw, dict) or set(raw) != expected_keys:
+                raise ValueError("position baseline entry has invalid fields")
+            contract = _required_text(raw["concrete_contract_id"], "baseline contract")
+            direction = PositionDirection(raw["direction"])
+            quantity = Decimal(_required_text(raw["quantity"], "baseline quantity"))
+            average = Decimal(
+                _required_text(raw["average_open_price"], "baseline average price")
+            )
+            if (
+                not quantity.is_finite()
+                or quantity <= 0
+                or not average.is_finite()
+                or average <= 0
+            ):
+                raise ValueError("position baseline values must be positive finite Decimals")
+            key = (contract, direction)
+            if key in projection:
+                raise ValueError("position baseline rejects duplicate position identities")
+            projection[key] = (quantity, average)
+        return projection
+
+    def _latch_position_baseline_failure(self, code: str, detail: str) -> None:
+        occurred_at = datetime.now().astimezone()
+        self._latch_blocker(code, detail, occurred_at)
+        self._latch_inconsistency("position-baseline", detail, occurred_at)
 
     @property
     def composition_instance_id(self) -> str:
@@ -1040,7 +1202,10 @@ class RealExecutionComposition:
                 continue
             existing = self.trading_state.order_for(order.project_order_id)
             if existing is not None:
-                if not self._trading_order_matches_durable(existing, order):
+                if (
+                    not self._trading_order_matches_durable(existing, order)
+                    or not self._trading_fill_lineage_matches_durable(order)
+                ):
                     self._latch_inconsistency(
                         order.project_order_id,
                         "TRADING_STATE_DURABLE_ORDER_DIVERGENCE",
@@ -1107,8 +1272,10 @@ class RealExecutionComposition:
             if order.lifecycle is RealOrderLifecycle.INCONSISTENT:
                 continue
             runtime_order = self.trading_state.order_for(order.project_order_id)
-            if runtime_order is None or not self._trading_order_matches_durable(
-                runtime_order, order
+            if (
+                runtime_order is None
+                or not self._trading_order_matches_durable(runtime_order, order)
+                or not self._trading_fill_lineage_matches_durable(order)
             ):
                 self._latch_inconsistency(
                     order.project_order_id,
@@ -1355,8 +1522,107 @@ class RealExecutionComposition:
             and runtime_order.average_fill_price == durable_order.average_fill_price
         )
 
+    def _trading_fill_lineage_matches_durable(self, order: DurableRealOrder) -> bool:
+        try:
+            durable = self._durable_fill_lineage(order)
+            runtime = self._trading_fill_lineage(order)
+        except (TypeError, ValueError, InvalidOperation):
+            return False
+        if runtime is None:
+            return False
+        return _fingerprint({
+            "schema_version": REAL_EXECUTION_LINEAGE_SCHEMA_VERSION,
+            "fills": runtime,
+        }) == _fingerprint({
+            "schema_version": REAL_EXECUTION_LINEAGE_SCHEMA_VERSION,
+            "fills": durable,
+        })
+
+    def _durable_fill_lineage(
+        self, order: DurableRealOrder
+    ) -> tuple[tuple[tuple[str, str], ...], ...]:
+        with closing(self._connect()) as connection:
+            facts = connection.execute(
+                """SELECT fact_key,broker_order_id,quantity,price,occurred_at
+                   FROM real_execution_facts
+                   WHERE project_order_id=? AND fact_type='FILL'
+                   ORDER BY occurred_at,fact_key""",
+                (order.project_order_id,),
+            ).fetchall()
+        return tuple(
+            event_pairs(
+                event_id="real-fill:" + fact["fact_key"].removeprefix("trade:"),
+                broker_trade_id=fact["fact_key"].removeprefix("trade:"),
+                project_order_id=order.project_order_id,
+                client_request_id=order.client_request_id,
+                broker_order_id=fact["broker_order_id"],
+                quantity=Decimal(fact["quantity"]),
+                price=Decimal(fact["price"]),
+                occurred_at=datetime.fromisoformat(fact["occurred_at"]),
+                concrete_contract_id=order.concrete_contract_id,
+                direction=order.direction,
+                action=order.action,
+                trading_day=order.trading_day,
+                session_identity=order.session_identity,
+            )
+            for fact in facts
+        )
+
+    def _trading_fill_lineage(
+        self, order: DurableRealOrder
+    ) -> tuple[tuple[tuple[str, str], ...], ...] | None:
+        records: list[tuple[tuple[str, str], ...]] = []
+        for event in self.trading_state.applied_events():
+            if (
+                event.event_type is not BrokerEventType.ORDER_FILLED
+                or event.order_id != order.project_order_id
+            ):
+                continue
+            payload = dict(event.payload)
+            broker_trade_id = payload.get("broker_trade_id")
+            broker_order_id = payload.get("broker_order_id")
+            if (
+                not broker_trade_id
+                or not broker_order_id
+                or event.event_id != "real-fill:" + broker_trade_id
+                or event.stream_id != self._stream_id
+                or event.client_request_id != order.client_request_id
+            ):
+                return None
+            try:
+                records.append(event_pairs(
+                    event_id=event.event_id,
+                    broker_trade_id=broker_trade_id,
+                    project_order_id=event.order_id,
+                    client_request_id=event.client_request_id,
+                    broker_order_id=broker_order_id,
+                    quantity=Decimal(_required_text(payload.get("quantity"), "fill quantity")),
+                    price=Decimal(_required_text(payload.get("price"), "fill price")),
+                    occurred_at=event.occurred_at,
+                    concrete_contract_id=_required_text(
+                        payload.get("concrete_contract_id"), "fill contract"
+                    ),
+                    direction=_required_text(payload.get("direction"), "fill direction"),
+                    action=_required_text(payload.get("action"), "fill action"),
+                    trading_day=_required_text(payload.get("trading_day"), "fill trading day"),
+                    session_identity=_required_text(
+                        payload.get("session_identity"), "fill session identity"
+                    ),
+                ))
+            except (ValueError, TypeError, InvalidOperation):
+                return None
+        return tuple(sorted(
+            records,
+            key=lambda record: (
+                dict(record)["occurred_at"],
+                dict(record)["broker_trade_id"],
+            ),
+        ))
+
     def _validate_trading_position_projection(self) -> None:
-        projections: dict[tuple[str, PositionDirection], tuple[Decimal, Decimal]] = {}
+        if self._position_baseline is None:
+            return
+        projections = dict(self._position_baseline)
         with closing(self._connect()) as connection:
             facts = connection.execute(
                 """SELECT f.quantity,f.price,o.project_order_id,o.concrete_contract_id,
@@ -1388,8 +1654,18 @@ class RealExecutionComposition:
                 if quantity == 0:
                     average = Decimal("0")
             projections[key] = (quantity, average)
-        for (contract, direction), (quantity, average) in projections.items():
-            actual = self.trading_state.position_for(contract, direction)
+        actual_positions = {
+            (position.concrete_contract_id, position.direction): position
+            for position in self.trading_state.positions
+        }
+        position_keys = set(projections) | set(actual_positions)
+        for contract, direction in sorted(
+            position_keys, key=lambda item: (item[0], item[1].value)
+        ):
+            quantity, average = projections.get(
+                (contract, direction), (Decimal("0"), Decimal("0"))
+            )
+            actual = actual_positions.get((contract, direction))
             matches = (
                 (quantity == 0 and actual is None)
                 or (
@@ -1401,18 +1677,32 @@ class RealExecutionComposition:
             )
             if not matches:
                 related = next(
-                    item for item in self.orders()
-                    if item.concrete_contract_id == contract and item.direction is direction
+                    (
+                        item for item in self.orders()
+                        if item.concrete_contract_id == contract
+                        and item.direction is direction
+                    ),
+                    None,
                 )
                 self._latch_inconsistency(
-                    related.project_order_id,
+                    (
+                        related.project_order_id
+                        if related is not None
+                        else f"position:{contract}:{direction.value}"
+                    ),
                     "TRADING_STATE_POSITION_DIVERGENCE",
-                    related.updated_at,
+                    (
+                        related.updated_at
+                        if related is not None
+                        else datetime.now().astimezone()
+                    ),
                 )
 
 
 __all__ = [
     "REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION",
+    "REAL_EXECUTION_LINEAGE_SCHEMA_VERSION",
+    "REAL_POSITION_BASELINE_SCHEMA_VERSION",
     "CurrentReconciliationProof",
     "DurableRealOrder",
     "RealExecutionComposition",
