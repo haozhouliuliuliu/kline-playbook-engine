@@ -103,12 +103,15 @@ class CtpTruthState(str, Enum):
 class CtpCallbackType(str, Enum):
     FRONT_CONNECTED = "FRONT_CONNECTED"
     AUTHENTICATED = "AUTHENTICATED"
+    AUTHENTICATION_FAILED = "AUTHENTICATION_FAILED"
     LOGIN_SUCCEEDED = "LOGIN_SUCCEEDED"
+    LOGIN_FAILED = "LOGIN_FAILED"
     TRADING_DAY = "TRADING_DAY"
     ORDER_ACKNOWLEDGED = "ORDER_ACKNOWLEDGED"
     ORDER_REJECTED = "ORDER_REJECTED"
     TRADE_FILLED = "TRADE_FILLED"
     CANCEL_ACKNOWLEDGED = "CANCEL_ACKNOWLEDGED"
+    CANCEL_REJECTED = "CANCEL_REJECTED"
     ACCOUNT_SNAPSHOT = "ACCOUNT_SNAPSHOT"
     POSITION_SNAPSHOT = "POSITION_SNAPSHOT"
     ORDER_SNAPSHOT = "ORDER_SNAPSHOT"
@@ -120,6 +123,16 @@ class CtpCallbackType(str, Enum):
 
 class BrokerTruthUnknownError(RuntimeError):
     """Raised when a caller asks the adapter to claim unestablished truth."""
+
+
+@dataclass(frozen=True)
+class CtpSessionFailure:
+    error_code: str
+    reason: str
+
+    def __post_init__(self) -> None:
+        _required_text(self.error_code, "CTP session error code")
+        _required_text(self.reason, "CTP session failure reason")
 
 
 @dataclass(frozen=True)
@@ -294,6 +307,25 @@ class CtpCancelAcknowledgement:
 
 
 @dataclass(frozen=True)
+class CtpCancelRejection:
+    project_order_id: str
+    client_request_id: str
+    broker_order_id: str
+    error_code: str
+    reason: str
+
+    def __post_init__(self) -> None:
+        for value, name in (
+            (self.project_order_id, "project order id"),
+            (self.client_request_id, "client request id"),
+            (self.broker_order_id, "broker order id"),
+            (self.error_code, "cancel rejection error code"),
+            (self.reason, "cancel rejection reason"),
+        ):
+            _required_text(value, name)
+
+
+@dataclass(frozen=True)
 class CtpAccountRecord:
     account_id: str
     snapshot_at: datetime
@@ -358,6 +390,7 @@ class CtpCallback:
     callback_type: CtpCallbackType
     occurred_at: datetime
     data: Any = None
+    trading_day: str | None = None
 
     def __post_init__(self) -> None:
         _required_text(self.callback_id, "CTP callback id")
@@ -367,6 +400,13 @@ class CtpCallback:
             raise ValueError("CTP callback timestamp must be timezone-aware")
         if isinstance(self.data, dict):
             _reject_sensitive_names(tuple(str(name) for name in self.data))
+        if self.trading_day is not None:
+            if (
+                not isinstance(self.trading_day, str)
+                or len(self.trading_day) != 8
+                or not self.trading_day.isdigit()
+            ):
+                raise ValueError("CTP callback trading day must use YYYYMMDD")
 
     @property
     def identity_id(self) -> str:
@@ -490,8 +530,18 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
             if previous != request:
                 raise ValueError("CTP_PROJECT_ORDER_ID_REUSED_WITH_DIFFERENT_CONTENT")
             return request.project_order_id
-        self._transport.submit_order(request)
+        # Persist the project-side attempt identity before crossing the
+        # transport seam.  An exception may occur after the broker received the
+        # request, so the same project order must never be blindly submitted
+        # again and all broker truth becomes unknown until reconciliation.
         self._submitted[request.project_order_id] = request
+        try:
+            self._transport.submit_order(request)
+        except Exception:
+            self._session_state = CtpSessionState.UNKNOWN
+            self._trading_day = None
+            self._mark_truth_unknown()
+            raise
         return request.project_order_id
 
     def cancel_order(self, order_id: str) -> None:
@@ -574,6 +624,14 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
     def _apply_callback(self, callback: CtpCallback) -> None:
         if not isinstance(callback, CtpCallback):
             raise ValueError("CTP transport returned a non-CtpCallback value")
+        if (
+            callback.callback_type is not CtpCallbackType.TRADING_DAY
+            and callback.trading_day is not None
+            and self._trading_day is not None
+            and callback.trading_day != self._trading_day
+        ):
+            self._invalidate(callback, "CTP_CALLBACK_TRADING_DAY_MISMATCH")
+            raise ValueError("CTP_CALLBACK_TRADING_DAY_MISMATCH")
         fingerprint = callback.identity_id
         previous = self._seen_callbacks.get(callback.callback_id)
         if previous is not None:
@@ -592,6 +650,7 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
             CtpCallbackType.ORDER_REJECTED,
             CtpCallbackType.TRADE_FILLED,
             CtpCallbackType.CANCEL_ACKNOWLEDGED,
+            CtpCallbackType.CANCEL_REJECTED,
         }
         if kind in lifecycle_kinds:
             lifecycle_fingerprint = _fingerprint((kind, data))
@@ -611,13 +670,33 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
             self._emit(callback, BrokerEventType.CONNECTION_STATE, state=self._session_state.value)
         elif kind is CtpCallbackType.AUTHENTICATED and self._session_state is CtpSessionState.AUTHENTICATING:
             self._session_state = CtpSessionState.AUTHENTICATED
+        elif (kind is CtpCallbackType.AUTHENTICATION_FAILED
+              and self._session_state is CtpSessionState.AUTHENTICATING
+              and isinstance(data, CtpSessionFailure)):
+            self._invalidate(callback, data.reason)
         elif kind is CtpCallbackType.LOGIN_SUCCEEDED and self._session_state is CtpSessionState.LOGGING_IN:
             self._session_state = CtpSessionState.LOGGED_IN_PENDING_TRADING_DAY
+        elif (kind is CtpCallbackType.LOGIN_FAILED
+              and self._session_state is CtpSessionState.LOGGING_IN
+              and isinstance(data, CtpSessionFailure)):
+            self._invalidate(callback, data.reason)
         elif kind is CtpCallbackType.TRADING_DAY and self._session_state is CtpSessionState.LOGGED_IN_PENDING_TRADING_DAY:
             self._trading_day = _required_text(data, "CTP trading day")
             self._session_state = CtpSessionState.READY_FOR_RECONCILIATION
             self._emit(callback, BrokerEventType.CONNECTION_STATE, state=self._session_state.value,
                        trading_day=self._trading_day)
+        elif kind is CtpCallbackType.TRADING_DAY and self._session_state is CtpSessionState.READY_FOR_RECONCILIATION:
+            next_trading_day = _required_text(data, "CTP trading day")
+            if next_trading_day != self._trading_day:
+                self._trading_day = next_trading_day
+                self._mark_truth_unknown()
+                self._emit(
+                    callback,
+                    BrokerEventType.CONNECTION_STATE,
+                    state=self._session_state.value,
+                    trading_day=self._trading_day,
+                    reason="TRADING_DAY_ROLLOVER_REQUIRES_FRESH_QUERY",
+                )
         elif kind is CtpCallbackType.ORDER_ACKNOWLEDGED and isinstance(data, CtpOrderAcknowledgement):
             self._broker_mapping[data.project_order_id] = (
                 data.client_request_id, data.broker_order_id, data.cancel_token
@@ -635,6 +714,17 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
         elif kind is CtpCallbackType.CANCEL_ACKNOWLEDGED and isinstance(data, CtpCancelAcknowledgement):
             self._emit(callback, BrokerEventType.ORDER_CANCELLED, order_id=data.project_order_id,
                        client_request_id=data.client_request_id, broker_order_id=data.broker_order_id)
+        elif kind is CtpCallbackType.CANCEL_REJECTED and isinstance(data, CtpCancelRejection):
+            self._mark_truth_unknown()
+            self._emit(
+                callback,
+                BrokerEventType.ORDER_AMBIGUOUS,
+                order_id=data.project_order_id,
+                client_request_id=data.client_request_id,
+                broker_order_id=data.broker_order_id,
+                error_code=data.error_code,
+                reason=data.reason,
+            )
         elif (kind is CtpCallbackType.ACCOUNT_SNAPSHOT
               and self._truth["account"] is CtpTruthState.REQUESTED
               and isinstance(data, CtpAccountRecord)):
