@@ -448,6 +448,7 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
         self._account: BrokerAccountSnapshot | None = None
         self._positions: tuple[BrokerPositionSnapshot, ...] = ()
         self._orders: tuple[BrokerOrderSnapshot, ...] = ()
+        self._ctp_orders: tuple[CtpOrderRecord, ...] = ()
         self._trades: tuple[CtpTradeRecord, ...] = ()
         self._outbox: list[BrokerEvent] = []
         self._seen_callbacks: dict[str, str] = {}
@@ -580,6 +581,11 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
         self._require_known("orders")
         return self._orders
 
+    def fetch_ctp_order_snapshot(self) -> tuple[CtpOrderRecord, ...]:
+        """Return lossless project/broker identities for REAL composition."""
+        self._require_known("orders")
+        return self._ctp_orders
+
     def fetch_trade_snapshot(self) -> tuple[CtpTradeRecord, ...]:
         self._require_known("trades")
         return self._trades
@@ -599,6 +605,7 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
         self._account = None
         self._positions = ()
         self._orders = ()
+        self._ctp_orders = ()
         self._trades = ()
 
     def _emit(self, callback: CtpCallback, event_type: BrokerEventType, *, order_id: str | None = None,
@@ -742,6 +749,7 @@ class FangzhengCtpBrokerAdapter(BrokerAdapter):
               and isinstance(data, tuple)) and all(
             isinstance(item, CtpOrderRecord) for item in data
         ):
+            self._ctp_orders = data
             self._orders = tuple(BrokerOrderSnapshot(
                 order_id=item.project_order_id,
                 client_request_id=item.client_request_id,

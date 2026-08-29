@@ -22,6 +22,7 @@ from dataclasses import dataclass
 
 from src.realtime_provider_attempt_ledger import (
     ATTEMPT_STARTED,
+    AUTHORITY_IDENTITY_MISMATCH,
     DEFAULT_RETRY_COUNT,
     DuplicateWakeAttemptError,
     UNKNOWN_AFTER_ATTEMPT_START,
@@ -168,6 +169,13 @@ class RealtimeProviderControl:
             raise TypeError("realtime admission requires RealtimeAttemptIdentity")
         if not isinstance(budget, RealtimeBudgetInput):
             raise TypeError("realtime admission requires RealtimeBudgetInput")
+        if identity.authority_identity != self._ledger.authority_identity:
+            return RealtimeAdmissionResult(
+                wake_identity=identity.wake_identity,
+                admitted=False,
+                stop_reasons=(AUTHORITY_IDENTITY_MISMATCH,),
+                monetary_certainty=budget.monetary_certainty,
+            )
 
         existing = self._ledger.attempt_for_wake(identity.wake_identity)
         if existing is not None:

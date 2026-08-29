@@ -190,7 +190,15 @@ class RealSafetyController:
         """Explicit manual disarm of a tripped kill switch (fail closed otherwise)."""
         if self._state.mode is not SafetyMode.KILL:
             raise ValueError("cannot disarm a kill switch that is not tripped")
-        return self._transition(mode=SafetyMode.NORMAL, reason=reason, at=at)
+        target_mode = (
+            SafetyMode.NORMAL
+            if (
+                self._state.external_mutation_status is ExternalMutationStatus.RESOLVED
+                and not self._state.hard_inconsistency_latched
+            )
+            else SafetyMode.NO_NEW_RISK
+        )
+        return self._transition(mode=target_mode, reason=reason, at=at)
 
     def pause(self, reason: str, at: datetime) -> RealSafetyState:
         """Enter NO_NEW_RISK: block risk increase, allow proven reduction."""
@@ -200,6 +208,10 @@ class RealSafetyController:
         """Explicit resume from NO_NEW_RISK (never auto-resumed)."""
         if self._state.mode is not SafetyMode.NO_NEW_RISK:
             raise ValueError("cannot resume when no-new-risk is not active")
+        if self._state.external_mutation_status is not ExternalMutationStatus.RESOLVED:
+            raise ValueError("cannot resume with unresolved external mutation")
+        if self._state.hard_inconsistency_latched:
+            raise ValueError("cannot resume with a hard inconsistency latched")
         return self._transition(mode=SafetyMode.NORMAL, reason=reason, at=at)
 
     def set_unknown(self, reason: str, at: datetime) -> RealSafetyState:

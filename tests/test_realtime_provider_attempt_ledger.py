@@ -13,6 +13,7 @@ import unittest
 
 from src.realtime_provider_attempt_ledger import (
     ATTEMPT_STARTED,
+    AuthorityIdentityMismatchError,
     DuplicateWakeAttemptError,
     RESULT_RECEIVED,
     UNKNOWN_AFTER_ATTEMPT_START,
@@ -135,6 +136,23 @@ class RealtimeProviderAttemptLedgerTests(unittest.TestCase):
             RealtimeProviderAttemptLedger(path, authority_identity=AUTHORITY_IDENTITY)
             with self.assertRaisesRegex(ValueError, "different authority"):
                 RealtimeProviderAttemptLedger(path, authority_identity="OTHER_AUTHORITY")
+
+    def test_attempt_authority_mismatch_is_rejected_before_durable_admission(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = realtime_provider_attempt_ledger_path_for(tmp)
+            ledger = RealtimeProviderAttemptLedger(path, authority_identity=AUTHORITY_IDENTITY)
+
+            with self.assertRaisesRegex(
+                AuthorityIdentityMismatchError, "AUTHORITY_IDENTITY_MISMATCH"
+            ):
+                ledger.record_attempt_started(
+                    identity=_identity(authority_identity="OTHER_AUTHORITY")
+                )
+
+            self.assertEqual(ledger.attempts(), ())
+            reopened = RealtimeProviderAttemptLedger(path, authority_identity=AUTHORITY_IDENTITY)
+            self.assertEqual(reopened.authority_identity, AUTHORITY_IDENTITY)
+            self.assertEqual(reopened.admitted_attempt_count(), 0)
 
     def test_portable_export_is_consistent(self) -> None:
         with TemporaryDirectory() as tmp:

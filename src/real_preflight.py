@@ -165,6 +165,7 @@ def run_real_preflight(
     assessed_at: datetime | None = None,
     order_state: RealDurableState | None = None,
     wake_state: RealDurableState | None = None,
+    account_state: RealDurableState | None = None,
     reconciliation_state: RealDurableState | None = None,
 ) -> RealPreflightReport:
     """Compute a machine-clear READY/BLOCKED fact set for REAL activation.
@@ -193,6 +194,7 @@ def run_real_preflight(
     for value, name in (
         (order_state, "order"),
         (wake_state, "wake"),
+        (account_state, "account"),
         (reconciliation_state, "reconciliation"),
     ):
         if value is not None and not isinstance(value, RealDurableState):
@@ -378,7 +380,15 @@ def run_real_preflight(
     checks.append(_check("BOUNDED_VALIDITY", validity_blockers,
                          "authority is ACTIVE and current within its bounded validity"))
 
-    # 12. durable order/wake/reconciliation state supplied by caller -------------
+    # 12. durable account truth is an independent first-class gate ----------------
+    account_blockers = _state_blockers(account_state, "ACCOUNT_STATE")
+    checks.append(_check(
+        "ACCOUNT_DURABLE_STATE_CLEAR",
+        account_blockers,
+        "caller-supplied durable account truth is CLEAR",
+    ))
+
+    # 13. durable order/wake/reconciliation state supplied by caller -------------
     durable_blockers: list[str] = []
     durable_blockers.extend(_state_blockers(order_state, "ORDER_STATE"))
     durable_blockers.extend(_state_blockers(wake_state, "WAKE_STATE"))
@@ -386,7 +396,7 @@ def run_real_preflight(
     checks.append(_check("DURABLE_STATE_CLEAR", durable_blockers,
                          "caller-supplied order/wake/reconciliation state is CLEAR"))
 
-    # 13. offline-only guarantee --------------------------------------------------
+    # 14. offline-only guarantee --------------------------------------------------
     checks.append(_check(
         "NO_EXTERNAL_ACTION",
         [],

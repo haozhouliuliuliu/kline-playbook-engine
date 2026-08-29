@@ -114,6 +114,25 @@ class RealRuntimeControllerTests(unittest.TestCase):
             self.assertFalse(report.ready)
             self.assertIs(controller.state, RealLifecycleState.PREFLIGHT_FAILED)
 
+    def test_unknown_account_state_reaches_preflight_and_blocks_test_ready(self) -> None:
+        with TemporaryDirectory() as tmp:
+            controller = _bound_controller(Path(tmp))
+            report = controller.preflight(
+                assessed_at=ASSESSED_AT,
+                order_state=RealDurableState.CLEAR,
+                wake_state=RealDurableState.CLEAR,
+                account_state=RealDurableState.UNKNOWN,
+                reconciliation_state=RealDurableState.CLEAR,
+            )
+
+            self.assertFalse(report.ready)
+            account_check = next(
+                check for check in report.checks if check.name == "ACCOUNT_DURABLE_STATE_CLEAR"
+            )
+            self.assertIn("ACCOUNT_STATE_UNKNOWN", account_check.detail)
+            with self.assertRaisesRegex(PermissionError, "REAL_POSITIVE_PREFLIGHT_REQUIRED"):
+                controller.activate_for_test(at=ASSESSED_AT)
+
     def test_expired_authority_blocks_activation(self) -> None:
         with TemporaryDirectory() as tmp:
             authority = synthetic_authority()

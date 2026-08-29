@@ -673,6 +673,49 @@ class TradingState:
         quantity = _payload_decimal(event.payload, PAYLOAD_QUANTITY)
         if quantity <= 0:
             raise ValueError("ORDER_SUBMITTED requires positive quantity")
+        existing = self._orders.get(event.order_id)
+        if existing is not None:
+            if (
+                existing.client_request_id != event.client_request_id
+                or existing.concrete_contract_id != contract
+                or existing.direction is not direction
+                or existing.action is not action
+                or existing.requested_quantity != quantity
+            ):
+                raise ValueError("ORDER_SUBMITTED acknowledgement conflicts with existing order")
+            acknowledged_status = OrderStatus(
+                _payload_value(event.payload, "lifecycle_status") or OrderStatus.LIVE.value
+            )
+            status = (
+                existing.status
+                if existing.status in {OrderStatus.PARTIALLY_FILLED, OrderStatus.FILLED}
+                else acknowledged_status
+            )
+            self._orders[event.order_id] = RuntimeOrderState(
+                order_id=existing.order_id,
+                client_request_id=existing.client_request_id,
+                concrete_contract_id=existing.concrete_contract_id,
+                direction=existing.direction,
+                action=existing.action,
+                status=status,
+                requested_quantity=existing.requested_quantity,
+                filled_quantity=existing.filled_quantity,
+                average_fill_price=existing.average_fill_price,
+                last_event_id=event.event_id,
+                updated_at=event.occurred_at,
+            )
+            return [
+                self._ledger.append(
+                    RuntimeLedgerRecordKind.ORDER,
+                    event.order_id,
+                    ledger_pairs(
+                        order_id=event.order_id,
+                        client_request_id=event.client_request_id,
+                        status=status.value,
+                    ),
+                    event.occurred_at,
+                ).identity_id
+            ]
         self._orders[event.order_id] = RuntimeOrderState(
             order_id=event.order_id,
             client_request_id=event.client_request_id,
