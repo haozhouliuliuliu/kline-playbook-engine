@@ -182,6 +182,25 @@ class BatchBasicTests(unittest.TestCase):
         self.assertIsNotNone(result.facts_identity)
         self.assertEqual(result.as_of, NOW)
 
+    def test_batch_echoes_economic_semantic_identity(self):
+        original = _facts()
+        changed = ContractFacts(
+            **{
+                **original.__dict__,
+                "fee": FeeModel(commission_per_lot=Decimal("6")),
+            }
+        )
+        original_result = evaluate_capital_adequacy_batch(
+            _batch(observations=[20], facts=original)
+        )
+        changed_result = evaluate_capital_adequacy_batch(
+            _batch(observations=[20], facts=changed)
+        )
+
+        self.assertNotEqual(original.identity_id, changed.identity_id)
+        self.assertEqual(original_result.facts_identity, original.identity_id)
+        self.assertEqual(changed_result.facts_identity, changed.identity_id)
+
 
 class DistributionTests(unittest.TestCase):
     def test_distribution_stats_deterministic(self):

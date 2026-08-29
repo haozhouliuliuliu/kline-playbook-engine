@@ -260,6 +260,22 @@ class RealSafetyControllerTests(unittest.TestCase):
         self.assertIs(controller.state.mode, SafetyMode.NORMAL)
         self.assertTrue(controller.state.allows_risk_increase())
 
+    def test_kill_disarm_and_resume_cannot_bypass_unresolved_external_mutation(self) -> None:
+        controller = RealSafetyController(_now())
+        controller.record_external_mutation("FIXTURE manual position edit", _now())
+        controller.trip_kill("FIXTURE kill", _now())
+
+        disarmed = controller.disarm_kill("FIXTURE manual disarm", _now())
+        self.assertIs(disarmed.mode, SafetyMode.NO_NEW_RISK)
+        self.assertIs(disarmed.external_mutation_status, ExternalMutationStatus.UNRESOLVED)
+        with self.assertRaisesRegex(ValueError, "unresolved external mutation"):
+            controller.resume("must remain blocked", _now())
+
+        controller.resolve_external_mutation("FIXTURE complete reconciliation", _now())
+        resumed = controller.resume("FIXTURE resume after resolution", _now())
+        self.assertIs(resumed.mode, SafetyMode.NORMAL)
+        self.assertTrue(resumed.allows_risk_increase())
+
 
 class ClassifyActionTests(unittest.TestCase):
     def test_unknown_action_classifies_unknown(self) -> None:
@@ -429,6 +445,22 @@ class RealRiskGateTests(unittest.TestCase):
             _facts(external_mutation_status=ExternalMutationStatus.UNRESOLVED),
             _now(),
         )
+        self.assertIs(decision.decision, RiskDecision.DENY)
+        self.assertIn(ReasonCode.EXTERNAL_MUTATION_UNRESOLVED, decision.reason_codes)
+
+    def test_persistent_external_mutation_outranks_contradictory_transient_facts(self) -> None:
+        controller = RealSafetyController(_now())
+        controller.record_external_mutation("FIXTURE manual broker mutation", _now())
+        controller.trip_kill("FIXTURE kill", _now())
+        persistent = controller.disarm_kill("FIXTURE disarm", _now())
+
+        decision = self.gate.evaluate(
+            _bound_policy(),
+            persistent,
+            _facts(external_mutation_status=ExternalMutationStatus.RESOLVED),
+            _now(),
+        )
+
         self.assertIs(decision.decision, RiskDecision.DENY)
         self.assertIn(ReasonCode.EXTERNAL_MUTATION_UNRESOLVED, decision.reason_codes)
 

@@ -131,6 +131,21 @@ class RealtimeProviderControlTests(unittest.TestCase):
             self.assertTrue(result.stop_before_next_request)
             self.assertEqual(control.admitted_attempt_count(), 0)
 
+    def test_authority_mismatch_is_reason_coded_without_usage_consumption(self) -> None:
+        with TemporaryDirectory() as tmp:
+            control = _control(tmp)
+            budget = RealtimeBudgetInput(admitted_attempt_count=2, request_count_ceiling=5)
+
+            result = control.admit(
+                identity=_identity(authority_identity="OTHER_AUTHORITY"),
+                budget=budget,
+            )
+
+            self.assertFalse(result.admitted)
+            self.assertEqual(result.stop_reasons, ("AUTHORITY_IDENTITY_MISMATCH",))
+            self.assertEqual(control.admitted_attempt_count(), 0)
+            self.assertEqual(budget.admitted_attempt_count, 2)
+
     def test_request_count_ceiling_allows_below_ceiling(self) -> None:
         with TemporaryDirectory() as tmp:
             control = _control(tmp)

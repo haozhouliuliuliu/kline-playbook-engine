@@ -43,6 +43,7 @@ ATTEMPT_STATES = frozenset({ATTEMPT_STARTED, RESULT_RECEIVED, UNKNOWN_AFTER_ATTE
 _TERMINAL_ATTEMPT_STATES = frozenset({RESULT_RECEIVED, UNKNOWN_AFTER_ATTEMPT_START})
 
 DEFAULT_RETRY_COUNT = 0
+AUTHORITY_IDENTITY_MISMATCH = "AUTHORITY_IDENTITY_MISMATCH"
 
 
 def _canonical_json(value: object) -> str:
@@ -65,6 +66,10 @@ def _require_non_empty(value: object, field_name: str) -> str:
 
 class DuplicateWakeAttemptError(Exception):
     """Raised when a wake already owns an admitted provider attempt."""
+
+
+class AuthorityIdentityMismatchError(ValueError):
+    """Raised before admission when an attempt targets another authority."""
 
 
 @dataclass(frozen=True)
@@ -251,6 +256,11 @@ class RealtimeProviderAttemptLedger:
         """
         if not isinstance(identity, RealtimeAttemptIdentity):
             raise TypeError("realtime attempt identity must be RealtimeAttemptIdentity")
+        if identity.authority_identity != self.authority_identity:
+            raise AuthorityIdentityMismatchError(
+                f"{AUTHORITY_IDENTITY_MISMATCH}:ledger={self.authority_identity}:"
+                f"attempt={identity.authority_identity}"
+            )
         if type(retry_count) is not int or retry_count != DEFAULT_RETRY_COUNT:
             raise ValueError("realtime provider attempt retry count must remain fixed at zero")
         attempt_identity = identity.identity_id
@@ -437,6 +447,8 @@ def realtime_provider_attempt_ledger_path_for(state_dir: str | Path) -> Path:
 __all__ = [
     "ATTEMPT_STARTED",
     "ATTEMPT_STATES",
+    "AUTHORITY_IDENTITY_MISMATCH",
+    "AuthorityIdentityMismatchError",
     "DEFAULT_RETRY_COUNT",
     "DuplicateWakeAttemptError",
     "REALTIME_PROVIDER_ATTEMPT_LEDGER_VERSION",

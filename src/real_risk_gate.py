@@ -430,9 +430,16 @@ class RealRiskGate:
             acc.add(RiskDecision.DENY, ReasonCode.SAFETY_MODE_UNKNOWN)
         if safety_state.hard_inconsistency_latched:
             acc.add(RiskDecision.DENY, ReasonCode.HARD_INCONSISTENCY_LATCHED)
-        if facts.external_mutation_status is ExternalMutationStatus.UNRESOLVED:
+        # Persistent safety state owns the latched mutation truth.  Transient
+        # facts may add a stricter observation, but can never resolve or
+        # override the durable state supplied by the safety controller.
+        mutation_statuses = {
+            safety_state.external_mutation_status,
+            facts.external_mutation_status,
+        }
+        if ExternalMutationStatus.UNRESOLVED in mutation_statuses:
             acc.add(RiskDecision.DENY, ReasonCode.EXTERNAL_MUTATION_UNRESOLVED)
-        elif facts.external_mutation_status is ExternalMutationStatus.UNKNOWN:
+        elif ExternalMutationStatus.UNKNOWN in mutation_statuses:
             acc.add(RiskDecision.INSUFFICIENT_OR_UNKNOWN, ReasonCode.EXTERNAL_MUTATION_UNKNOWN)
 
         if classification is ActionRiskClassification.UNKNOWN:

@@ -243,6 +243,7 @@ class RealRuntimeController:
             assessed_at=assessed_at,
             order_state=order_state,
             wake_state=wake_state,
+            account_state=account_state,
             reconciliation_state=reconciliation_state,
         )
         self._preflight_receipt = report

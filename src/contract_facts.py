@@ -41,6 +41,51 @@ def _canonical_hash(value: object) -> str:
     return sha256(encoded.encode("utf-8")).hexdigest()
 
 
+def _canonical_decimal(value: Decimal | None) -> str | None:
+    """Stable semantic Decimal text; preserves ``None`` versus explicit zero."""
+    if value is None:
+        return None
+    normalized = value.normalize()
+    text = format(normalized, "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return "0" if text in {"", "-0"} else text
+
+
+def _margin_identity_payload(margin: "MarginFacts | None") -> object:
+    if margin is None:
+        return None
+    return {
+        "basis": margin.basis.value,
+        "initial_margin_per_lot": _canonical_decimal(margin.initial_margin_per_lot),
+        "maintenance_margin_per_lot": _canonical_decimal(margin.maintenance_margin_per_lot),
+        "initial_margin_percent": _canonical_decimal(margin.initial_margin_percent),
+        "maintenance_margin_percent": _canonical_decimal(margin.maintenance_margin_percent),
+        "currency": margin.currency,
+    }
+
+
+def _fee_identity_payload(fee: "FeeModel | None") -> object:
+    if fee is None:
+        return None
+    return {
+        "commission_per_lot": _canonical_decimal(fee.commission_per_lot),
+        "commission_percent": _canonical_decimal(fee.commission_percent),
+        "currency": fee.currency,
+    }
+
+
+def _price_limit_identity_payload(price_limits: "PriceLimitFacts | None") -> object:
+    if price_limits is None:
+        return None
+    return {
+        "lower_price_limit": _canonical_decimal(price_limits.lower_price_limit),
+        "upper_price_limit": _canonical_decimal(price_limits.upper_price_limit),
+        "basis": price_limits.basis,
+        "currency": price_limits.currency,
+    }
+
+
 def _positive_or_zero_decimal(value: object, name: str, *, allow_zero: bool) -> Decimal:
     if type(value) is not Decimal or not value.is_finite():
         raise ValueError(f"{name} must be a finite Decimal")
@@ -348,8 +393,8 @@ class ContractFacts:
         return _canonical_hash(
             {
                 "identity": self.identity.identity_id,
-                "multiplier": str(self.multiplier),
-                "tick_size": str(self.tick_size),
+                "multiplier": _canonical_decimal(self.multiplier),
+                "tick_size": _canonical_decimal(self.tick_size),
                 "tick_unit": self.tick_unit,
                 "currency": self.currency,
                 "observed_at": self.observed_at.isoformat(),
@@ -363,10 +408,10 @@ class ContractFacts:
                 },
                 "category": self.category.value,
                 "freshness": self.freshness.value,
-                "reference_price": None if self.reference_price is None else str(self.reference_price),
-                "margin_basis": None if self.margin is None else self.margin.basis.value,
-                "fee_supplied": self.fee is not None,
-                "price_limits_supplied": self.price_limits is not None,
+                "reference_price": _canonical_decimal(self.reference_price),
+                "margin": _margin_identity_payload(self.margin),
+                "fee": _fee_identity_payload(self.fee),
+                "price_limits": _price_limit_identity_payload(self.price_limits),
                 "is_historical_only": self.is_historical_only,
                 "notes": self.notes,
             }

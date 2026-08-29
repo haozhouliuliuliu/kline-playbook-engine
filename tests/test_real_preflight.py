@@ -43,6 +43,7 @@ def _fully_bound(mode: str = STRUCTURAL, state_root: str | Path = ".") -> object
         assessed_at=ASSESSED_AT,
         order_state=RealDurableState.CLEAR,
         wake_state=RealDurableState.CLEAR,
+        account_state=RealDurableState.CLEAR,
         reconciliation_state=RealDurableState.CLEAR,
     )
 
@@ -274,6 +275,29 @@ class RealPreflightTests(unittest.TestCase):
                 self.assertFalse(report.ready)
                 durable = next(c for c in report.checks if c.name == "DURABLE_STATE_CLEAR")
                 self.assertIn(label, durable.detail)
+
+    def test_account_durable_state_is_required_and_fails_closed(self) -> None:
+        with TemporaryDirectory() as tmp:
+            config = synthetic_config(state_root=Path(tmp))
+            for account_state, reason in (
+                (None, "ACCOUNT_STATE_NOT_SUPPLIED"),
+                (RealDurableState.UNKNOWN, "ACCOUNT_STATE_UNKNOWN"),
+                (RealDurableState.UNRESOLVED, "ACCOUNT_STATE_UNRESOLVED"),
+            ):
+                report = run_real_preflight(
+                    config=config,
+                    mode=STRUCTURAL,
+                    assessed_at=ASSESSED_AT,
+                    order_state=RealDurableState.CLEAR,
+                    wake_state=RealDurableState.CLEAR,
+                    account_state=account_state,
+                    reconciliation_state=RealDurableState.CLEAR,
+                )
+                self.assertFalse(report.ready)
+                account_check = next(
+                    check for check in report.checks if check.name == "ACCOUNT_DURABLE_STATE_CLEAR"
+                )
+                self.assertIn(reason, account_check.detail)
 
     def test_public_lines_leak_no_secret(self) -> None:
         with TemporaryDirectory() as tmp:

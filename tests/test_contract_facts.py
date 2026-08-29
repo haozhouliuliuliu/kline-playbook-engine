@@ -7,6 +7,7 @@ They are NOT production defaults and NOT permanent risk rules.
 import inspect
 import re
 import unittest
+from dataclasses import replace
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -50,6 +51,7 @@ def _contract(
     reference_price=Decimal("3000"),
     margin=None,
     fee=None,
+    price_limits=None,
     is_historical_only=False,
     source_type=FactSourceType.EXCHANGE_OFFICIAL,
 ):
@@ -66,6 +68,7 @@ def _contract(
         reference_price=reference_price,
         margin=margin,
         fee=fee,
+        price_limits=price_limits,
         is_historical_only=is_historical_only,
     )
 
@@ -86,6 +89,46 @@ class ContractFactsArithmeticTests(unittest.TestCase):
     def test_identity_is_sha256(self):
         self.assertRegex(_contract().identity_id, r"^[0-9a-f]{64}$")
         self.assertRegex(_identity().identity_id, r"^[0-9a-f]{64}$")
+
+    def test_identity_binds_every_nested_economic_fact_deterministically(self):
+        base = _contract(
+            margin=MarginFacts(
+                basis=MarginBasis.PER_LOT_AMOUNT,
+                initial_margin_per_lot=Decimal("4500"),
+                maintenance_margin_per_lot=Decimal("4000"),
+                currency="CNY",
+            ),
+            fee=FeeModel(commission_per_lot=Decimal("5"), currency="CNY"),
+            price_limits=PriceLimitFacts(
+                lower_price_limit=Decimal("2800"),
+                upper_price_limit=Decimal("3200"),
+                basis="daily-settlement",
+                currency="CNY",
+            ),
+        )
+        same = replace(base)
+        margin_changed = replace(
+            base,
+            margin=replace(base.margin, initial_margin_per_lot=Decimal("4501")),
+        )
+        fee_changed = replace(
+            base,
+            fee=replace(base.fee, commission_per_lot=Decimal("6")),
+        )
+        price_limit_changed = replace(
+            base,
+            price_limits=replace(base.price_limits, upper_price_limit=Decimal("3201")),
+        )
+
+        self.assertEqual(base.identity_id, same.identity_id)
+        self.assertNotEqual(base.identity_id, margin_changed.identity_id)
+        self.assertNotEqual(base.identity_id, fee_changed.identity_id)
+        self.assertNotEqual(base.identity_id, price_limit_changed.identity_id)
+        self.assertEqual(base.identity_id, _contract(
+            margin=base.margin,
+            fee=base.fee,
+            price_limits=base.price_limits,
+        ).identity_id)
 
 
 class MarginFactsTests(unittest.TestCase):
