@@ -1,0 +1,1 @@
+trigger test-baseline synchronize after default-branch workflow installation
