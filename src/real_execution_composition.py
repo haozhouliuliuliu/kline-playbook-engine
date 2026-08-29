@@ -107,6 +107,39 @@ class RealExecutionRecoveryResult:
             raise ValueError("new risk requires complete unblocked broker truth")
 
 
+@dataclass(frozen=True)
+class CurrentReconciliationProof:
+    """Process-local proof that one exact composition observed current broker truth."""
+
+    composition_instance_id: str
+    session_identity: str
+    trading_day: str
+    round_id: str
+    requested_at: datetime
+    observed_at: datetime
+
+    def __post_init__(self) -> None:
+        _required_text(self.composition_instance_id, "composition instance id")
+        _required_text(self.session_identity, "session identity")
+        _validate_trading_day(self.trading_day)
+        _required_text(self.round_id, "query round id")
+        _aware(self.requested_at, "query request timestamp")
+        _aware(self.observed_at, "query observation timestamp")
+        if self.observed_at < self.requested_at:
+            raise ValueError("reconciliation proof cannot predate its query request")
+
+    @property
+    def identity_id(self) -> str:
+        return _fingerprint({
+            "composition_instance_id": self.composition_instance_id,
+            "session_identity": self.session_identity,
+            "trading_day": self.trading_day,
+            "round_id": self.round_id,
+            "requested_at": self.requested_at.isoformat(),
+            "observed_at": self.observed_at.isoformat(),
+        })
+
+
 def _required_text(value: object, name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{name} must be a non-empty string")
@@ -159,7 +192,10 @@ class RealExecutionComposition:
         self.session_identity = _required_text(session_identity, "session identity")
         self.safety_controller = safety_controller
         self._stream_id = self._STREAM_PREFIX + self.session_identity
-        self._initialize()
+        self._reconciliation_proof: CurrentReconciliationProof | None = None
+        self._readiness_state = "CURRENT_RECONCILIATION_REQUIRED"
+        self._composition_instance_id = self._initialize()
+        self._repair_or_block_legacy_fill_aggregates()
         existing_sequences = tuple(
             event.sequence
             for event in self.trading_state.applied_events()
@@ -174,7 +210,7 @@ class RealExecutionComposition:
         connection.row_factory = sqlite3.Row
         return connection
 
-    def _initialize(self) -> None:
+    def _initialize(self) -> str:
         with closing(self._connect()) as connection, connection:
             connection.executescript(
                 """
@@ -235,6 +271,44 @@ class RealExecutionComposition:
                     "INSERT OR IGNORE INTO real_execution_meta(key,value) VALUES(?,?)",
                     (key, value),
                 )
+            generation_row = connection.execute(
+                "SELECT value FROM real_execution_meta WHERE key='construction_generation'"
+            ).fetchone()
+            try:
+                generation = 1 if generation_row is None else int(generation_row[0]) + 1
+            except (TypeError, ValueError) as error:
+                raise ValueError(
+                    "REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:construction_generation"
+                ) from error
+            if generation <= 0:
+                raise ValueError(
+                    "REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:construction_generation"
+                )
+            connection.execute(
+                """INSERT INTO real_execution_meta(key,value)
+                   VALUES('construction_generation',?)
+                   ON CONFLICT(key) DO UPDATE SET value=excluded.value""",
+                (str(generation),),
+            )
+        return _fingerprint({
+            "schema_version": REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
+            "expected_trading_day": self.expected_trading_day,
+            "session_identity": self.session_identity,
+            "broker_adapter_identity": self.adapter.broker_id,
+            "construction_generation": generation,
+        })
+
+    @property
+    def composition_instance_id(self) -> str:
+        return self._composition_instance_id
+
+    @property
+    def reconciliation_proof(self) -> CurrentReconciliationProof | None:
+        return self._reconciliation_proof
+
+    @property
+    def reconciliation_readiness_state(self) -> str:
+        return self._readiness_state
 
     @property
     def unresolved_order_count(self) -> int:
@@ -253,6 +327,17 @@ class RealExecutionComposition:
 
     @property
     def new_risk_allowed(self) -> bool:
+        proof = self._reconciliation_proof
+        if proof is None:
+            return False
+        if (
+            proof.composition_instance_id != self._composition_instance_id
+            or proof.session_identity != self.session_identity
+            or proof.trading_day != self.expected_trading_day
+            or not self.adapter.ready
+            or self.adapter.trading_day != self.expected_trading_day
+        ):
+            return False
         if self.unresolved_order_count != 0 or self.active_blockers():
             return False
         if self.safety_controller is not None and not self.safety_controller.state.allows_risk_increase():
@@ -310,6 +395,7 @@ class RealExecutionComposition:
         if not isinstance(instruction, BrokerOrderInstruction):
             raise TypeError("REAL composition submit requires BrokerOrderInstruction")
         _aware(submitted_at, "submit timestamp")
+        self._invalidate_reconciliation_proof("SUBMIT_ATTEMPT")
         if not self.adapter.ready:
             raise BrokerTruthUnknownError("CTP_BROKER_TRUTH_NOT_READY")
         project_order_id = instruction.client_order_id or instruction.client_request_id
@@ -387,6 +473,7 @@ class RealExecutionComposition:
     def _consume_event(self, event: BrokerEvent) -> EventApplicationResult | None:
         payload = dict(event.payload)
         if event.event_type is BrokerEventType.CONNECTION_STATE:
+            self._invalidate_reconciliation_proof("CONNECTION_STATE_CHANGED")
             raw_state = payload.get("state", "UNKNOWN")
             if raw_state in {"DISCONNECTED", "RECONNECTING"}:
                 connection_state = raw_state
@@ -432,6 +519,7 @@ class RealExecutionComposition:
         if event.event_type is BrokerEventType.ORDER_REJECTED:
             return self._terminal(order, RealOrderLifecycle.REJECTED, event.occurred_at)
         if event.event_type is BrokerEventType.ORDER_AMBIGUOUS:
+            self._invalidate_reconciliation_proof("ORDER_AMBIGUOUS")
             self._set_order_lifecycle(order.project_order_id, RealOrderLifecycle.UNKNOWN, event.occurred_at)
             ambiguous = self._event(
                 event_id="real:" + event.event_id,
@@ -463,6 +551,8 @@ class RealExecutionComposition:
         ):
             raise TypeError("expected positions must be BrokerPositionSnapshot values")
 
+        self._invalidate_reconciliation_proof("RECONCILIATION_IN_PROGRESS")
+
         account_status, account = self._fetch_account()
         position_status, positions = self._fetch_positions()
         order_status, raw_orders = self._fetch_orders()
@@ -470,7 +560,7 @@ class RealExecutionComposition:
         actual_day = self.adapter.trading_day
         day_matches = actual_day == self.expected_trading_day
         if not day_matches:
-            account_status = position_status = order_status = QueryCompleteness.STALE
+            account_status = position_status = order_status = trade_status = QueryCompleteness.STALE
         broker_orders = tuple(self._to_real_broker_order(item) for item in raw_orders)
         query = RealBrokerQueryRound(
             round_id=round_id,
@@ -574,7 +664,19 @@ class RealExecutionComposition:
         composition_truth_complete = (
             recovery.broker_truth_complete
             and trade_status is QueryCompleteness.COMPLETE
+            and day_matches
+            and self.adapter.ready
         )
+        if (
+            composition_truth_complete
+            and not sorted_blockers
+            and self.unresolved_order_count == 0
+        ):
+            self._establish_reconciliation_proof(
+                round_id=round_id,
+                requested_at=requested_at,
+                observed_at=observed_at,
+            )
         return RealExecutionRecoveryResult(
             recovery=recovery,
             broker_truth_complete=composition_truth_complete,
@@ -654,6 +756,7 @@ class RealExecutionComposition:
         fact_key: str,
     ) -> EventApplicationResult | None:
         _aware(occurred_at, "acknowledgement timestamp")
+        self._invalidate_reconciliation_proof("ORDER_ACKNOWLEDGED")
         self._require_broker_mapping_available(
             order.project_order_id, broker_order_id, occurred_at
         )
@@ -709,6 +812,7 @@ class RealExecutionComposition:
         if type(price) is not Decimal or not price.is_finite() or price <= 0:
             raise ValueError("fill price must be a positive finite Decimal")
         _aware(occurred_at, "fill timestamp")
+        self._invalidate_reconciliation_proof("ORDER_FILLED")
         self._require_broker_mapping_available(
             order.project_order_id, broker_order_id, occurred_at
         )
@@ -719,44 +823,41 @@ class RealExecutionComposition:
             "quantity": canonical_decimal(quantity),
             "price": canonical_decimal(price),
         })
-        if not self._record_fact(
-            "trade:" + broker_trade_id,
-            fingerprint,
-            "FILL",
-            order.project_order_id,
-            broker_order_id,
-            quantity,
-            price,
-            occurred_at,
-        ):
-            return None
         if order.broker_order_id not in (None, broker_order_id):
             self._latch_inconsistency(order.project_order_id, "BROKER_ORDER_ID_CONFLICT", occurred_at)
             raise RealExecutionInconsistencyError("BROKER_ORDER_ID_CONFLICT")
-        new_filled = order.filled_quantity + quantity
-        if new_filled > order.requested_quantity:
-            self._latch_inconsistency(order.project_order_id, "BROKER_OVERFILL", occurred_at)
-            raise RealExecutionInconsistencyError("BROKER_OVERFILL")
-        new_average = (
-            price
-            if order.average_fill_price is None
-            else (
-                order.average_fill_price * order.filled_quantity + price * quantity
-            ) / new_filled
-        )
-        lifecycle = (
-            RealOrderLifecycle.FILLED
-            if new_filled == order.requested_quantity
-            else RealOrderLifecycle.PARTIALLY_FILLED
-        )
-        with closing(self._connect()) as connection, connection:
-            connection.execute(
-                """UPDATE real_execution_orders
-                   SET broker_order_id=?,lifecycle=?,filled_quantity=?,average_fill_price=?,updated_at=?
-                   WHERE project_order_id=?""",
-                (broker_order_id, lifecycle.value, canonical_decimal(new_filled),
-                 canonical_decimal(new_average), occurred_at.isoformat(), order.project_order_id),
-            )
+        fact_key = "trade:" + broker_trade_id
+        inserted = False
+        try:
+            with closing(self._connect()) as connection, connection:
+                existing = connection.execute(
+                    "SELECT fingerprint,project_order_id FROM real_execution_facts WHERE fact_key=?",
+                    (fact_key,),
+                ).fetchone()
+                if existing is not None:
+                    if existing[0] != fingerprint or existing[1] != order.project_order_id:
+                        raise RealExecutionInconsistencyError(
+                            "DUPLICATE_EXTERNAL_FACT_DIFFERENT_CONTENT:" + fact_key
+                        )
+                else:
+                    connection.execute(
+                        """INSERT INTO real_execution_facts(
+                            fact_key,fingerprint,fact_type,project_order_id,broker_order_id,
+                            quantity,price,occurred_at
+                        ) VALUES(?,?,?,?,?,?,?,?)""",
+                        (
+                            fact_key, fingerprint, "FILL", order.project_order_id,
+                            broker_order_id, canonical_decimal(quantity),
+                            canonical_decimal(price), occurred_at.isoformat(),
+                        ),
+                    )
+                    inserted = True
+                self._rebuild_fill_aggregate(connection, order.project_order_id)
+        except RealExecutionInconsistencyError as error:
+            self._latch_inconsistency(order.project_order_id, str(error), occurred_at)
+            raise
+        if not inserted:
+            return None
         fill_event = self._event(
             event_id="real-fill:" + broker_trade_id,
             event_type=BrokerEventType.ORDER_FILLED,
@@ -819,6 +920,7 @@ class RealExecutionComposition:
     ) -> EventApplicationResult | None:
         if lifecycle not in {RealOrderLifecycle.CANCELLED, RealOrderLifecycle.REJECTED}:
             raise ValueError("unsupported terminal lifecycle")
+        self._invalidate_reconciliation_proof("ORDER_" + lifecycle.value)
         current = self.order_for(order.project_order_id)
         if current.lifecycle is lifecycle:
             return None
@@ -934,7 +1036,17 @@ class RealExecutionComposition:
 
     def _rehydrate_trading_state(self) -> None:
         for order in self.orders():
-            if self.trading_state.order_for(order.project_order_id) is not None:
+            if order.lifecycle is RealOrderLifecycle.INCONSISTENT:
+                continue
+            existing = self.trading_state.order_for(order.project_order_id)
+            if existing is not None:
+                if not self._trading_order_matches_durable(existing, order):
+                    self._latch_inconsistency(
+                        order.project_order_id,
+                        "TRADING_STATE_DURABLE_ORDER_DIVERGENCE",
+                        order.updated_at,
+                    )
+                    continue
                 continue
             self._apply_submit_event(order, order.created_at, acknowledged=False)
             with closing(self._connect()) as connection:
@@ -991,8 +1103,22 @@ class RealExecutionComposition:
                     occurred_at=datetime.fromisoformat(terminal[0]),
                     order=order,
                 ))
+        for order in self.orders():
+            if order.lifecycle is RealOrderLifecycle.INCONSISTENT:
+                continue
+            runtime_order = self.trading_state.order_for(order.project_order_id)
+            if runtime_order is None or not self._trading_order_matches_durable(
+                runtime_order, order
+            ):
+                self._latch_inconsistency(
+                    order.project_order_id,
+                    "TRADING_STATE_DURABLE_ORDER_DIVERGENCE",
+                    order.updated_at,
+                )
+        self._validate_trading_position_projection()
 
     def _mark_all_unresolved_unknown(self, reason: str) -> None:
+        self._invalidate_reconciliation_proof(reason)
         now = datetime.now().astimezone().isoformat()
         terminal = (
             RealOrderLifecycle.FILLED.value,
@@ -1014,6 +1140,7 @@ class RealExecutionComposition:
             )
 
     def _latch_external_mutation(self, detail: str, at: datetime) -> None:
+        self._invalidate_reconciliation_proof("EXTERNAL_MUTATION_UNRESOLVED")
         self._latch_blocker("EXTERNAL_MUTATION_UNRESOLVED", detail, at)
         if self.safety_controller is not None and (
             self.safety_controller.state.external_mutation_status
@@ -1022,6 +1149,7 @@ class RealExecutionComposition:
             self.safety_controller.record_external_mutation(detail, at)
 
     def _latch_inconsistency(self, project_order_id: str, detail: str, at: datetime) -> None:
+        self._invalidate_reconciliation_proof("HARD_EXECUTION_INCONSISTENCY")
         if self.order_for(project_order_id) is not None:
             self._set_order_lifecycle(project_order_id, RealOrderLifecycle.INCONSISTENT, at)
         self._latch_blocker("HARD_EXECUTION_INCONSISTENCY", detail, at)
@@ -1075,9 +1203,217 @@ class RealExecutionComposition:
                 "restored durable execution inconsistency latch", now
             )
 
+    def _invalidate_reconciliation_proof(self, reason: str) -> None:
+        self._reconciliation_proof = None
+        self._readiness_state = "CURRENT_RECONCILIATION_REQUIRED:" + _required_text(
+            reason, "reconciliation invalidation reason"
+        )
+
+    def _establish_reconciliation_proof(
+        self, *, round_id: str, requested_at: datetime, observed_at: datetime
+    ) -> None:
+        proof = CurrentReconciliationProof(
+            composition_instance_id=self._composition_instance_id,
+            session_identity=self.session_identity,
+            trading_day=self.expected_trading_day,
+            round_id=round_id,
+            requested_at=requested_at,
+            observed_at=observed_at,
+        )
+        self._reconciliation_proof = proof
+        self._readiness_state = "CURRENT_RECONCILIATION_PROVEN:" + proof.identity_id
+
+    def _repair_or_block_legacy_fill_aggregates(self) -> None:
+        problems: list[tuple[str, str, datetime]] = []
+        with closing(self._connect()) as connection, connection:
+            rows = connection.execute(
+                "SELECT project_order_id,filled_quantity,updated_at FROM real_execution_orders"
+            ).fetchall()
+            known_order_ids = {row["project_order_id"] for row in rows}
+            orphan_facts = connection.execute(
+                """SELECT project_order_id,occurred_at FROM real_execution_facts
+                   WHERE fact_type='FILL'"""
+            ).fetchall()
+            for fact in orphan_facts:
+                if fact["project_order_id"] not in known_order_ids:
+                    problems.append((
+                        fact["project_order_id"],
+                        "FILL_FACT_WITHOUT_DURABLE_ORDER",
+                        datetime.fromisoformat(fact["occurred_at"]),
+                    ))
+            for row in rows:
+                fact_count = connection.execute(
+                    """SELECT COUNT(*) FROM real_execution_facts
+                       WHERE project_order_id=? AND fact_type='FILL'""",
+                    (row["project_order_id"],),
+                ).fetchone()[0]
+                if fact_count == 0 and Decimal(row["filled_quantity"]) != 0:
+                    problems.append((
+                        row["project_order_id"],
+                        "ORDER_AGGREGATE_HAS_NO_CANONICAL_FILL_FACTS",
+                        datetime.fromisoformat(row["updated_at"]),
+                    ))
+                    continue
+                try:
+                    self._rebuild_fill_aggregate(connection, row["project_order_id"])
+                except RealExecutionInconsistencyError as error:
+                    problems.append((
+                        row["project_order_id"],
+                        str(error),
+                        datetime.fromisoformat(row["updated_at"]),
+                    ))
+        for project_order_id, detail, occurred_at in problems:
+            self._latch_inconsistency(project_order_id, detail, occurred_at)
+
+    def _rebuild_fill_aggregate(
+        self, connection: sqlite3.Connection, project_order_id: str
+    ) -> None:
+        order = connection.execute(
+            "SELECT * FROM real_execution_orders WHERE project_order_id=?",
+            (project_order_id,),
+        ).fetchone()
+        if order is None:
+            raise RealExecutionInconsistencyError("FILL_FACT_WITHOUT_DURABLE_ORDER")
+        facts = connection.execute(
+            """SELECT * FROM real_execution_facts
+               WHERE project_order_id=? AND fact_type='FILL'
+               ORDER BY occurred_at,fact_key""",
+            (project_order_id,),
+        ).fetchall()
+        total = Decimal("0")
+        weighted = Decimal("0")
+        broker_order_id = order["broker_order_id"]
+        latest_at = datetime.fromisoformat(order["updated_at"])
+        for fact in facts:
+            quantity = Decimal(fact["quantity"])
+            price = Decimal(fact["price"])
+            if (
+                not quantity.is_finite() or quantity <= 0
+                or not price.is_finite() or price <= 0
+            ):
+                raise RealExecutionInconsistencyError("INVALID_CANONICAL_FILL_FACT")
+            if broker_order_id not in (None, fact["broker_order_id"]):
+                raise RealExecutionInconsistencyError("BROKER_ORDER_ID_CONFLICT")
+            broker_order_id = fact["broker_order_id"]
+            total += quantity
+            weighted += price * quantity
+            latest_at = max(latest_at, datetime.fromisoformat(fact["occurred_at"]))
+        requested = Decimal(order["requested_quantity"])
+        if total > requested:
+            raise RealExecutionInconsistencyError("BROKER_OVERFILL")
+        average = None if total == 0 else weighted / total
+        current_lifecycle = RealOrderLifecycle(order["lifecycle"])
+        if current_lifecycle is RealOrderLifecycle.INCONSISTENT:
+            lifecycle = current_lifecycle
+        elif order["terminal_at"] is not None and current_lifecycle in {
+            RealOrderLifecycle.CANCELLED,
+            RealOrderLifecycle.REJECTED,
+        }:
+            lifecycle = current_lifecycle
+        elif total == requested:
+            lifecycle = RealOrderLifecycle.FILLED
+        elif total > 0:
+            lifecycle = RealOrderLifecycle.PARTIALLY_FILLED
+        else:
+            lifecycle = current_lifecycle
+        connection.execute(
+            """UPDATE real_execution_orders
+               SET broker_order_id=?,lifecycle=?,filled_quantity=?,average_fill_price=?,updated_at=?
+               WHERE project_order_id=?""",
+            (
+                broker_order_id, lifecycle.value, canonical_decimal(total),
+                None if average is None else canonical_decimal(average),
+                latest_at.isoformat(), project_order_id,
+            ),
+        )
+
+    @staticmethod
+    def _runtime_status_for(order: DurableRealOrder) -> OrderStatus:
+        mapping = {
+            RealOrderLifecycle.PENDING_SUBMIT: OrderStatus.PENDING_SUBMIT,
+            RealOrderLifecycle.UNKNOWN: OrderStatus.PENDING_SUBMIT,
+            RealOrderLifecycle.OPEN: OrderStatus.LIVE,
+            RealOrderLifecycle.PARTIALLY_FILLED: OrderStatus.PARTIALLY_FILLED,
+            RealOrderLifecycle.FILLED: OrderStatus.FILLED,
+            RealOrderLifecycle.CANCELLED: OrderStatus.CANCELLED,
+            RealOrderLifecycle.REJECTED: OrderStatus.REJECTED,
+        }
+        if order.lifecycle not in mapping:
+            raise RealExecutionInconsistencyError("DURABLE_ORDER_LIFECYCLE_UNPROVABLE")
+        return mapping[order.lifecycle]
+
+    def _trading_order_matches_durable(self, runtime_order, durable_order: DurableRealOrder) -> bool:
+        return (
+            runtime_order.order_id == durable_order.project_order_id
+            and runtime_order.client_request_id == durable_order.client_request_id
+            and runtime_order.concrete_contract_id == durable_order.concrete_contract_id
+            and runtime_order.direction is durable_order.direction
+            and runtime_order.action is durable_order.action
+            and runtime_order.requested_quantity == durable_order.requested_quantity
+            and runtime_order.status is self._runtime_status_for(durable_order)
+            and runtime_order.filled_quantity == durable_order.filled_quantity
+            and runtime_order.average_fill_price == durable_order.average_fill_price
+        )
+
+    def _validate_trading_position_projection(self) -> None:
+        projections: dict[tuple[str, PositionDirection], tuple[Decimal, Decimal]] = {}
+        with closing(self._connect()) as connection:
+            facts = connection.execute(
+                """SELECT f.quantity,f.price,o.project_order_id,o.concrete_contract_id,
+                          o.direction,o.action,f.occurred_at,f.fact_key
+                   FROM real_execution_facts f
+                   JOIN real_execution_orders o ON o.project_order_id=f.project_order_id
+                   WHERE f.fact_type='FILL' AND o.lifecycle<>?
+                   ORDER BY f.occurred_at,f.fact_key""",
+                (RealOrderLifecycle.INCONSISTENT.value,),
+            ).fetchall()
+        for fact in facts:
+            key = (fact["concrete_contract_id"], PositionDirection(fact["direction"]))
+            quantity, average = projections.get(key, (Decimal("0"), Decimal("0")))
+            fill_quantity = Decimal(fact["quantity"])
+            fill_price = Decimal(fact["price"])
+            if OrderAction(fact["action"]) is OrderAction.OPEN:
+                new_quantity = quantity + fill_quantity
+                average = (average * quantity + fill_price * fill_quantity) / new_quantity
+                quantity = new_quantity
+            else:
+                if fill_quantity > quantity:
+                    self._latch_inconsistency(
+                        fact["project_order_id"],
+                        "TRADING_POSITION_PROJECTION_UNPROVABLE",
+                        datetime.fromisoformat(fact["occurred_at"]),
+                    )
+                    return
+                quantity -= fill_quantity
+                if quantity == 0:
+                    average = Decimal("0")
+            projections[key] = (quantity, average)
+        for (contract, direction), (quantity, average) in projections.items():
+            actual = self.trading_state.position_for(contract, direction)
+            matches = (
+                (quantity == 0 and actual is None)
+                or (
+                    quantity > 0
+                    and actual is not None
+                    and actual.quantity == quantity
+                    and actual.average_open_price == average
+                )
+            )
+            if not matches:
+                related = next(
+                    item for item in self.orders()
+                    if item.concrete_contract_id == contract and item.direction is direction
+                )
+                self._latch_inconsistency(
+                    related.project_order_id,
+                    "TRADING_STATE_POSITION_DIVERGENCE",
+                    related.updated_at,
+                )
+
 
 __all__ = [
     "REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION",
+    "CurrentReconciliationProof",
     "DurableRealOrder",
     "RealExecutionComposition",
     "RealExecutionInconsistencyError",
