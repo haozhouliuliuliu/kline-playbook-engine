@@ -625,6 +625,8 @@ class PositionBaselineRestartTests(unittest.TestCase):
             )
             with closing(sqlite3.connect(path)) as connection, connection:
                 connection.execute("DELETE FROM real_position_baseline")
+                connection.execute("DROP TABLE real_journal_start_checkpoint")
+                connection.execute("DROP TABLE real_execution_ledger_lineage")
                 connection.execute(
                     "UPDATE real_execution_meta SET value=? WHERE key='schema_version'",
                     ("KPE_REAL_EXECUTION_COMPOSITION_V0_1",),
@@ -659,7 +661,15 @@ class PositionBaselineRestartTests(unittest.TestCase):
                 ).fetchone()[0]
 
             self.assertEqual(after_restart, captured)
-            self.assertIn("HARD_EXECUTION_INCONSISTENCY", divergent.active_blockers())
+            self.assertNotIn(
+                "HARD_EXECUTION_INCONSISTENCY", divergent.active_blockers()
+            )
+            self.assertEqual(
+                divergent.trading_state.position_for(
+                    CONTRACT, PositionDirection.LONG
+                ).quantity,
+                Decimal("2"),
+            )
 
     def test_current_empty_journal_missing_baseline_cannot_recapture_from_caller(self) -> None:
         with TemporaryDirectory() as tmp:

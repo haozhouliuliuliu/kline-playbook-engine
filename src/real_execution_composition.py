@@ -51,13 +51,22 @@ from src.runtime_events import (
     BrokerEventType,
     event_pairs,
 )
-from src.trading_state import EventApplicationResult, OrderStatus, TradingState
+from src.runtime_ledger import GENESIS_IDENTITY, RUNTIME_LEDGER_SCHEMA_VERSION
+from src.trading_state import (
+    AccountState,
+    EventApplicationResult,
+    OrderStatus,
+    PositionState,
+    TradingState,
+)
 
 
-REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_2"
+REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_3"
 LEGACY_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_1"
+PREVIOUS_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_2"
 REAL_EXECUTION_LINEAGE_SCHEMA_VERSION = "KPE_REAL_EXECUTION_LINEAGE_V0_1"
-REAL_POSITION_BASELINE_SCHEMA_VERSION = "KPE_REAL_POSITION_BASELINE_V0_1"
+REAL_POSITION_BASELINE_SCHEMA_VERSION = "KPE_REAL_POSITION_BASELINE_V0_2"
+REAL_JOURNAL_START_CHECKPOINT_SCHEMA_VERSION = "KPE_REAL_JOURNAL_START_CHECKPOINT_V0_1"
 
 
 class RealOrderLifecycle(str, Enum):
@@ -197,9 +206,16 @@ class RealExecutionComposition:
         self._stream_id = self._STREAM_PREFIX + self.session_identity
         self._reconciliation_proof: CurrentReconciliationProof | None = None
         self._readiness_state = "CURRENT_RECONCILIATION_REQUIRED"
+        self._ledger_anchor_sequence: int | None = None
+        self._ledger_anchor_identity: str | None = None
+        self._journal_structure_valid = False
+        self._journal_schema_valid = False
+        self._journal_scope_valid = False
         self._composition_instance_id = self._initialize()
         self._position_baseline = self._ensure_position_baseline()
-        self._repair_or_block_legacy_fill_aggregates()
+        self._journal_start_account = self._ensure_journal_start_checkpoint()
+        if self._journal_is_usable:
+            self._repair_or_block_legacy_fill_aggregates()
         existing_sequences = tuple(
             event.sequence
             for event in self.trading_state.applied_events()
@@ -207,15 +223,59 @@ class RealExecutionComposition:
         )
         self._sequence = 0 if not existing_sequences else max(existing_sequences) + 1
         self._restore_persistent_safety()
-        self._rehydrate_trading_state()
+        if not self._journal_is_usable:
+            return
+        self._rehydrating = True
+        try:
+            self._rehydrate_trading_state()
+        finally:
+            self._rehydrating = False
+        self._validate_runtime_ledger_coherence()
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path)
         connection.row_factory = sqlite3.Row
         return connection
 
+    @property
+    def _journal_is_usable(self) -> bool:
+        return (
+            self._journal_structure_valid
+            and self._journal_schema_valid
+            and self._journal_scope_valid
+        )
+
     def _initialize(self) -> str:
         with closing(self._connect()) as connection, connection:
+            prior_scope_tables = {
+                row[0]
+                for row in connection.execute(
+                    """SELECT name FROM sqlite_master
+                       WHERE type='table' AND (
+                           name LIKE 'real_execution_%'
+                           OR name LIKE 'real_position_baseline%'
+                           OR name LIKE 'real_journal_start_checkpoint%'
+                       )"""
+                ).fetchall()
+            }
+            legacy_tables = {
+                "real_execution_meta",
+                "real_execution_orders",
+                "real_execution_facts",
+                "real_execution_blockers",
+                "real_position_baseline",
+            }
+            current_tables = legacy_tables | {
+                "real_journal_start_checkpoint",
+                "real_execution_ledger_lineage",
+            }
+            fresh_journal_namespace = not prior_scope_tables
+            prior_legacy_structure = prior_scope_tables == legacy_tables
+            self._journal_structure_valid = (
+                fresh_journal_namespace
+                or prior_legacy_structure
+                or prior_scope_tables == current_tables
+            )
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS real_execution_meta(
@@ -265,6 +325,20 @@ class RealExecutionComposition:
                     positions_json TEXT NOT NULL,
                     baseline_identity TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS real_journal_start_checkpoint(
+                    checkpoint_key TEXT PRIMARY KEY CHECK(checkpoint_key='journal_start'),
+                    schema_version TEXT NOT NULL,
+                    checkpoint_json TEXT NOT NULL,
+                    checkpoint_identity TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS real_execution_ledger_lineage(
+                    lineage_sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_id TEXT NOT NULL,
+                    event_identity TEXT NOT NULL,
+                    record_ordinal INTEGER NOT NULL,
+                    record_fingerprint TEXT NOT NULL,
+                    UNIQUE(event_id,record_ordinal)
+                );
                 """
             )
             schema_row = connection.execute(
@@ -276,22 +350,62 @@ class RealExecutionComposition:
             fact_count = connection.execute(
                 "SELECT COUNT(*) FROM real_execution_facts"
             ).fetchone()[0]
+            blocker_count = connection.execute(
+                "SELECT COUNT(*) FROM real_execution_blockers"
+            ).fetchone()[0]
+            baseline_count = connection.execute(
+                "SELECT COUNT(*) FROM real_position_baseline"
+            ).fetchone()[0]
+            checkpoint_count = connection.execute(
+                "SELECT COUNT(*) FROM real_journal_start_checkpoint"
+            ).fetchone()[0]
+            ledger_lineage_count = connection.execute(
+                "SELECT COUNT(*) FROM real_execution_ledger_lineage"
+            ).fetchone()[0]
             baseline_initialization_allowed = False
             if schema_row is None:
-                connection.execute(
-                    "INSERT INTO real_execution_meta(key,value) VALUES('schema_version',?)",
-                    (REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,),
-                )
-                baseline_initialization_allowed = True
-            elif schema_row[0] == LEGACY_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION:
-                if order_count == 0 and fact_count == 0:
+                if (
+                    fresh_journal_namespace
+                    and self._journal_structure_valid
+                    and order_count
+                    == fact_count
+                    == blocker_count
+                    == baseline_count
+                    == checkpoint_count
+                    == ledger_lineage_count
+                    == 0
+                ):
+                    connection.execute(
+                        "INSERT INTO real_execution_meta(key,value) VALUES('schema_version',?)",
+                        (REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,),
+                    )
+                    baseline_initialization_allowed = True
+                    self._journal_schema_valid = True
+            elif schema_row[0] in {
+                LEGACY_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
+                PREVIOUS_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
+            }:
+                if (
+                    prior_legacy_structure
+                    and self._journal_structure_valid
+                    and order_count
+                    == fact_count
+                    == blocker_count
+                    == baseline_count
+                    == checkpoint_count
+                    == ledger_lineage_count
+                    == 0
+                ):
                     connection.execute(
                         "UPDATE real_execution_meta SET value=? WHERE key='schema_version'",
                         (REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,),
                     )
                     baseline_initialization_allowed = True
+                    self._journal_schema_valid = True
             elif schema_row[0] != REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION:
                 raise ValueError("REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:schema_version")
+            else:
+                self._journal_schema_valid = True
             expected_meta = {
                 "expected_trading_day": self.expected_trading_day,
                 "session_identity": self.session_identity,
@@ -303,10 +417,24 @@ class RealExecutionComposition:
                 ).fetchone()
                 if recorded is not None and recorded[0] != value:
                     raise ValueError(f"REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:{key}")
-                connection.execute(
-                    "INSERT OR IGNORE INTO real_execution_meta(key,value) VALUES(?,?)",
-                    (key, value),
-                )
+                if baseline_initialization_allowed:
+                    connection.execute(
+                        "INSERT OR IGNORE INTO real_execution_meta(key,value) VALUES(?,?)",
+                        (key, value),
+                    )
+                elif recorded is None:
+                    self._journal_scope_valid = False
+            recorded_scope = {
+                key: connection.execute(
+                    "SELECT value FROM real_execution_meta WHERE key=?", (key,)
+                ).fetchone()
+                for key in expected_meta
+            }
+            self._journal_scope_valid = all(
+                recorded_scope[key] is not None
+                and recorded_scope[key]["value"] == value
+                for key, value in expected_meta.items()
+            )
             baseline_row = connection.execute(
                 "SELECT baseline_key FROM real_position_baseline WHERE baseline_key='journal_start'"
             ).fetchone()
@@ -330,25 +458,72 @@ class RealExecutionComposition:
                         self._position_baseline_identity(positions),
                     ),
                 )
+            baseline_row = connection.execute(
+                "SELECT baseline_identity FROM real_position_baseline "
+                "WHERE baseline_key='journal_start'"
+            ).fetchone()
+            checkpoint_row = connection.execute(
+                "SELECT checkpoint_key FROM real_journal_start_checkpoint "
+                "WHERE checkpoint_key='journal_start'"
+            ).fetchone()
+            if (
+                checkpoint_row is None
+                and baseline_initialization_allowed
+                and baseline_row is not None
+            ):
+                if not self.trading_state.runtime_ledger_chain_valid():
+                    raise ValueError("REAL_RUNTIME_LEDGER_CHAIN_INVALID_AT_JOURNAL_START")
+                checkpoint = self._journal_start_checkpoint_document(
+                    baseline_identity=baseline_row["baseline_identity"]
+                )
+                connection.execute(
+                    """INSERT INTO real_journal_start_checkpoint(
+                           checkpoint_key,schema_version,checkpoint_json,
+                           checkpoint_identity
+                       ) VALUES('journal_start',?,?,?)""",
+                    (
+                        REAL_JOURNAL_START_CHECKPOINT_SCHEMA_VERSION,
+                        json.dumps(
+                            checkpoint,
+                            ensure_ascii=False,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ),
+                        self._journal_start_checkpoint_identity(checkpoint),
+                    ),
+                )
             generation_row = connection.execute(
                 "SELECT value FROM real_execution_meta WHERE key='construction_generation'"
             ).fetchone()
-            try:
-                generation = 1 if generation_row is None else int(generation_row[0]) + 1
-            except (TypeError, ValueError) as error:
-                raise ValueError(
-                    "REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:construction_generation"
-                ) from error
-            if generation <= 0:
-                raise ValueError(
-                    "REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:construction_generation"
+            generation = 0
+            if baseline_initialization_allowed or (
+                self._journal_structure_valid
+                and self._journal_schema_valid
+                and self._journal_scope_valid
+                and generation_row is not None
+            ):
+                try:
+                    generation = (
+                        1
+                        if generation_row is None
+                        else int(generation_row[0]) + 1
+                    )
+                except (TypeError, ValueError) as error:
+                    raise ValueError(
+                        "REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:construction_generation"
+                    ) from error
+                if generation <= 0:
+                    raise ValueError(
+                        "REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:construction_generation"
+                    )
+                connection.execute(
+                    """INSERT INTO real_execution_meta(key,value)
+                       VALUES('construction_generation',?)
+                       ON CONFLICT(key) DO UPDATE SET value=excluded.value""",
+                    (str(generation),),
                 )
-            connection.execute(
-                """INSERT INTO real_execution_meta(key,value)
-                   VALUES('construction_generation',?)
-                   ON CONFLICT(key) DO UPDATE SET value=excluded.value""",
-                (str(generation),),
-            )
+            elif generation_row is None:
+                self._journal_scope_valid = False
         return _fingerprint({
             "schema_version": REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
             "expected_trading_day": self.expected_trading_day,
@@ -359,7 +534,7 @@ class RealExecutionComposition:
 
     def _ensure_position_baseline(
         self,
-    ) -> dict[tuple[str, PositionDirection], tuple[Decimal, Decimal]] | None:
+    ) -> dict[tuple[str, PositionDirection], PositionState] | None:
         with closing(self._connect()) as connection, connection:
             row = connection.execute(
                 "SELECT * FROM real_position_baseline WHERE baseline_key='journal_start'"
@@ -401,10 +576,15 @@ class RealExecutionComposition:
     def _baseline_position_document(positions) -> list[dict[str, str]]:
         return [
             {
-                "average_open_price": canonical_decimal(position.average_open_price),
+                "average_open_price": str(position.average_open_price),
                 "concrete_contract_id": position.concrete_contract_id,
                 "direction": position.direction.value,
-                "quantity": canonical_decimal(position.quantity),
+                "last_mark_price": str(position.last_mark_price),
+                "quantity": str(position.quantity),
+                "realized_pnl": str(position.realized_pnl),
+                "reserved_margin": str(position.reserved_margin),
+                "unrealized_pnl": str(position.unrealized_pnl),
+                "updated_at": position.updated_at.isoformat(),
             }
             for position in sorted(
                 positions,
@@ -421,17 +601,301 @@ class RealExecutionComposition:
         })
 
     @staticmethod
+    def _account_document(account: AccountState) -> dict[str, str]:
+        return {
+            "charged_costs": str(account.charged_costs),
+            "realized_pnl": str(account.realized_pnl),
+            "reserved_margin": str(account.reserved_margin),
+            "starting_capital": str(account.starting_capital),
+            "unrealized_pnl": str(account.unrealized_pnl),
+            "updated_at": account.updated_at.isoformat(),
+        }
+
+    def _journal_start_checkpoint_document(
+        self, *, baseline_identity: str
+    ) -> dict[str, object]:
+        return {
+            "account": self._account_document(self.trading_state.account),
+            "accounting_identity": self.trading_state.accounting.identity_id,
+            "broker_adapter_identity": self.adapter.broker_id,
+            "composition_schema_version": REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
+            "contract_specifications": [
+                {
+                    "identity": specification.identity_id,
+                    "instrument_id": specification.instrument_id,
+                }
+                for specification in self.trading_state.contract_specifications
+            ],
+            "expected_trading_day": self.expected_trading_day,
+            "ledger_anchor": {
+                "identity": self.trading_state.ledger_tail_identity,
+                "schema_version": RUNTIME_LEDGER_SCHEMA_VERSION,
+                "sequence": self.trading_state.runtime_ledger_next_sequence,
+            },
+            "position_baseline_identity": baseline_identity,
+            "runtime": {
+                "created_at": self.trading_state.created_at.isoformat(),
+                "runtime_id": self.trading_state.runtime_id,
+                "runtime_version": self.trading_state.runtime_version,
+            },
+            "session_identity": self.session_identity,
+        }
+
+    def _journal_start_checkpoint_identity(self, checkpoint: object) -> str:
+        return _fingerprint({
+            "schema_version": REAL_JOURNAL_START_CHECKPOINT_SCHEMA_VERSION,
+            "checkpoint": checkpoint,
+        })
+
+    @staticmethod
+    def _account_from_document(raw: object) -> AccountState:
+        expected_keys = {
+            "charged_costs",
+            "realized_pnl",
+            "reserved_margin",
+            "starting_capital",
+            "unrealized_pnl",
+            "updated_at",
+        }
+        if not isinstance(raw, dict) or set(raw) != expected_keys:
+            raise ValueError("journal-start account checkpoint has invalid fields")
+        return AccountState(
+            starting_capital=Decimal(
+                _required_text(raw["starting_capital"], "checkpoint starting capital")
+            ),
+            reserved_margin=Decimal(
+                _required_text(raw["reserved_margin"], "checkpoint reserved margin")
+            ),
+            charged_costs=Decimal(
+                _required_text(raw["charged_costs"], "checkpoint charged costs")
+            ),
+            realized_pnl=Decimal(
+                _required_text(raw["realized_pnl"], "checkpoint realized pnl")
+            ),
+            unrealized_pnl=Decimal(
+                _required_text(raw["unrealized_pnl"], "checkpoint unrealized pnl")
+            ),
+            updated_at=datetime.fromisoformat(
+                _required_text(raw["updated_at"], "checkpoint account timestamp")
+            ),
+        )
+
+    def _ensure_journal_start_checkpoint(self) -> AccountState | None:
+        if not self._journal_structure_valid:
+            self._latch_checkpoint_failure(
+                "JOURNAL_STRUCTURE_UNPROVABLE",
+                "REAL journal tables do not match a known complete schema",
+            )
+            return None
+        if not self._journal_schema_valid:
+            self._latch_checkpoint_failure(
+                "JOURNAL_SCHEMA_UNPROVABLE",
+                "REAL journal schema version cannot be established without repair",
+            )
+            return None
+        if not self._journal_scope_valid:
+            self._latch_checkpoint_failure(
+                "JOURNAL_SCOPE_UNPROVABLE",
+                "REAL journal scope or construction generation is incomplete",
+            )
+            return None
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                "SELECT * FROM real_journal_start_checkpoint "
+                "WHERE checkpoint_key='journal_start'"
+            ).fetchone()
+            schema_row = connection.execute(
+                "SELECT value FROM real_execution_meta WHERE key='schema_version'"
+            ).fetchone()
+            baseline_row = connection.execute(
+                "SELECT baseline_identity FROM real_position_baseline "
+                "WHERE baseline_key='journal_start'"
+            ).fetchone()
+
+        if row is None:
+            self._latch_checkpoint_failure(
+                "JOURNAL_START_CHECKPOINT_MISSING",
+                "REAL journal has no complete journal-start checkpoint",
+            )
+            return None
+        try:
+            checkpoint = json.loads(row["checkpoint_json"])
+            expected_checkpoint_keys = {
+                "account",
+                "accounting_identity",
+                "broker_adapter_identity",
+                "composition_schema_version",
+                "contract_specifications",
+                "expected_trading_day",
+                "ledger_anchor",
+                "position_baseline_identity",
+                "runtime",
+                "session_identity",
+            }
+            if (
+                not isinstance(checkpoint, dict)
+                or set(checkpoint) != expected_checkpoint_keys
+            ):
+                raise ValueError("checkpoint has invalid fields")
+            account = self._account_from_document(checkpoint.get("account"))
+            runtime = checkpoint.get("runtime")
+            ledger_anchor = checkpoint.get("ledger_anchor")
+            specifications = checkpoint.get("contract_specifications")
+            if not isinstance(runtime, dict) or set(runtime) != {
+                "created_at",
+                "runtime_id",
+                "runtime_version",
+            }:
+                raise ValueError("checkpoint runtime identity is incomplete")
+            if not isinstance(ledger_anchor, dict) or set(ledger_anchor) != {
+                "identity",
+                "schema_version",
+                "sequence",
+            }:
+                raise ValueError("checkpoint ledger anchor is incomplete")
+            if not isinstance(specifications, list):
+                raise ValueError("checkpoint contract specifications must be a list")
+            specification_identities: dict[str, str] = {}
+            for item in specifications:
+                if not isinstance(item, dict) or set(item) != {
+                    "identity",
+                    "instrument_id",
+                }:
+                    raise ValueError("checkpoint contract specification is incomplete")
+                instrument_id = _required_text(
+                    item["instrument_id"], "checkpoint contract instrument"
+                )
+                if instrument_id in specification_identities:
+                    raise ValueError("checkpoint contract specification is duplicated")
+                specification_identities[instrument_id] = _required_text(
+                    item["identity"], "checkpoint contract identity"
+                )
+            anchor_sequence = ledger_anchor["sequence"]
+            anchor_identity = _required_text(
+                ledger_anchor["identity"], "checkpoint ledger anchor identity"
+            )
+            if type(anchor_sequence) is not int or anchor_sequence < 0:
+                raise ValueError("checkpoint ledger anchor sequence is invalid")
+            if (
+                anchor_sequence == 0
+                and anchor_identity != GENESIS_IDENTITY
+            ) or (
+                anchor_sequence > 0
+                and (
+                    len(anchor_identity) != 64
+                    or any(
+                        character not in "0123456789abcdef"
+                        for character in anchor_identity
+                    )
+                )
+            ):
+                raise ValueError("checkpoint ledger anchor identity is invalid")
+            records = self.trading_state.runtime_ledger_records()
+            fresh_state = self.trading_state.is_genuinely_fresh()
+            runtime_anchor_sequence, runtime_anchor_identity = (
+                self.trading_state.runtime_ledger_anchor
+            )
+            anchor_matches = (
+                runtime_anchor_sequence == anchor_sequence
+                and runtime_anchor_identity == anchor_identity
+            ) or (
+                runtime_anchor_sequence == 0
+                and runtime_anchor_identity == GENESIS_IDENTITY
+                and anchor_sequence > 0
+                and len(records) >= anchor_sequence
+                and records[anchor_sequence - 1].identity_id == anchor_identity
+            )
+            relevant_contracts = {
+                position.concrete_contract_id
+                for position in (self._position_baseline or {}).values()
+            } | {order.concrete_contract_id for order in self.orders()}
+            current_specifications = {
+                specification.instrument_id: specification.identity_id
+                for specification in self.trading_state.contract_specifications
+            }
+            valid = (
+                self._journal_structure_valid
+                and schema_row is not None
+                and schema_row[0] == REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION
+                and row["schema_version"]
+                == REAL_JOURNAL_START_CHECKPOINT_SCHEMA_VERSION
+                and row["checkpoint_identity"]
+                == self._journal_start_checkpoint_identity(checkpoint)
+                and checkpoint.get("composition_schema_version")
+                == REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION
+                and checkpoint.get("expected_trading_day")
+                == self.expected_trading_day
+                and checkpoint.get("session_identity") == self.session_identity
+                and checkpoint.get("broker_adapter_identity")
+                == self.adapter.broker_id
+                and baseline_row is not None
+                and checkpoint.get("position_baseline_identity")
+                == baseline_row["baseline_identity"]
+                and checkpoint.get("accounting_identity")
+                == self.trading_state.accounting.identity_id
+                and runtime["runtime_id"] == self.trading_state.runtime_id
+                and runtime["runtime_version"] == self.trading_state.runtime_version
+                and runtime["created_at"]
+                == self.trading_state.created_at.isoformat()
+                and ledger_anchor["schema_version"]
+                == RUNTIME_LEDGER_SCHEMA_VERSION
+                and self.trading_state.runtime_ledger_chain_valid()
+                and (anchor_matches or fresh_state)
+                and all(
+                    specification_identities.get(contract)
+                    == current_specifications.get(contract)
+                    for contract in relevant_contracts
+                )
+                and account.starting_capital == self.trading_state.starting_capital
+            )
+        except (
+            json.JSONDecodeError,
+            TypeError,
+            ValueError,
+            KeyError,
+            InvalidOperation,
+        ):
+            valid = False
+            account = None
+        if not valid:
+            self._latch_checkpoint_failure(
+                "JOURNAL_START_CHECKPOINT_INVALID",
+                "journal-start checkpoint content, identity, semantics, or ledger anchor is invalid",
+            )
+            return None
+        if fresh_state:
+            self.trading_state.restore_journal_start_checkpoint(
+                account=account,
+                positions=(self._position_baseline or {}).values(),
+                ledger_anchor_sequence=anchor_sequence,
+                ledger_anchor_identity=anchor_identity,
+            )
+        self._ledger_anchor_sequence = anchor_sequence
+        self._ledger_anchor_identity = anchor_identity
+        return account
+
+    def _latch_checkpoint_failure(self, code: str, detail: str) -> None:
+        occurred_at = datetime.now().astimezone()
+        self._latch_blocker(code, detail, occurred_at)
+        self._latch_inconsistency("journal-start-checkpoint", detail, occurred_at)
+
+    @staticmethod
     def _position_projection_from_document(
         positions: object,
-    ) -> dict[tuple[str, PositionDirection], tuple[Decimal, Decimal]]:
+    ) -> dict[tuple[str, PositionDirection], PositionState]:
         if not isinstance(positions, list):
             raise ValueError("position baseline must be a list")
-        projection: dict[tuple[str, PositionDirection], tuple[Decimal, Decimal]] = {}
+        projection: dict[tuple[str, PositionDirection], PositionState] = {}
         expected_keys = {
             "average_open_price",
             "concrete_contract_id",
             "direction",
+            "last_mark_price",
             "quantity",
+            "realized_pnl",
+            "reserved_margin",
+            "unrealized_pnl",
+            "updated_at",
         }
         for raw in positions:
             if not isinstance(raw, dict) or set(raw) != expected_keys:
@@ -442,17 +906,30 @@ class RealExecutionComposition:
             average = Decimal(
                 _required_text(raw["average_open_price"], "baseline average price")
             )
-            if (
-                not quantity.is_finite()
-                or quantity <= 0
-                or not average.is_finite()
-                or average <= 0
-            ):
-                raise ValueError("position baseline values must be positive finite Decimals")
             key = (contract, direction)
             if key in projection:
                 raise ValueError("position baseline rejects duplicate position identities")
-            projection[key] = (quantity, average)
+            projection[key] = PositionState(
+                concrete_contract_id=contract,
+                direction=direction,
+                quantity=quantity,
+                average_open_price=average,
+                reserved_margin=Decimal(
+                    _required_text(raw["reserved_margin"], "baseline reserved margin")
+                ),
+                realized_pnl=Decimal(
+                    _required_text(raw["realized_pnl"], "baseline realized pnl")
+                ),
+                unrealized_pnl=Decimal(
+                    _required_text(raw["unrealized_pnl"], "baseline unrealized pnl")
+                ),
+                last_mark_price=Decimal(
+                    _required_text(raw["last_mark_price"], "baseline last mark price")
+                ),
+                updated_at=datetime.fromisoformat(
+                    _required_text(raw["updated_at"], "baseline updated timestamp")
+                ),
+            )
         return projection
 
     def _latch_position_baseline_failure(self, code: str, detail: str) -> None:
@@ -489,6 +966,8 @@ class RealExecutionComposition:
 
     @property
     def new_risk_allowed(self) -> bool:
+        if not self._journal_is_usable:
+            return False
         proof = self._reconciliation_proof
         if proof is None:
             return False
@@ -1131,7 +1610,7 @@ class RealExecutionComposition:
                 action=order.action,
                 quantity=order.requested_quantity,
                 lifecycle_status=status,
-                broker_order_id=order.broker_order_id,
+                broker_order_id=(order.broker_order_id if acknowledged else None),
                 trading_day=order.trading_day,
                 session_identity=order.session_identity,
             ),
@@ -1171,7 +1650,162 @@ class RealExecutionComposition:
             raise RealExecutionInconsistencyError(
                 "TRADING_STATE_REJECTED_COMPOSED_EVENT:" + result.outcome.value
             )
+        if result.applied and event.order_id is not None:
+            self._record_runtime_ledger_lineage(event, result)
         return result
+
+    @staticmethod
+    def _runtime_ledger_record_fingerprint(record) -> str:
+        return _fingerprint({
+            "payload": record.payload,
+            "record_kind": record.record_kind.value,
+            "recorded_at": record.recorded_at.isoformat(),
+            "reference_id": record.reference_id,
+            "schema_version": record.schema_version,
+        })
+
+    def _record_runtime_ledger_lineage(
+        self, event: BrokerEvent, result: EventApplicationResult
+    ) -> None:
+        records_by_identity = {
+            record.identity_id: record
+            for record in self.trading_state.runtime_ledger_records()
+        }
+        try:
+            fingerprints = tuple(
+                self._runtime_ledger_record_fingerprint(records_by_identity[identity])
+                for identity in result.ledger_record_identities
+            )
+        except KeyError as error:
+            self._latch_inconsistency(
+                event.order_id or "runtime-ledger",
+                "COMPOSITION_LEDGER_RECORD_NOT_FOUND",
+                event.occurred_at,
+            )
+            raise RealExecutionInconsistencyError(
+                "COMPOSITION_LEDGER_RECORD_NOT_FOUND"
+            ) from error
+        problem: str | None = None
+        with closing(self._connect()) as connection, connection:
+            existing = connection.execute(
+                """SELECT event_identity,record_ordinal,record_fingerprint
+                   FROM real_execution_ledger_lineage
+                   WHERE event_id=? ORDER BY record_ordinal""",
+                (event.event_id,),
+            ).fetchall()
+            expected = tuple(
+                (event.identity_id, ordinal, fingerprint)
+                for ordinal, fingerprint in enumerate(fingerprints)
+            )
+            actual = tuple(
+                (
+                    row["event_identity"],
+                    row["record_ordinal"],
+                    row["record_fingerprint"],
+                )
+                for row in existing
+            )
+            if existing:
+                if actual != expected:
+                    problem = "COMPOSITION_LEDGER_LINEAGE_DIVERGENCE"
+            elif getattr(self, "_rehydrating", False):
+                problem = "COMPOSITION_LEDGER_LINEAGE_MISSING"
+            else:
+                connection.executemany(
+                    """INSERT INTO real_execution_ledger_lineage(
+                           event_id,event_identity,record_ordinal,record_fingerprint
+                       ) VALUES(?,?,?,?)""",
+                    (
+                        (event.event_id, event.identity_id, ordinal, fingerprint)
+                        for ordinal, fingerprint in enumerate(fingerprints)
+                    ),
+                )
+        if problem is not None:
+            self._latch_inconsistency(
+                event.order_id or "runtime-ledger",
+                problem,
+                event.occurred_at,
+            )
+            if problem == "COMPOSITION_LEDGER_LINEAGE_DIVERGENCE":
+                raise RealExecutionInconsistencyError(problem)
+
+    def _validate_runtime_ledger_coherence(self) -> None:
+        if (
+            self._ledger_anchor_sequence is None
+            or self._ledger_anchor_identity is None
+        ):
+            return
+        if not self.trading_state.runtime_ledger_chain_valid():
+            self._latch_inconsistency(
+                "runtime-ledger",
+                "RUNTIME_LEDGER_CHAIN_INVALID",
+                datetime.now().astimezone(),
+            )
+            return
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                """SELECT event_id,event_identity,record_ordinal,record_fingerprint
+                   FROM real_execution_ledger_lineage
+                   ORDER BY lineage_sequence"""
+            ).fetchall()
+        applied_events = tuple(
+            event
+            for event in self.trading_state.applied_events()
+            if event.stream_id == self._stream_id and event.order_id is not None
+        )
+        applied_by_id = {event.event_id: event for event in applied_events}
+        mapped_event_ids: list[str] = []
+        expected_fingerprints: list[str] = []
+        previous_event_id: str | None = None
+        previous_ordinal = -1
+        valid = True
+        for row in rows:
+            event_id = row["event_id"]
+            ordinal = row["record_ordinal"]
+            if event_id != previous_event_id:
+                mapped_event_ids.append(event_id)
+                previous_event_id = event_id
+                previous_ordinal = -1
+            if ordinal != previous_ordinal + 1:
+                valid = False
+                break
+            previous_ordinal = ordinal
+            applied = applied_by_id.get(event_id)
+            if applied is None or applied.identity_id != row["event_identity"]:
+                valid = False
+                break
+            expected_fingerprints.append(row["record_fingerprint"])
+        if tuple(mapped_event_ids) != tuple(
+            event.event_id for event in applied_events
+        ):
+            valid = False
+        mapped_event_id_set = set(mapped_event_ids)
+        composition_order_ids = {
+            event.order_id for event in applied_events if event.order_id is not None
+        }
+        composition_records = [
+            record
+            for record in self.trading_state.runtime_ledger_records()
+            if record.sequence >= self._ledger_anchor_sequence
+            and (
+                record.reference_id in mapped_event_id_set
+                or record.reference_id in composition_order_ids
+                or dict(record.payload).get("event_id") in mapped_event_id_set
+                or dict(record.payload).get("order_id") in composition_order_ids
+            )
+        ]
+        actual_fingerprints = [
+            self._runtime_ledger_record_fingerprint(record)
+            for record in composition_records
+        ]
+        if actual_fingerprints != expected_fingerprints:
+            valid = False
+        if not valid:
+            self._latch_inconsistency(
+                "runtime-ledger",
+                "COMPOSITION_RUNTIME_LEDGER_DIVERGENCE",
+                datetime.now().astimezone(),
+            )
 
     def _require_broker_mapping_available(
         self,
@@ -1197,11 +1831,25 @@ class RealExecutionComposition:
         )
 
     def _rehydrate_trading_state(self) -> None:
-        for order in self.orders():
-            if order.lifecycle is RealOrderLifecycle.INCONSISTENT:
-                continue
-            existing = self.trading_state.order_for(order.project_order_id)
-            if existing is not None:
+        durable_orders = tuple(
+            order
+            for order in self.orders()
+            if order.lifecycle is not RealOrderLifecycle.INCONSISTENT
+        )
+        existing_orders = tuple(
+            order
+            for order in durable_orders
+            if self.trading_state.order_for(order.project_order_id) is not None
+        )
+        if existing_orders and len(existing_orders) != len(durable_orders):
+            self._latch_inconsistency(
+                "runtime",
+                "TRADING_STATE_PARTIAL_ORDER_HISTORY",
+                datetime.now().astimezone(),
+            )
+        elif existing_orders:
+            for order in durable_orders:
+                existing = self.trading_state.order_for(order.project_order_id)
                 if (
                     not self._trading_order_matches_durable(existing, order)
                     or not self._trading_fill_lineage_matches_durable(order)
@@ -1211,63 +1859,117 @@ class RealExecutionComposition:
                         "TRADING_STATE_DURABLE_ORDER_DIVERGENCE",
                         order.updated_at,
                     )
-                    continue
-                continue
-            self._apply_submit_event(order, order.created_at, acknowledged=False)
+        elif durable_orders:
+            operations: list[dict[str, object]] = []
             with closing(self._connect()) as connection:
-                row = connection.execute(
-                    "SELECT acknowledgement_at FROM real_execution_orders WHERE project_order_id=?",
-                    (order.project_order_id,),
-                ).fetchone()
-                facts = connection.execute(
-                    """SELECT * FROM real_execution_facts
-                       WHERE project_order_id=? AND fact_type='FILL'
-                       ORDER BY occurred_at,fact_key""",
-                    (order.project_order_id,),
+                lineage_rows = connection.execute(
+                    """SELECT event_id,MIN(lineage_sequence) AS first_sequence
+                       FROM real_execution_ledger_lineage
+                       GROUP BY event_id"""
                 ).fetchall()
-                terminal = connection.execute(
-                    "SELECT terminal_at,lifecycle FROM real_execution_orders WHERE project_order_id=?",
-                    (order.project_order_id,),
-                ).fetchone()
-            if row[0] is not None and order.broker_order_id is not None:
-                self._apply_submit_event(
-                    order, datetime.fromisoformat(row[0]), acknowledged=True
+            lineage_order = {
+                row["event_id"]: row["first_sequence"] for row in lineage_rows
+            }
+            for order in durable_orders:
+                operations.append({
+                    "event_id": "real-submit:" + order.project_order_id,
+                    "kind": "SUBMIT",
+                    "order": order,
+                    "occurred_at": order.created_at,
+                })
+                with closing(self._connect()) as connection:
+                    row = connection.execute(
+                        "SELECT acknowledgement_at FROM real_execution_orders WHERE project_order_id=?",
+                        (order.project_order_id,),
+                    ).fetchone()
+                    facts = connection.execute(
+                        """SELECT * FROM real_execution_facts
+                           WHERE project_order_id=? AND fact_type='FILL'
+                           ORDER BY occurred_at,fact_key""",
+                        (order.project_order_id,),
+                    ).fetchall()
+                    terminal = connection.execute(
+                        "SELECT terminal_at,lifecycle FROM real_execution_orders WHERE project_order_id=?",
+                        (order.project_order_id,),
+                    ).fetchone()
+                if row[0] is not None and order.broker_order_id is not None:
+                    operations.append({
+                        "event_id": "real-ack:" + order.project_order_id,
+                        "kind": "ACK",
+                        "order": order,
+                        "occurred_at": datetime.fromisoformat(row[0]),
+                    })
+                for fact in facts:
+                    operations.append({
+                        "event_id": "real-fill:" + fact["fact_key"].removeprefix("trade:"),
+                        "kind": "FILL",
+                        "order": order,
+                        "fact": fact,
+                        "occurred_at": datetime.fromisoformat(fact["occurred_at"]),
+                    })
+                if terminal[0] is not None and terminal[1] in {
+                    RealOrderLifecycle.CANCELLED.value,
+                    RealOrderLifecycle.REJECTED.value,
+                }:
+                    operations.append({
+                        "event_id": f"real-{terminal[1].lower()}:" + order.project_order_id,
+                        "kind": "TERMINAL",
+                        "order": order,
+                        "lifecycle": RealOrderLifecycle(terminal[1]),
+                        "occurred_at": datetime.fromisoformat(terminal[0]),
+                    })
+            missing_event_ids = sorted({
+                operation["event_id"]
+                for operation in operations
+                if operation["event_id"] not in lineage_order
+            })
+            if missing_event_ids:
+                self._latch_inconsistency(
+                    "runtime-ledger",
+                    "COMPOSITION_LEDGER_LINEAGE_MISSING",
+                    datetime.now().astimezone(),
                 )
-            for fact in facts:
-                fill_event = self._event(
-                    event_id="real-fill:" + fact["fact_key"].removeprefix("trade:"),
-                    event_type=BrokerEventType.ORDER_FILLED,
-                    occurred_at=datetime.fromisoformat(fact["occurred_at"]),
-                    order=order,
-                    payload=event_pairs(
-                        broker_order_id=fact["broker_order_id"],
-                        broker_trade_id=fact["fact_key"].removeprefix("trade:"),
-                        concrete_contract_id=order.concrete_contract_id,
-                        direction=order.direction,
-                        action=order.action,
-                        quantity=Decimal(fact["quantity"]),
-                        price=Decimal(fact["price"]),
-                        trading_day=order.trading_day,
-                        session_identity=order.session_identity,
-                    ),
-                )
-                self._apply(fill_event)
-            if terminal[0] is not None and terminal[1] in {
-                RealOrderLifecycle.CANCELLED.value,
-                RealOrderLifecycle.REJECTED.value,
-            }:
-                lifecycle = RealOrderLifecycle(terminal[1])
-                terminal_event_type = (
-                    BrokerEventType.ORDER_CANCELLED
-                    if lifecycle is RealOrderLifecycle.CANCELLED
-                    else BrokerEventType.ORDER_REJECTED
-                )
-                self._apply(self._event(
-                    event_id=f"real-{lifecycle.value.lower()}:" + order.project_order_id,
-                    event_type=terminal_event_type,
-                    occurred_at=datetime.fromisoformat(terminal[0]),
-                    order=order,
-                ))
+            else:
+                operations.sort(key=lambda operation: lineage_order[operation["event_id"]])
+                for operation in operations:
+                    order = operation["order"]
+                    occurred_at = operation["occurred_at"]
+                    if operation["kind"] == "SUBMIT":
+                        self._apply_submit_event(order, occurred_at, acknowledged=False)
+                    elif operation["kind"] == "ACK":
+                        self._apply_submit_event(order, occurred_at, acknowledged=True)
+                    elif operation["kind"] == "FILL":
+                        fact = operation["fact"]
+                        self._apply(self._event(
+                            event_id=operation["event_id"],
+                            event_type=BrokerEventType.ORDER_FILLED,
+                            occurred_at=occurred_at,
+                            order=order,
+                            payload=event_pairs(
+                                broker_order_id=fact["broker_order_id"],
+                                broker_trade_id=fact["fact_key"].removeprefix("trade:"),
+                                concrete_contract_id=order.concrete_contract_id,
+                                direction=order.direction,
+                                action=order.action,
+                                quantity=Decimal(fact["quantity"]),
+                                price=Decimal(fact["price"]),
+                                trading_day=order.trading_day,
+                                session_identity=order.session_identity,
+                            ),
+                        ))
+                    else:
+                        lifecycle = operation["lifecycle"]
+                        event_type = (
+                            BrokerEventType.ORDER_CANCELLED
+                            if lifecycle is RealOrderLifecycle.CANCELLED
+                            else BrokerEventType.ORDER_REJECTED
+                        )
+                        self._apply(self._event(
+                            event_id=operation["event_id"],
+                            event_type=event_type,
+                            occurred_at=occurred_at,
+                            order=order,
+                        ))
         for order in self.orders():
             if order.lifecycle is RealOrderLifecycle.INCONSISTENT:
                 continue
@@ -1317,7 +2019,10 @@ class RealExecutionComposition:
 
     def _latch_inconsistency(self, project_order_id: str, detail: str, at: datetime) -> None:
         self._invalidate_reconciliation_proof("HARD_EXECUTION_INCONSISTENCY")
-        if self.order_for(project_order_id) is not None:
+        if (
+            self._journal_structure_valid
+            and self.order_for(project_order_id) is not None
+        ):
             self._set_order_lifecycle(project_order_id, RealOrderLifecycle.INCONSISTENT, at)
         self._latch_blocker("HARD_EXECUTION_INCONSISTENCY", detail, at)
         if self.safety_controller is not None and not self.safety_controller.state.hard_inconsistency_latched:
@@ -1623,6 +2328,13 @@ class RealExecutionComposition:
         if self._position_baseline is None:
             return
         projections = dict(self._position_baseline)
+        account_realized_change = Decimal("0")
+        fill_count = 0
+        last_economic_update = (
+            None
+            if self._journal_start_account is None
+            else self._journal_start_account.updated_at
+        )
         with closing(self._connect()) as connection:
             facts = connection.execute(
                 """SELECT f.quantity,f.price,o.project_order_id,o.concrete_contract_id,
@@ -1635,15 +2347,29 @@ class RealExecutionComposition:
             ).fetchall()
         for fact in facts:
             key = (fact["concrete_contract_id"], PositionDirection(fact["direction"]))
-            quantity, average = projections.get(key, (Decimal("0"), Decimal("0")))
+            before = projections.get(key)
+            quantity = Decimal("0") if before is None else before.quantity
+            average = Decimal("0") if before is None else before.average_open_price
+            realized = Decimal("0") if before is None else before.realized_pnl
             fill_quantity = Decimal(fact["quantity"])
             fill_price = Decimal(fact["price"])
-            if OrderAction(fact["action"]) is OrderAction.OPEN:
+            direction = PositionDirection(fact["direction"])
+            action = OrderAction(fact["action"])
+            spec = self.trading_state.contract_spec(fact["concrete_contract_id"])
+            if spec is None:
+                self._latch_inconsistency(
+                    fact["project_order_id"],
+                    "TRADING_POSITION_ECONOMICS_UNPROVABLE",
+                    datetime.fromisoformat(fact["occurred_at"]),
+                )
+                return
+            if action is OrderAction.OPEN:
                 new_quantity = quantity + fill_quantity
                 average = (average * quantity + fill_price * fill_quantity) / new_quantity
                 quantity = new_quantity
+                realized_change = Decimal("0")
             else:
-                if fill_quantity > quantity:
+                if before is None or fill_quantity > quantity:
                     self._latch_inconsistency(
                         fact["project_order_id"],
                         "TRADING_POSITION_PROJECTION_UNPROVABLE",
@@ -1651,9 +2377,48 @@ class RealExecutionComposition:
                     )
                     return
                 quantity -= fill_quantity
+                if direction is PositionDirection.LONG:
+                    realized_change = (
+                        fill_price - average
+                    ) * spec.contract_multiplier * fill_quantity
+                else:
+                    realized_change = (
+                        average - fill_price
+                    ) * spec.contract_multiplier * fill_quantity
                 if quantity == 0:
                     average = Decimal("0")
-            projections[key] = (quantity, average)
+            realized += realized_change
+            account_realized_change += realized_change
+            fill_count += 1
+            last_economic_update = datetime.fromisoformat(fact["occurred_at"])
+            if quantity == 0:
+                projections.pop(key, None)
+                continue
+            reserved_margin = (
+                quantity
+                * average
+                * spec.contract_multiplier
+                * self.trading_state.accounting.initial_margin_rate
+            )
+            if direction is PositionDirection.LONG:
+                unrealized_pnl = (
+                    fill_price - average
+                ) * spec.contract_multiplier * quantity
+            else:
+                unrealized_pnl = (
+                    average - fill_price
+                ) * spec.contract_multiplier * quantity
+            projections[key] = PositionState(
+                concrete_contract_id=fact["concrete_contract_id"],
+                direction=direction,
+                quantity=quantity,
+                average_open_price=average,
+                reserved_margin=reserved_margin,
+                realized_pnl=realized,
+                unrealized_pnl=unrealized_pnl,
+                last_mark_price=fill_price,
+                updated_at=datetime.fromisoformat(fact["occurred_at"]),
+            )
         actual_positions = {
             (position.concrete_contract_id, position.direction): position
             for position in self.trading_state.positions
@@ -1662,18 +2427,11 @@ class RealExecutionComposition:
         for contract, direction in sorted(
             position_keys, key=lambda item: (item[0], item[1].value)
         ):
-            quantity, average = projections.get(
-                (contract, direction), (Decimal("0"), Decimal("0"))
-            )
+            expected = projections.get((contract, direction))
             actual = actual_positions.get((contract, direction))
             matches = (
-                (quantity == 0 and actual is None)
-                or (
-                    quantity > 0
-                    and actual is not None
-                    and actual.quantity == quantity
-                    and actual.average_open_price == average
-                )
+                (expected is None and actual is None)
+                or (expected is not None and actual is not None and actual == expected)
             )
             if not matches:
                 related = next(
@@ -1697,10 +2455,45 @@ class RealExecutionComposition:
                         else datetime.now().astimezone()
                     ),
                 )
+        if self._journal_start_account is None:
+            return
+        expected_account = AccountState(
+            starting_capital=self._journal_start_account.starting_capital,
+            reserved_margin=sum(
+                (position.reserved_margin for position in projections.values()),
+                Decimal("0"),
+            ),
+            charged_costs=(
+                self._journal_start_account.charged_costs
+                + self.trading_state.accounting.additive_cost_per_fill * fill_count
+            ),
+            realized_pnl=(
+                self._journal_start_account.realized_pnl + account_realized_change
+            ),
+            unrealized_pnl=sum(
+                (position.unrealized_pnl for position in projections.values()),
+                Decimal("0"),
+            ),
+            updated_at=(
+                self._journal_start_account.updated_at
+                if last_economic_update is None
+                else last_economic_update
+            ),
+        )
+        if self.trading_state.account != expected_account:
+            related = next(iter(self.orders()), None)
+            self._latch_inconsistency(
+                "account" if related is None else related.project_order_id,
+                "TRADING_STATE_ACCOUNT_DIVERGENCE",
+                datetime.now().astimezone()
+                if related is None
+                else related.updated_at,
+            )
 
 
 __all__ = [
     "REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION",
+    "REAL_JOURNAL_START_CHECKPOINT_SCHEMA_VERSION",
     "REAL_EXECUTION_LINEAGE_SCHEMA_VERSION",
     "REAL_POSITION_BASELINE_SCHEMA_VERSION",
     "CurrentReconciliationProof",

@@ -39,7 +39,12 @@ from src.runtime_events import (
     BrokerEventViolationKind,
     event_pairs,
 )
-from src.runtime_ledger import RuntimeLedger, RuntimeLedgerRecordKind, ledger_pairs
+from src.runtime_ledger import (
+    RuntimeLedger,
+    RuntimeLedgerRecord,
+    RuntimeLedgerRecordKind,
+    ledger_pairs,
+)
 
 TRADING_STATE_SCHEMA_VERSION = "shadow-runtime-trading-state-v0.1"
 
@@ -418,6 +423,10 @@ class TradingState:
         return self._created_at
 
     @property
+    def starting_capital(self) -> Decimal:
+        return self._starting_capital
+
+    @property
     def accounting(self) -> RuntimeAccountingAssumptions:
         return self._accounting
 
@@ -449,6 +458,80 @@ class TradingState:
 
     def contract_spec(self, concrete_contract_id: str) -> ContractSpecification | None:
         return self._contract_specs.get(concrete_contract_id)
+
+    @property
+    def contract_specifications(self) -> tuple[ContractSpecification, ...]:
+        return tuple(
+            self._contract_specs[key] for key in sorted(self._contract_specs)
+        )
+
+    def runtime_ledger_records(self) -> tuple[RuntimeLedgerRecord, ...]:
+        """Read-only immutable ledger projection for restart-integrity checks."""
+        return self._ledger.records()
+
+    def runtime_ledger_chain_valid(self) -> bool:
+        return self._ledger.verify_chain()
+
+    @property
+    def runtime_ledger_next_sequence(self) -> int:
+        return self._ledger.next_sequence
+
+    @property
+    def runtime_ledger_anchor(self) -> tuple[int, str]:
+        return self._ledger.anchor_sequence, self._ledger.anchor_identity
+
+    def is_genuinely_fresh(self) -> bool:
+        return (
+            not self._positions
+            and not self._orders
+            and not self._applied
+            and not self._violations
+            and self._ledger.count() == 0
+            and self._ledger.anchor_sequence == 0
+            and self._account
+            == AccountState(
+                starting_capital=self._starting_capital,
+                reserved_margin=Decimal("0"),
+                charged_costs=Decimal("0"),
+                realized_pnl=Decimal("0"),
+                unrealized_pnl=Decimal("0"),
+                updated_at=self._created_at,
+            )
+        )
+
+    def restore_journal_start_checkpoint(
+        self,
+        *,
+        account: AccountState,
+        positions: Iterable[PositionState],
+        ledger_anchor_sequence: int,
+        ledger_anchor_identity: str,
+    ) -> None:
+        """Restore a proven journal-start checkpoint into a fresh state only."""
+        if not self.is_genuinely_fresh():
+            raise ValueError("journal checkpoint restore requires genuinely fresh state")
+        if not isinstance(account, AccountState):
+            raise ValueError("journal checkpoint restore requires AccountState")
+        restored_positions = tuple(positions)
+        if any(not isinstance(item, PositionState) for item in restored_positions):
+            raise ValueError("journal checkpoint restore requires PositionState values")
+        position_keys = {
+            (item.concrete_contract_id, item.direction) for item in restored_positions
+        }
+        if len(position_keys) != len(restored_positions):
+            raise ValueError("journal checkpoint positions must have unique identities")
+        if account.starting_capital != self._starting_capital:
+            raise ValueError("journal checkpoint starting capital conflicts with runtime")
+        self._ledger.restore_anchor(
+            sequence=ledger_anchor_sequence,
+            identity=ledger_anchor_identity,
+        )
+        self._account = account
+        self._realized_accumulator = account.realized_pnl
+        self._positions = {
+            (item.concrete_contract_id, item.direction): item
+            for item in restored_positions
+        }
 
     def applied_event_ids(self) -> tuple[str, ...]:
         return tuple(event.event_id for event in self._applied_order)
