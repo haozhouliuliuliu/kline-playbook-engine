@@ -627,6 +627,7 @@ class PositionBaselineRestartTests(unittest.TestCase):
                 connection.execute("DELETE FROM real_position_baseline")
                 connection.execute("DROP TABLE real_journal_start_checkpoint")
                 connection.execute("DROP TABLE real_execution_ledger_lineage")
+                connection.execute("DROP TABLE real_execution_economic_events")
                 connection.execute(
                     "UPDATE real_execution_meta SET value=? WHERE key='schema_version'",
                     ("KPE_REAL_EXECUTION_COMPOSITION_V0_1",),

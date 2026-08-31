@@ -51,22 +51,61 @@ from src.runtime_events import (
     BrokerEventType,
     event_pairs,
 )
-from src.runtime_ledger import GENESIS_IDENTITY, RUNTIME_LEDGER_SCHEMA_VERSION
+from src.runtime_ledger import (
+    GENESIS_IDENTITY,
+    RUNTIME_LEDGER_SCHEMA_VERSION,
+    RuntimeLedgerRecordKind,
+)
 from src.trading_state import (
     AccountState,
     EventApplicationResult,
     OrderStatus,
     PositionState,
     TradingState,
+    position_mark_transition_identity,
 )
 
 
-REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_3"
+REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_4"
 LEGACY_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_1"
-PREVIOUS_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_2"
+OLDER_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_2"
+PREVIOUS_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION = "KPE_REAL_EXECUTION_COMPOSITION_V0_3"
 REAL_EXECUTION_LINEAGE_SCHEMA_VERSION = "KPE_REAL_EXECUTION_LINEAGE_V0_1"
 REAL_POSITION_BASELINE_SCHEMA_VERSION = "KPE_REAL_POSITION_BASELINE_V0_2"
 REAL_JOURNAL_START_CHECKPOINT_SCHEMA_VERSION = "KPE_REAL_JOURNAL_START_CHECKPOINT_V0_1"
+
+_REAL_JOURNAL_TABLE_COLUMNS = {
+    "real_execution_meta": {"key", "value"},
+    "real_execution_orders": {
+        "project_order_id", "client_request_id", "instruction_identity",
+        "concrete_contract_id", "direction", "action", "requested_quantity",
+        "trading_day", "session_identity", "broker_order_id", "lifecycle",
+        "filled_quantity", "average_fill_price", "created_at",
+        "acknowledgement_at", "terminal_at", "updated_at",
+    },
+    "real_execution_facts": {
+        "fact_key", "fingerprint", "fact_type", "project_order_id",
+        "broker_order_id", "quantity", "price", "occurred_at",
+    },
+    "real_execution_blockers": {"code", "detail", "latched_at", "resolved_at"},
+    "real_position_baseline": {
+        "baseline_key", "schema_version", "expected_trading_day",
+        "session_identity", "positions_json", "baseline_identity",
+    },
+    "real_journal_start_checkpoint": {
+        "checkpoint_key", "schema_version", "checkpoint_json",
+        "checkpoint_identity",
+    },
+    "real_execution_ledger_lineage": {
+        "lineage_sequence", "event_id", "event_identity", "record_ordinal",
+        "record_fingerprint",
+    },
+    "real_execution_economic_events": {
+        "event_id", "fingerprint", "event_type", "concrete_contract_id",
+        "direction", "price", "occurred_at", "before_identity",
+        "after_identity",
+    },
+}
 
 
 class RealOrderLifecycle(str, Enum):
@@ -203,6 +242,7 @@ class RealExecutionComposition:
         self.expected_trading_day = _validate_trading_day(expected_trading_day)
         self.session_identity = _required_text(session_identity, "session identity")
         self.safety_controller = safety_controller
+        self._supplied_state_was_fresh = trading_state.is_genuinely_fresh()
         self._stream_id = self._STREAM_PREFIX + self.session_identity
         self._reconciliation_proof: CurrentReconciliationProof | None = None
         self._readiness_state = "CURRENT_RECONCILIATION_REQUIRED"
@@ -225,6 +265,10 @@ class RealExecutionComposition:
         self._restore_persistent_safety()
         if not self._journal_is_usable:
             return
+        self.trading_state.bind_position_mark_persister(
+            journal_scope=self.session_identity,
+            persister=self._persist_position_mark,
+        )
         self._rehydrating = True
         try:
             self._rehydrate_trading_state()
@@ -258,6 +302,18 @@ class RealExecutionComposition:
                        )"""
                 ).fetchall()
             }
+            for table_name in prior_scope_tables & set(_REAL_JOURNAL_TABLE_COLUMNS):
+                actual_columns = {
+                    row["name"]
+                    for row in connection.execute(
+                        f"PRAGMA table_info('{table_name}')"
+                    ).fetchall()
+                }
+                if actual_columns != _REAL_JOURNAL_TABLE_COLUMNS[table_name]:
+                    raise ValueError(
+                        "REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:"
+                        f"table_schema:{table_name}"
+                    )
             legacy_tables = {
                 "real_execution_meta",
                 "real_execution_orders",
@@ -268,12 +324,16 @@ class RealExecutionComposition:
             current_tables = legacy_tables | {
                 "real_journal_start_checkpoint",
                 "real_execution_ledger_lineage",
+                "real_execution_economic_events",
             }
+            previous_tables = current_tables - {"real_execution_economic_events"}
             fresh_journal_namespace = not prior_scope_tables
             prior_legacy_structure = prior_scope_tables == legacy_tables
+            prior_previous_structure = prior_scope_tables == previous_tables
             self._journal_structure_valid = (
                 fresh_journal_namespace
                 or prior_legacy_structure
+                or prior_previous_structure
                 or prior_scope_tables == current_tables
             )
             connection.executescript(
@@ -339,6 +399,17 @@ class RealExecutionComposition:
                     record_fingerprint TEXT NOT NULL,
                     UNIQUE(event_id,record_ordinal)
                 );
+                CREATE TABLE IF NOT EXISTS real_execution_economic_events(
+                    event_id TEXT PRIMARY KEY,
+                    fingerprint TEXT NOT NULL,
+                    event_type TEXT NOT NULL CHECK(event_type='MARK'),
+                    concrete_contract_id TEXT NOT NULL,
+                    direction TEXT NOT NULL,
+                    price TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    before_identity TEXT NOT NULL,
+                    after_identity TEXT NOT NULL
+                );
                 """
             )
             schema_row = connection.execute(
@@ -362,6 +433,9 @@ class RealExecutionComposition:
             ledger_lineage_count = connection.execute(
                 "SELECT COUNT(*) FROM real_execution_ledger_lineage"
             ).fetchone()[0]
+            economic_event_count = connection.execute(
+                "SELECT COUNT(*) FROM real_execution_economic_events"
+            ).fetchone()[0]
             baseline_initialization_allowed = False
             if schema_row is None:
                 if (
@@ -373,6 +447,7 @@ class RealExecutionComposition:
                     == baseline_count
                     == checkpoint_count
                     == ledger_lineage_count
+                    == economic_event_count
                     == 0
                 ):
                     connection.execute(
@@ -383,7 +458,7 @@ class RealExecutionComposition:
                     self._journal_schema_valid = True
             elif schema_row[0] in {
                 LEGACY_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
-                PREVIOUS_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
+                OLDER_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,
             }:
                 if (
                     prior_legacy_structure
@@ -394,6 +469,7 @@ class RealExecutionComposition:
                     == baseline_count
                     == checkpoint_count
                     == ledger_lineage_count
+                    == economic_event_count
                     == 0
                 ):
                     connection.execute(
@@ -402,6 +478,56 @@ class RealExecutionComposition:
                     )
                     baseline_initialization_allowed = True
                     self._journal_schema_valid = True
+            elif schema_row[0] == PREVIOUS_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION:
+                if (
+                    prior_previous_structure
+                    and self._journal_structure_valid
+                    and order_count == fact_count == blocker_count
+                    == ledger_lineage_count == economic_event_count == 0
+                    and baseline_count == checkpoint_count == 1
+                ):
+                    checkpoint_row = connection.execute(
+                        "SELECT schema_version,checkpoint_json,checkpoint_identity "
+                        "FROM real_journal_start_checkpoint "
+                        "WHERE checkpoint_key='journal_start'"
+                    ).fetchone()
+                    if checkpoint_row is not None:
+                        try:
+                            checkpoint = json.loads(checkpoint_row["checkpoint_json"])
+                            if (
+                                isinstance(checkpoint, dict)
+                                and checkpoint_row["schema_version"]
+                                == REAL_JOURNAL_START_CHECKPOINT_SCHEMA_VERSION
+                                and checkpoint_row["checkpoint_identity"]
+                                == self._journal_start_checkpoint_identity(checkpoint)
+                                and checkpoint.get("composition_schema_version")
+                                == PREVIOUS_REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION
+                            ):
+                                checkpoint["composition_schema_version"] = (
+                                    REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION
+                                )
+                                connection.execute(
+                                    "UPDATE real_journal_start_checkpoint "
+                                    "SET checkpoint_json=?,checkpoint_identity=? "
+                                    "WHERE checkpoint_key='journal_start'",
+                                    (
+                                        json.dumps(
+                                            checkpoint,
+                                            ensure_ascii=False,
+                                            sort_keys=True,
+                                            separators=(",", ":"),
+                                        ),
+                                        self._journal_start_checkpoint_identity(checkpoint),
+                                    ),
+                                )
+                                connection.execute(
+                                    "UPDATE real_execution_meta SET value=? "
+                                    "WHERE key='schema_version'",
+                                    (REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION,),
+                                )
+                                self._journal_schema_valid = True
+                        except (json.JSONDecodeError, TypeError, ValueError):
+                            self._journal_schema_valid = False
             elif schema_row[0] != REAL_EXECUTION_COMPOSITION_SCHEMA_VERSION:
                 raise ValueError("REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:schema_version")
             else:
@@ -1664,6 +1790,156 @@ class RealExecutionComposition:
             "schema_version": record.schema_version,
         })
 
+    def _persist_position_mark(
+        self,
+        before: PositionState,
+        after: PositionState,
+        event_id: str,
+        ledger_payload: tuple[tuple[str, str], ...],
+    ) -> None:
+        """Persist one MARK and its expected ledger record before state mutation."""
+        if not self._journal_is_usable or "HARD_EXECUTION_INCONSISTENCY" in self.active_blockers():
+            raise RealExecutionInconsistencyError("REAL_MARK_JOURNAL_UNUSABLE")
+        if (
+            before.concrete_contract_id != after.concrete_contract_id
+            or before.direction is not after.direction
+            or before.quantity != after.quantity
+            or before.average_open_price != after.average_open_price
+            or before.reserved_margin != after.reserved_margin
+            or before.realized_pnl != after.realized_pnl
+            or event_id != position_mark_transition_identity(before, after)
+            or dict(ledger_payload).get("journal_scope") != self.session_identity
+        ):
+            raise ValueError("position mark persistence received an invalid transition")
+        event_document = {
+            "after_identity": after.identity_id,
+            "before_identity": before.identity_id,
+            "concrete_contract_id": after.concrete_contract_id,
+            "direction": after.direction.value,
+            "event_id": event_id,
+            "event_type": "MARK",
+            "occurred_at": after.updated_at.isoformat(),
+            "price": canonical_decimal(after.last_mark_price),
+        }
+        event_fingerprint = _fingerprint(event_document)
+        ledger_fingerprint = _fingerprint({
+            "payload": ledger_payload,
+            "record_kind": RuntimeLedgerRecordKind.POSITION_TRANSITION.value,
+            "recorded_at": after.updated_at.isoformat(),
+            "reference_id": event_id,
+            "schema_version": RUNTIME_LEDGER_SCHEMA_VERSION,
+        })
+        duplicate = False
+        with closing(self._connect()) as connection, connection:
+            existing = connection.execute(
+                "SELECT * FROM real_execution_economic_events "
+                "WHERE event_id=?",
+                (event_id,),
+            ).fetchone()
+            existing_lineage = connection.execute(
+                "SELECT event_identity,record_ordinal,record_fingerprint "
+                "FROM real_execution_ledger_lineage WHERE event_id=?",
+                (event_id,),
+            ).fetchall()
+            if existing is not None or existing_lineage:
+                exact_replay = (
+                    existing is not None
+                    and existing["fingerprint"] == event_fingerprint
+                    and tuple(
+                        (
+                            row["event_identity"],
+                            row["record_ordinal"],
+                            row["record_fingerprint"],
+                        )
+                        for row in existing_lineage
+                    )
+                    == ((event_fingerprint, 0, ledger_fingerprint),)
+                )
+                duplicate = not (
+                    getattr(self, "_rehydrating", False) and exact_replay
+                )
+            else:
+                connection.execute(
+                    """INSERT INTO real_execution_economic_events(
+                           event_id,fingerprint,event_type,concrete_contract_id,
+                           direction,price,occurred_at,before_identity,after_identity
+                       ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                    (
+                        event_id,
+                        event_fingerprint,
+                        "MARK",
+                        after.concrete_contract_id,
+                        after.direction.value,
+                        canonical_decimal(after.last_mark_price),
+                        after.updated_at.isoformat(),
+                        before.identity_id,
+                        after.identity_id,
+                    ),
+                )
+                connection.execute(
+                    """INSERT INTO real_execution_ledger_lineage(
+                           event_id,event_identity,record_ordinal,record_fingerprint
+                       ) VALUES(?,?,0,?)""",
+                    (event_id, event_fingerprint, ledger_fingerprint),
+                )
+        if duplicate:
+            self._latch_inconsistency(
+                "position-mark",
+                "DUPLICATE_POSITION_MARK_LINEAGE",
+                after.updated_at,
+            )
+            raise RealExecutionInconsistencyError("DUPLICATE_POSITION_MARK_LINEAGE")
+
+    @staticmethod
+    def _economic_event_document(row: sqlite3.Row) -> dict[str, str]:
+        return {
+            "after_identity": row["after_identity"],
+            "before_identity": row["before_identity"],
+            "concrete_contract_id": row["concrete_contract_id"],
+            "direction": row["direction"],
+            "event_id": row["event_id"],
+            "event_type": row["event_type"],
+            "occurred_at": row["occurred_at"],
+            "price": row["price"],
+        }
+
+    def _validated_economic_events(self) -> tuple[sqlite3.Row, ...] | None:
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                "SELECT * FROM real_execution_economic_events"
+            ).fetchall()
+        try:
+            for row in rows:
+                PositionDirection(row["direction"])
+                price = Decimal(row["price"])
+                occurred_at = datetime.fromisoformat(row["occurred_at"])
+                if (
+                    row["event_type"] != "MARK"
+                    or not price.is_finite()
+                    or price <= 0
+                    or occurred_at.tzinfo is None
+                    or any(
+                        not isinstance(row[key], str) or len(row[key]) != 64
+                        for key in (
+                            "event_id",
+                            "fingerprint",
+                            "before_identity",
+                            "after_identity",
+                        )
+                    )
+                    or row["fingerprint"]
+                    != _fingerprint(self._economic_event_document(row))
+                ):
+                    raise ValueError("invalid durable MARK event")
+        except (TypeError, ValueError, InvalidOperation):
+            self._latch_inconsistency(
+                "position-mark",
+                "POSITION_MARK_FACT_INVALID",
+                datetime.now().astimezone(),
+            )
+            return None
+        return tuple(rows)
+
     def _record_runtime_ledger_lineage(
         self, event: BrokerEvent, result: EventApplicationResult
     ) -> None:
@@ -1748,6 +2024,10 @@ class RealExecutionComposition:
                    FROM real_execution_ledger_lineage
                    ORDER BY lineage_sequence"""
             ).fetchall()
+        economic_events = self._validated_economic_events()
+        if economic_events is None:
+            return
+        economic_by_id = {row["event_id"]: row for row in economic_events}
         applied_events = tuple(
             event
             for event in self.trading_state.applied_events()
@@ -1771,12 +2051,25 @@ class RealExecutionComposition:
                 break
             previous_ordinal = ordinal
             applied = applied_by_id.get(event_id)
-            if applied is None or applied.identity_id != row["event_identity"]:
-                valid = False
-                break
+            if applied is not None:
+                if applied.identity_id != row["event_identity"]:
+                    valid = False
+                    break
+            else:
+                economic = economic_by_id.get(event_id)
+                if (
+                    economic is None
+                    or economic["fingerprint"] != row["event_identity"]
+                ):
+                    valid = False
+                    break
             expected_fingerprints.append(row["record_fingerprint"])
-        if tuple(mapped_event_ids) != tuple(
+        expected_event_ids = {
             event.event_id for event in applied_events
+        } | set(economic_by_id)
+        if (
+            len(mapped_event_ids) != len(expected_event_ids)
+            or set(mapped_event_ids) != expected_event_ids
         ):
             valid = False
         mapped_event_id_set = set(mapped_event_ids)
@@ -1792,6 +2085,7 @@ class RealExecutionComposition:
                 or record.reference_id in composition_order_ids
                 or dict(record.payload).get("event_id") in mapped_event_id_set
                 or dict(record.payload).get("order_id") in composition_order_ids
+                or dict(record.payload).get("journal_scope") == self.session_identity
             )
         ]
         actual_fingerprints = [
@@ -1841,25 +2135,10 @@ class RealExecutionComposition:
             for order in durable_orders
             if self.trading_state.order_for(order.project_order_id) is not None
         )
-        if existing_orders and len(existing_orders) != len(durable_orders):
-            self._latch_inconsistency(
-                "runtime",
-                "TRADING_STATE_PARTIAL_ORDER_HISTORY",
-                datetime.now().astimezone(),
-            )
-        elif existing_orders:
-            for order in durable_orders:
-                existing = self.trading_state.order_for(order.project_order_id)
-                if (
-                    not self._trading_order_matches_durable(existing, order)
-                    or not self._trading_fill_lineage_matches_durable(order)
-                ):
-                    self._latch_inconsistency(
-                        order.project_order_id,
-                        "TRADING_STATE_DURABLE_ORDER_DIVERGENCE",
-                        order.updated_at,
-                    )
-        elif durable_orders:
+        economic_events = self._validated_economic_events()
+        if economic_events is None:
+            return
+        if self._supplied_state_was_fresh:
             operations: list[dict[str, object]] = []
             with closing(self._connect()) as connection:
                 lineage_rows = connection.execute(
@@ -1884,8 +2163,7 @@ class RealExecutionComposition:
                     ).fetchone()
                     facts = connection.execute(
                         """SELECT * FROM real_execution_facts
-                           WHERE project_order_id=? AND fact_type='FILL'
-                           ORDER BY occurred_at,fact_key""",
+                           WHERE project_order_id=? AND fact_type='FILL'""",
                         (order.project_order_id,),
                     ).fetchall()
                     terminal = connection.execute(
@@ -1918,6 +2196,15 @@ class RealExecutionComposition:
                         "lifecycle": RealOrderLifecycle(terminal[1]),
                         "occurred_at": datetime.fromisoformat(terminal[0]),
                     })
+            operations.extend(
+                {
+                    "event_id": event["event_id"],
+                    "kind": "MARK",
+                    "event": event,
+                    "occurred_at": datetime.fromisoformat(event["occurred_at"]),
+                }
+                for event in economic_events
+            )
             missing_event_ids = sorted({
                 operation["event_id"]
                 for operation in operations
@@ -1930,15 +2217,50 @@ class RealExecutionComposition:
                     datetime.now().astimezone(),
                 )
             else:
-                operations.sort(key=lambda operation: lineage_order[operation["event_id"]])
+                operations.sort(
+                    key=lambda operation: lineage_order[operation["event_id"]]
+                )
                 for operation in operations:
-                    order = operation["order"]
+                    kind = operation["kind"]
                     occurred_at = operation["occurred_at"]
-                    if operation["kind"] == "SUBMIT":
+                    if kind == "MARK":
+                        event = operation["event"]
+                        direction = PositionDirection(event["direction"])
+                        before = self.trading_state.position_for(
+                            event["concrete_contract_id"], direction
+                        )
+                        if before is None or before.identity_id != event["before_identity"]:
+                            self._latch_inconsistency(
+                                "position-mark",
+                                "POSITION_MARK_REPLAY_BEFORE_DIVERGENCE",
+                                occurred_at,
+                            )
+                            break
+                        after = self.trading_state.mark_position(
+                            event["concrete_contract_id"],
+                            direction,
+                            Decimal(event["price"]),
+                            occurred_at,
+                        )
+                        if (
+                            after is None
+                            or after.identity_id != event["after_identity"]
+                            or position_mark_transition_identity(before, after)
+                            != event["event_id"]
+                        ):
+                            self._latch_inconsistency(
+                                "position-mark",
+                                "POSITION_MARK_REPLAY_AFTER_DIVERGENCE",
+                                occurred_at,
+                            )
+                            break
+                        continue
+                    order = operation["order"]
+                    if kind == "SUBMIT":
                         self._apply_submit_event(order, occurred_at, acknowledged=False)
-                    elif operation["kind"] == "ACK":
+                    elif kind == "ACK":
                         self._apply_submit_event(order, occurred_at, acknowledged=True)
-                    elif operation["kind"] == "FILL":
+                    elif kind == "FILL":
                         fact = operation["fact"]
                         self._apply(self._event(
                             event_id=operation["event_id"],
@@ -1970,6 +2292,24 @@ class RealExecutionComposition:
                             occurred_at=occurred_at,
                             order=order,
                         ))
+        elif len(existing_orders) != len(durable_orders):
+            self._latch_inconsistency(
+                "runtime",
+                "TRADING_STATE_PARTIAL_ORDER_HISTORY",
+                datetime.now().astimezone(),
+            )
+        else:
+            for order in durable_orders:
+                existing = self.trading_state.order_for(order.project_order_id)
+                if (
+                    not self._trading_order_matches_durable(existing, order)
+                    or not self._trading_fill_lineage_matches_durable(order)
+                ):
+                    self._latch_inconsistency(
+                        order.project_order_id,
+                        "TRADING_STATE_DURABLE_ORDER_DIVERGENCE",
+                        order.updated_at,
+                    )
         for order in self.orders():
             if order.lifecycle is RealOrderLifecycle.INCONSISTENT:
                 continue
@@ -2248,10 +2588,14 @@ class RealExecutionComposition:
     ) -> tuple[tuple[tuple[str, str], ...], ...]:
         with closing(self._connect()) as connection:
             facts = connection.execute(
-                """SELECT fact_key,broker_order_id,quantity,price,occurred_at
-                   FROM real_execution_facts
-                   WHERE project_order_id=? AND fact_type='FILL'
-                   ORDER BY occurred_at,fact_key""",
+                """SELECT f.fact_key,f.broker_order_id,f.quantity,f.price,f.occurred_at,
+                          MIN(l.lineage_sequence) AS first_sequence
+                   FROM real_execution_facts f
+                   JOIN real_execution_ledger_lineage l
+                     ON l.event_id='real-fill:' || SUBSTR(f.fact_key,7)
+                   WHERE f.project_order_id=? AND f.fact_type='FILL'
+                   GROUP BY f.fact_key
+                   ORDER BY first_sequence""",
                 (order.project_order_id,),
             ).fetchall()
         return tuple(
@@ -2316,13 +2660,7 @@ class RealExecutionComposition:
                 ))
             except (ValueError, TypeError, InvalidOperation):
                 return None
-        return tuple(sorted(
-            records,
-            key=lambda record: (
-                dict(record)["occurred_at"],
-                dict(record)["broker_trade_id"],
-            ),
-        ))
+        return tuple(records)
 
     def _validate_trading_position_projection(self) -> None:
         if self._position_baseline is None:
@@ -2335,19 +2673,97 @@ class RealExecutionComposition:
             if self._journal_start_account is None
             else self._journal_start_account.updated_at
         )
+        economic_events = self._validated_economic_events()
+        if economic_events is None:
+            return
         with closing(self._connect()) as connection:
             facts = connection.execute(
                 """SELECT f.quantity,f.price,o.project_order_id,o.concrete_contract_id,
-                          o.direction,o.action,f.occurred_at,f.fact_key
+                          o.direction,o.action,f.occurred_at,f.fact_key,
+                          MIN(l.lineage_sequence) AS economic_sequence
                    FROM real_execution_facts f
                    JOIN real_execution_orders o ON o.project_order_id=f.project_order_id
+                   JOIN real_execution_ledger_lineage l
+                     ON l.event_id='real-fill:' || SUBSTR(f.fact_key,7)
                    WHERE f.fact_type='FILL' AND o.lifecycle<>?
-                   ORDER BY f.occurred_at,f.fact_key""",
+                   GROUP BY f.fact_key""",
                 (RealOrderLifecycle.INCONSISTENT.value,),
             ).fetchall()
-        for fact in facts:
+            lineage_order = {
+                row["event_id"]: row["first_sequence"]
+                for row in connection.execute(
+                    """SELECT event_id,MIN(lineage_sequence) AS first_sequence
+                       FROM real_execution_ledger_lineage GROUP BY event_id"""
+                ).fetchall()
+            }
+        operations: list[tuple[int, str, object]] = [
+            (fact["economic_sequence"], "FILL", fact) for fact in facts
+        ]
+        try:
+            operations.extend(
+                (lineage_order[event["event_id"]], "MARK", event)
+                for event in economic_events
+            )
+        except KeyError:
+            self._latch_inconsistency(
+                "position-mark",
+                "POSITION_MARK_LINEAGE_MISSING",
+                datetime.now().astimezone(),
+            )
+            return
+        operations.sort(key=lambda item: item[0])
+        for _, operation_kind, fact in operations:
             key = (fact["concrete_contract_id"], PositionDirection(fact["direction"]))
             before = projections.get(key)
+            if operation_kind == "MARK":
+                occurred_at = datetime.fromisoformat(fact["occurred_at"])
+                if before is None or before.identity_id != fact["before_identity"]:
+                    self._latch_inconsistency(
+                        "position-mark",
+                        "POSITION_MARK_PROJECTION_BEFORE_DIVERGENCE",
+                        occurred_at,
+                    )
+                    return
+                direction = PositionDirection(fact["direction"])
+                price = Decimal(fact["price"])
+                spec = self.trading_state.contract_spec(fact["concrete_contract_id"])
+                if spec is None:
+                    self._latch_inconsistency(
+                        "position-mark",
+                        "POSITION_MARK_ECONOMICS_UNPROVABLE",
+                        occurred_at,
+                    )
+                    return
+                unrealized = (
+                    (price - before.average_open_price)
+                    if direction is PositionDirection.LONG
+                    else (before.average_open_price - price)
+                ) * spec.contract_multiplier * before.quantity
+                after = PositionState(
+                    concrete_contract_id=before.concrete_contract_id,
+                    direction=before.direction,
+                    quantity=before.quantity,
+                    average_open_price=before.average_open_price,
+                    reserved_margin=before.reserved_margin,
+                    realized_pnl=before.realized_pnl,
+                    unrealized_pnl=unrealized,
+                    last_mark_price=price,
+                    updated_at=occurred_at,
+                )
+                if (
+                    after.identity_id != fact["after_identity"]
+                    or position_mark_transition_identity(before, after)
+                    != fact["event_id"]
+                ):
+                    self._latch_inconsistency(
+                        "position-mark",
+                        "POSITION_MARK_PROJECTION_AFTER_DIVERGENCE",
+                        occurred_at,
+                    )
+                    return
+                projections[key] = after
+                last_economic_update = occurred_at
+                continue
             quantity = Decimal("0") if before is None else before.quantity
             average = Decimal("0") if before is None else before.average_open_price
             realized = Decimal("0") if before is None else before.realized_pnl

@@ -27,7 +27,7 @@ from decimal import Decimal
 from enum import Enum
 from hashlib import sha256
 import json
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from src.contract_semantics import ContractSpecification, OrderAction, PositionDirection
 from src.runtime_events import (
@@ -232,6 +232,25 @@ class PositionState:
         )
 
 
+def position_mark_transition_identity(
+    before: PositionState,
+    after: PositionState,
+) -> str:
+    """Stable identity for one MARK transition across persistence seams."""
+    if not isinstance(before, PositionState) or not isinstance(after, PositionState):
+        raise TypeError("position mark transition requires PositionState values")
+    return _canonical_hash(
+        {
+            "kind": "MARK",
+            "contract": after.concrete_contract_id,
+            "direction": after.direction.value,
+            "price": str(after.last_mark_price),
+            "before": before.identity_id,
+            "after": after.identity_id,
+        }
+    )
+
+
 @dataclass(frozen=True)
 class RuntimeOrderState:
     """Broker-confirmed order facts mirrored inside TradingState."""
@@ -407,6 +426,10 @@ class TradingState:
         self._last_account_snapshot: tuple[tuple[str, str], ...] | None = None
         self._last_position_snapshots: tuple[tuple[tuple[str, str], ...], ...] = ()
         self._last_order_snapshots: tuple[tuple[tuple[str, str], ...], ...] = ()
+        self._position_mark_journal_scope: str | None = None
+        self._position_mark_persister: Callable[
+            [PositionState, PositionState, str, tuple[tuple[str, str], ...]], None
+        ] | None = None
 
     # -- read-only views ------------------------------------------------------
 
@@ -471,6 +494,27 @@ class TradingState:
 
     def runtime_ledger_chain_valid(self) -> bool:
         return self._ledger.verify_chain()
+
+    def bind_position_mark_persister(
+        self,
+        *,
+        journal_scope: str,
+        persister: Callable[
+            [PositionState, PositionState, str, tuple[tuple[str, str], ...]], None
+        ],
+    ) -> None:
+        """Bind journal durability before future in-memory MARK mutations."""
+        if not isinstance(journal_scope, str) or not journal_scope.strip():
+            raise ValueError("position mark journal scope must be non-empty")
+        if not callable(persister):
+            raise TypeError("position mark persister must be callable")
+        if (
+            self._position_mark_journal_scope is not None
+            and self._position_mark_journal_scope != journal_scope
+        ):
+            raise ValueError("position mark journal scope cannot change in-place")
+        self._position_mark_journal_scope = journal_scope
+        self._position_mark_persister = persister
 
     @property
     def runtime_ledger_next_sequence(self) -> int:
@@ -1215,29 +1259,33 @@ class TradingState:
             last_mark_price=price,
             updated_at=observed_at,
         )
+        transition_ref = position_mark_transition_identity(before, after)
+        payload_values: dict[str, object] = {
+            "kind": "MARK",
+            "concrete_contract_id": concrete_contract_id,
+            "direction": direction.value,
+            "price": str(price),
+            "before_identity": before.identity_id,
+            "after_identity": after.identity_id,
+        }
+        if self._position_mark_journal_scope is not None:
+            payload_values["journal_scope"] = self._position_mark_journal_scope
+        payload = ledger_pairs(**payload_values)
+        if after == before:
+            return before
+        if self._position_mark_persister is not None:
+            self._position_mark_persister(
+                before,
+                after,
+                transition_ref,
+                payload,
+            )
         self._positions[key] = after
         self._refresh_account(observed_at)
-        transition_ref = _canonical_hash(
-            {
-                "kind": "MARK",
-                "contract": concrete_contract_id,
-                "direction": direction.value,
-                "price": str(price),
-                "before": before.identity_id,
-                "after": after.identity_id,
-            }
-        )
         self._ledger.append(
             RuntimeLedgerRecordKind.POSITION_TRANSITION,
             transition_ref,
-            ledger_pairs(
-                kind="MARK",
-                concrete_contract_id=concrete_contract_id,
-                direction=direction.value,
-                price=str(price),
-                before_identity=before.identity_id,
-                after_identity=after.identity_id,
-            ),
+            payload,
             observed_at,
         )
         return after

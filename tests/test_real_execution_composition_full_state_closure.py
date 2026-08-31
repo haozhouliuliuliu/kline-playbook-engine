@@ -13,8 +13,16 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from src.contract_semantics import PositionDirection
-from src.fangzheng_ctp_candidate import FangzhengCtpBrokerAdapter
-from src.fangzheng_ctp_fake import FakeCtpOperation, FakeCtpStep, ScriptedCtpTransport
+from src.fangzheng_ctp_candidate import (
+    CtpCallbackType,
+    CtpTradeFill,
+    FangzhengCtpBrokerAdapter,
+)
+from src.fangzheng_ctp_fake import (
+    FakeCtpOperation,
+    FakeCtpStep,
+    ScriptedCtpTransport,
+)
 from src.real_execution_composition import (
     REAL_JOURNAL_START_CHECKPOINT_SCHEMA_VERSION,
     RealExecutionComposition,
@@ -26,7 +34,7 @@ from src.runtime_ledger import (
     ledger_pairs,
 )
 from tests.test_fangzheng_ctp_candidate import CONTRACT
-from tests.test_fangzheng_ctp_fake import establish_ready
+from tests.test_fangzheng_ctp_fake import callback, establish_ready
 from tests.runtime_synthetic_fixture import make_accounting, make_contract_spec
 from tests.test_real_execution_composition import (
     NOW,
@@ -42,7 +50,146 @@ from tests.test_real_execution_composition_restart_state import (
 )
 
 
+def _create_carried_mark_fill_sequence(
+    path: Path,
+    *,
+    session_identity: str,
+    mark_before_fill: Decimal | None,
+    mark_after_fill: Decimal | None,
+):
+    state = _runtime_state_with_order(fills=((Decimal("2"), Decimal("3500")),))
+    transport = ScriptedCtpTransport(
+        _ready_query_steps()
+        + (
+            FakeCtpStep(
+                FakeCtpOperation.SUBMIT,
+                expected_project_order_id="close-order-1",
+            ),
+        )
+    )
+    adapter = FangzhengCtpBrokerAdapter(transport, _close_profile())
+    establish_ready(adapter)
+    composition = RealExecutionComposition(
+        path=path,
+        adapter=adapter,
+        trading_state=state,
+        expected_trading_day=TRADING_DAY,
+        session_identity=session_identity,
+    )
+    composition.submit_order(_close_instruction(), submitted_at=NOW)
+    if mark_before_fill is not None:
+        state.mark_position(
+            CONTRACT, PositionDirection.LONG, mark_before_fill, NOW
+        )
+    transport.inject_callbacks((callback(
+        "close-fill",
+        CtpCallbackType.TRADE_FILLED,
+        CtpTradeFill(
+            "close-order-1",
+            "close-request-1",
+            "broker-close-1",
+            "trade-close-1",
+            Decimal("1"),
+            Decimal("3600"),
+        ),
+        trading_day=TRADING_DAY,
+    ),))
+    composition.consume_adapter_events()
+    if mark_after_fill is not None:
+        state.mark_position(
+            CONTRACT, PositionDirection.LONG, mark_after_fill, NOW
+        )
+    return state
+
+
 class JournalInitializationClosureTests(unittest.TestCase):
+    def test_partial_known_table_schema_repeated_reopen_is_non_mutating(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "partial-known-schema.sqlite3"
+            with closing(sqlite3.connect(path)) as connection, connection:
+                connection.execute(
+                    "CREATE TABLE real_execution_meta(key TEXT PRIMARY KEY)"
+                )
+            for _ in range(2):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "REAL_EXECUTION_COMPOSITION_BINDING_MISMATCH:table_schema",
+                ):
+                    RealExecutionComposition(
+                        path=path,
+                        adapter=FangzhengCtpBrokerAdapter(
+                            ScriptedCtpTransport(()), _close_profile()
+                        ),
+                        trading_state=_trading_state(),
+                        expected_trading_day=TRADING_DAY,
+                        session_identity="session-partial-known-schema",
+                    )
+                with closing(sqlite3.connect(path)) as connection:
+                    tables = {
+                        row[0]
+                        for row in connection.execute(
+                            "SELECT name FROM sqlite_master WHERE type='table'"
+                        ).fetchall()
+                    }
+                    self.assertEqual(tables, {"real_execution_meta"})
+
+    def test_tampered_pristine_v03_checkpoint_is_not_resigned_during_upgrade(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tampered-pristine-v03.sqlite3"
+            state = _trading_state()
+            RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=state,
+                expected_trading_day=TRADING_DAY,
+                session_identity="session-tampered-pristine-v03",
+            )
+            with closing(sqlite3.connect(path)) as connection, connection:
+                row = connection.execute(
+                    "SELECT checkpoint_json FROM real_journal_start_checkpoint"
+                ).fetchone()
+                checkpoint = json.loads(row[0])
+                checkpoint["account"]["charged_costs"] = "1"
+                tampered_json = json.dumps(
+                    checkpoint, sort_keys=True, separators=(",", ":")
+                )
+                connection.execute(
+                    "UPDATE real_journal_start_checkpoint SET checkpoint_json=?",
+                    (tampered_json,),
+                )
+                connection.execute("DROP TABLE real_execution_economic_events")
+                connection.execute(
+                    "UPDATE real_execution_meta SET value='KPE_REAL_EXECUTION_COMPOSITION_V0_3' "
+                    "WHERE key='schema_version'"
+                )
+
+            reopened = RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=state,
+                expected_trading_day=TRADING_DAY,
+                session_identity="session-tampered-pristine-v03",
+            )
+
+            self.assertIn("HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers())
+            with closing(sqlite3.connect(path)) as connection:
+                self.assertEqual(
+                    connection.execute(
+                        "SELECT value FROM real_execution_meta WHERE key='schema_version'"
+                    ).fetchone()[0],
+                    "KPE_REAL_EXECUTION_COMPOSITION_V0_3",
+                )
+                self.assertEqual(
+                    connection.execute(
+                        "SELECT checkpoint_json FROM real_journal_start_checkpoint"
+                    ).fetchone()[0],
+                    tampered_json,
+                )
+
     def test_partial_unknown_empty_journal_structure_cannot_initialize(self) -> None:
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "partial-structure.sqlite3"
@@ -264,6 +411,183 @@ class JournalInitializationClosureTests(unittest.TestCase):
 
 
 class EconomicCheckpointClosureTests(unittest.TestCase):
+    def test_mark_persistence_failure_prevents_state_and_ledger_mutation(self) -> None:
+        state = _runtime_state_with_order(
+            fills=((Decimal("2"), Decimal("3500")),)
+        )
+        before_account = state.account
+        before_position = state.position_for(CONTRACT, PositionDirection.LONG)
+        before_records = state.runtime_ledger_records()
+
+        def reject_persistence(*_args) -> None:
+            self.assertEqual(
+                state.position_for(CONTRACT, PositionDirection.LONG),
+                before_position,
+            )
+            self.assertEqual(state.account, before_account)
+            self.assertEqual(state.runtime_ledger_records(), before_records)
+            raise RuntimeError("simulated durable MARK failure")
+
+        state.bind_position_mark_persister(
+            journal_scope="test-mark-durability",
+            persister=reject_persistence,
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "durable MARK failure"):
+            state.mark_position(
+                CONTRACT, PositionDirection.LONG, Decimal("3700"), NOW
+            )
+
+        self.assertEqual(state.account, before_account)
+        self.assertEqual(
+            state.position_for(CONTRACT, PositionDirection.LONG), before_position
+        )
+        self.assertEqual(state.runtime_ledger_records(), before_records)
+
+    def test_current_journal_mark_survives_exact_populated_restart(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "marked-position-restart.sqlite3"
+            session_identity = "session-marked-position-restart"
+            state = _create_carried_partial_close(
+                path, session_identity=session_identity
+            )
+            state.mark_position(
+                CONTRACT,
+                PositionDirection.LONG,
+                Decimal("3700"),
+                NOW + timedelta(seconds=30),
+            )
+
+            reopened = RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=state,
+                expected_trading_day=TRADING_DAY,
+                session_identity=session_identity,
+            )
+
+            self.assertNotIn(
+                "HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers()
+            )
+            self.assertFalse(reopened.new_risk_allowed)
+
+    def test_multiple_current_journal_marks_survive_restart(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "multiple-marks.sqlite3"
+            session_identity = "session-multiple-marks"
+            state = _create_carried_partial_close(
+                path, session_identity=session_identity
+            )
+            state.mark_position(
+                CONTRACT, PositionDirection.LONG, Decimal("3700"), NOW
+            )
+            state.mark_position(
+                CONTRACT,
+                PositionDirection.LONG,
+                Decimal("3650"),
+                NOW + timedelta(seconds=1),
+            )
+
+            reopened = RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=state,
+                expected_trading_day=TRADING_DAY,
+                session_identity=session_identity,
+            )
+
+            self.assertNotIn(
+                "HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers()
+            )
+            self.assertEqual(
+                state.position_for(CONTRACT, PositionDirection.LONG).last_mark_price,
+                Decimal("3650"),
+            )
+
+    def test_mark_fill_order_uses_durable_lineage_not_timestamp(self) -> None:
+        scenarios = (
+            ("mark-before-fill", Decimal("3550"), None, Decimal("3600")),
+            ("mark-fill-mark", Decimal("3550"), Decimal("3700"), Decimal("3700")),
+        )
+        for name, before_mark, after_mark, expected_mark in scenarios:
+            with self.subTest(name=name), TemporaryDirectory() as tmp:
+                path = Path(tmp) / f"{name}.sqlite3"
+                session_identity = f"session-{name}"
+                state = _create_carried_mark_fill_sequence(
+                    path,
+                    session_identity=session_identity,
+                    mark_before_fill=before_mark,
+                    mark_after_fill=after_mark,
+                )
+
+                reopened = RealExecutionComposition(
+                    path=path,
+                    adapter=FangzhengCtpBrokerAdapter(
+                        ScriptedCtpTransport(()), _close_profile()
+                    ),
+                    trading_state=state,
+                    expected_trading_day=TRADING_DAY,
+                    session_identity=session_identity,
+                )
+
+                self.assertNotIn(
+                    "HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers()
+                )
+                self.assertEqual(
+                    state.position_for(
+                        CONTRACT, PositionDirection.LONG
+                    ).last_mark_price,
+                    expected_mark,
+                )
+
+    def test_missing_or_tampered_mark_lineage_fails_closed(self) -> None:
+        for mutation in ("missing-fact", "missing-lineage", "tampered-price"):
+            with self.subTest(mutation=mutation), TemporaryDirectory() as tmp:
+                path = Path(tmp) / f"mark-{mutation}.sqlite3"
+                session_identity = f"session-mark-{mutation}"
+                state = _create_carried_partial_close(
+                    path, session_identity=session_identity
+                )
+                state.mark_position(
+                    CONTRACT, PositionDirection.LONG, Decimal("3700"), NOW
+                )
+                with closing(sqlite3.connect(path)) as connection, connection:
+                    event_id = connection.execute(
+                        "SELECT event_id FROM real_execution_economic_events"
+                    ).fetchone()[0]
+                    if mutation == "missing-fact":
+                        connection.execute(
+                            "DELETE FROM real_execution_economic_events"
+                        )
+                    elif mutation == "missing-lineage":
+                        connection.execute(
+                            "DELETE FROM real_execution_ledger_lineage WHERE event_id=?",
+                            (event_id,),
+                        )
+                    else:
+                        connection.execute(
+                            "UPDATE real_execution_economic_events SET price='3701'"
+                        )
+
+                reopened = RealExecutionComposition(
+                    path=path,
+                    adapter=FangzhengCtpBrokerAdapter(
+                        ScriptedCtpTransport(()), _close_profile()
+                    ),
+                    trading_state=state,
+                    expected_trading_day=TRADING_DAY,
+                    session_identity=session_identity,
+                )
+
+                self.assertIn(
+                    "HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers()
+                )
+                self.assertFalse(reopened.new_risk_allowed)
+
     def test_tampered_position_realized_pnl_fails_closed(self) -> None:
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "position-realized-pnl.sqlite3"
@@ -382,6 +706,68 @@ class EconomicCheckpointClosureTests(unittest.TestCase):
 
 
 class RuntimeLedgerClosureTests(unittest.TestCase):
+    def test_unrelated_valid_record_can_coexist_after_mark(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mark-with-unrelated-record.sqlite3"
+            session_identity = "session-mark-with-unrelated-record"
+            state = _create_carried_partial_close(
+                path, session_identity=session_identity
+            )
+            state.mark_position(
+                CONTRACT, PositionDirection.LONG, Decimal("3700"), NOW
+            )
+            state._ledger.append(
+                RuntimeLedgerRecordKind.SAFETY,
+                "unrelated-after-mark",
+                ledger_pairs(reason="unrelated valid history"),
+                NOW + timedelta(seconds=1),
+            )
+
+            reopened = RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=state,
+                expected_trading_day=TRADING_DAY,
+                session_identity=session_identity,
+            )
+
+            self.assertNotIn(
+                "HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers()
+            )
+            self.assertFalse(reopened.new_risk_allowed)
+
+    def test_duplicate_current_journal_mark_record_fails_closed(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "duplicate-mark-record.sqlite3"
+            session_identity = "session-duplicate-mark-record"
+            state = _create_carried_partial_close(
+                path, session_identity=session_identity
+            )
+            state.mark_position(
+                CONTRACT, PositionDirection.LONG, Decimal("3700"), NOW
+            )
+            duplicate = state.runtime_ledger_records()[-1]
+            state._ledger.append(
+                duplicate.record_kind,
+                duplicate.reference_id,
+                duplicate.payload,
+                duplicate.recorded_at,
+            )
+
+            reopened = RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=state,
+                expected_trading_day=TRADING_DAY,
+                session_identity=session_identity,
+            )
+
+            self.assertIn("HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers())
+
     def test_populated_state_with_replaced_empty_ledger_fails_closed(self) -> None:
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "replaced-ledger.sqlite3"
@@ -519,6 +905,84 @@ class RuntimeLedgerClosureTests(unittest.TestCase):
 
 
 class FreshRehydrationClosureTests(unittest.TestCase):
+    def test_fresh_state_rebuilds_mark_before_any_current_journal_fill(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fresh-carried-mark-only.sqlite3"
+            session_identity = "session-fresh-carried-mark-only"
+            exact_state = _runtime_state_with_order(
+                fills=((Decimal("2"), Decimal("3500")),)
+            )
+            RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=exact_state,
+                expected_trading_day=TRADING_DAY,
+                session_identity=session_identity,
+            )
+            exact_state.mark_position(
+                CONTRACT, PositionDirection.LONG, Decimal("3700"), NOW
+            )
+            expected_account = exact_state.account
+            expected_positions = exact_state.positions
+            fresh_state = _trading_state()
+
+            reopened = RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=fresh_state,
+                expected_trading_day=TRADING_DAY,
+                session_identity=session_identity,
+            )
+
+            self.assertEqual(fresh_state.account, expected_account)
+            self.assertEqual(fresh_state.positions, expected_positions)
+            self.assertNotIn(
+                "HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers()
+            )
+            self.assertFalse(reopened.new_risk_allowed)
+
+    def test_fresh_state_rebuilds_multiple_marks_exactly_and_stays_blocked(self) -> None:
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fresh-mark-rehydration.sqlite3"
+            session_identity = "session-fresh-mark-rehydration"
+            exact_state = _create_carried_partial_close(
+                path, session_identity=session_identity
+            )
+            exact_state.mark_position(
+                CONTRACT, PositionDirection.LONG, Decimal("3700"), NOW
+            )
+            exact_state.mark_position(
+                CONTRACT,
+                PositionDirection.LONG,
+                Decimal("3650"),
+                NOW + timedelta(seconds=1),
+            )
+            expected_account = exact_state.account
+            expected_positions = exact_state.positions
+            fresh_state = _trading_state()
+
+            reopened = RealExecutionComposition(
+                path=path,
+                adapter=FangzhengCtpBrokerAdapter(
+                    ScriptedCtpTransport(()), _close_profile()
+                ),
+                trading_state=fresh_state,
+                expected_trading_day=TRADING_DAY,
+                session_identity=session_identity,
+            )
+
+            self.assertEqual(fresh_state.account, expected_account)
+            self.assertEqual(fresh_state.positions, expected_positions)
+            self.assertTrue(fresh_state.runtime_ledger_chain_valid())
+            self.assertNotIn(
+                "HARD_EXECUTION_INCONSISTENCY", reopened.active_blockers()
+            )
+            self.assertFalse(reopened.new_risk_allowed)
+
     def test_fresh_state_rebuilds_full_carried_economics_and_stays_risk_blocked(self) -> None:
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "fresh-full-rehydration.sqlite3"
