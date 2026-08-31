@@ -27,7 +27,7 @@ from decimal import Decimal
 from enum import Enum
 from hashlib import sha256
 import json
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from src.contract_semantics import ContractSpecification, OrderAction, PositionDirection
 from src.runtime_events import (
@@ -39,7 +39,12 @@ from src.runtime_events import (
     BrokerEventViolationKind,
     event_pairs,
 )
-from src.runtime_ledger import RuntimeLedger, RuntimeLedgerRecordKind, ledger_pairs
+from src.runtime_ledger import (
+    RuntimeLedger,
+    RuntimeLedgerRecord,
+    RuntimeLedgerRecordKind,
+    ledger_pairs,
+)
 
 TRADING_STATE_SCHEMA_VERSION = "shadow-runtime-trading-state-v0.1"
 
@@ -227,6 +232,25 @@ class PositionState:
         )
 
 
+def position_mark_transition_identity(
+    before: PositionState,
+    after: PositionState,
+) -> str:
+    """Stable identity for one MARK transition across persistence seams."""
+    if not isinstance(before, PositionState) or not isinstance(after, PositionState):
+        raise TypeError("position mark transition requires PositionState values")
+    return _canonical_hash(
+        {
+            "kind": "MARK",
+            "contract": after.concrete_contract_id,
+            "direction": after.direction.value,
+            "price": str(after.last_mark_price),
+            "before": before.identity_id,
+            "after": after.identity_id,
+        }
+    )
+
+
 @dataclass(frozen=True)
 class RuntimeOrderState:
     """Broker-confirmed order facts mirrored inside TradingState."""
@@ -402,6 +426,10 @@ class TradingState:
         self._last_account_snapshot: tuple[tuple[str, str], ...] | None = None
         self._last_position_snapshots: tuple[tuple[tuple[str, str], ...], ...] = ()
         self._last_order_snapshots: tuple[tuple[tuple[str, str], ...], ...] = ()
+        self._position_mark_journal_scope: str | None = None
+        self._position_mark_persister: Callable[
+            [PositionState, PositionState, str, tuple[tuple[str, str], ...]], None
+        ] | None = None
 
     # -- read-only views ------------------------------------------------------
 
@@ -416,6 +444,10 @@ class TradingState:
     @property
     def created_at(self) -> datetime:
         return self._created_at
+
+    @property
+    def starting_capital(self) -> Decimal:
+        return self._starting_capital
 
     @property
     def accounting(self) -> RuntimeAccountingAssumptions:
@@ -449,6 +481,101 @@ class TradingState:
 
     def contract_spec(self, concrete_contract_id: str) -> ContractSpecification | None:
         return self._contract_specs.get(concrete_contract_id)
+
+    @property
+    def contract_specifications(self) -> tuple[ContractSpecification, ...]:
+        return tuple(
+            self._contract_specs[key] for key in sorted(self._contract_specs)
+        )
+
+    def runtime_ledger_records(self) -> tuple[RuntimeLedgerRecord, ...]:
+        """Read-only immutable ledger projection for restart-integrity checks."""
+        return self._ledger.records()
+
+    def runtime_ledger_chain_valid(self) -> bool:
+        return self._ledger.verify_chain()
+
+    def bind_position_mark_persister(
+        self,
+        *,
+        journal_scope: str,
+        persister: Callable[
+            [PositionState, PositionState, str, tuple[tuple[str, str], ...]], None
+        ],
+    ) -> None:
+        """Bind journal durability before future in-memory MARK mutations."""
+        if not isinstance(journal_scope, str) or not journal_scope.strip():
+            raise ValueError("position mark journal scope must be non-empty")
+        if not callable(persister):
+            raise TypeError("position mark persister must be callable")
+        if (
+            self._position_mark_journal_scope is not None
+            and self._position_mark_journal_scope != journal_scope
+        ):
+            raise ValueError("position mark journal scope cannot change in-place")
+        self._position_mark_journal_scope = journal_scope
+        self._position_mark_persister = persister
+
+    @property
+    def runtime_ledger_next_sequence(self) -> int:
+        return self._ledger.next_sequence
+
+    @property
+    def runtime_ledger_anchor(self) -> tuple[int, str]:
+        return self._ledger.anchor_sequence, self._ledger.anchor_identity
+
+    def is_genuinely_fresh(self) -> bool:
+        return (
+            not self._positions
+            and not self._orders
+            and not self._applied
+            and not self._violations
+            and self._ledger.count() == 0
+            and self._ledger.anchor_sequence == 0
+            and self._account
+            == AccountState(
+                starting_capital=self._starting_capital,
+                reserved_margin=Decimal("0"),
+                charged_costs=Decimal("0"),
+                realized_pnl=Decimal("0"),
+                unrealized_pnl=Decimal("0"),
+                updated_at=self._created_at,
+            )
+        )
+
+    def restore_journal_start_checkpoint(
+        self,
+        *,
+        account: AccountState,
+        positions: Iterable[PositionState],
+        ledger_anchor_sequence: int,
+        ledger_anchor_identity: str,
+    ) -> None:
+        """Restore a proven journal-start checkpoint into a fresh state only."""
+        if not self.is_genuinely_fresh():
+            raise ValueError("journal checkpoint restore requires genuinely fresh state")
+        if not isinstance(account, AccountState):
+            raise ValueError("journal checkpoint restore requires AccountState")
+        restored_positions = tuple(positions)
+        if any(not isinstance(item, PositionState) for item in restored_positions):
+            raise ValueError("journal checkpoint restore requires PositionState values")
+        position_keys = {
+            (item.concrete_contract_id, item.direction) for item in restored_positions
+        }
+        if len(position_keys) != len(restored_positions):
+            raise ValueError("journal checkpoint positions must have unique identities")
+        if account.starting_capital != self._starting_capital:
+            raise ValueError("journal checkpoint starting capital conflicts with runtime")
+        self._ledger.restore_anchor(
+            sequence=ledger_anchor_sequence,
+            identity=ledger_anchor_identity,
+        )
+        self._account = account
+        self._realized_accumulator = account.realized_pnl
+        self._positions = {
+            (item.concrete_contract_id, item.direction): item
+            for item in restored_positions
+        }
 
     def applied_event_ids(self) -> tuple[str, ...]:
         return tuple(event.event_id for event in self._applied_order)
@@ -673,6 +800,49 @@ class TradingState:
         quantity = _payload_decimal(event.payload, PAYLOAD_QUANTITY)
         if quantity <= 0:
             raise ValueError("ORDER_SUBMITTED requires positive quantity")
+        existing = self._orders.get(event.order_id)
+        if existing is not None:
+            if (
+                existing.client_request_id != event.client_request_id
+                or existing.concrete_contract_id != contract
+                or existing.direction is not direction
+                or existing.action is not action
+                or existing.requested_quantity != quantity
+            ):
+                raise ValueError("ORDER_SUBMITTED acknowledgement conflicts with existing order")
+            acknowledged_status = OrderStatus(
+                _payload_value(event.payload, "lifecycle_status") or OrderStatus.LIVE.value
+            )
+            status = (
+                existing.status
+                if existing.status in {OrderStatus.PARTIALLY_FILLED, OrderStatus.FILLED}
+                else acknowledged_status
+            )
+            self._orders[event.order_id] = RuntimeOrderState(
+                order_id=existing.order_id,
+                client_request_id=existing.client_request_id,
+                concrete_contract_id=existing.concrete_contract_id,
+                direction=existing.direction,
+                action=existing.action,
+                status=status,
+                requested_quantity=existing.requested_quantity,
+                filled_quantity=existing.filled_quantity,
+                average_fill_price=existing.average_fill_price,
+                last_event_id=event.event_id,
+                updated_at=event.occurred_at,
+            )
+            return [
+                self._ledger.append(
+                    RuntimeLedgerRecordKind.ORDER,
+                    event.order_id,
+                    ledger_pairs(
+                        order_id=event.order_id,
+                        client_request_id=event.client_request_id,
+                        status=status.value,
+                    ),
+                    event.occurred_at,
+                ).identity_id
+            ]
         self._orders[event.order_id] = RuntimeOrderState(
             order_id=event.order_id,
             client_request_id=event.client_request_id,
@@ -1089,29 +1259,33 @@ class TradingState:
             last_mark_price=price,
             updated_at=observed_at,
         )
+        transition_ref = position_mark_transition_identity(before, after)
+        payload_values: dict[str, object] = {
+            "kind": "MARK",
+            "concrete_contract_id": concrete_contract_id,
+            "direction": direction.value,
+            "price": str(price),
+            "before_identity": before.identity_id,
+            "after_identity": after.identity_id,
+        }
+        if self._position_mark_journal_scope is not None:
+            payload_values["journal_scope"] = self._position_mark_journal_scope
+        payload = ledger_pairs(**payload_values)
+        if after == before:
+            return before
+        if self._position_mark_persister is not None:
+            self._position_mark_persister(
+                before,
+                after,
+                transition_ref,
+                payload,
+            )
         self._positions[key] = after
         self._refresh_account(observed_at)
-        transition_ref = _canonical_hash(
-            {
-                "kind": "MARK",
-                "contract": concrete_contract_id,
-                "direction": direction.value,
-                "price": str(price),
-                "before": before.identity_id,
-                "after": after.identity_id,
-            }
-        )
         self._ledger.append(
             RuntimeLedgerRecordKind.POSITION_TRANSITION,
             transition_ref,
-            ledger_pairs(
-                kind="MARK",
-                concrete_contract_id=concrete_contract_id,
-                direction=direction.value,
-                price=str(price),
-                before_identity=before.identity_id,
-                after_identity=after.identity_id,
-            ),
+            payload,
             observed_at,
         )
         return after

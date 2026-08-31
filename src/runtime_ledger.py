@@ -122,6 +122,8 @@ class RuntimeLedger:
 
     def __init__(self) -> None:
         self._records: list[RuntimeLedgerRecord] = []
+        self._anchor_sequence = 0
+        self._anchor_identity = GENESIS_IDENTITY
         self._tail_identity = GENESIS_IDENTITY
 
     @property
@@ -132,6 +134,41 @@ class RuntimeLedger:
     def schema_version(self) -> str:
         return RUNTIME_LEDGER_SCHEMA_VERSION
 
+    @property
+    def anchor_sequence(self) -> int:
+        return self._anchor_sequence
+
+    @property
+    def anchor_identity(self) -> str:
+        return self._anchor_identity
+
+    @property
+    def next_sequence(self) -> int:
+        return self._anchor_sequence + len(self._records)
+
+    def restore_anchor(self, *, sequence: int, identity: str) -> None:
+        """Restore an empty ledger to a durably verified chain anchor.
+
+        The caller owns verification of the checkpoint that supplied the anchor.
+        Existing records can never be discarded or replaced through this seam.
+        """
+        if self._records or self._tail_identity != GENESIS_IDENTITY:
+            raise ValueError("runtime ledger anchor restore requires a fresh empty ledger")
+        if type(sequence) is not int or sequence < 0:
+            raise ValueError("runtime ledger anchor sequence must be non-negative")
+        if sequence == 0:
+            if identity != GENESIS_IDENTITY:
+                raise ValueError("runtime ledger genesis anchor identity is invalid")
+        elif (
+            not isinstance(identity, str)
+            or len(identity) != 64
+            or any(character not in "0123456789abcdef" for character in identity)
+        ):
+            raise ValueError("runtime ledger anchor identity must be a sha256 digest")
+        self._anchor_sequence = sequence
+        self._anchor_identity = identity
+        self._tail_identity = identity
+
     def append(
         self,
         record_kind: RuntimeLedgerRecordKind,
@@ -141,7 +178,7 @@ class RuntimeLedger:
     ) -> RuntimeLedgerRecord:
         """Append one immutable record; returns it and advances the chain."""
         record = RuntimeLedgerRecord(
-            sequence=len(self._records),
+            sequence=self.next_sequence,
             record_kind=record_kind,
             recorded_at=recorded_at,
             reference_id=reference_id,
@@ -166,8 +203,8 @@ class RuntimeLedger:
         A dropped, reordered or mutated record breaks the chain. Rejecting on a
         broken chain (rather than repairing) is the fail-closed behavior.
         """
-        previous = GENESIS_IDENTITY
-        for index, record in enumerate(self._records):
+        previous = self._anchor_identity
+        for index, record in enumerate(self._records, start=self._anchor_sequence):
             if record.sequence != index:
                 return False
             if record.previous_identity != previous:

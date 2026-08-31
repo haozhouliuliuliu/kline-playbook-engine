@@ -2,7 +2,7 @@
 
 `DYNAMIC_STATE_OWNER = CURRENT_STATE.md`
 
-As of: `2026-08-29`
+As of: `2026-08-31`
 
 This file is the single canonical owner for volatile project state: current activity, work package, phase, locks, execution hold state and next task.
 
@@ -87,6 +87,38 @@ Final closure evidence:
 The outcome-independent PAPER prebuild has completed the Owner-required feature freeze, independent project-brain consolidated audit, bounded repair, project-brain revalidation, integration merge and exact-main CI. The final accepted runtime includes causal realtime 1-minute substrate and governed 5-minute cognition wakes, durable wake/order state, broker/account truth and reconciliation, deterministic risk/OMS integration, authority and activation gates, restart/reconnect handling, UNKNOWN fail-closed order recovery, protective conditional-order infrastructure, explicit SHFE/INE close-child execution infrastructure, local runtime configuration/preflight/controller surfaces and deterministic offline activation rehearsal.
 
 Acceptance is limited to the offline/login-ready engineering boundary. It is not evidence that the trader is profitable, that historical research is complete, or that an external PAPER account may now be used.
+
+## OFFLINE REAL prebuild final closure
+
+Final acceptance evidence:
+
+`docs/evidence/OFFLINE_REAL_PREBUILD_FINAL_ACCEPTANCE_2026-08-31.md`
+
+`OFFLINE_REAL_PREBUILD_STATUS = COMPLETE__PROJECT_BRAIN_FINAL_ACCEPTED`
+
+`OFFLINE_REAL_PREBUILD_MODE = OFFLINE_ONLY`
+
+`OFFLINE_REAL_PREBUILD_INTEGRATION_PR = 74__READY_FOR_MAIN_MERGE`
+
+`OFFLINE_REAL_PREBUILD_INTEGRATION_BRANCH = integration/offline-real-prebuild-v01-20260829`
+
+`OFFLINE_REAL_PREBUILD_FINAL_REPAIR_PR = 82__MERGED_TO_INTEGRATION`
+
+`OFFLINE_REAL_PREBUILD_FINAL_REPAIR_HEAD = 70e2feed29b2935d668c8cb77eda74938fbf0c75`
+
+`OFFLINE_REAL_PREBUILD_FINAL_REPAIR_CI = PASS__REPOSITORY_CI_RUN_230__LINUX_1219_TESTS_12_SKIPS__WINDOWS_PROTOTYPE_PAPER_AND_NATIVE_PASS`
+
+`OFFLINE_REAL_PREBUILD_ACCEPTED_CODE_HEAD = 56e5b72b523fb55ce7c286843a38e7e6a3bdb0a1`
+
+`OFFLINE_REAL_PREBUILD_ACCEPTED_CODE_MERGE_TREE_CI = PASS__REPOSITORY_CI_RUN_231__LINUX_1219_TESTS_12_SKIPS__WINDOWS_PROTOTYPE_PAPER_AND_NATIVE_PASS`
+
+`OFFLINE_REAL_PREBUILD_MATERIAL_FINDINGS = CLOSED__FINAL_CODEX_SELF_AUDIT_3_PASSES__PROJECT_BRAIN_FINAL_SPOT_CHECK_NO_MATERIAL_FINDING`
+
+`OFFLINE_REAL_PREBUILD_FINAL_ACCEPTANCE = ACCEPTED__OUTCOME_INDEPENDENT_OFFLINE_ENGINEERING_BOUNDARY_ONLY`
+
+The accepted package includes offline deterministic foundations for the future REAL execution chain: Fangzheng/CTP candidate adapter seams, project/broker order identity separation, broker-truth reconciliation/recovery, REAL authority/preflight/controller/supervisor surfaces, deterministic REAL risk/safety, realtime provider attempt governance, current contract-facts and capital-adequacy primitives, durable execution journal/restart state, carried-position and full-economic checkpointing, RuntimeLedger continuity, and deterministic FILL/MARK replay. It remains an offline engineering foundation only.
+
+This closure does not adopt a live Fangzheng/CTP runtime, authorize broker/account connection or mutation, authorize external PAPER/REAL orders, establish profitability or capital sufficiency, approve a final RB contract, approve permanent numeric risk rules, authorize paid provider execution, or change the frozen V0.1 research sequence.
 
 ## External PAPER / consequential-action locks
 
@@ -173,4 +205,4 @@ After `CURRENT_STATE.md` is reached through that canonical sequence, the current
 
 If the Owner authorizes full V0.1 spend, immediately refresh current `main`, `CURRENT_STATE.md`, `TOOL_REGISTRY.md`, the new exact Owner execution authority and the fresh machine-readable authority before any provider call.
 
-Do not infer a paid execution permission from technical readiness, local credentials, prior smoke authority, PAPER prebuild acceptance, or chat history.
+Do not infer a paid execution permission from technical readiness, local credentials, prior smoke authority, PAPER prebuild acceptance, offline REAL-prebuild acceptance, or chat history.
