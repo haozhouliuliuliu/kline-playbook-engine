@@ -1,51 +1,56 @@
-# kline-playbook-engine
+# K 线交易研究与执行引擎
 
-A single-purpose China-futures AI-trader project.
+这是一个围绕中国期货市场构建的 AI 交易研究项目。目标不是让模型直接控制账户，而是把行情观察、交易判断、风险检查、订单状态和运行记录拆开管理，让每一步都能检查和追溯。
 
-## Start here
+## 项目在做什么
 
-For current project facts, do **not** infer status from this README.
+- 按时间顺序处理行情，避免把未来数据带进当前判断。
+- 将交易知识、模型假设和经过验证的规则分开保存。
+- 让模型负责市场解读和交易意图，系统代码负责数据检查、风险限制、订单流程和账户状态核对。
+- 记录模型请求、决策状态、运行过程和关键证据，便于复盘问题。
+- 为历史回放、实时模拟和后续执行流程准备可重复验证的工程基础。
 
-Read:
+## 系统思路
 
-1. `00_READ_FIRST.md`
-2. follow its canonical takeover order
+```text
+行情数据
+  -> 时间与数据检查
+  -> 多周期市场信息
+  -> 交易知识和持久记忆
+  -> 模型给出交易判断
+  -> 结果格式与状态检查
+  -> 风险控制
+  -> 订单流程与状态核对
+  -> 运行记录和审计证据
+```
 
-The current work package, phase, locks and next task live only in:
+模型负责判断，不负责自行修改风险规则，也不能绕过系统直接决定账户或订单操作。
 
-`CURRENT_STATE.md`
+## 代码与文档从哪里看
 
-## Project shape
+本项目对治理、架构、工具、研究方向和当前状态分别维护文档，避免把当前进度写死在介绍页中：
 
-The project builds a persistent, auditable DeepSeek-based futures trader grounded initially in Jianghe's documented trading knowledge.
+- `00_READ_FIRST.md`：阅读入口。
+- `ARCHITECTURE_BASELINE.md`：系统架构。
+- `PROJECT_DIRECTION.md`：产品与研究方向。
+- `TOOL_REGISTRY.md`：工具、模型和运行环境的状态。
+- `CURRENT_STATE.md`：当前工作阶段、限制和下一步。
+- `docs/`：研究决定、测试证据和工程记录。
 
-Core principles include:
+## 本地验证
 
-- chronological/causal market observation;
-- project-owned persistent memory and audit;
-- source truth separated from model hypotheses and validated policy;
-- deterministic risk/OMS/reconciliation/safety outside model discretion;
-- governed evidence before promotion;
-- exact Owner authority for paid or consequential external actions.
+建议使用 Python 虚拟环境，并先安装项目要求的依赖。常用测试命令：
 
-## Canonical owners
+```bash
+python -m unittest discover -s tests
+```
 
-- governance: `PROJECT_GOVERNANCE.md`
-- worker/repository procedure: `AGENTS.md`
-- architecture: `ARCHITECTURE_BASELINE.md`
-- tools/providers/pins/credential seams: `TOOL_REGISTRY.md`
-- product/research direction: `PROJECT_DIRECTION.md`
-- current dynamic state: `CURRENT_STATE.md`
-- known limitations/tech debt: `KNOWN_LIMITATIONS_AND_TECH_DEBT.md`
+具体测试范围、依赖和运行条件以仓库中的当前配置及开发文档为准。
 
-## Historical data authority
+## 当前边界
 
-`docs/evidence/CANONICAL_DATASET_ACCEPTANCE.md`
+这个项目的工程完成度、交易判断质量和盈利能力是不同问题，不能混为一谈。通过离线测试不代表已经证明策略盈利，也不代表可以连接真实账户或执行真实订单。
 
-## Verification
-
-Typical broad regression command:
-
-`python -m unittest discover -s tests`
-
-See `AGENTS.md` and repository workflows for current verification procedure.
+- 不要将本地密钥、账户信息或未脱敏的数据提交到仓库。
+- 外部账户连接、付费模型调用和真实交易需要独立授权。
+- 研究结论应以可复核的运行证据为准，而不是以 README 中的描述为准。
