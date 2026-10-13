@@ -199,6 +199,19 @@ Formal sequence remains:
 
 The completed PAPER prebuild only reduces later engineering lead time. It does not skip any research or execution-authority gate.
 
+## Repository visibility / public-release scope
+
+`REPOSITORY_VISIBILITY = PUBLIC`
+
+`PUBLIC_RELEASE_SCOPE_AUTHORITY = docs/reviews/PUBLIC_RELEASE_SCOPE_OWNER_DECISION_2026-10-13.md`
+
+That decision owns public-release scope only: the capital-amount and author-email
+retention decisions, what the public release does and does not assert, and the scope
+of the pre-release audit. It is a **retention decision, not an open issue**.
+
+It does not change research semantics, execution authority, locks or the next task,
+and it authorizes no paid/provider, paper, broker/account or real-money action.
+
 ## Continuity rule for the next conversation
 
 A fresh conversation must first read `00_READ_FIRST.md` from the then-current GitHub `main` and follow its fresh-conversation takeover order exactly.
