@@ -87,7 +87,7 @@ Default paid historical research priority after the current V0.1 closes remains:
 
 AU/AG/AL/NI are not default paid follow-up products. Adding them requires a material unanswered generalization question and appropriate authority.
 
-RB is a possible first real-money candidate under an approximately RMB 100,000 capital envelope because of one-lot granularity considerations. This is not a finding that RB is the most profitable or most stable product.
+RB is a possible first real-money candidate under a fixed, modest capital envelope because of one-lot granularity considerations. This is not a finding that RB is the most profitable or most stable product.
 
 ## 8. Real-time execution direction
 
@@ -117,7 +117,7 @@ Promotion requires enough evidence across ingestion, session transitions, restar
 
 Future candidate only; not an authorization:
 
-- capital envelope approximately RMB 100,000;
+- the capital envelope is fixed and modest;
 - RB candidate;
 - maximum 1 lot candidate;
 - no automatic add-on or product expansion;
@@ -126,7 +126,7 @@ Future candidate only; not an authorization:
 - explicit kill switch/fail-closed handling;
 - formal capital-adequacy/minimum-viable-capital analysis before activation.
 
-RMB 100,000 is not a risk budget. Permanent numeric risk rules remain an Owner decision.
+The capital envelope is not a risk budget. Permanent numeric risk rules remain an Owner decision.
 
 ## 11. Promotion evidence semantics
 

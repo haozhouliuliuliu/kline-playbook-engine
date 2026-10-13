@@ -247,7 +247,7 @@ The service does not set permanent risk limits; it informs the Owner decision.
 Future candidate only:
 
 ```text
-ACCOUNT_CAPITAL_ENVELOPE ~= RMB 100,000
+ACCOUNT_CAPITAL_ENVELOPE ~= FIXED_MODEST
 PRODUCT = RB
 MAX_POSITION = 1 LOT
 NO_AUTOMATIC_ADD_ON

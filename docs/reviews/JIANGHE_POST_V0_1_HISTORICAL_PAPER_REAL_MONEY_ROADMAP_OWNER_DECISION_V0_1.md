@@ -19,7 +19,7 @@ CURRENT V0.1 CLOSURE
 -> CU/RB focused comparative analysis
 -> conditional RB regime supplementation only if evidence gaps remain
 -> REAL-TIME PAPER EXECUTION
--> constrained RMB ~100,000 account / RB / max 1 lot real-money candidate
+-> constrained modest account / RB / max 1 lot real-money candidate
 -> evidence-governed later widening, if separately approved
 ```
 
@@ -161,7 +161,7 @@ The review must distinguish:
 - `GENERALIZATION_EVIDENCE`;
 - `EVIDENCE_GAPS`.
 
-The comparison must not declare RB the best or most profitable product merely because RB is the likely first real-money candidate under an approximately RMB 100,000 capital envelope.
+The comparison must not declare RB the best or most profitable product merely because RB is the likely first real-money candidate under a fixed, modest capital envelope.
 
 ## 6. Conditional RB regime supplementation
 
@@ -324,14 +324,14 @@ Current `shadow` lock remains in force until a future execution work package exp
 The first real-money candidate, **subject to future explicit Owner authority**, is:
 
 ```text
-CAPITAL_ENVELOPE ~= RMB 100,000
+CAPITAL_ENVELOPE ~= FIXED_MODEST
 PRODUCT = RB
 MAX_POSITION = 1 LOT
 ```
 
 This means:
 
-- approximately RMB 100,000 is the account/capital envelope, **not** a risk allowance;
+- the account/capital envelope is fixed and modest, **not** a risk allowance;
 - RB only;
 - maximum one lot;
 - no automatic product expansion;
@@ -364,7 +364,7 @@ and:
 - observed and stress drawdown behavior;
 - overnight/session-gap exposure where applicable;
 - operational reserve/headroom;
-- one-lot risk as a fraction of the RMB 100,000 capital envelope.
+- one-lot risk as a fraction of the capital envelope.
 
 `MINIMUM_VIABLE_CAPITAL` is the capital level at which the smallest tradable unit can satisfy the separately approved risk constraints with adequate operational/margin headroom.
 
@@ -493,7 +493,7 @@ This roadmap does not authorize:
 - shadow execution;
 - broker actions;
 - real money;
-- RMB 100,000 funding;
+- fixed modest funding;
 - any permanent numeric risk parameter.
 
 ## 19. Exact current next task

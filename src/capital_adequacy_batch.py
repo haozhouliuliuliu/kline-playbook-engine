@@ -29,8 +29,8 @@ observation or constraint as exchange/broker truth.
 
 Permanent-risk boundary: this module chooses NO permanent numeric risk value.
 Every capital envelope, fee/margin/slippage fact, stress scenario and approved
-constraint is an explicit input.  No production default capital (e.g. RMB
-100,000), no RB contract/month, no risk percentage, no reserve, no fee
+constraint is an explicit input.  No production default capital (e.g. a fixed
+modest amount), no RB contract/month, no risk percentage, no reserve, no fee
 schedule, no slippage tick count and no stress gap live here.
 
 If quantiles are computed, the exact algorithm is frozen here and in the tests

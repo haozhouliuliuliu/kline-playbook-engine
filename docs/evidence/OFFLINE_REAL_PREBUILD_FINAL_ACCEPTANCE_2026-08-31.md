@@ -103,7 +103,7 @@ This acceptance does **not** mean:
 - paid DeepSeek/provider execution is authorized;
 - real money is authorized;
 - the trader is profitable;
-- approximately RMB 100,000 is sufficient capital;
+- a fixed, modest account is sufficient capital;
 - RB is finally approved for REAL execution;
 - any permanent per-trade/daily/drawdown/margin/position rule is approved;
 - the frozen V0.1 research sequence may be skipped or changed.

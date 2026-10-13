@@ -3,7 +3,7 @@
 This module owns the *policy* side of the REAL risk/safety primitives: an
 explicit, versioned set of risk-policy bindings that a future real-risk
 authority may BOUND. Every permanent value is UNBOUND by default and no value is
-derived from any capital envelope (including any ~RMB 100,000 reference). A
+derived from any capital envelope. A
 binding is only ``BOUND`` when an explicit value was supplied by authority.
 
 This is a pure, deterministic, offline decision-input schema. It performs no

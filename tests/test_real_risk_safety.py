@@ -41,7 +41,7 @@ PRODUCT = "RB"
 CONTRACT = "SHFE.rb2510"
 
 # FIXTURE-ONLY money/quantity values; NOT permanent risk limits and NOT derived
-# from any capital envelope (including any ~RMB 100,000 reference).
+# from any capital envelope.
 FIXTURE_MAX_POSITION = Decimal("10")
 FIXTURE_PER_TRADE_RISK = Decimal("5000")
 FIXTURE_DAILY_LOSS = Decimal("20000")
